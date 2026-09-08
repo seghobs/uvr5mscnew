@@ -1,4 +1,4 @@
-import { AvailableModels, ModelStatus, SeparationParams, TaskStatus, SearchResult, EnsembleSlot, LyricSegment, LyricsResponse } from './types';
+import { AvailableModels, ModelStatus, SeparationParams, TaskStatus, SearchResult, EnsembleSlot, LyricSegment, LyricsResponse, RestoreAudioParams, RestoreAudioResponse } from './types';
 
 async function safeFetch(path: string, options?: RequestInit): Promise<Response> {
   const isBrowser = typeof window !== 'undefined';
@@ -322,16 +322,19 @@ export const api = {
     return res.json();
   },
 
-  async generateKaraokeVideo(payload: {
-    inst_file: string;
-    segments: Array<{ start: number; end: number; text: string }>;
-    title?: string;
-    artist?: string;
-    header_text?: string;
-    show_header?: boolean;
-    aspect_ratio?: '16:9' | '9:16';
-    theme?: 'gold' | 'neon' | 'cyberpunk' | 'emerald';
-  }): Promise<{ status: string; video_file: string; download_url: string }> {
+  async generateKaraokeVideo(
+    payload: {
+      inst_file: string;
+      segments: Array<{ start: number; end: number; text: string; words?: any[] }>;
+      title?: string;
+      artist?: string;
+      header_text?: string;
+      show_header?: boolean;
+      aspect_ratio?: '16:9' | '9:16';
+      theme?: 'gold' | 'neon' | 'cyberpunk' | 'emerald';
+    },
+    onProgress?: (message: string, progress: number) => void
+  ): Promise<{ status: string; video_file: string; download_url: string }> {
     const res = await safeFetch('/generate_karaoke_video', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -341,7 +344,38 @@ export const api = {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || err.message || 'Karaoke video generation failed');
     }
-    return res.json();
+    const data = await res.json();
+    if (data.download_url) {
+      return data;
+    }
+
+    if (data.task_id) {
+      const taskId = data.task_id;
+      const maxAttempts = 300; // 5 minutes max
+      for (let i = 0; i < maxAttempts; i++) {
+        await new Promise((r) => setTimeout(r, 800));
+        const statusRes = await safeFetch(`/status/${taskId}`);
+        if (statusRes.ok) {
+          const taskData = await statusRes.json();
+          if (onProgress && taskData.message) {
+            onProgress(taskData.message, taskData.progress || 0);
+          }
+          if (taskData.status === 'completed') {
+            return {
+              status: 'success',
+              video_file: taskData.video_file || '',
+              download_url: taskData.download_url || `/output/${taskData.video_file}`,
+            };
+          }
+          if (taskData.status === 'failed') {
+            throw new Error(taskData.error || taskData.message || 'Video render failed');
+          }
+        }
+      }
+      throw new Error('Video render timed out');
+    }
+
+    return data;
   },
 
   async clearKaraokeData(): Promise<{
@@ -396,6 +430,70 @@ export const api = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || err.message || 'Whisper download failed');
+    }
+    return res.json();
+  },
+
+  async restoreAudio(
+    params: RestoreAudioParams,
+    onProgress?: (message: string, progress: number) => void
+  ): Promise<RestoreAudioResponse> {
+    const res = await safeFetch('/restore_audio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Restorasyon başlatılamadı');
+    }
+    const data = await res.json();
+    if (!data.task_id) {
+      return data;
+    }
+
+    const taskId = data.task_id;
+    const maxAttempts = 600; // 10 minutes max
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise((r) => setTimeout(r, 1000));
+      const statusRes = await safeFetch(`/status/${taskId}`);
+      if (statusRes.ok) {
+        const taskData = await statusRes.json();
+        if (onProgress && taskData.message) {
+          const p = typeof taskData.progress === 'number' ? Math.round(taskData.progress * 100) : 0;
+          onProgress(taskData.message, p);
+        }
+        if (taskData.status === 'completed') {
+          return {
+            status: 'success',
+            output_file: taskData.output_file || taskData.stem_file || '',
+            download_url: taskData.download_url || `/output/${taskData.output_file}`,
+            stem_file: taskData.stem_file || taskData.output_file,
+            message: taskData.message,
+          };
+        }
+        if (taskData.status === 'failed') {
+          throw new Error(taskData.error || taskData.message || 'Restorasyon başarısız oldu');
+        }
+      }
+    }
+    throw new Error('Restorasyon işlemi zaman aşımına uğradı');
+  },
+
+  async clearMemory(): Promise<{ status: string; message: string; gpu?: { allocated_mb: number; reserved_mb: number; max_allocated_mb?: number; device_name?: string } }> {
+    const res = await safeFetch('/clear_memory', { method: 'POST' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Bellek temizlenemedi');
+    }
+    return res.json();
+  },
+
+  async shutdown(): Promise<{ status: string; message: string }> {
+    const res = await safeFetch('/shutdown', { method: 'POST' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || 'Shutdown failed');
     }
     return res.json();
   },

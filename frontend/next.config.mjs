@@ -99,6 +99,18 @@ const nextConfig = {
         source: '/lyrics/:path*',
         destination: 'http://127.0.0.1:8000/lyrics/:path*',
       },
+      {
+        source: '/restore_audio',
+        destination: 'http://127.0.0.1:8000/restore_audio',
+      },
+      {
+        source: '/clear_memory',
+        destination: 'http://127.0.0.1:8000/clear_memory',
+      },
+      {
+        source: '/shutdown',
+        destination: 'http://127.0.0.1:8000/shutdown',
+      },
     ];
   },
 };

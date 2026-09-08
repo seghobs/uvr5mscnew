@@ -117,3 +117,12 @@ input[type="range"]::-webkit-slider-runnable-track {
   height: 6px;
   border-radius: 9999px;
 }
+
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}

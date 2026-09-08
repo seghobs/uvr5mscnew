@@ -36,6 +36,9 @@ import {
   Check,
   Globe,
   Languages,
+  Type,
+  Sliders,
+  Wand2,
 } from 'lucide-react';
 import { Language, LyricSegment } from '@/lib/types';
 import { getTranslation } from '@/lib/translations';
@@ -48,7 +51,7 @@ interface KaraokeStudioModalProps {
   instStem: string;
   vocalStem?: string;
   lang: Language;
-  onNotify: (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string) => void;
+  onNotify: (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string, duration?: number) => void;
 }
 
 const WHISPER_LANGUAGES = [
@@ -94,6 +97,70 @@ const WHISPER_LANGUAGES = [
   { code: 'uz', name: 'Özbekçe (Uzbek)', native: 'Oʻzbekcha', flag: '🇺🇿', popular: false },
 ];
 
+// Helper to ensure word-level timestamps exist and scale cleanly to a segment's [start, end] range
+export const fitWordsToSegmentRange = (
+  words: Array<{ word: string; start: number; end: number }>,
+  newStart: number,
+  newEnd: number,
+  text: string
+): Array<{ word: string; start: number; end: number }> => {
+  const rawWords = (text || '').trim().split(/\s+/).filter(Boolean);
+  if (rawWords.length === 0) return [];
+  const totalDur = Math.max(0.1, Number((newEnd - newStart).toFixed(2)));
+
+  // If single word (e.g. "bitti..."), it spans the entire segment duration
+  if (rawWords.length === 1) {
+    return [{ word: rawWords[0], start: newStart, end: newEnd }];
+  }
+
+  // If word count doesn't match rawWords or words array is missing, distribute by Turkish syllables/vowels
+  if (!words || words.length !== rawWords.length) {
+    const vowels = new Set('aeıioöuüAEIİOÖUÜ');
+    const weights = rawWords.map((w) => {
+      let v = 0;
+      for (const c of w) { if (vowels.has(c)) v++; }
+      return Math.max(1, v || Math.ceil(w.length * 0.4));
+    });
+    const totalWeight = weights.reduce((a, b) => a + b, 0) || 1;
+    let cur = newStart;
+    return rawWords.map((w, i) => {
+      const wDur = (weights[i] / totalWeight) * totalDur;
+      const ws = Number(cur.toFixed(2));
+      const we = (i === rawWords.length - 1) ? newEnd : Number((cur + wDur).toFixed(2));
+      cur += wDur;
+      return { word: w, start: ws, end: we };
+    });
+  }
+
+  // If words exist and match rawWords, scale their relative timings proportionally to the new [newStart, newEnd]
+  const oldFirstStart = words[0].start;
+  const oldLastEnd = words[words.length - 1].end;
+  const oldSpan = oldLastEnd - oldFirstStart;
+
+  if (oldSpan <= 0.05) {
+    const perWord = totalDur / rawWords.length;
+    return rawWords.map((w, i) => ({
+      word: w,
+      start: Number((newStart + i * perWord).toFixed(2)),
+      end: (i === rawWords.length - 1) ? newEnd : Number((newStart + (i + 1) * perWord).toFixed(2)),
+    }));
+  }
+
+  return words.map((w, i) => {
+    const relStart = Math.max(0, (w.start - oldFirstStart) / oldSpan);
+    const relEnd = Math.min(1, Math.max(relStart + 0.01, (w.end - oldFirstStart) / oldSpan));
+    const s = Number((newStart + relStart * totalDur).toFixed(2));
+    const e = (i === words.length - 1)
+      ? newEnd
+      : Number((newStart + relEnd * totalDur).toFixed(2));
+    return {
+      word: rawWords[i] || w.word,
+      start: Math.max(newStart, s),
+      end: Math.min(newEnd, Math.max(s + 0.05, e)),
+    };
+  });
+};
+
 export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   isOpen,
   onClose,
@@ -112,6 +179,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const [segments, setSegments] = useState<LyricSegment[]>([]);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
   const [rendering, setRendering] = useState(false);
+  const [renderStatusMsg, setRenderStatusMsg] = useState('FFmpeg 1080p Render Ediliyor...');
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   // SQLite Persistence State
@@ -185,13 +253,19 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const [activeAudioSource, setActiveAudioSource] = useState<'vocal' | 'inst'>(vocalStem ? 'vocal' : 'inst');
   const [loopLineIndex, setLoopLineIndex] = useState<number | null>(null);
   const [activePlayingIndex, setActivePlayingIndex] = useState<number | null>(null);
+  const [activePlayingWord, setActivePlayingWord] = useState<{ segIdx: number; wordIdx: number } | null>(null);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
+
+  // Auto-stop audio refs for precision word/line previews
+  const wordPreviewEndRef = useRef<number | null>(null);
+  const linePreviewEndRef = useRef<number | null>(null);
 
   // Smule Spacebar Live Synchronization State
   const [isLiveSyncMode, setIsLiveSyncMode] = useState(false);
   const [liveSyncIndex, setLiveSyncIndex] = useState<number>(0);
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [spacePressStartTime, setSpacePressStartTime] = useState<number | null>(null);
+  const [expandedWordRow, setExpandedWordRow] = useState<number | null>(null);
   const rowRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
   // Stop audio on close
@@ -200,6 +274,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       audioRef.current.pause();
       setIsPlaying(false);
       setActivePlayingIndex(null);
+      setActivePlayingWord(null);
+      wordPreviewEndRef.current = null;
+      linePreviewEndRef.current = null;
       setIsLiveSyncMode(false);
     }
   }, [isOpen]);
@@ -233,6 +310,20 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
 
+      // Handle Word Preview Auto-Stop
+      if (wordPreviewEndRef.current !== null && audio.currentTime >= wordPreviewEndRef.current) {
+        audio.pause();
+        wordPreviewEndRef.current = null;
+        setActivePlayingWord(null);
+      }
+
+      // Handle Line Preview Auto-Stop (when not looping)
+      if (linePreviewEndRef.current !== null && loopLineIndex === null && audio.currentTime >= linePreviewEndRef.current) {
+        audio.pause();
+        linePreviewEndRef.current = null;
+        setActivePlayingIndex(null);
+      }
+
       // Handle Line Loop Mode
       if (loopLineIndex !== null && segments[loopLineIndex]) {
         const targetSeg = segments[loopLineIndex];
@@ -245,6 +336,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     const handleEnded = () => {
       setIsPlaying(false);
       setActivePlayingIndex(null);
+      setActivePlayingWord(null);
+      wordPreviewEndRef.current = null;
+      linePreviewEndRef.current = null;
       setIsSpacePressed(false);
     };
 
@@ -252,6 +346,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     const handlePauseEvent = () => {
       setIsPlaying(false);
       setIsSpacePressed(false);
+      setActivePlayingWord(null);
+      wordPreviewEndRef.current = null;
+      linePreviewEndRef.current = null;
     };
 
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
@@ -357,6 +454,12 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
               next[liveSyncIndex] = {
                 ...next[liveSyncIndex],
                 end: endT,
+                words: fitWordsToSegmentRange(
+                  next[liveSyncIndex].words || [],
+                  startT,
+                  endT,
+                  next[liveSyncIndex].text || ''
+                ),
               };
               triggerAutoSave(next);
             }
@@ -514,12 +617,220 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const handleSegmentChange = (index: number, field: keyof LyricSegment, val: string | number) => {
     setSegments((prev) => {
       const next = [...prev];
-      const updated = { ...next[index], [field]: val };
-      if (field === 'text' || field === 'start' || field === 'end') {
-        delete (updated as any).words;
-      }
-      next[index] = updated;
+      let currentSeg = { ...next[index], [field]: val };
+      const s = Number(currentSeg.start) || 0;
+      const e = Number(currentSeg.end) || (s + 2.0);
+      currentSeg.words = fitWordsToSegmentRange(
+        currentSeg.words || [],
+        s,
+        Math.max(s + 0.1, e),
+        currentSeg.text || ''
+      );
+      next[index] = currentSeg;
       triggerAutoSave(next, false);
+      return next;
+    });
+  };
+
+  // Helper to ensure word-level timestamps exist for a segment
+  const getSegmentWords = (seg: LyricSegment): Array<{ word: string; start: number; end: number }> => {
+    const rawWords = (seg.text || '').trim().split(/\s+/).filter(Boolean);
+    if (rawWords.length === 0) return [];
+    if (seg.words && seg.words.length === rawWords.length) {
+      return seg.words;
+    }
+    return fitWordsToSegmentRange(seg.words || [], seg.start, seg.end, seg.text);
+  };
+
+  const handleWordTimeChange = (segIdx: number, wordIdx: number, field: 'start' | 'end', val: number) => {
+    setSegments((prev) => {
+      const next = [...prev];
+      const currentSeg = { ...next[segIdx] };
+      const words = [...getSegmentWords(currentSeg)];
+      if (!words[wordIdx]) return prev;
+
+      const clampedVal = Math.max(0, Number(val.toFixed(2)));
+      words[wordIdx] = { ...words[wordIdx], [field]: clampedVal };
+
+      if (field === 'start' && words[wordIdx].start > words[wordIdx].end) {
+        words[wordIdx].end = Number((words[wordIdx].start + 0.05).toFixed(2));
+      } else if (field === 'end' && words[wordIdx].end < words[wordIdx].start) {
+        words[wordIdx].start = Math.max(0, Number((words[wordIdx].end - 0.05).toFixed(2)));
+      }
+
+      currentSeg.words = words;
+      if (words.length > 0) {
+        currentSeg.start = Math.min(currentSeg.start, words[0].start);
+        currentSeg.end = Math.max(currentSeg.end, words[words.length - 1].end);
+      }
+      next[segIdx] = currentSeg;
+      triggerAutoSave(next, false);
+      return next;
+    });
+  };
+
+  const handleWordTextChange = (segIdx: number, wordIdx: number, newText: string) => {
+    setSegments((prev) => {
+      const next = [...prev];
+      const currentSeg = { ...next[segIdx] };
+      const words = [...getSegmentWords(currentSeg)];
+      if (!words[wordIdx]) return prev;
+      words[wordIdx] = { ...words[wordIdx], word: newText };
+      currentSeg.words = words;
+      currentSeg.text = words.map((w) => w.word).join(' ');
+      next[segIdx] = currentSeg;
+      triggerAutoSave(next, false);
+      return next;
+    });
+  };
+
+  const stepWordTime = (segIdx: number, wordIdx: number, field: 'start' | 'end', delta: number) => {
+    const seg = segments[segIdx];
+    if (!seg) return;
+    const words = getSegmentWords(seg);
+    if (!words[wordIdx]) return;
+    const curVal = Number(words[wordIdx][field]) || 0;
+    handleWordTimeChange(segIdx, wordIdx, field, curVal + delta);
+  };
+
+  const setPlayheadToWord = (segIdx: number, wordIdx: number, field: 'start' | 'end') => {
+    const cur = Number(currentTime.toFixed(2));
+    setSegments((prev) => {
+      const next = [...prev];
+      const currentSeg = { ...next[segIdx] };
+      const words = [...getSegmentWords(currentSeg)];
+      if (!words[wordIdx]) return prev;
+
+      words[wordIdx] = { ...words[wordIdx], [field]: cur };
+
+      // When setting end of word, chain start of next word in this line
+      if (field === 'end' && words[wordIdx + 1]) {
+        const nextWord = { ...words[wordIdx + 1] };
+        nextWord.start = cur;
+        if (nextWord.end <= cur) {
+          nextWord.end = Number((cur + 0.35).toFixed(2));
+        }
+        words[wordIdx + 1] = nextWord;
+      }
+
+      currentSeg.words = words;
+      if (words.length > 0) {
+        currentSeg.start = Math.min(currentSeg.start, words[0].start);
+        currentSeg.end = Math.max(currentSeg.end, words[words.length - 1].end);
+      }
+      next[segIdx] = currentSeg;
+      triggerAutoSave(next, false);
+      return next;
+    });
+    onNotify('info', 'Kelime Zamanı Ayarlandı', `Kelime ${field === 'start' ? 'başlangıç' : 'bitiş'} zamanı ${formatPrecisionTime(cur)} yapıldı.`, 1200);
+  };
+
+  const playWord = (segIdx: number, wordIdx: number) => {
+    const seg = segments[segIdx];
+    if (!seg || !audioRef.current) return;
+    const words = getSegmentWords(seg);
+    const w = words[wordIdx];
+    if (!w) return;
+
+    // If currently playing this exact word, toggle pause
+    if (activePlayingWord && activePlayingWord.segIdx === segIdx && activePlayingWord.wordIdx === wordIdx && isPlaying) {
+      audioRef.current.pause();
+      wordPreviewEndRef.current = null;
+      setActivePlayingWord(null);
+      return;
+    }
+
+    // Cancel line preview if active
+    linePreviewEndRef.current = null;
+    setActivePlayingIndex(null);
+
+    // Set preview stopping point: word end + natural buffer (0.04s)
+    const targetEnd = Math.max(w.start + 0.08, w.end + 0.04);
+    wordPreviewEndRef.current = targetEnd;
+    setActivePlayingWord({ segIdx, wordIdx });
+
+    audioRef.current.currentTime = w.start;
+    audioRef.current.play().catch(() => {});
+  };
+
+  const distributeWordsEvenly = (segIdx: number) => {
+    setSegments((prev) => {
+      const next = [...prev];
+      const currentSeg = { ...next[segIdx] };
+      const rawWords = (currentSeg.text || '').trim().split(/\s+/).filter(Boolean);
+      if (rawWords.length === 0) return prev;
+      const totalDur = Math.max(0.1, currentSeg.end - currentSeg.start);
+      const perWord = totalDur / rawWords.length;
+      currentSeg.words = rawWords.map((w, i) => ({
+        word: w,
+        start: Number((currentSeg.start + i * perWord).toFixed(2)),
+        end: Number((currentSeg.start + (i + 1) * perWord).toFixed(2)),
+      }));
+      next[segIdx] = currentSeg;
+      triggerAutoSave(next, true);
+      return next;
+    });
+    onNotify('success', 'Eşit Dağıtıldı', 'Kelimeler satır süresi boyunca eşit aralıklarla dağıtıldı.', 1500);
+  };
+
+  const distributeWordsBySyllables = (segIdx: number) => {
+    setSegments((prev) => {
+      const next = [...prev];
+      const currentSeg = { ...next[segIdx] };
+      const rawWords = (currentSeg.text || '').trim().split(/\s+/).filter(Boolean);
+      if (rawWords.length === 0) return prev;
+
+      const vowels = new Set('aeıioöuüAEIİOÖUÜ');
+      const weights = rawWords.map((w) => {
+        let vCount = 0;
+        for (const c of w) { if (vowels.has(c)) vCount++; }
+        return Math.max(1, vCount || Math.ceil(w.length * 0.4));
+      });
+      const totalWeight = weights.reduce((a, b) => a + b, 0) || 1;
+      const totalDur = Math.max(0.2, currentSeg.end - currentSeg.start);
+
+      let curStart = currentSeg.start;
+      currentSeg.words = rawWords.map((w, i) => {
+        const wDur = (weights[i] / totalWeight) * totalDur;
+        const wStart = Number(curStart.toFixed(2));
+        const wEnd = Number((curStart + wDur).toFixed(2));
+        curStart += wDur;
+        return { word: w, start: wStart, end: wEnd };
+      });
+      next[segIdx] = currentSeg;
+      triggerAutoSave(next, true);
+      return next;
+    });
+    onNotify('success', 'Heceye Göre Dağıtıldı', 'Kelimeler hece uzunluklarına göre akıllıca dağıtıldı.', 1500);
+  };
+
+  const handleAddWord = (segIdx: number) => {
+    setSegments((prev) => {
+      const next = [...prev];
+      const currentSeg = { ...next[segIdx] };
+      const words = [...getSegmentWords(currentSeg)];
+      const lastWord = words[words.length - 1];
+      const newStart = lastWord ? lastWord.end : currentSeg.start;
+      const newEnd = Number((newStart + 0.5).toFixed(2));
+      words.push({ word: 'yeni', start: newStart, end: newEnd });
+      currentSeg.words = words;
+      currentSeg.text = words.map((w) => w.word).join(' ');
+      currentSeg.end = Math.max(currentSeg.end, newEnd);
+      next[segIdx] = currentSeg;
+      triggerAutoSave(next, true);
+      return next;
+    });
+  };
+
+  const handleDeleteWord = (segIdx: number, wordIdx: number) => {
+    setSegments((prev) => {
+      const next = [...prev];
+      const currentSeg = { ...next[segIdx] };
+      const words = getSegmentWords(currentSeg).filter((_, i) => i !== wordIdx);
+      currentSeg.words = words;
+      currentSeg.text = words.map((w) => w.word).join(' ');
+      next[segIdx] = currentSeg;
+      triggerAutoSave(next, true);
       return next;
     });
   };
@@ -741,7 +1052,15 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     if (!audioRef.current) return;
     if (isPlaying) {
       audioRef.current.pause();
+      wordPreviewEndRef.current = null;
+      linePreviewEndRef.current = null;
+      setActivePlayingWord(null);
+      setActivePlayingIndex(null);
     } else {
+      // Clear word or line preview limits when master play is clicked so entire song plays continuously
+      wordPreviewEndRef.current = null;
+      linePreviewEndRef.current = null;
+      setActivePlayingWord(null);
       audioRef.current.play().catch(() => {});
     }
   };
@@ -783,7 +1102,18 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     if (activePlayingIndex === index && isPlaying) {
       audioRef.current.pause();
       setActivePlayingIndex(null);
+      linePreviewEndRef.current = null;
       return;
+    }
+
+    wordPreviewEndRef.current = null;
+    setActivePlayingWord(null);
+
+    // If loop is not active, set auto-stop at line end (+ 0.05s buffer)
+    if (loopLineIndex !== index) {
+      linePreviewEndRef.current = Math.max(seg.start + 0.2, seg.end + 0.05);
+    } else {
+      linePreviewEndRef.current = null;
     }
 
     audioRef.current.currentTime = seg.start;
@@ -794,9 +1124,19 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const stepSegmentTime = (index: number, field: 'start' | 'end', delta: number) => {
     setSegments((prev) => {
       const next = [...prev];
+      if (!next[index]) return prev;
       const currentVal = Number(next[index][field]) || 0;
       const newVal = Math.max(0, Number((currentVal + delta).toFixed(2)));
-      next[index] = { ...next[index], [field]: newVal };
+      const updated = { ...next[index], [field]: newVal };
+      const s = Number(updated.start) || 0;
+      const e = Number(updated.end) || (s + 2.0);
+      updated.words = fitWordsToSegmentRange(
+        updated.words || [],
+        s,
+        Math.max(s + 0.1, e),
+        updated.text || ''
+      );
+      next[index] = updated;
       triggerAutoSave(next, true);
       return next;
     });
@@ -806,11 +1146,58 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     const cur = Number(currentTime.toFixed(2));
     setSegments((prev) => {
       const next = [...prev];
-      next[index] = { ...next[index], [field]: cur };
+      if (!next[index]) return prev;
+      const updated = { ...next[index] };
+
+      if (field === 'start') {
+        updated.start = cur;
+        // Automatically set end time to at least start + 15.0s
+        updated.end = Number((cur + 15.0).toFixed(2));
+      } else {
+        updated.end = cur;
+      }
+
+      const s = Number(updated.start) || 0;
+      const e = Number(updated.end) || (s + 2.0);
+      updated.words = fitWordsToSegmentRange(
+        updated.words || [],
+        s,
+        Math.max(s + 0.1, e),
+        updated.text || ''
+      );
+      next[index] = updated;
+
+      // When setting the END time of a row, automatically set it as the START time of the NEXT row!
+      if (field === 'end' && next[index + 1]) {
+        const nextSeg = { ...next[index + 1] };
+        const oldDur = Math.max(1.5, (nextSeg.end - nextSeg.start) || 3.0);
+        nextSeg.start = cur;
+        // If next row's end was before or equal to the new start, extend it safely
+        if (nextSeg.end <= cur) {
+          nextSeg.end = Number((cur + oldDur).toFixed(2));
+        }
+        const ns = Number(nextSeg.start) || 0;
+        const ne = Number(nextSeg.end) || (ns + 2.0);
+        nextSeg.words = fitWordsToSegmentRange(
+          nextSeg.words || [],
+          ns,
+          Math.max(ns + 0.1, ne),
+          nextSeg.text || ''
+        );
+        next[index + 1] = nextSeg;
+      }
+
       triggerAutoSave(next, true);
       return next;
     });
-    onNotify('info', 'Zaman Ayarlandı', `${field === 'start' ? 'Başlangıç' : 'Bitiş'} zamanı ${formatPrecisionTime(cur)} olarak güncellendi.`);
+
+    if (field === 'start') {
+      onNotify('info', 'Başlangıç Ayarlandı ⏱️', `Başlangıç ${formatPrecisionTime(cur)} yapıldı ve bitiş +15 sn (${formatPrecisionTime(cur + 15.0)}) olarak ayarlandı.`, 2400);
+    } else if (field === 'end' && index < segments.length - 1) {
+      onNotify('info', 'Bitiş Ayarlandı & Alt Satıra Aktarıldı 🔗', `Bitiş: ${formatPrecisionTime(cur)} yapıldı ve bir alt satırın başlangıcına aktarıldı.`, 2200);
+    } else {
+      onNotify('info', 'Zaman Ayarlandı', `Bitiş zamanı ${formatPrecisionTime(cur)} olarak güncellendi.`, 1800);
+    }
   };
 
   const toggleLoopLine = (index: number) => {
@@ -843,20 +1230,34 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
     if (audioRef.current) audioRef.current.pause();
     setRendering(true);
+    setRenderStatusMsg('Karaoke Altyazıları & Render Hazırlanıyor...');
     setVideoUrl(null);
     try {
-      // Ensure all current edited segments are flushed and saved to SQLite database
-      await saveToDatabase(segments, false);
+      // Ensure all current edited segments have fitted words and are flushed to SQLite database
+      const finalizedSegments = segments.map((seg) => {
+        const s = Number(seg.start) || 0;
+        const e = Math.max(s + 0.1, Number(seg.end) || (s + 2.0));
+        return {
+          ...seg,
+          start: s,
+          end: e,
+          words: fitWordsToSegmentRange(seg.words || [], s, e, seg.text || ''),
+        };
+      });
+
+      await saveToDatabase(finalizedSegments, false);
 
       const res = await api.generateKaraokeVideo({
         inst_file: instStem,
-        segments: segments,
+        segments: finalizedSegments,
         title: title,
         artist: artist,
         header_text: showHeader ? headerPrefix : '',
         show_header: showHeader,
         aspect_ratio: aspectRatio,
         theme: theme,
+      }, (msg) => {
+        setRenderStatusMsg(msg);
       });
 
       if (res.download_url) {
@@ -868,6 +1269,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       onNotify('error', 'Render Başarısız', err.message || 'Karaoke videosu oluşturulamadı');
     } finally {
       setRendering(false);
+      setRenderStatusMsg('FFmpeg 1080p Render Ediliyor...');
     }
   };
 
@@ -877,11 +1279,11 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   return createPortal(
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-2xl animate-fade-in">
-      <div className="relative w-full max-w-4xl bg-slate-900/95 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-6xl 2xl:max-w-7xl bg-slate-900/95 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
         {/* Modal Header */}
-        <div className="p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+        <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/10">
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/10">
               <Video className="w-5 h-5" />
             </div>
             <div>
@@ -910,9 +1312,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           </button>
         </div>
 
-        {/* Studio Tabs Navigation & Top Actions */}
-        <div className="px-6 py-2.5 border-b border-white/5 bg-slate-950/40 flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
+        {/* Studio Primary Navigation Tabs & Live Sync Bar */}
+        <div className="px-4 sm:px-6 py-2.5 border-b border-white/5 bg-slate-950/40 flex items-center justify-between flex-wrap gap-2.5">
+          {/* Left: 2 Main Studio Workflow Tabs */}
+          <div className="flex items-center flex-wrap gap-2">
             <button
               onClick={() => setActiveTab('lyrics')}
               className={cn(
@@ -940,7 +1343,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Right: Live Sync & SQLite DB Status */}
+          <div className="flex items-center flex-wrap gap-2">
             {/* Smule Spacebar Live Sync Toggle Button */}
             <button
               onClick={() => isLiveSyncMode ? setIsLiveSyncMode(false) : startLiveSyncMode(liveSyncIndex)}
@@ -971,535 +1375,551 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 <span>SQLite Kayıtlı {lastSavedTime ? `(${lastSavedTime})` : ''}</span>
               </button>
             )}
-
-            {/* Whisper AI Model Selector Dropdown */}
-            <div className="relative" ref={whisperMenuRef}>
-              <button
-                onClick={() => setShowWhisperMenu(!showWhisperMenu)}
-                className="px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm cursor-pointer"
-                title="Kullanılacak Whisper Yapay Zeka Modelini Seçin"
-              >
-                {whisperModel === 'large-v3' ? (
-                  <Crown className="w-3.5 h-3.5 text-amber-400" />
-                ) : (
-                  <Zap className="w-3.5 h-3.5 text-indigo-400" />
-                )}
-                <span>{whisperModel === 'large-v3' ? 'Large-V3 (Full HQ)' : 'Large-V3-Turbo'}</span>
-                <ChevronDown className="w-3 h-3 opacity-60 ml-0.5" />
-              </button>
-
-              {showWhisperMenu && (
-                <div className="absolute right-0 top-full mt-2 w-72 bg-slate-900/95 border border-white/15 backdrop-blur-2xl rounded-2xl shadow-2xl p-2 z-[100] space-y-1.5 text-left animate-in fade-in">
-                  <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Whisper Yapay Zeka Modeli
-                  </div>
-                  <button
-                    onClick={() => {
-                      setWhisperModel('large-v3');
-                      setShowWhisperMenu(false);
-                      fetchInitialLyrics(vocalStem || instStem, true, 'large-v3');
-                    }}
-                    className={cn(
-                      'w-full p-2.5 rounded-xl text-left transition-all flex items-start gap-2.5 cursor-pointer',
-                      whisperModel === 'large-v3'
-                        ? 'bg-amber-500/15 border border-amber-500/30 text-white'
-                        : 'hover:bg-white/5 text-slate-300'
-                    )}
-                  >
-                    <Crown className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold">Whisper Large-V3</span>
-                        <span className="text-[9px] font-bold bg-amber-400/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-400/30">
-                          FULL HQ
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
-                        32 Katman • 1.55B Parametre • Tüm sözleri eksiksiz çıkarır
-                      </p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setWhisperModel('large-v3-turbo');
-                      setShowWhisperMenu(false);
-                      fetchInitialLyrics(vocalStem || instStem, true, 'large-v3-turbo');
-                    }}
-                    className={cn(
-                      'w-full p-2.5 rounded-xl text-left transition-all flex items-start gap-2.5 cursor-pointer',
-                      whisperModel === 'large-v3-turbo'
-                        ? 'bg-indigo-500/15 border border-indigo-500/30 text-white'
-                        : 'hover:bg-white/5 text-slate-300'
-                    )}
-                  >
-                    <Zap className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold">Whisper Large-V3-Turbo</span>
-                        <span className="text-[9px] font-bold bg-indigo-400/20 text-indigo-300 px-1.5 py-0.2 rounded border border-indigo-400/30">
-                          HIZLI
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
-                        4 Katman • ~4x Hızlı transkripsiyon
-                      </p>
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Whisper Language Selector Dropdown */}
-            <div className="relative" ref={langMenuRef}>
-              <button
-                onClick={() => setShowLangMenu(!showLangMenu)}
-                className="px-3 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm cursor-pointer"
-                title="Şarkı Sözü Algılama Dilini Değiştirin"
-              >
-                <Globe className="w-3.5 h-3.5 text-teal-400" />
-                <span>
-                  {(() => {
-                    const activeL = WHISPER_LANGUAGES.find((l) => l.code === selectedLyricsLang);
-                    return activeL ? `${activeL.flag} ${activeL.name.split(' (')[0]}` : `🌐 ${selectedLyricsLang}`;
-                  })()}
-                </span>
-                <ChevronDown className="w-3 h-3 opacity-60 ml-0.5" />
-              </button>
-
-              {showLangMenu && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-slate-900/98 border border-white/15 backdrop-blur-2xl rounded-2xl shadow-2xl p-2.5 z-[100] space-y-2 text-left animate-in fade-in">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      Şarkı Sözü Dili (Whisper AI)
-                    </span>
-                    <span className="text-[9px] text-teal-400 font-mono">99+ Dil Destekli</span>
-                  </div>
-
-                  {/* Search Filter for Languages */}
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={langSearchQuery}
-                      onChange={(e) => setLangSearchQuery(e.target.value)}
-                      placeholder="Dil ara... (Türkçe, English, 한국어, العربية...)"
-                      className="w-full bg-slate-950/90 border border-white/10 focus:border-teal-500/50 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none"
-                      autoFocus
-                    />
-                  </div>
-
-                  {/* Scrollable Language List */}
-                  <div className="max-h-64 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                    {WHISPER_LANGUAGES.filter(
-                      (l) =>
-                        !langSearchQuery ||
-                        l.name.toLowerCase().includes(langSearchQuery.toLowerCase()) ||
-                        l.native.toLowerCase().includes(langSearchQuery.toLowerCase()) ||
-                        l.code.toLowerCase().includes(langSearchQuery.toLowerCase())
-                    ).map((langItem) => {
-                      const isSelected = selectedLyricsLang === langItem.code;
-                      return (
-                        <button
-                          key={langItem.code}
-                          onClick={() => {
-                            setSelectedLyricsLang(langItem.code);
-                            setShowLangMenu(false);
-                            setLangSearchQuery('');
-                            fetchInitialLyrics(
-                              vocalStem || instStem,
-                              true,
-                              whisperModel,
-                              undefined,
-                              langItem.code
-                            );
-                          }}
-                          className={cn(
-                            'w-full px-3 py-2 rounded-xl text-left transition-all flex items-center justify-between text-xs cursor-pointer',
-                            isSelected
-                              ? 'bg-teal-500/20 border border-teal-500/40 text-teal-200 font-bold'
-                              : 'hover:bg-white/5 text-slate-300 font-medium'
-                          )}
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-base leading-none">{langItem.flag}</span>
-                            <span className="truncate">{langItem.name}</span>
-                            {langItem.native !== langItem.name && (
-                              <span className="text-[10px] text-slate-500 truncate font-normal">
-                                ({langItem.native})
-                              </span>
-                            )}
-                          </div>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-teal-400 shrink-0 ml-2" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => fetchInitialLyrics(vocalStem || instStem, true, whisperModel, undefined, selectedLyricsLang)}
-              disabled={loadingLyrics}
-              title="Seçili dil ve Whisper AI modeli ile şarkı sözlerini sıfırdan baştan analiz et"
-              className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
-            >
-              {loadingLyrics ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="w-3.5 h-3.5" />
-              )}
-              <span>AI ile Yeniden Çıkar</span>
-            </button>
-
-            {/* Paste & Auto-Align Lyrics Button */}
-            <button
-              onClick={() => setShowPasteModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm cursor-pointer"
-              title="Şarkının gerçek sözlerini yapıştırıp yapay zeka ile otomatik zamanla"
-            >
-              <ClipboardPaste className="w-3.5 h-3.5 text-purple-400" />
-              <span>Söz Yapıştır & Senkronla</span>
-            </button>
-
-            {/* Hidden File Input for Importing Lyrics */}
-            <input
-              ref={importFileInputRef}
-              type="file"
-              accept=".json,.lrc,.srt,.txt"
-              className="hidden"
-              onChange={handleImportFile}
-            />
-
-            {/* Import Lyrics Button */}
-            <button
-              onClick={() => importFileInputRef.current?.click()}
-              className="px-3 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm"
-              title="JSON, LRC veya SRT formatındaki söz ve süreleri içe aktar"
-            >
-              <FolderUp className="w-3.5 h-3.5 text-teal-400" />
-              <span>İçe Aktar</span>
-            </button>
-
-            {/* Export Lyrics Dropdown Menu */}
-            <div className="relative" ref={exportMenuRef}>
-              <button
-                onClick={() => setShowExportMenu(!showExportMenu)}
-                className="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm"
-                title="Şarkı sözlerini ve milisaniye sürelerini JSON, LRC veya SRT olarak dışa aktar / yedekle"
-              >
-                <FolderDown className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Dışa Aktar</span>
-                <ChevronDown className="w-3 h-3 opacity-60 ml-0.5" />
-              </button>
-
-              {showExportMenu && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-slate-900/95 border border-white/15 backdrop-blur-2xl rounded-2xl shadow-2xl p-1.5 z-[100] space-y-1 animate-fade-in text-left">
-                  <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Format Seçin (Export)
-                  </div>
-                  <button
-                    onClick={() => handleExport('json')}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center justify-between transition-colors group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-400 font-mono text-[10px] font-bold">JSON</span>
-                      <span>JSON Formatı</span>
-                    </div>
-                    <span className="text-[10px] text-amber-400 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded">Önerilen</span>
-                  </button>
-                  <button
-                    onClick={() => handleExport('lrc')}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center justify-between transition-colors group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="px-1.5 py-0.5 rounded-md bg-pink-500/20 text-pink-400 font-mono text-[10px] font-bold">LRC</span>
-                      <span>LRC Karaoke</span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => handleExport('srt')}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center justify-between transition-colors group"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-[10px] font-bold">SRT</span>
-                      <span>SRT Altyazı</span>
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => handleAddSegment()}
-              className="px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
-              title="En başa yeni boş satır ekle"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Satır Ekle</span>
-            </button>
           </div>
         </div>
 
-        {/* Tab 1: Interactive Lyric Editor with Pro Studio Timeline Scrubber */}
+        {/* Secondary Action Toolbar (for Lyrics Tab) */}
         {activeTab === 'lyrics' && (
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[60vh]">
-            {/* Master Precision Audio Player & Timeline Progress Bar */}
-            <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/10 space-y-3 shadow-inner">
-              <div className="flex items-center justify-between gap-4 flex-wrap">
-                {/* Left: Master Play / Rewind / Fast-Forward */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => stepCurrentTime(-2)}
-                    className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 transition-all active:scale-95 text-xs font-bold flex items-center gap-1 border border-white/5"
-                    title="2 Saniye Geri Sar"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>-2s</span>
-                  </button>
-
-                  <button
-                    onClick={toggleMasterPlay}
-                    className={cn(
-                      "px-4 py-2 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95",
-                      isPlaying
-                        ? "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20"
-                        : "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/20"
-                    )}
-                  >
-                    {isPlaying ? (
-                      <>
-                        <Pause className="w-4 h-4 fill-current" />
-                        <span>Durdur</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4 fill-current ml-0.5" />
-                        <span>Oynat</span>
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={() => stepCurrentTime(2)}
-                    className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 transition-all active:scale-95 text-xs font-bold flex items-center gap-1 border border-white/5"
-                    title="2 Saniye İleri Sar"
-                  >
-                    <FastForward className="w-3.5 h-3.5" />
-                    <span>+2s</span>
-                  </button>
-                </div>
-
-                {/* Center: Audio Source Selection (Vocal vs Instrumental) */}
-                <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-white/5">
-                  <span className="text-[10px] font-bold text-slate-500 px-2 uppercase font-mono">Ses:</span>
-                  {vocalStem && (
-                    <button
-                      onClick={() => setActiveAudioSource('vocal')}
-                      className={cn(
-                        "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all",
-                        activeAudioSource === 'vocal'
-                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm"
-                          : "text-slate-400 hover:text-white"
-                      )}
-                      title="Söz senkronu yaparken sadece insan sesini net duyun"
-                    >
-                      <Mic2 className="w-3 h-3" />
-                      <span>Vokal (İnsan Sesi)</span>
-                    </button>
+          <div className="px-4 sm:px-6 py-2 border-b border-white/5 bg-slate-950/60 flex items-center justify-between flex-wrap gap-2">
+            {/* Left Group: Whisper AI Controls */}
+            <div className="flex items-center flex-wrap gap-2">
+              {/* Whisper AI Model Selector Dropdown */}
+              <div className="relative" ref={whisperMenuRef}>
+                <button
+                  onClick={() => setShowWhisperMenu(!showWhisperMenu)}
+                  className="px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm cursor-pointer"
+                  title="Kullanılacak Whisper Yapay Zeka Modelini Seçin"
+                >
+                  {whisperModel === 'large-v3' ? (
+                    <Crown className="w-3.5 h-3.5 text-amber-400" />
+                  ) : (
+                    <Zap className="w-3.5 h-3.5 text-indigo-400" />
                   )}
-                  <button
-                    onClick={() => setActiveAudioSource('inst')}
-                    className={cn(
-                      "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all",
-                      activeAudioSource === 'inst'
-                        ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-sm"
-                        : "text-slate-400 hover:text-white"
-                    )}
-                    title="Müziğin ritmini ve enstrümantal halini dinleyin"
-                  >
-                    <Music className="w-3 h-3" />
-                    <span>Enstrümantal</span>
-                  </button>
-                </div>
+                  <span>{whisperModel === 'large-v3' ? 'Large-V3 (Full HQ)' : 'Large-V3-Turbo'}</span>
+                  <ChevronDown className="w-3 h-3 opacity-60 ml-0.5" />
+                </button>
 
-                {/* Right: Real-time Millisecond Clock */}
-                <div className="flex items-center gap-2 font-mono text-xs">
-                  <span className="text-amber-400 font-black text-sm bg-slate-900 px-3 py-1 rounded-lg border border-amber-500/20 shadow-inner">
-                    ⏱️ {formatPrecisionTime(currentTime)}
-                  </span>
-                  <span className="text-slate-500">/</span>
-                  <span className="text-slate-400">{formatPrecisionTime(duration)}</span>
-                </div>
-              </div>
-
-              {/* Interactive Scrubbable Timeline Track */}
-              <div
-                ref={progressBarRef}
-                onClick={handleTimelineClick}
-                onMouseMove={handleTimelineMouseMove}
-                onMouseLeave={() => setHoverTime(null)}
-                className="relative w-full h-8 bg-slate-900/90 hover:bg-slate-900 rounded-xl border border-white/10 cursor-pointer overflow-hidden group select-none flex items-center shadow-inner"
-              >
-                {/* Active Segment Region Highlight Block on Timeline */}
-                {activePlayingIndex !== null && segments[activePlayingIndex] && duration > 0 && (
-                  <div
-                    className="absolute top-0 bottom-0 bg-amber-500/30 border-x-2 border-amber-400 pointer-events-none z-10"
-                    style={{
-                      left: `${(segments[activePlayingIndex].start / duration) * 100}%`,
-                      width: `${((segments[activePlayingIndex].end - segments[activePlayingIndex].start) / duration) * 100}%`
-                    }}
-                  />
-                )}
-
-                {/* Overall Song Playback Progress Fill */}
-                <div
-                  className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-amber-500/30 via-amber-500/50 to-amber-400/80 pointer-events-none transition-all duration-75"
-                  style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                />
-
-                {/* Playhead Needle Line */}
-                <div
-                  className="absolute top-0 bottom-0 w-1 bg-amber-300 shadow-[0_0_12px_#f59e0b] pointer-events-none z-20"
-                  style={{ left: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                />
-
-                {/* Hover Preview Marker & Tooltip */}
-                {hoverTime !== null && duration > 0 && (
-                  <>
-                    <div
-                      className="absolute top-0 bottom-0 w-0.5 bg-white/70 pointer-events-none z-30"
-                      style={{ left: `${(hoverTime / duration) * 100}%` }}
-                    />
-                    <div
-                      className="absolute -top-7 px-2 py-0.5 bg-slate-800 text-amber-300 text-[10px] font-mono font-bold rounded shadow border border-white/20 pointer-events-none z-40 transform -translate-x-1/2"
-                      style={{ left: `${(hoverTime / duration) * 100}%` }}
-                    >
-                      {formatPrecisionTime(hoverTime)}
+                {showWhisperMenu && (
+                  <div className="absolute left-0 top-full mt-2 w-72 bg-slate-900/95 border border-white/15 backdrop-blur-2xl rounded-2xl shadow-2xl p-2 z-[100] space-y-1.5 text-left animate-in fade-in">
+                    <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Whisper Yapay Zeka Modeli
                     </div>
-                  </>
-                )}
+                    <button
+                      onClick={() => {
+                        setWhisperModel('large-v3');
+                        setShowWhisperMenu(false);
+                        fetchInitialLyrics(vocalStem || instStem, true, 'large-v3');
+                      }}
+                      className={cn(
+                        'w-full p-2.5 rounded-xl text-left transition-all flex items-start gap-2.5 cursor-pointer',
+                        whisperModel === 'large-v3'
+                          ? 'bg-amber-500/15 border border-amber-500/30 text-white'
+                          : 'hover:bg-white/5 text-slate-300'
+                      )}
+                    >
+                      <Crown className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold">Whisper Large-V3</span>
+                          <span className="text-[9px] font-bold bg-amber-400/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-400/30">
+                            FULL HQ
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
+                          32 Katman • 1.55B Parametre • Tüm sözleri eksiksiz çıkarır
+                        </p>
+                      </div>
+                    </button>
 
-                {/* Time Markers */}
-                <div className="absolute inset-0 px-3 flex items-center justify-between text-[9px] font-mono text-slate-500 pointer-events-none z-0">
-                  <span>0:00</span>
-                  <span>{formatPrecisionTime(duration * 0.25)}</span>
-                  <span>{formatPrecisionTime(duration * 0.5)}</span>
-                  <span>{formatPrecisionTime(duration * 0.75)}</span>
-                  <span>{formatPrecisionTime(duration)}</span>
-                </div>
+                    <button
+                      onClick={() => {
+                        setWhisperModel('large-v3-turbo');
+                        setShowWhisperMenu(false);
+                        fetchInitialLyrics(vocalStem || instStem, true, 'large-v3-turbo');
+                      }}
+                      className={cn(
+                        'w-full p-2.5 rounded-xl text-left transition-all flex items-start gap-2.5 cursor-pointer',
+                        whisperModel === 'large-v3-turbo'
+                          ? 'bg-indigo-500/15 border border-indigo-500/30 text-white'
+                          : 'hover:bg-white/5 text-slate-300'
+                      )}
+                    >
+                      <Zap className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold">Whisper Large-V3-Turbo</span>
+                          <span className="text-[9px] font-bold bg-indigo-400/20 text-indigo-300 px-1.5 py-0.2 rounded border border-indigo-400/30">
+                            HIZLI
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
+                          4 Katman • ~4x Hızlı transkripsiyon
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                )}
               </div>
+
+              {/* Whisper Language Selector Dropdown */}
+              <div className="relative" ref={langMenuRef}>
+                <button
+                  onClick={() => setShowLangMenu(!showLangMenu)}
+                  className="px-3 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm cursor-pointer"
+                  title="Şarkı Sözü Algılama Dilini Değiştirin"
+                >
+                  <Globe className="w-3.5 h-3.5 text-teal-400" />
+                  <span>
+                    {(() => {
+                      const activeL = WHISPER_LANGUAGES.find((l) => l.code === selectedLyricsLang);
+                      return activeL ? `${activeL.flag} ${activeL.name.split(' (')[0]}` : `🌐 ${selectedLyricsLang}`;
+                    })()}
+                  </span>
+                  <ChevronDown className="w-3 h-3 opacity-60 ml-0.5" />
+                </button>
+
+                {showLangMenu && (
+                  <div className="absolute left-0 top-full mt-2 w-80 bg-slate-900/98 border border-white/15 backdrop-blur-2xl rounded-2xl shadow-2xl p-2.5 z-[100] space-y-2 text-left animate-in fade-in">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Şarkı Sözü Dili (Whisper AI)
+                      </span>
+                      <span className="text-[9px] text-teal-400 font-mono">99+ Dil Destekli</span>
+                    </div>
+
+                    {/* Search Filter for Languages */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={langSearchQuery}
+                        onChange={(e) => setLangSearchQuery(e.target.value)}
+                        placeholder="Dil ara... (Türkçe, English, 한국어, العربية...)"
+                        className="w-full bg-slate-950/90 border border-white/10 focus:border-teal-500/50 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none"
+                        autoFocus
+                      />
+                    </div>
+
+                    {/* Scrollable Language List */}
+                    <div className="max-h-64 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                      {WHISPER_LANGUAGES.filter(
+                        (l) =>
+                          !langSearchQuery ||
+                          l.name.toLowerCase().includes(langSearchQuery.toLowerCase()) ||
+                          l.native.toLowerCase().includes(langSearchQuery.toLowerCase()) ||
+                          l.code.toLowerCase().includes(langSearchQuery.toLowerCase())
+                      ).map((langItem) => {
+                        const isSelected = selectedLyricsLang === langItem.code;
+                        return (
+                          <button
+                            key={langItem.code}
+                            onClick={() => {
+                              setSelectedLyricsLang(langItem.code);
+                              setShowLangMenu(false);
+                              setLangSearchQuery('');
+                              fetchInitialLyrics(
+                                vocalStem || instStem,
+                                true,
+                                whisperModel,
+                                undefined,
+                                langItem.code
+                              );
+                            }}
+                            className={cn(
+                              'w-full px-3 py-2 rounded-xl text-left transition-all flex items-center justify-between text-xs cursor-pointer',
+                              isSelected
+                                ? 'bg-teal-500/20 border border-teal-500/40 text-teal-200 font-bold'
+                                : 'hover:bg-white/5 text-slate-300 font-medium'
+                            )}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-base leading-none">{langItem.flag}</span>
+                              <span className="truncate">{langItem.name}</span>
+                              {langItem.native !== langItem.name && (
+                                <span className="text-[10px] text-slate-500 truncate font-normal">
+                                  ({langItem.native})
+                                </span>
+                              )}
+                            </div>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-teal-400 shrink-0 ml-2" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Re-transcribe Button */}
+              <button
+                onClick={() => fetchInitialLyrics(vocalStem || instStem, true, whisperModel, undefined, selectedLyricsLang)}
+                disabled={loadingLyrics}
+                title="Seçili dil ve Whisper AI modeli ile şarkı sözlerini sıfırdan baştan analiz et"
+                className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+              >
+                {loadingLyrics ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5" />
+                )}
+                <span>AI ile Yeniden Çıkar</span>
+              </button>
             </div>
 
-            {/* Smule Live Spacebar HUD Banner */}
-            {isLiveSyncMode && (
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-pink-950/80 via-purple-950/80 to-slate-950/80 border border-pink-500/40 shadow-xl shadow-pink-500/10 space-y-3 animate-fade-in">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
-                    </span>
-                    <h4 className="text-xs font-black text-pink-300 tracking-wide uppercase font-mono">
-                      Smule Canlı Space Senkronizasyonu
-                    </h4>
-                    <span className="text-[10px] font-bold text-pink-400/80 bg-pink-500/10 px-2 py-0.5 rounded-md border border-pink-500/20">
-                      Satır #{liveSyncIndex + 1} / {segments.length}
-                    </span>
-                  </div>
+            {/* Right Group: Paste, Import, Export, Add Segment */}
+            <div className="flex items-center flex-wrap gap-2">
+              {/* Paste & Auto-Align Lyrics Button */}
+              <button
+                onClick={() => setShowPasteModal(true)}
+                className="px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm cursor-pointer"
+                title="Şarkının gerçek sözlerini yapıştırıp yapay zeka ile otomatik zamanla"
+              >
+                <ClipboardPaste className="w-3.5 h-3.5 text-purple-400" />
+                <span>Söz Yapıştır & Senkronla</span>
+              </button>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleLiveSyncPrev}
-                      disabled={liveSyncIndex === 0}
-                      className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold flex items-center gap-1 disabled:opacity-30 transition-all"
-                      title="Önceki satıra dön ve tekrar kaydet (Backspace)"
-                    >
-                      <Undo2 className="w-3.5 h-3.5" />
-                      <span>Geri Al (Backspace)</span>
-                    </button>
+              {/* Hidden File Input for Importing Lyrics */}
+              <input
+                ref={importFileInputRef}
+                type="file"
+                accept=".json,.lrc,.srt,.txt"
+                className="hidden"
+                onChange={handleImportFile}
+              />
 
-                    <button
-                      onClick={handleLiveSyncNext}
-                      disabled={liveSyncIndex >= segments.length - 1}
-                      className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold flex items-center gap-1 disabled:opacity-30 transition-all"
-                      title="Bu satırı atla ve sonrakine geç (Tab / Sağ Ok)"
-                    >
-                      <span>Atla</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+              {/* Import Lyrics Button */}
+              <button
+                onClick={() => importFileInputRef.current?.click()}
+                className="px-3 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm cursor-pointer"
+                title="JSON, LRC veya SRT formatındaki söz ve süreleri içe aktar"
+              >
+                <FolderUp className="w-3.5 h-3.5 text-teal-400" />
+                <span>İçe Aktar</span>
+              </button>
 
-                    <button
-                      onClick={() => setIsLiveSyncMode(false)}
-                      className="px-2.5 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-bold transition-all border border-rose-500/30"
-                    >
-                      Kapat (Esc)
-                    </button>
-                  </div>
-                </div>
-
-                {/* Real-time Instructions & Active Line Preview */}
-                <div className={cn(
-                  "p-3 rounded-xl border transition-all flex items-center justify-between gap-4",
-                  isSpacePressed
-                    ? "bg-emerald-500/20 border-emerald-500/60 shadow-lg shadow-emerald-500/20"
-                    : "bg-black/40 border-pink-500/30"
-                )}>
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-8 h-8 rounded-xl flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-md",
-                      isSpacePressed
-                        ? "bg-emerald-400 text-slate-950 animate-pulse"
-                        : "bg-pink-500/20 text-pink-300 border border-pink-500/40"
-                    )}>
-                      {isSpacePressed ? '🔴' : 'SPACE'}
-                    </div>
-                    <div>
-                      <div className="text-[11px] font-bold text-slate-400">
-                        {isSpacePressed
-                          ? 'SÖZ KAYDEDİLİYOR (Başlangıç: ' + formatPrecisionTime(spacePressStartTime || currentTime) + ') -> BİTTİĞİNDE SPACE TUŞUNU BIRAKIN!'
-                          : 'ŞARKI ÇALARKEN SÖZ BAŞLADIĞINDA SPACE TUŞUNA BASILI TUTUN:'}
-                      </div>
-                      <div className="text-sm font-black text-white mt-0.5">
-                        "{currentSyncSegment ? currentSyncSegment.text : 'Söz Kalmadı'}"
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="shrink-0 text-right font-mono text-xs">
-                    {isSpacePressed ? (
-                      <span className="text-emerald-300 font-black text-sm animate-pulse">
-                        Kaydediliyor... ⏺️
-                      </span>
-                    ) : (
-                      <span className="text-pink-300 font-bold">
-                        Basılmayı Bekliyor ⏳
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* List of Lyric Rows */}
-            {loadingLyrics ? (
-              <div className="h-64 flex flex-col items-center justify-center gap-3 text-slate-400">
-                <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
-                <p className="text-sm font-bold">Whisper AI vokalden şarkı sözlerini çıkarıyor...</p>
-              </div>
-            ) : segments.length === 0 ? (
-              <div className="h-64 flex flex-col items-center justify-center gap-3 text-slate-400 text-center">
-                <Mic2 className="w-10 h-10 stroke-1 text-amber-400" />
-                <p className="text-sm font-semibold">Henüz şarkı sözü eklenmedi.</p>
+              {/* Export Lyrics Dropdown Menu */}
+              <div className="relative" ref={exportMenuRef}>
                 <button
-                  onClick={() => handleAddSegment()}
-                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2"
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  className="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm cursor-pointer"
+                  title="Şarkı sözlerini ve milisaniye sürelerini JSON, LRC veya SRT olarak dışa aktar / yedekle"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>İlk Satırı Ekle</span>
+                  <FolderDown className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Dışa Aktar</span>
+                  <ChevronDown className="w-3 h-3 opacity-60 ml-0.5" />
                 </button>
+
+                {showExportMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-slate-900/95 border border-white/15 backdrop-blur-2xl rounded-2xl shadow-2xl p-1.5 z-[100] space-y-1 animate-fade-in text-left">
+                    <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Format Seçin (Export)
+                    </div>
+                    <button
+                      onClick={() => handleExport('json')}
+                      className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center justify-between transition-colors group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-400 font-mono text-[10px] font-bold">JSON</span>
+                        <span>JSON Formatı</span>
+                      </div>
+                      <span className="text-[10px] text-amber-400 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded">Önerilen</span>
+                    </button>
+                    <button
+                      onClick={() => handleExport('lrc')}
+                      className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center justify-between transition-colors group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 rounded-md bg-pink-500/20 text-pink-400 font-mono text-[10px] font-bold">LRC</span>
+                        <span>LRC Karaoke</span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => handleExport('srt')}
+                      className="w-full px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/10 flex items-center justify-between transition-colors group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-[10px] font-bold">SRT</span>
+                        <span>SRT Altyazı</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
               </div>
-            ) : (
+
+              {/* Add Segment */}
+              <button
+                onClick={() => handleAddSegment()}
+                className="px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                title="En başa yeni boş satır ekle"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Satır Ekle</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 1: Interactive Lyric Editor with Pro Studio Timeline Scrubber */}
+        {activeTab === 'lyrics' && (
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {/* Master Precision Audio Player & Timeline Progress Bar (Pinned / Sticky Top) */}
+            <div className="px-4 sm:px-6 pt-3 pb-2.5 bg-slate-950/85 border-b border-white/10 shrink-0 z-20 space-y-2.5 backdrop-blur-md">
+              <div className="p-3 sm:p-4 rounded-2xl bg-slate-900/90 border border-white/10 space-y-2.5 shadow-xl">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  {/* Left: Master Play / Rewind / Fast-Forward */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => stepCurrentTime(-2)}
+                      className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 transition-all active:scale-95 text-xs font-bold flex items-center gap-1 border border-white/5"
+                      title="2 Saniye Geri Sar"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>-2s</span>
+                    </button>
+
+                    <button
+                      onClick={toggleMasterPlay}
+                      className={cn(
+                        "px-4 py-2 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all active:scale-95",
+                        isPlaying
+                          ? "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20"
+                          : "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/20"
+                      )}
+                    >
+                      {isPlaying ? (
+                        <>
+                          <Pause className="w-4 h-4 fill-current" />
+                          <span>Durdur</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4 fill-current ml-0.5" />
+                          <span>Oynat</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => stepCurrentTime(2)}
+                      className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 transition-all active:scale-95 text-xs font-bold flex items-center gap-1 border border-white/5"
+                      title="2 Saniye İleri Sar"
+                    >
+                      <FastForward className="w-3.5 h-3.5" />
+                      <span>+2s</span>
+                    </button>
+                  </div>
+
+                  {/* Center: Audio Source Selection (Vocal vs Instrumental) */}
+                  <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-white/5">
+                    <span className="text-[10px] font-bold text-slate-500 px-2 uppercase font-mono">Ses:</span>
+                    {vocalStem && (
+                      <button
+                        onClick={() => setActiveAudioSource('vocal')}
+                        className={cn(
+                          "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all",
+                          activeAudioSource === 'vocal'
+                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm"
+                            : "text-slate-400 hover:text-white"
+                        )}
+                        title="Söz senkronu yaparken sadece insan sesini net duyun"
+                      >
+                        <Mic2 className="w-3 h-3" />
+                        <span>Vokal (İnsan Sesi)</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setActiveAudioSource('inst')}
+                      className={cn(
+                        "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all",
+                        activeAudioSource === 'inst'
+                          ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      )}
+                      title="Müziğin ritmini ve enstrümantal halini dinleyin"
+                    >
+                      <Music className="w-3 h-3" />
+                      <span>Enstrümantal</span>
+                    </button>
+                  </div>
+
+                  {/* Right: Real-time Millisecond Clock */}
+                  <div className="flex items-center gap-2 font-mono text-xs">
+                    <span className="text-amber-300 font-black text-sm bg-slate-950 px-3 py-1 rounded-xl border border-amber-500/30 shadow-inner">
+                      ⏱️ {formatPrecisionTime(currentTime)}
+                    </span>
+                    <span className="text-slate-500 font-bold">/</span>
+                    <span className="text-slate-200 font-bold text-xs">{formatPrecisionTime(duration)}</span>
+                  </div>
+                </div>
+
+                {/* Interactive Scrubbable Timeline Track */}
+                <div
+                  ref={progressBarRef}
+                  onClick={handleTimelineClick}
+                  onMouseMove={handleTimelineMouseMove}
+                  onMouseLeave={() => setHoverTime(null)}
+                  className="relative w-full h-7 bg-slate-950/90 hover:bg-slate-950 rounded-xl border border-white/15 cursor-pointer overflow-hidden group select-none flex items-center shadow-inner"
+                >
+                  {/* Active Segment Region Highlight Block on Timeline */}
+                  {activePlayingIndex !== null && segments[activePlayingIndex] && duration > 0 && (
+                    <div
+                      className="absolute top-0 bottom-0 bg-amber-500/40 border-x-2 border-amber-400 pointer-events-none z-10"
+                      style={{
+                        left: `${(segments[activePlayingIndex].start / duration) * 100}%`,
+                        width: `${((segments[activePlayingIndex].end - segments[activePlayingIndex].start) / duration) * 100}%`
+                      }}
+                    />
+                  )}
+
+                  {/* Overall Song Playback Progress Fill */}
+                  <div
+                    className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-amber-500/40 via-amber-500/60 to-amber-400 pointer-events-none transition-all duration-75"
+                    style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                  />
+
+                  {/* Playhead Needle Line */}
+                  <div
+                    className="absolute top-0 bottom-0 w-1.5 bg-amber-300 shadow-[0_0_12px_#f59e0b] pointer-events-none z-20"
+                    style={{ left: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                  />
+
+                  {/* Hover Preview Marker & Tooltip */}
+                  {hoverTime !== null && duration > 0 && (
+                    <>
+                      <div
+                        className="absolute top-0 bottom-0 w-0.5 bg-white/90 pointer-events-none z-30"
+                        style={{ left: `${(hoverTime / duration) * 100}%` }}
+                      />
+                      <div
+                        className="absolute -top-7 px-2.5 py-0.5 bg-slate-900 text-amber-300 text-[10px] font-mono font-bold rounded-lg shadow-xl border border-amber-500/40 pointer-events-none z-40 transform -translate-x-1/2"
+                        style={{ left: `${(hoverTime / duration) * 100}%` }}
+                      >
+                        {formatPrecisionTime(hoverTime)}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* High-Contrast Timeline Ruler & Time Labels (Cleanly positioned under track) */}
+                <div className="flex items-center justify-between px-1 text-[11px] font-mono font-semibold select-none">
+                  <span className="text-amber-300 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">00:00.00</span>
+                  <span className="text-slate-300 font-medium">{formatPrecisionTime(duration * 0.25)}</span>
+                  <span className="text-slate-200 font-bold bg-white/5 px-2.5 py-0.5 rounded-md border border-white/10">{formatPrecisionTime(duration * 0.5)}</span>
+                  <span className="text-slate-300 font-medium">{formatPrecisionTime(duration * 0.75)}</span>
+                  <span className="text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{formatPrecisionTime(duration)}</span>
+                </div>
+              </div>
+
+              {/* Smule Live Spacebar HUD Banner */}
+              {isLiveSyncMode && (
+                <div className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-pink-950/80 via-purple-950/80 to-slate-950/80 border border-pink-500/40 shadow-xl shadow-pink-500/10 space-y-2.5 animate-fade-in">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
+                      </span>
+                      <h4 className="text-xs font-black text-pink-300 tracking-wide uppercase font-mono">
+                        Smule Canlı Space Senkronizasyonu
+                      </h4>
+                      <span className="text-[10px] font-bold text-pink-400/80 bg-pink-500/10 px-2 py-0.5 rounded-md border border-pink-500/20">
+                        Satır #{liveSyncIndex + 1} / {segments.length}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleLiveSyncPrev}
+                        disabled={liveSyncIndex === 0}
+                        className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold flex items-center gap-1 disabled:opacity-30 transition-all cursor-pointer"
+                        title="Önceki satıra dön ve tekrar kaydet (Backspace)"
+                      >
+                        <Undo2 className="w-3.5 h-3.5" />
+                        <span>Geri Al (Backspace)</span>
+                      </button>
+
+                      <button
+                        onClick={handleLiveSyncNext}
+                        disabled={liveSyncIndex >= segments.length - 1}
+                        className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold flex items-center gap-1 disabled:opacity-30 transition-all cursor-pointer"
+                        title="Bu satırı atla ve sonrakine geç (Tab / Sağ Ok)"
+                      >
+                        <span>Atla</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        onClick={() => setIsLiveSyncMode(false)}
+                        className="px-2.5 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-bold transition-all border border-rose-500/30 cursor-pointer"
+                      >
+                        Kapat (Esc)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Real-time Instructions & Active Line Preview */}
+                  <div className={cn(
+                    "p-2.5 rounded-xl border transition-all flex items-center justify-between gap-4",
+                    isSpacePressed
+                      ? "bg-emerald-500/20 border-emerald-500/60 shadow-lg shadow-emerald-500/20"
+                      : "bg-black/40 border-pink-500/30"
+                  )}>
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-7 h-7 rounded-xl flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-md",
+                        isSpacePressed
+                          ? "bg-emerald-400 text-slate-950 animate-pulse"
+                          : "bg-pink-500/20 text-pink-300 border border-pink-500/40"
+                      )}>
+                        {isSpacePressed ? '🔴' : 'SPACE'}
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-slate-400">
+                          {isSpacePressed
+                            ? 'SÖZ KAYDEDİLİYOR (Başlangıç: ' + formatPrecisionTime(spacePressStartTime || currentTime) + ') -> BİTTİĞİNDE SPACE TUŞUNU BIRAKIN!'
+                            : 'ŞARKI ÇALARKEN SÖZ BAŞLADIĞINDA SPACE TUŞUNA BASILI TUTUN:'}
+                        </div>
+                        <div className="text-sm font-black text-white mt-0.5">
+                          "{currentSyncSegment ? currentSyncSegment.text : 'Söz Kalmadı'}"
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 text-right font-mono text-xs">
+                      {isSpacePressed ? (
+                        <span className="text-emerald-300 font-black text-sm animate-pulse">
+                          Kaydediliyor... ⏺️
+                        </span>
+                      ) : (
+                        <span className="text-pink-300 font-bold">
+                          Basılmayı Bekliyor ⏳
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Scrollable List of Lyric Rows */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3.5 min-h-0 custom-scrollbar">
+              {loadingLyrics ? (
+                <div className="h-64 flex flex-col items-center justify-center gap-3 text-slate-400">
+                  <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+                  <p className="text-sm font-bold">Whisper AI vokalden şarkı sözlerini çıkarıyor...</p>
+                </div>
+              ) : segments.length === 0 ? (
+                <div className="h-64 flex flex-col items-center justify-center gap-3 text-slate-400 text-center">
+                  <Mic2 className="w-10 h-10 stroke-1 text-amber-400" />
+                  <p className="text-sm font-semibold">Henüz şarkı sözü eklenmedi.</p>
+                  <button
+                    onClick={() => handleAddSegment()}
+                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>İlk Satırı Ekle</span>
+                  </button>
+                </div>
+              ) : (
               segments.map((seg, idx) => {
                 const nextSeg = segments[idx + 1];
                 const isSinging = currentTime >= seg.start && currentTime <= seg.end;
@@ -1532,216 +1952,411 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
                     <div
                       ref={(el) => { rowRefs.current[idx] = el; }}
-                    onClick={() => {
-                      if (isLiveSyncMode) {
-                        setLiveSyncIndex(idx);
-                        if (audioRef.current) {
+                      onClick={() => {
+                        if (isLiveSyncMode) {
+                          setLiveSyncIndex(idx);
                           seekTo(Math.max(0, seg.start - 0.5));
+                        } else {
+                          seekTo(seg.start);
                         }
-                      }
-                    }}
-                    className={cn(
-                      "relative p-3.5 rounded-2xl border transition-all group overflow-hidden cursor-pointer",
-                      isLiveTarget
-                        ? isSpacePressed
-                          ? "bg-emerald-500/15 border-emerald-400 shadow-xl shadow-emerald-500/20 ring-2 ring-emerald-400/50"
-                          : "bg-pink-500/10 border-pink-400 shadow-xl shadow-pink-500/20 ring-2 ring-pink-400/40"
-                        : isSinging
-                        ? "bg-amber-500/10 border-amber-500/60 shadow-lg shadow-amber-500/10"
-                        : isLingering
-                        ? "bg-slate-900/90 border-amber-500/30"
-                        : activePlayingIndex === idx
-                        ? "bg-slate-950/90 border-amber-500/40"
-                        : "bg-slate-950/70 border-white/10 hover:border-amber-500/30"
-                    )}
-                  >
-                    {/* Live Row Progress Fill Bar */}
-                    {isRowActive && rowProgressPercent > 0 && (
-                      <div
-                        className={cn(
-                          "absolute bottom-0 left-0 top-0 pointer-events-none transition-all duration-75",
-                          isSinging
-                            ? "bg-gradient-to-r from-amber-500/10 to-amber-500/20 border-r-2 border-amber-400"
-                            : "bg-amber-500/10 opacity-70"
-                        )}
-                        style={{ width: `${rowProgressPercent}%` }}
-                      />
-                    )}
-
-                    <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-3">
-                      {/* Play Line Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          playLine(idx);
-                        }}
-                        className={cn(
-                          'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform active:scale-90 shadow-md',
-                          activePlayingIndex === idx && isPlaying
-                            ? 'bg-amber-500 text-slate-950 shadow-amber-500/30'
-                            : 'bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 text-slate-300'
-                        )}
-                        title="Bu satırı dinle ve senkronu test et"
-                      >
-                        {activePlayingIndex === idx && isPlaying ? (
-                          <Pause className="w-4 h-4 fill-current" />
-                        ) : (
-                          <Play className="w-4 h-4 fill-current ml-0.5" />
-                        )}
-                      </button>
-
-                      {/* Loop Line Toggle */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleLoopLine(idx);
-                        }}
-                        className={cn(
-                          'p-2 rounded-xl text-xs font-bold shrink-0 transition-all active:scale-90',
-                          isLoopingThis
-                            ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30'
-                            : 'bg-white/5 hover:bg-white/10 text-slate-400'
-                        )}
-                        title={isLoopingThis ? 'Döngüyü Kapat' : 'Bu satırı sürekli tekrarla (İnce ayar için)'}
-                      >
-                        <Repeat className="w-3.5 h-3.5" />
-                      </button>
-
-                      {/* Precision Timing Inputs & Steppers */}
-                      <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        {/* Start Timing Box */}
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Başlangıç</span>
-                            <button
-                              onClick={() => setPlayheadToSegment(idx, 'start')}
-                              title="O an çalan süreyi bu satırın başlangıcı yap"
-                              className="text-[9px] text-amber-400 hover:text-amber-300 font-bold underline cursor-pointer"
-                            >
-                              ⏱️ Şu Anı Al
-                            </button>
-                          </div>
-                          <div className="flex items-center gap-0.5 bg-slate-900 rounded-lg p-0.5 border border-white/10 focus-within:border-amber-500 shadow-inner">
-                            <button
-                              onClick={() => stepSegmentTime(idx, 'start', -0.1)}
-                              title="100ms geriye al"
-                              className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
-                            >
-                              -0.1
-                            </button>
-                            <input
-                              type="number"
-                              step="0.05"
-                              value={seg.start}
-                              onChange={(e) => handleSegmentChange(idx, 'start', parseFloat(e.target.value) || 0)}
-                              className="w-16 py-1 bg-transparent text-xs font-mono font-bold text-amber-300 text-center focus:outline-none"
-                            />
-                            <button
-                              onClick={() => stepSegmentTime(idx, 'start', 0.1)}
-                              title="100ms ileriye al"
-                              className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
-                            >
-                              +0.1
-                            </button>
-                          </div>
-                        </div>
-
-                        <span className="text-slate-600 self-end pb-2 font-bold">-</span>
-
-                        {/* End Timing Box */}
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Bitiş</span>
-                            <button
-                              onClick={() => setPlayheadToSegment(idx, 'end')}
-                              title="O an çalan süreyi bu satırın bitişi yap"
-                              className="text-[9px] text-amber-400 hover:text-amber-300 font-bold underline cursor-pointer"
-                            >
-                              ⏱️ Şu Anı Al
-                            </button>
-                          </div>
-                          <div className="flex items-center gap-0.5 bg-slate-900 rounded-lg p-0.5 border border-white/10 focus-within:border-amber-500 shadow-inner">
-                            <button
-                              onClick={() => stepSegmentTime(idx, 'end', -0.1)}
-                              title="100ms geriye al"
-                              className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
-                            >
-                              -0.1
-                            </button>
-                            <input
-                              type="number"
-                              step="0.05"
-                              value={seg.end}
-                              onChange={(e) => handleSegmentChange(idx, 'end', parseFloat(e.target.value) || 0)}
-                              className="w-16 py-1 bg-transparent text-xs font-mono font-bold text-amber-300 text-center focus:outline-none"
-                            />
-                            <button
-                              onClick={() => stepSegmentTime(idx, 'end', 0.1)}
-                              title="100ms ileriye al"
-                              className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
-                            >
-                              +0.1
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Text Input & Sustain Indicator */}
-                      <div className="flex-1 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="text"
-                          value={seg.text}
-                          onChange={(e) => handleSegmentChange(idx, 'text', e.target.value)}
+                      }}
+                      className={cn(
+                        "relative p-3.5 rounded-2xl border transition-all group overflow-hidden cursor-pointer",
+                        isLiveTarget
+                          ? isSpacePressed
+                            ? "bg-emerald-500/15 border-emerald-400 shadow-xl shadow-emerald-500/20 ring-2 ring-emerald-400/50"
+                            : "bg-pink-500/10 border-pink-400 shadow-xl shadow-pink-500/20 ring-2 ring-pink-400/40"
+                          : isSinging
+                          ? "bg-amber-500/10 border-amber-500/60 shadow-lg shadow-amber-500/10"
+                          : isLingering
+                          ? "bg-slate-900/90 border-amber-500/30"
+                          : activePlayingIndex === idx
+                          ? "bg-slate-950/90 border-amber-500/40"
+                          : "bg-slate-950/70 border-white/10 hover:border-amber-500/30"
+                      )}
+                    >
+                      {/* Live Row Progress Fill Bar */}
+                      {isRowActive && rowProgressPercent > 0 && (
+                        <div
                           className={cn(
-                            "w-full p-2.5 rounded-xl border text-xs font-semibold placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all",
-                            isLiveTarget
-                              ? "bg-slate-900 border-pink-400 text-pink-200 font-bold"
-                              : isSinging
-                              ? "bg-slate-900/90 border-amber-500/50 text-amber-200"
-                              : "bg-slate-900/90 border-white/10 text-white"
+                            "absolute bottom-0 left-0 top-0 pointer-events-none transition-all duration-75",
+                            isSinging
+                              ? "bg-gradient-to-r from-amber-500/10 to-amber-500/20 border-r-2 border-amber-400"
+                              : "bg-amber-500/10 opacity-70"
                           )}
-                          placeholder="Şarkı sözü satırı..."
+                          style={{ width: `${rowProgressPercent}%` }}
                         />
-                        {hasSustain && (
-                          <span
-                            className="text-[10px] font-mono text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-1 rounded-lg font-bold shrink-0 flex items-center gap-1 shadow-sm"
-                            title="Bu satırda uzun uzatma (sustain) var. Video renderında otomatik '......' eklenecektir."
+                      )}
+
+                      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-3">
+                        {/* Play Line Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playLine(idx);
+                          }}
+                          className={cn(
+                            'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform active:scale-90 shadow-md',
+                            activePlayingIndex === idx && isPlaying
+                              ? 'bg-amber-500 text-slate-950 shadow-amber-500/30'
+                              : 'bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 text-slate-300'
+                          )}
+                          title="Bu satırı dinle ve senkronu test et"
+                        >
+                          {activePlayingIndex === idx && isPlaying ? (
+                            <Pause className="w-4 h-4 fill-current" />
+                          ) : (
+                            <Play className="w-4 h-4 fill-current ml-0.5" />
+                          )}
+                        </button>
+
+                        {/* Loop Line Toggle */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleLoopLine(idx);
+                          }}
+                          className={cn(
+                            'p-2 rounded-xl text-xs font-bold shrink-0 transition-all active:scale-90',
+                            isLoopingThis
+                              ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30'
+                              : 'bg-white/5 hover:bg-white/10 text-slate-400'
+                          )}
+                          title={isLoopingThis ? 'Döngüyü Kapat' : 'Bu satırı sürekli tekrarla (İnce ayar için)'}
+                        >
+                          <Repeat className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Precision Timing Inputs & Steppers */}
+                        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          {/* Start Timing Box */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Başlangıç</span>
+                              <button
+                                onClick={() => setPlayheadToSegment(idx, 'start')}
+                                title="O an çalan süreyi bu satırın başlangıcı yap"
+                                className="text-[9px] text-amber-400 hover:text-amber-300 font-bold underline cursor-pointer"
+                              >
+                                ⏱️ Şu Anı Al
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-0.5 bg-slate-900 rounded-lg p-0.5 border border-white/10 focus-within:border-amber-500 shadow-inner">
+                              <button
+                                onClick={() => stepSegmentTime(idx, 'start', -0.1)}
+                                title="100ms geriye al"
+                                className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
+                              >
+                                -0.1
+                              </button>
+                              <input
+                                type="number"
+                                step="0.05"
+                                value={seg.start}
+                                onChange={(e) => handleSegmentChange(idx, 'start', parseFloat(e.target.value) || 0)}
+                                className="w-16 py-1 bg-transparent text-xs font-mono font-bold text-amber-300 text-center focus:outline-none"
+                              />
+                              <button
+                                onClick={() => stepSegmentTime(idx, 'start', 0.1)}
+                                title="100ms ileriye al"
+                                className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
+                              >
+                                +0.1
+                              </button>
+                            </div>
+                          </div>
+
+                          <span className="text-slate-600 self-end pb-2 font-bold">-</span>
+
+                          {/* End Timing Box */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Bitiş</span>
+                              <button
+                                onClick={() => setPlayheadToSegment(idx, 'end')}
+                                title="O an çalan süreyi bu satırın bitişi yap"
+                                className="text-[9px] text-amber-400 hover:text-amber-300 font-bold underline cursor-pointer"
+                              >
+                                ⏱️ Şu Anı Al
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-0.5 bg-slate-900 rounded-lg p-0.5 border border-white/10 focus-within:border-amber-500 shadow-inner">
+                              <button
+                                onClick={() => stepSegmentTime(idx, 'end', -0.1)}
+                                title="100ms geriye al"
+                                className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
+                              >
+                                -0.1
+                              </button>
+                              <input
+                                type="number"
+                                step="0.05"
+                                value={seg.end}
+                                onChange={(e) => handleSegmentChange(idx, 'end', parseFloat(e.target.value) || 0)}
+                                className="w-16 py-1 bg-transparent text-xs font-mono font-bold text-amber-300 text-center focus:outline-none"
+                              />
+                              <button
+                                onClick={() => stepSegmentTime(idx, 'end', 0.1)}
+                                title="100ms ileriye al"
+                                className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
+                              >
+                                +0.1
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Text Input & Sustain Indicator */}
+                        <div className="flex-1 flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={seg.text}
+                            onClick={() => {
+                              if (!isLiveSyncMode) {
+                                seekTo(seg.start);
+                              }
+                            }}
+                            onFocus={() => {
+                              if (!isLiveSyncMode) {
+                                seekTo(seg.start);
+                              }
+                            }}
+                            onChange={(e) => handleSegmentChange(idx, 'text', e.target.value)}
+                            className={cn(
+                              "w-full p-2.5 rounded-xl border text-xs font-semibold placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all",
+                              isLiveTarget
+                                ? "bg-slate-900 border-pink-400 text-pink-200 font-bold"
+                                : isSinging
+                                ? "bg-slate-900/90 border-amber-500/50 text-amber-200"
+                                : "bg-slate-900/90 border-white/10 text-white"
+                            )}
+                            placeholder="Şarkı sözü satırı..."
+                          />
+                          {hasSustain && (
+                            <span
+                              className="text-[10px] font-mono text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-1 rounded-lg font-bold shrink-0 flex items-center gap-1 shadow-sm"
+                              title="Bu satırda uzun uzatma (sustain) var. Video renderında otomatik '......' eklenecektir."
+                            >
+                              <span>⏱️ {(seg.end - seg.start).toFixed(1)}s</span>
+                              <span className="text-amber-300 font-black">...</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Row Actions & Word-by-Word Button */}
+                        <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => setExpandedWordRow(expandedWordRow === idx ? null : idx)}
+                            className={cn(
+                              "px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border",
+                              expandedWordRow === idx
+                                ? "bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/10"
+                                : "bg-white/5 hover:bg-amber-500/10 hover:border-amber-500/30 text-slate-300 hover:text-amber-200 border-white/10"
+                            )}
+                            title="Kelimeleri tek tek milisaniyelik sürelerle düzenleyin"
                           >
-                            <span>⏱️ {(seg.end - seg.start).toFixed(1)}s</span>
-                            <span className="text-amber-300 font-black">...</span>
-                          </span>
-                        )}
+                            <Type className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Kelimeler ({getSegmentWords(seg).length})</span>
+                            <ChevronDown className={cn("w-3 h-3 opacity-70 transition-transform duration-200", expandedWordRow === idx && "rotate-180")} />
+                          </button>
+
+                          <button
+                            onClick={() => handleAddSegment(idx)}
+                            className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                            title="Altına Yeni Satır Ekle"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSegment(idx)}
+                            className="p-2 rounded-xl bg-white/[0.03] hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                            title="Satırı Sil"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Row Actions */}
-                      <div className="flex items-center gap-1 shrink-0 self-end sm:self-center" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => handleAddSegment(idx)}
-                          className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
-                          title="Altına Yeni Satır Ekle"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteSegment(idx)}
-                          className="p-2 rounded-xl bg-white/[0.03] hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors"
-                          title="Satırı Sil"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      {/* Expandable Word-Level Timing Editor Tray */}
+                      {expandedWordRow === idx && (
+                        <div className="relative z-10 mt-3 pt-3 border-t border-white/10 space-y-3 animate-in fade-in" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-between flex-wrap gap-2 text-xs bg-slate-900/60 p-2.5 rounded-xl border border-white/5">
+                            <div className="flex items-center gap-2 text-slate-200 font-bold">
+                              <Sparkles className="w-4 h-4 text-amber-400" />
+                              <span>Kelime Kelime Zamanlama & Heceler:</span>
+                              <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                                {getSegmentWords(seg).length} Kelime
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => distributeWordsEvenly(idx)}
+                                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[11px] font-bold border border-white/10 flex items-center gap-1 transition-all cursor-pointer"
+                                title="Kelimeleri satır süresine eşit böl"
+                              >
+                                <span>⚖️ Eşit Dağıt</span>
+                              </button>
+                              <button
+                                onClick={() => distributeWordsBySyllables(idx)}
+                                className="px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 hover:text-white text-[11px] font-bold border border-indigo-500/30 flex items-center gap-1 transition-all cursor-pointer"
+                                title="Kelimeleri hece sayılarına göre akıllıca paylaştır"
+                              >
+                                <span>✨ Heceye Göre Dağıt</span>
+                              </button>
+                              <button
+                                onClick={() => handleAddWord(idx)}
+                                className="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 hover:text-white text-[11px] font-bold border border-emerald-500/30 flex items-center gap-1 transition-all cursor-pointer"
+                                title="Satırın sonuna yeni kelime ekle"
+                              >
+                                <Plus className="w-3 h-3" />
+                                <span>Kelime Ekle</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Word Chips Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                            {getSegmentWords(seg).map((w, wIdx) => {
+                              const isWordSinging = currentTime >= w.start && currentTime <= w.end;
+                              const isThisWordPlaying = activePlayingWord?.segIdx === idx && activePlayingWord?.wordIdx === wIdx && isPlaying;
+                              return (
+                                <div
+                                  key={wIdx}
+                                  onClick={() => seekTo(w.start)}
+                                  className={cn(
+                                    "p-2.5 rounded-xl border transition-all flex flex-col gap-2 shadow-sm cursor-pointer select-none",
+                                    isWordSinging
+                                      ? "bg-amber-500/25 border-amber-400 ring-2 ring-amber-400/60 shadow-lg shadow-amber-500/20"
+                                      : "bg-slate-900/90 border-white/10 hover:border-amber-500/40"
+                                  )}
+                                >
+                                  {/* Word Header with Play, Text Input & Delete */}
+                                  <div className="flex items-center justify-between gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                      <span className="text-[10px] font-mono font-bold text-slate-500 shrink-0">#{wIdx + 1}</span>
+                                      <input
+                                        type="text"
+                                        value={w.word}
+                                        onChange={(e) => handleWordTextChange(idx, wIdx, e.target.value)}
+                                        className={cn(
+                                          "w-full bg-transparent px-1.5 py-0.5 rounded border border-transparent focus:border-amber-500/50 text-xs font-black truncate focus:outline-none focus:bg-slate-950 font-outfit",
+                                          isWordSinging ? "text-amber-200 underline decoration-amber-400" : "text-white"
+                                        )}
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      <button
+                                        onClick={() => playWord(idx, wIdx)}
+                                        className={cn(
+                                          "p-1 rounded-lg transition-all active:scale-95 cursor-pointer",
+                                          isThisWordPlaying
+                                            ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30 ring-1 ring-amber-400"
+                                            : "bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 text-slate-400"
+                                        )}
+                                        title={isThisWordPlaying ? "Kelimeyi Durdur" : "Sadece bu kelimeyi dinle"}
+                                      >
+                                        {isThisWordPlaying ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3" />}
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteWord(idx, wIdx)}
+                                        className="p-1 rounded-lg bg-white/5 hover:bg-rose-500/20 hover:text-rose-400 text-slate-500 transition-all active:scale-95 cursor-pointer"
+                                        title="Bu kelimeyi kaldır"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Start & End Steppers for this Word */}
+                                  <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono" onClick={(e) => e.stopPropagation()}>
+                                    {/* Word Start */}
+                                    <div className="space-y-0.5">
+                                      <div className="flex items-center justify-between text-[9px] text-slate-400 font-bold px-0.5">
+                                        <span>Başla</span>
+                                        <button
+                                          onClick={() => setPlayheadToWord(idx, wIdx, 'start')}
+                                          className="text-amber-400 hover:text-amber-300 underline font-bold cursor-pointer"
+                                          title="O an çalan süreyi bu kelimenin başlangıcı yap"
+                                        >
+                                          ⏱️ Al
+                                        </button>
+                                      </div>
+                                      <div className="flex items-center bg-slate-950 rounded-lg border border-white/10 p-0.5 focus-within:border-amber-500 shadow-inner">
+                                        <button
+                                          onClick={() => stepWordTime(idx, wIdx, 'start', -0.05)}
+                                          className="px-1 text-slate-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
+                                        >
+                                          -
+                                        </button>
+                                        <input
+                                          type="number"
+                                          step="0.05"
+                                          value={w.start}
+                                          onChange={(e) => handleWordTimeChange(idx, wIdx, 'start', parseFloat(e.target.value) || 0)}
+                                          className="w-full bg-transparent text-center text-amber-300 font-bold text-[10px] focus:outline-none"
+                                        />
+                                        <button
+                                          onClick={() => stepWordTime(idx, wIdx, 'start', 0.05)}
+                                          className="px-1 text-slate-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    {/* Word End */}
+                                    <div className="space-y-0.5">
+                                      <div className="flex items-center justify-between text-[9px] text-slate-400 font-bold px-0.5">
+                                        <span>Bitir</span>
+                                        <button
+                                          onClick={() => setPlayheadToWord(idx, wIdx, 'end')}
+                                          className="text-amber-400 hover:text-amber-300 underline font-bold cursor-pointer"
+                                          title="O an çalan süreyi bu kelimenin bitişi yap"
+                                        >
+                                          ⏱️ Al
+                                        </button>
+                                      </div>
+                                      <div className="flex items-center bg-slate-950 rounded-lg border border-white/10 p-0.5 focus-within:border-amber-500 shadow-inner">
+                                        <button
+                                          onClick={() => stepWordTime(idx, wIdx, 'end', -0.05)}
+                                          className="px-1 text-slate-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
+                                        >
+                                          -
+                                        </button>
+                                        <input
+                                          type="number"
+                                          step="0.05"
+                                          value={w.end}
+                                          onChange={(e) => handleWordTimeChange(idx, wIdx, 'end', parseFloat(e.target.value) || 0)}
+                                          className="w-full bg-transparent text-center text-amber-300 font-bold text-[10px] focus:outline-none"
+                                        />
+                                        <button
+                                          onClick={() => stepWordTime(idx, wIdx, 'end', 0.05)}
+                                          className="px-1 text-slate-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </React.Fragment>
-              );
-              })
-            )}
+                  </React.Fragment>
+                );
+                })
+              )}
+            </div>
           </div>
         )}
 
         {/* Tab 2: Video Customization & Render */}
         {activeTab === 'video' && (
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 max-h-[60vh]">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 min-h-0 custom-scrollbar">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Aspect Ratio Picker */}
               <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/10 space-y-3">
@@ -1935,7 +2550,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
               {rendering ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>FFmpeg 1080p Render Ediliyor...</span>
+                  <span>{renderStatusMsg || 'FFmpeg 1080p Render Ediliyor...'}</span>
                 </>
               ) : (
                 <>

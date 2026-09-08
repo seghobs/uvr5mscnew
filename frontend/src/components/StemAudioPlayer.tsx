@@ -12,7 +12,9 @@ import {
   RotateCcw,
   Sparkles,
   Music,
+  Mic,
   Loader2,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { Language, AccentColor } from '@/lib/types';
 import { cn, formatTime, getNoteName, chromaticNotes } from '@/lib/utils';
@@ -21,6 +23,8 @@ import { api } from '@/lib/api';
 import { LyricsModal } from './LyricsModal';
 import { VisualizerExportModal } from './VisualizerExportModal';
 import { KaraokeStudioModal } from './KaraokeStudioModal';
+import { RestoreModal } from './RestoreModal';
+import { ABCompareModal } from './ABCompareModal';
 
 interface StemAudioPlayerProps {
   stem: string;
@@ -49,6 +53,22 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [showKaraokeModal, setShowKaraokeModal] = useState(false);
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [showABCompareModal, setShowABCompareModal] = useState(false);
+
+  const isRestoredStem = stem.startsWith('Restored_') || stem.startsWith('Denoised_');
+  const counterpartStem = (() => {
+    if (!allStems || allStems.length <= 1) return null;
+    if (isRestoredStem) {
+      const rawTarget = stem.replace(/^Restored_|^Denoised_/, '').replace(/_\d+\.flac$/, '').toLowerCase();
+      return allStems.find((s) => s !== stem && s.toLowerCase().includes(rawTarget)) ||
+             allStems.find((s) => !s.startsWith('Restored_') && !s.startsWith('Denoised_')) || null;
+    } else {
+      const baseStem = stem.replace(/\.[^/.]+$/, '').toLowerCase();
+      return allStems.find((s) => (s.startsWith('Restored_') || s.startsWith('Denoised_')) && s.toLowerCase().includes(baseStem)) ||
+             allStems.find((s) => s.startsWith('Restored_') || s.startsWith('Denoised_')) || null;
+    }
+  })();
 
   // Pitch & Tempo State
   const [showPitchTempo, setShowPitchTempo] = useState(false);
@@ -299,131 +319,164 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-xl space-y-4">
-      {/* Top Stem Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3 truncate">
+    <div
+      className={cn(
+        'border rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-xl space-y-4 transition-all duration-300 relative overflow-hidden',
+        isVocal
+          ? 'bg-gradient-to-br from-rose-950/25 via-slate-900/95 to-slate-950 border-rose-500/30 shadow-rose-950/20'
+          : isInst
+          ? 'bg-gradient-to-br from-emerald-950/25 via-slate-900/95 to-slate-950 border-emerald-500/30 shadow-emerald-950/20'
+          : 'bg-slate-900/80 border-slate-800'
+      )}
+    >
+      {/* ROW 1: Stem Identification Badge, Title & Key/BPM */}
+      <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/5">
+        <div className="flex items-center gap-3 min-w-0">
           <div
             className={cn(
-              'p-2.5 rounded-2xl border flex items-center justify-center shrink-0',
-              isVocal && 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-              isInst && 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-              !isVocal && !isInst && 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+              'px-3 py-1.5 rounded-xl border flex items-center gap-2 shrink-0 shadow-lg font-black text-xs uppercase tracking-wider font-outfit select-none',
+              isVocal && 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-rose-500/10',
+              isInst && 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-emerald-500/10',
+              !isVocal && !isInst && 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
             )}
           >
-            <Music className="w-5 h-5" />
+            {isVocal ? (
+              <>
+                <Mic className="w-4 h-4 text-rose-400 fill-rose-400/20 shrink-0" />
+                <span>VOKAL (İNSAN SESİ)</span>
+              </>
+            ) : isInst ? (
+              <>
+                <Music className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>ENSTRÜMANTAL (MÜZİK)</span>
+              </>
+            ) : (
+              <>
+                <Music className="w-4 h-4 text-indigo-400 shrink-0" />
+                <span>AYRILMIŞ KANAL</span>
+              </>
+            )}
           </div>
-          <div className="truncate">
-            <div className="flex items-center gap-2">
-              <h4 className="font-bold text-sm text-white truncate">{stem}</h4>
-              {analysis && (
-                <span className="hidden md:inline-flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
-                  <span>🎼 {analysis.key} ({analysis.camelot})</span>
-                  <span>•</span>
-                  <span>⚡ {analysis.bpm} BPM</span>
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">
-                {isVocal ? t('Vocals') : isInst ? t('Instrumental') : t('Other Stem')}
-              </span>
-              {analysis && (
-                <span className="md:hidden text-[10px] font-mono text-amber-400 font-bold">
-                  {analysis.key} • {analysis.bpm} BPM
-                </span>
-              )}
-            </div>
+
+          <div className="min-w-0">
+            <h4 className="font-bold text-xs sm:text-sm text-white/90 truncate" title={stem}>
+              {stem}
+            </h4>
+            {analysis && (
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-amber-400/90 mt-0.5">
+                <span className="font-bold">🎼 {analysis.key} ({analysis.camelot})</span>
+                <span className="text-slate-600">•</span>
+                <span className="font-bold">⚡ {analysis.bpm} BPM</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          {/* Quick 2-Pass Clean Button */}
-          {isVocal && (
-            <button
-              onClick={() => handleQuickClean('dereverb')}
-              disabled={isQuickCleaning}
-              className="px-3 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
-              title="Vokal arkasındaki tüm oda yankısını siler"
-            >
-              {isQuickCleaning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>💧</span>}
-              <span className="hidden sm:inline">
-                {isQuickCleaning ? `Temizleniyor %${cleanProgress || 10}` : 'Yankıyı Sil'}
-              </span>
-            </button>
-          )}
+        {/* Quick Download icon top right */}
+        <a
+          href={`/output/${encodeURIComponent(stem)}`}
+          download={stem}
+          className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all active:scale-95 shrink-0"
+          title={t('Download')}
+        >
+          <Download className="w-4 h-4" />
+        </a>
+      </div>
 
-          {isInst && (
-            <button
-              onClick={() => handleQuickClean('debleed')}
-              disabled={isQuickCleaning}
-              className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
-              title="Enstrümantaldeki tüm artık vokal fısıltılarını kazır"
-            >
-              {isQuickCleaning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>✂️</span>}
-              <span className="hidden sm:inline">
-                {isQuickCleaning ? `Kazınıyor %${cleanProgress || 10}` : 'Kalıntıyı Kazı'}
-              </span>
-            </button>
-          )}
-
-          {/* AI Karaoke Lyrics Button */}
-          {isVocal && (
-            <button
-              onClick={() => setShowLyricsModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
-              title="Şarkı Sözlerini (.LRC/.SRT) Çıkar & Oynat"
-            >
-              <span>🎤</span>
-              <span className="hidden sm:inline">Sözler</span>
-            </button>
-          )}
-
-          {/* 1080p YouTube Karaoke Video Generator */}
+      {/* ROW 2: Action Controls Toolbar */}
+      <div className="flex flex-wrap items-center gap-2 pt-0.5">
+        {/* Quick 2-Pass Clean Button */}
+        {isVocal && (
           <button
-            onClick={() => setShowKaraokeModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-md shadow-amber-500/10"
-            title="Şarkı sözlerini düzenleyip 1080p YouTube Karaoke Videosu (MP4) Oluştur"
+            onClick={() => handleQuickClean('dereverb')}
+            disabled={isQuickCleaning}
+            className="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+            title="Vokal arkasındaki tüm oda yankısını siler"
+          >
+            {isQuickCleaning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>💧</span>}
+            <span>{isQuickCleaning ? `Temizleniyor %${cleanProgress || 10}` : 'Yankıyı Sil'}</span>
+          </button>
+        )}
+
+        {isInst && (
+          <button
+            onClick={() => handleQuickClean('debleed')}
+            disabled={isQuickCleaning}
+            className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+            title="Enstrümantaldeki tüm artık vokal fısıltılarını kazır"
+          >
+            {isQuickCleaning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>✂️</span>}
+            <span>{isQuickCleaning ? `Kazınıyor %${cleanProgress || 10}` : 'Kalıntıyı Kazı'}</span>
+          </button>
+        )}
+
+        {/* AI Karaoke Lyrics Button */}
+        {isVocal && (
+          <button
+            onClick={() => setShowLyricsModal(true)}
+            className="px-3 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
+            title="Şarkı Sözlerini (.LRC/.SRT) Çıkar & Oynat"
           >
             <span>🎤</span>
-            <span className="hidden sm:inline">Karaoke Video</span>
+            <span>Sözler</span>
           </button>
+        )}
 
-          {/* 1080p Video Visualizer Export */}
+        {/* 1080p YouTube Karaoke Video Generator */}
+        <button
+          onClick={() => setShowKaraokeModal(true)}
+          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-md shadow-amber-500/10"
+          title="Şarkı sözlerini düzenleyip 1080p YouTube Karaoke Videosu (MP4) Oluştur"
+        >
+          <span>🎤</span>
+          <span>Karaoke Video</span>
+        </button>
+
+        {/* 1080p Video Visualizer Export */}
+        <button
+          onClick={() => setShowVisualizerModal(true)}
+          className="px-3 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
+          title="1080p Dalga Formlu Video (TikTok/Reels/YouTube) Oluştur"
+        >
+          <span>🎬</span>
+          <span>Video Klip</span>
+        </button>
+
+        {/* AI Restoration & Super-Resolution (AudioSR + Roformer Denoise) */}
+        <button
+          onClick={() => setShowRestoreModal(true)}
+          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:to-indigo-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-md shadow-cyan-500/10"
+          title="AudioSR + Roformer Denoise ile 48kHz Stüdyo Master Restorasyonu"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <span>AI Onar & Parlat</span>
+        </button>
+
+        {/* Instant A/B Quality Comparison Button (Available when paired stem exists) */}
+        {counterpartStem && (
           <button
-            onClick={() => setShowVisualizerModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
-            title="1080p Dalga Formlu Video (TikTok/Reels/YouTube) Oluştur"
+            onClick={() => setShowABCompareModal(true)}
+            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-cyan-500/20 to-indigo-500/20 hover:from-amber-500/30 hover:to-cyan-500/30 text-white border border-cyan-500/40 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-md shadow-cyan-500/10"
+            title="Orijinal ve Onarılmış ses arasındaki kalite farkını canlı senkronize dinleyin ve spektrumu inceleyin"
           >
-            <span>🎬</span>
-            <span className="hidden sm:inline">Video Klip</span>
+            <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-300" />
+            <span>A/B Karşılaştır</span>
           </button>
+        )}
 
-          {/* Pitch & Tempo Toggle */}
-          <button
-            onClick={() => setShowPitchTempo(!showPitchTempo)}
-            className={cn(
-              'px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95',
-              showPitchTempo || pitchShift !== 0 || tempoFactor !== 1.0
-                ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
-                : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
-            )}
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{t('Pitch & Tempo Editor')}</span>
-          </button>
-
-          {/* Download Output File */}
-          <a
-            href={`/output/${encodeURIComponent(stem)}`}
-            download={stem}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all active:scale-95"
-            title={t('Download')}
-          >
-            <Download className="w-4 h-4" />
-          </a>
-        </div>
+        {/* Pitch & Tempo Toggle */}
+        <button
+          onClick={() => setShowPitchTempo(!showPitchTempo)}
+          className={cn(
+            'px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95',
+            showPitchTempo || pitchShift !== 0 || tempoFactor !== 1.0
+              ? 'bg-violet-500/25 border-violet-500/50 text-violet-300'
+              : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
+          )}
+        >
+          <Sliders className="w-3.5 h-3.5" />
+          <span>{t('Pitch & Tempo Editor')}</span>
+        </button>
       </div>
 
       {/* Waveform Player */}
@@ -686,6 +739,27 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
         lang={lang}
         onNotify={onNotify}
       />
+
+      {/* AI Audio Restoration & Super-Resolution Modal */}
+      <RestoreModal
+        isOpen={showRestoreModal}
+        onClose={() => setShowRestoreModal(false)}
+        stem={stem}
+        lang={lang}
+        onNewStemCreated={onNewStemCreated}
+        onNotify={onNotify}
+      />
+
+      {/* Synchronized A/B Quality Comparison Modal */}
+      {counterpartStem && (
+        <ABCompareModal
+          isOpen={showABCompareModal}
+          onClose={() => setShowABCompareModal(false)}
+          originalFile={isRestoredStem ? counterpartStem : stem}
+          restoredFile={isRestoredStem ? stem : counterpartStem}
+          lang={lang}
+        />
+      )}
     </div>
   );
 };

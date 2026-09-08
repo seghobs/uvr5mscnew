@@ -1,6 +1,23 @@
 import sys
-import re
 import os
+
+class _NullStream:
+    def write(self, text): pass
+    def flush(self): pass
+    def isatty(self): return False
+    def fileno(self): return 0
+    def readable(self): return False
+    def writable(self): return True
+    def seekable(self): return False
+
+if sys.stdout is None or not hasattr(sys.stdout, 'write'):
+    sys.stdout = _NullStream()
+if sys.stderr is None or not hasattr(sys.stderr, 'write'):
+    sys.stderr = _NullStream()
+if sys.stdin is None:
+    sys.stdin = _NullStream()
+
+import re
 import json
 import uuid
 import subprocess
@@ -18,6 +35,20 @@ import core
 
 import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
+
+# Suppress background popup cmd windows/tabs on Windows for ffmpeg/ffprobe/helpers/audio_separator
+SUBPROCESS_FLAGS = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+
+if os.name == 'nt':
+    _original_popen = subprocess.Popen
+    class _SilentPopen(_original_popen):
+        def __init__(self, *args, **kwargs):
+            if 'creationflags' not in kwargs:
+                kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+            else:
+                kwargs['creationflags'] |= subprocess.CREATE_NO_WINDOW
+            super().__init__(*args, **kwargs)
+    subprocess.Popen = _SilentPopen
 
 app = FastAPI(title="UVR5 Premium API")
 app.add_middleware(
@@ -735,6 +766,8 @@ def run_separation_task(task_id, request: SeparationRequest):
         _update_task(task_id, status="completed", stems=stems_list, results=stems_list, progress=1.0, message="Completed")
     except Exception as e:
         _update_task(task_id, status="failed", error=str(e)[:500], message=f"Failed: {e}"[:300])
+    finally:
+        core.clear_gpu_and_ram_cache()
 
 def run_ensemble_task(task_id, audio_path, models: list, out_format: str):
     try:
@@ -816,6 +849,9 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str):
                     else:
                         results_inst.append(s)
 
+            # Evict model and clean VRAM cache after each ensemble step
+            core.clear_gpu_and_ram_cache()
+
         if not results_vocal and not results_inst:
             raise RuntimeError("Ensemble produced no results")
         if not results_vocal and results_inst:
@@ -849,7 +885,7 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str):
                 # Detect and ignore silent/empty stems
                 try:
                     pcmd = ["ffmpeg", "-i", str(pf), "-af", "volumedetect", "-vn", "-sn", "-dn", "-f", "null", "NUL" if os.name == 'nt' else "/dev/null"]
-                    pres = subprocess.run(pcmd, capture_output=True, text=True, timeout=5)
+                    pres = subprocess.run(pcmd, capture_output=True, text=True, timeout=5, creationflags=SUBPROCESS_FLAGS)
                     is_silent = False
                     for line in pres.stderr.splitlines():
                         if "mean_volume:" in line:
@@ -882,7 +918,7 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str):
                 if out_format == "mp3":
                     cmd += ["-c:a", "libmp3lame", "-b:a", "320k"]
                 cmd.append(str(out_path))
-                subprocess.run(cmd, check=True, capture_output=True)
+                subprocess.run(cmd, check=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
                 return output_name
 
             # Build labeled amix with normalize=1 for zero distortion & zero artifact amplification
@@ -892,7 +928,7 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str):
             if out_format == "mp3":
                 cmd += ["-c:a", "libmp3lame", "-b:a", "320k"]
             cmd.append(str(out_path))
-            subprocess.run(cmd, check=True, capture_output=True)
+            subprocess.run(cmd, check=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
             return output_name
 
         v_out = merge_files(results_vocal, final_vocal)
@@ -903,6 +939,8 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str):
         
     except Exception as e:
         _update_task(task_id, status="failed", error=str(e)[:500], message=f"Failed: {e}"[:300])
+    finally:
+        core.clear_gpu_and_ram_cache()
 
 class AudioModRequest(BaseModel):
     file_name: str = Field(..., min_length=1, max_length=256)
@@ -927,7 +965,7 @@ async def modify_audio_endpoint(request: AudioModRequest):
         sample_rate = 44100
         try:
             sr_cmd = ["ffprobe", "-v", "error", "-show_entries", "stream=sample_rate", "-of", "default=noprint_wrappers=1:nokey=1", str(input_path)]
-            sr_out = subprocess.check_output(sr_cmd, text=True).strip().split('\n')[0]
+            sr_out = subprocess.check_output(sr_cmd, text=True, creationflags=SUBPROCESS_FLAGS).strip().split('\n')[0]
             if sr_out.isdigit():
                 sample_rate = int(sr_out)
         except:
@@ -964,7 +1002,7 @@ async def modify_audio_endpoint(request: AudioModRequest):
             cmd.extend(["-filter:a", filter_str])
         cmd.append(str(out_path))
         
-        subprocess.run(cmd, check=True, capture_output=True)
+        subprocess.run(cmd, check=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
         
         return {"status": "success", "filename": out_name}
     except HTTPException:
@@ -1227,7 +1265,7 @@ async def remix_audio(request: RemixRequest):
     sample_rate = 44100
     try:
         sr_cmd = ["ffprobe", "-v", "error", "-show_entries", "stream=sample_rate", "-of", "default=noprint_wrappers=1:nokey=1", str(inst_path)]
-        sr_out = subprocess.check_output(sr_cmd, text=True).strip().split('\n')[0]
+        sr_out = subprocess.check_output(sr_cmd, text=True, creationflags=SUBPROCESS_FLAGS).strip().split('\n')[0]
         if sr_out.isdigit():
             sample_rate = int(sr_out)
     except:
@@ -1276,7 +1314,7 @@ async def remix_audio(request: RemixRequest):
     ]
     
     try:
-        subprocess.run(cmd, check=True, capture_output=True)
+        subprocess.run(cmd, check=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
         return {"status": "success", "filename": output_filename}
     except subprocess.CalledProcessError as e:
         err = e.stderr.decode() if isinstance(e.stderr, bytes) else str(e.stderr) if e.stderr else str(e)
@@ -1324,9 +1362,12 @@ def run_batch_task(task_id, req: BatchRequest):
                 core.vrarch_separator(fpath, req.model_key, req.out_format, req.params.get("window_size",512), req.params.get("aggression",5), req.params.get("tta",True), req.params.get("post_process",False), req.params.get("post_process_threshold",0.2), req.params.get("high_end_process",False), req.params.get("batch_size",1), req.params.get("normalization_threshold",0.9), req.params.get("amplification_threshold",0.7), req.params.get("single_stem",""))
             elif req.model_type == "demucs":
                 core.demucs_separator(fpath, req.model_key, req.out_format, req.params.get("shifts",2), req.params.get("segment_size",40), req.params.get("segments_enabled",True), req.params.get("overlap",0.25), req.params.get("batch_size",1), req.params.get("normalization_threshold",0.9), req.params.get("amplification_threshold",0.7))
+            core.clear_gpu_and_ram_cache()
         _update_task(task_id, status="completed", progress=1.0, message=f"Batch completed: {total} files")
     except Exception as e:
         _update_task(task_id, status="failed", error=str(e)[:500], message=f"Batch failed: {e}"[:300])
+    finally:
+        core.clear_gpu_and_ram_cache()
 
 @app.post("/batch")
 async def start_batch(req: BatchRequest, background_tasks: BackgroundTasks):
@@ -1445,6 +1486,18 @@ class SaveLyricsRequest(BaseModel):
 WHISPER_DIR = Path("models/whisper").resolve()
 WHISPER_DIR.mkdir(parents=True, exist_ok=True)
 _whisper_cache = {}
+
+def unload_whisper_models():
+    """Unloads all cached Faster-Whisper models and frees GPU VRAM/RAM immediately."""
+    global _whisper_cache
+    for k in list(_whisper_cache.keys()):
+        try:
+            m = _whisper_cache.pop(k, None)
+            if m is not None:
+                del m
+        except Exception:
+            pass
+    core.clear_gpu_and_ram_cache()
 
 def get_whisper_model(model_key="large-v3"):
     if model_key in _whisper_cache:
@@ -1661,7 +1714,8 @@ async def transcribe_lyrics_endpoint(req: LyricsRequest):
             'altyazı', 'altyazi', 'izlediğiniz için', 'izlediginiz icin', 'teşekkürler', 'tesekkurler',
             'teşekkür ederim', 'tesekkur ederim', 'abone', 'youtube', 'translated by', 'copyright',
             'thank you for watching', 'subtitles by', 'öğrenç', 'ogrenc', 'vokal.', 'müzik', 'muzik',
-            'alkış', 'alkis', 'enstrümantal'
+            'alkış', 'alkis', 'enstrümantal', 'm.k.', 'm.k', 'beğenmeyi unutmayın', 'begenmeyi unutmayin',
+            'hoşça kalın', 'hosca kalin', 'görüşmek üzere', 'gorusmek uzere', 'kanalımıza abone', 'kanalimiza abone'
         ]
 
         def _clean_segment_text(txt: str) -> str:
@@ -1681,12 +1735,15 @@ async def transcribe_lyrics_endpoint(req: LyricsRequest):
                 print(f"[WHISPER] Error loading {target_model_key}: {e}. Falling back to available model...")
                 model = get_whisper_model("large-v3-turbo")
 
-            # Transcribe with vad_filter=False to capture 100% of vocal lines without dropping singing
+            # Transcribe with Silero VAD to eliminate music hallucinations and speech probability thresholding
             res_segments, info = model.transcribe(
                 str(target_path),
                 language=target_lang,
                 condition_on_previous_text=False,
-                vad_filter=False,
+                vad_filter=True,
+                vad_parameters=dict(min_silence_duration_ms=450, speech_pad_ms=200, threshold=0.35),
+                no_speech_threshold=0.55,
+                compression_ratio_threshold=2.4,
                 beam_size=5,
                 best_of=5,
                 temperature=[0.0, 0.2, 0.4],
@@ -1704,6 +1761,9 @@ async def transcribe_lyrics_endpoint(req: LyricsRequest):
                         if not w_txt:
                             continue
                         low = w_txt.lower()
+                        clean_w = w_txt.strip(' .,!?-_/\\:;"\'').lower()
+                        if clean_w in ('m.k', 'mk', 'm.k.', '...', '..', 'm'):
+                            continue
                         if any(h in low for h in hallucination_phrases):
                             continue
                         # Filter out low-confidence intro artifacts
@@ -1808,6 +1868,8 @@ async def transcribe_lyrics_endpoint(req: LyricsRequest):
         return saved_res
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        unload_whisper_models()
 
 class QuickCleanRequest(BaseModel):
     file_name: str = Field(..., min_length=1, max_length=256)
@@ -1895,7 +1957,7 @@ async def generate_visualizer_endpoint(req: VisualizerRequest):
             str(out_video_path)
         ]
         
-        subprocess.run(cmd, check=True, capture_output=True)
+        subprocess.run(cmd, check=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
         return {"status": "success", "video_file": out_video_name, "download_url": f"/output/{out_video_name}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1910,9 +1972,10 @@ class KaraokeVideoRequest(BaseModel):
     aspect_ratio: str = Field(default="16:9", pattern="^(16:9|9:16)$")
     theme: str = Field(default="gold", pattern="^(gold|neon|cyberpunk|emerald)$")
 
-@app.post("/generate_karaoke_video")
-async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest):
+def run_karaoke_video_task(task_id: str, req_data: dict):
     try:
+        _update_task(task_id, status="processing", message="Karaoke ASS altyazıları oluşturuluyor...", progress=0.1)
+        req = KaraokeVideoRequest(**req_data)
         inst_path = _find_audio_file(req.inst_file)
         
         is_vertical = req.aspect_ratio == "9:16"
@@ -1980,33 +2043,25 @@ async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest):
             "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
         ]
 
-        # User Customizable Title Header / Watermark banner
         if req.show_header is not False:
             parts = []
             if req.header_text and req.header_text.strip():
                 parts.append(req.header_text.strip())
-            
             song_info = []
             if req.title and req.title.strip():
                 song_info.append(req.title.strip())
             if req.artist and req.artist.strip():
                 song_info.append(req.artist.strip())
-            
             if song_info:
                 song_str = " - ".join(song_info)
-                if parts:
-                    title_text = f"{parts[0]} • {song_str}"
-                else:
-                    title_text = song_str
+                title_text = f"{parts[0]} • {song_str}" if parts else song_str
             elif parts:
                 title_text = parts[0]
             else:
                 title_text = ""
-
             if title_text:
                 ass_lines.append(f"Dialogue: 0,0:00:00.00,1:00:00.00,Title,,0,0,0,,{title_text}")
 
-        # 1. Determine segments to use: prioritize request segments and persist to SQLite
         segments_to_use = req.segments
         if (not segments_to_use or len(segments_to_use) == 0):
             cached = get_saved_lyrics(req.inst_file)
@@ -2015,14 +2070,11 @@ async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest):
         elif segments_to_use and len(segments_to_use) > 0:
             save_lyrics_db(req.inst_file, "tr", [s.dict() for s in segments_to_use], is_edited=True)
 
-        # Intro preview: if song starts after 1.5s, show line 0 at y_upcoming from 0.0s until seg[0].start
         if segments_to_use and segments_to_use[0].start >= 1.5:
             first_seg = segments_to_use[0]
             first_text = first_seg.text.strip()
             if first_text:
-                intro_st = "0:00:00.00"
-                intro_en = to_ass_time(first_seg.start)
-                ass_lines.append(f"Dialogue: 0,{intro_st},{intro_en},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{first_text}")
+                ass_lines.append(f"Dialogue: 0,0:00:00.00,{to_ass_time(first_seg.start)},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{first_text}")
 
         for idx, seg in enumerate(segments_to_use):
             raw_text = seg.text.strip()
@@ -2030,81 +2082,146 @@ async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest):
                 continue
 
             st = to_ass_time(seg.start)
-            
-            # Active line display end: stays on screen until next segment begins (or max seg.end + 0.35s)
             if idx + 1 < len(segments_to_use):
                 next_seg = segments_to_use[idx + 1]
-                act_end_sec = min(next_seg.start, max(seg.end, seg.end + 0.35))
+                if next_seg.start >= seg.end:
+                    act_end_sec = min(next_seg.start, seg.end + 0.35)
+                else:
+                    act_end_sec = seg.end + 0.1
             else:
                 act_end_sec = seg.end + 2.0
             en = to_ass_time(act_end_sec)
 
-            raw_words = raw_text.split()
-            seg_dur = max(0.2, round(seg.end - seg.start, 2))
+            raw_words = [w for w in re.split(r'\s+', raw_text) if w]
             num_w = len(raw_words)
+            if num_w == 0:
+                continue
 
-            # Turkish Syllable-Aware Word-by-Word Duration Calculation
-            vowels = set("aeıioöuüAEIİOÖUÜ")
-            weights = []
-            for w in raw_words:
-                v_cnt = sum(1 for c in w if c in vowels)
-                clean_len = len(re.sub(r'[^\w]', '', w))
-                w_wt = max(1.0, float(v_cnt) if v_cnt > 0 else clean_len * 0.4)
-                if any(p in w for p in [',', '!', '?', ';']):
-                    w_wt += 0.5
-                weights.append(w_wt)
+            seg_dur = max(0.2, float(seg.end - seg.start))
+            total_fill_cs = max(20, int(round(seg_dur * 100)))
 
-            total_dur_cs = max(20, int(seg_dur * 100))
-            is_slow_sustain = (seg_dur / num_w >= 0.70)
-            
+            custom_words = getattr(seg, 'words', None)
+            has_matching_words = (
+                custom_words is not None
+                and len(custom_words) == num_w
+                and all(
+                    (isinstance(cw, dict) and 'start' in cw and 'end' in cw)
+                    or (hasattr(cw, 'start') and hasattr(cw, 'end'))
+                    for cw in custom_words
+                )
+            )
+
             w_tags = []
+
             if num_w == 1:
-                w_tags.append(f"{{\\kf{total_dur_cs}}}{raw_words[0]}")
-            elif is_slow_sustain:
-                # Leading words sing in standard cadence, last word fills slowly across the remaining sustain
-                leading_cs_pool = int(total_dur_cs * 0.60)
-                last_w_cs = total_dur_cs - leading_cs_pool
-                lead_weights_sum = sum(weights[:-1]) or 1.0
+                # Single-word line (e.g. sustained note like "bitti...") smoothly fills across the FULL configured duration!
+                w_tags.append(f"{{\\kf{total_fill_cs}}}{raw_words[0]}")
+            elif has_matching_words:
+                raw_durs = []
+                raw_gaps = []
+                for i, cw in enumerate(custom_words):
+                    cw_s = float(cw.get('start', 0.0) if isinstance(cw, dict) else getattr(cw, 'start', 0.0))
+                    cw_e = float(cw.get('end', 0.0) if isinstance(cw, dict) else getattr(cw, 'end', 0.0))
+                    raw_durs.append(max(0.08, cw_e - cw_s))
+                    if i < num_w - 1:
+                        next_cw = custom_words[i + 1]
+                        next_s = float(next_cw.get('start', 0.0) if isinstance(next_cw, dict) else getattr(next_cw, 'start', 0.0))
+                        gap = max(0.0, next_s - cw_e)
+                        raw_gaps.append(min(0.6, gap) if gap >= 0.08 else 0.0)
 
-                for i in range(num_w - 1):
-                    w_cs = max(10, int((weights[i] / lead_weights_sum) * leading_cs_pool))
-                    w_tags.append(f"{{\\kf{w_cs}}}{raw_words[i]} ")
+                total_raw = sum(raw_durs) + sum(raw_gaps)
+                if total_raw <= 0:
+                    total_raw = 1.0
 
-                w_tags.append(f"{{\\kf{max(15, last_w_cs)}}}{raw_words[-1]}")
+                w_cs_list = []
+                gap_cs_list = []
+                allocated_cs = 0
+
+                for i in range(num_w):
+                    cs = max(8, int(round((raw_durs[i] / total_raw) * total_fill_cs)))
+                    w_cs_list.append(cs)
+                    allocated_cs += cs
+                    if i < num_w - 1:
+                        g_cs = int(round((raw_gaps[i] / total_raw) * total_fill_cs)) if raw_gaps[i] > 0 else 0
+                        gap_cs_list.append(g_cs)
+                        allocated_cs += g_cs
+
+                diff = total_fill_cs - allocated_cs
+                if diff != 0:
+                    new_last = w_cs_list[-1] + diff
+                    if new_last >= 5:
+                        w_cs_list[-1] = new_last
+                    else:
+                        w_cs_list[-1] = 5
+                        excess = (sum(w_cs_list) + sum(gap_cs_list)) - total_fill_cs
+                        for k in range(len(w_cs_list) - 2, -1, -1):
+                            can_cut = max(0, w_cs_list[k] - 5)
+                            cut = min(can_cut, excess)
+                            w_cs_list[k] -= cut
+                            excess -= cut
+                            if excess <= 0:
+                                break
+
+                for i in range(num_w):
+                    space = " " if i < num_w - 1 else ""
+                    if i < num_w - 1 and gap_cs_list[i] >= 4:
+                        w_tags.append(f"{{\\kf{w_cs_list[i]}}}{raw_words[i]}{{\\k{gap_cs_list[i]}}}{space}")
+                    else:
+                        w_tags.append(f"{{\\kf{w_cs_list[i]}}}{raw_words[i]}{space}")
             else:
+                # Syllable / phonetic weighting fallback
+                vowels = set("aeıioöuüAEIİOÖUÜ")
+                weights = []
+                for w in raw_words:
+                    v_cnt = sum(1 for c in w if c in vowels)
+                    clean_len = max(1, len(re.sub(r'[^\w]', '', w)))
+                    punct_bonus = 1.8 if any(p in w for p in '.,?!;:') else 0.0
+                    w_wt = max(1.0, float(v_cnt) * 1.5 + float(clean_len) * 0.2 + punct_bonus)
+                    weights.append(w_wt)
+
                 total_weight = sum(weights) or 1.0
+                w_cs_list = []
                 allocated_cs = 0
                 for i in range(num_w):
                     if i == num_w - 1:
-                        w_cs = max(10, total_dur_cs - allocated_cs)
-                        w_tags.append(f"{{\\kf{w_cs}}}{raw_words[i]}")
+                        cs = max(5, total_fill_cs - allocated_cs)
                     else:
-                        w_cs = max(10, int((weights[i] / total_weight) * total_dur_cs))
-                        allocated_cs += w_cs
-                        w_tags.append(f"{{\\kf{w_cs}}}{raw_words[i]} ")
+                        cs = max(5, int(round((weights[i] / total_weight) * total_fill_cs)))
+                        allocated_cs += cs
+                    w_cs_list.append(cs)
+
+                diff = total_fill_cs - sum(w_cs_list)
+                if diff != 0:
+                    new_last = w_cs_list[-1] + diff
+                    if new_last >= 5:
+                        w_cs_list[-1] = new_last
+                    else:
+                        w_cs_list[-1] = 5
+                        excess = sum(w_cs_list) - total_fill_cs
+                        for k in range(len(w_cs_list) - 2, -1, -1):
+                            can_cut = max(0, w_cs_list[k] - 5)
+                            cut = min(can_cut, excess)
+                            w_cs_list[k] -= cut
+                            excess -= cut
+                            if excess <= 0:
+                                break
+
+                for i in range(num_w):
+                    space = " " if i < num_w - 1 else ""
+                    w_tags.append(f"{{\\kf{w_cs_list[i]}}}{raw_words[i]}{space}")
 
             active_karaoke_text = "".join(w_tags).strip()
-            
-            # Line 1: Active Singing Line
-            # Glides upward from y_upcoming to y_active at 100% full opacity with ZERO opacity loss;
-            # Only the finishing line fades out at the end with \fad(0, 200).
             if idx == 0 and seg.start < 1.5:
                 active_anim = f"{{\\pos({x_center}, {y_active})\\fad(0, 200)}}"
             else:
                 active_anim = f"{{\\move({x_center}, {y_upcoming}, {x_center}, {y_active}, 0, 250)\\fad(0, 200)}}"
 
             ass_lines.append(f"Dialogue: 1,{st},{en},Active,,0,0,0,,{active_anim}{active_karaoke_text}")
-            
-            # Line 2: Upcoming Line Preview directly underneath
-            # Extends continuously from current seg.start up to EXACTLY next_seg.start (zero gap / zero disappearance!)
             if idx + 1 < len(segments_to_use):
                 next_seg = segments_to_use[idx + 1]
                 next_text = next_seg.text.strip()
-                if next_text:
-                    up_st = st
-                    up_en = to_ass_time(next_seg.start)
-                    upcoming_anim = f"{{\\pos({x_center}, {y_upcoming})}}"
-                    ass_lines.append(f"Dialogue: 0,{up_st},{up_en},Upcoming,,0,0,0,,{upcoming_anim}{next_text}")
+                if next_text and next_seg.start > seg.start:
+                    ass_lines.append(f"Dialogue: 0,{st},{to_ass_time(next_seg.start)},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{next_text}")
 
         timestamp_id = int(time.time())
         ass_filename = f"karaoke_sub_{timestamp_id}.ass"
@@ -2112,7 +2229,6 @@ async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest):
         ass_path.write_text("\n".join(ass_lines), encoding="utf-8")
 
         out_video_name = f"Karaoke_{Path(req.inst_file).stem}_{req.theme}_{timestamp_id}.mp4"
-        out_video_path = OUTPUT_DIR / out_video_name
 
         freq_w = 900 if is_vertical else 1300
         freq_h = 200 if is_vertical else 150
@@ -2125,6 +2241,8 @@ async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest):
             f"[v_raw]subtitles=filename={ass_filename}[v]"
         )
 
+        _update_task(task_id, status="processing", message="FFmpeg 1080p Video Render Ediliyor...", progress=0.3)
+
         cmd = [
             "ffmpeg", "-y",
             "-i", str(inst_path.resolve()),
@@ -2132,8 +2250,10 @@ async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest):
             "-map", "[v]",
             "-map", "0:a",
             "-c:v", "libx264",
-            "-preset", "veryfast",
-            "-crf", "20",
+            "-preset", "ultrafast",
+            "-threads", "0",
+            "-crf", "22",
+            "-r", "30",
             "-pix_fmt", "yuv420p",
             "-c:a", "aac",
             "-b:a", "320k",
@@ -2141,17 +2261,153 @@ async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest):
             str(out_video_name)
         ]
 
-        proc = subprocess.run(cmd, cwd=str(OUTPUT_DIR), capture_output=True, text=True)
+        proc = subprocess.run(cmd, cwd=str(OUTPUT_DIR), capture_output=True, text=True, creationflags=SUBPROCESS_FLAGS)
         if proc.returncode != 0:
             raise RuntimeError(f"FFmpeg render failed: {proc.stderr[-400:]}")
 
-        return {
-            "status": "success",
-            "video_file": out_video_name,
-            "download_url": f"/output/{out_video_name}"
-        }
+        _update_task(
+            task_id, 
+            status="completed", 
+            progress=1.0, 
+            message="1080p Karaoke Videosu Başarıyla Oluşturuldu!", 
+            video_file=out_video_name,
+            download_url=f"/output/{out_video_name}"
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        _update_task(task_id, status="failed", error=str(e), message=f"Render Hatası: {e}")
+
+@app.post("/generate_karaoke_video")
+async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest, background_tasks: BackgroundTasks):
+    task_id = _create_task({"message": "Karaoke Videosu Hazırlanıyor...", "model_type": "karaoke_video"})
+    background_tasks.add_task(run_karaoke_video_task, task_id, req.dict())
+    return {"task_id": task_id, "status": "processing"}
+
+@app.api_route("/clear_memory", methods=["GET", "POST", "OPTIONS"])
+async def clear_memory_endpoint():
+    """
+    Cleans up all cached models (AudioSR, Whisper, Separator) from GPU VRAM and RAM,
+    forces Python cycle garbage collection, releases CUDA reserved blocks to the OS,
+    and returns real-time GPU memory metrics.
+    """
+    unload_whisper_models()
+    core.clear_gpu_and_ram_cache(deep=True)
+
+    import torch
+    gpu_info = {}
+    if torch.cuda.is_available():
+        try:
+            gpu_info = {
+                "allocated_mb": round(torch.cuda.memory_allocated() / (1024 * 1024), 2),
+                "reserved_mb": round(torch.cuda.memory_reserved() / (1024 * 1024), 2),
+                "max_allocated_mb": round(torch.cuda.max_memory_allocated() / (1024 * 1024), 2),
+                "device_name": torch.cuda.get_device_name(0) if torch.cuda.device_count() > 0 else "CUDA"
+            }
+        except Exception:
+            pass
+    return {
+        "status": "success",
+        "message": "Ekran kartı belleği (VRAM) ve sistem RAM'i başarıyla tamamen serbest bırakıldı.",
+        "gpu": gpu_info
+    }
+
+@app.api_route("/shutdown", methods=["GET", "POST", "OPTIONS"])
+async def shutdown_system_endpoint(background_tasks: BackgroundTasks):
+    """
+    Terminates all UVR5 processes (FastAPI backend, Next.js Node dev server, ffmpeg, background cmd/powershell processes) cleanly on Windows.
+    """
+    def _perform_shutdown():
+        time.sleep(0.6)  # Give the HTTP response time to reach the browser
+        if os.name == 'nt':
+            # Terminate Node.js on port 3000
+            try:
+                out = subprocess.run('netstat -ano | findstr :3000', shell=True, capture_output=True, text=True, creationflags=SUBPROCESS_FLAGS).stdout
+                for line in out.splitlines():
+                    if "LISTENING" in line:
+                        pid = line.strip().split()[-1]
+                        if pid and pid.isdigit() and int(pid) != os.getpid():
+                            subprocess.run(f'taskkill /F /PID {pid} /T', shell=True, creationflags=SUBPROCESS_FLAGS)
+            except Exception:
+                pass
+            
+            # Terminate any background ffmpeg / ffprobe
+            try:
+                subprocess.run('taskkill /F /IM ffmpeg.exe /T', shell=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
+                subprocess.run('taskkill /F /IM ffprobe.exe /T', shell=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
+            except Exception:
+                pass
+            
+            # Finally kill the FastAPI Python process itself
+            try:
+                subprocess.run(f'taskkill /F /PID {os.getpid()} /T', shell=True, creationflags=SUBPROCESS_FLAGS)
+            except Exception:
+                os._exit(0)
+        else:
+            os._exit(0)
+
+    background_tasks.add_task(_perform_shutdown)
+    return {
+        "status": "shutdown_initiated",
+        "message": "UVR5 Studio ve tüm arka plan servisleri başarıyla kapatılıyor..."
+    }
+
+class RestoreAudioRequest(BaseModel):
+    file_name: str = Field(..., min_length=1, max_length=256)
+    denoise: bool = True
+    enhance_sr: bool = True
+    ddim_steps: int = Field(default=20, ge=5, le=100)
+    guidance_scale: float = Field(default=3.5, ge=1.0, le=10.0)
+
+def run_restoration_task(task_id: str, req_data: dict):
+    try:
+        _update_task(task_id, status="processing", message="AI Restorasyon motoru hazırlanıyor...", progress=0.02)
+        req = RestoreAudioRequest(**req_data)
+        audio_path = _find_audio_file(req.file_name)
+        
+        def progress_cb(p: float, msg: str):
+            _update_task(task_id, status="processing", progress=round(p, 2), message=msg)
+            
+        output_path = core.restore_audio_pipeline(
+            str(audio_path.resolve()),
+            output_dir=str(OUTPUT_DIR.resolve()),
+            denoise=req.denoise,
+            enhance_sr=req.enhance_sr,
+            ddim_steps=req.ddim_steps,
+            guidance_scale=req.guidance_scale,
+            progress_callback=progress_cb
+        )
+        
+        out_file = Path(output_path).name
+        _update_task(
+            task_id,
+            status="completed",
+            progress=1.0,
+            message="Restorasyon başarıyla tamamlandı!",
+            output_file=out_file,
+            download_url=f"/output/{out_file}",
+            stem_file=out_file,
+            stems=[out_file]
+        )
+    except Exception as e:
+        import traceback
+        err_msg = traceback.format_exc()
+        try:
+            print(f"[Restoration Error] {err_msg}")
+        except Exception:
+            pass
+        _update_task(task_id, status="failed", error=str(e), message=f"Restorasyon hatası: {str(e)}")
+    finally:
+        core.clear_gpu_and_ram_cache(deep=True)
+
+@app.post("/restore_audio")
+async def start_restore_audio(req: RestoreAudioRequest, background_tasks: BackgroundTasks):
+    audio_path = _find_audio_file(req.file_name)
+    _validate_audio_path(str(audio_path))
+    task_id = _create_task({
+        "message": "AI Restorasyon başlatılıyor...",
+        "model_type": "restore_audiosr"
+    })
+    background_tasks.add_task(run_restoration_task, task_id, req.dict())
+    return {"task_id": task_id}
 
 # Handle stray WebSocket connections (e.g. from browser extensions) to prevent AssertionError in StaticFiles
 @app.websocket("/{path:path}")

@@ -20,6 +20,8 @@ import {
   Zap,
   Music2,
   Mic2,
+  ArrowLeftRight,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   TabId,
@@ -155,12 +157,53 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
     return 'roformer';
   };
 
-  const applyPreset = (presetType: 'master_studio' | 'strings' | 'vocal' | 'piano') => {
+  const applyPreset = (presetType: 'zero_loss_exchange' | 'master_studio' | 'strings' | 'vocal' | 'piano') => {
     if (!ensembleMode) {
       onToggleEnsembleMode();
     }
 
-    if (presetType === 'master_studio') {
+    if (presetType === 'zero_loss_exchange') {
+      const s1 =
+        availableModels.roformer?.find((m) => m.includes('1297')) ||
+        availableModels.roformer?.[0] ||
+        'BS-Roformer-Viperx-1297';
+      const s2 =
+        availableModels.mdx23c?.find((m) => m.includes('HQ') || m.includes('InstVoc')) ||
+        availableModels.mdx23c?.[0] ||
+        'MDX23C-8KFFT-InstVoc_HQ';
+      const s3 =
+        availableModels.roformer?.find((m) => m.includes('1143')) ||
+        availableModels.roformer?.[1] ||
+        'Mel-Roformer-Viperx-1143';
+      const s4 =
+        availableModels.roformer?.find((m) => m.includes('Kimberley') || m.includes('Vocals by Gabox') || m.includes('124 bands')) ||
+        availableModels.roformer?.[2] ||
+        'MelBand Roformer | Vocals by Kimberley Jensen';
+
+      onChangeEnsembleSlots([
+        { model_type: 'roformer', model_key: s1 },
+        { model_type: 'mdx23c', model_key: s2 },
+        { model_type: 'roformer', model_key: s3 },
+        { model_type: 'roformer', model_key: s4 },
+      ]);
+      onChangeParams({
+        ...params,
+        overlap: 8,
+        segment_size: 256,
+        normalization_threshold: 0.9,
+        amplification_threshold: 0.7,
+        denoise: true,
+        tta: true,
+        high_end_process: true,
+        aggression: 10,
+        post_process: true,
+      });
+      onNotify(
+        'success',
+        '💎 Ultra-Clean 4X S-Tier Ensemble Aktif Edildi!',
+        'Roformer 1297 + MDX23C HQ + Roformer 1143 + Kim Vocals devreye alındı. Vokal ve enstrümantal sızıntıları tamamen engellendi.'
+      );
+    } else if (presetType === 'master_studio') {
       const s1 =
         availableModels.roformer?.find((m) => m.includes('1297')) ||
         availableModels.roformer?.[0] ||
@@ -330,7 +373,43 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
           </span>
         </div>
 
-        {/* Hero: Master Ultra-HD Gold Preset */}
+        {/* Hero 1: Zero-Loss Cross Residual Bleed Exchange */}
+        <button
+          type="button"
+          onClick={() => applyPreset('zero_loss_exchange')}
+          className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-cyan-500/15 via-slate-900/90 to-emerald-950/40 border border-cyan-500/40 hover:border-cyan-400 text-left transition-all active:scale-[0.99] shadow-lg shadow-cyan-500/10 group relative overflow-hidden cursor-pointer"
+        >
+          {/* Subtle Ambient Glow */}
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-cyan-500/15 rounded-full blur-2xl pointer-events-none group-hover:bg-cyan-500/25 transition-colors" />
+
+          <div className="relative z-10 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400/20 to-emerald-600/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-md shadow-cyan-500/20 shrink-0 group-hover:scale-105 group-hover:border-cyan-300 transition-all">
+                <ArrowLeftRight className="w-5 h-5 text-cyan-300" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black font-outfit text-white tracking-tight group-hover:text-cyan-300 transition-colors truncate">
+                    4X S-Tier Ultra-Clean Studio
+                  </span>
+                  <span className="text-[9px] font-mono font-black text-cyan-300 bg-cyan-400/15 px-1.5 py-0.5 rounded border border-cyan-400/30 shrink-0">
+                    4X AI
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-300 mt-0.5 truncate group-hover:text-white transition-colors">
+                  Roformer 1297 + MDX23C HQ + 1143 + Kim • Sıfır Sızıntı & Saf Müzik
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 group-hover:bg-cyan-500 group-hover:text-slate-950 text-cyan-200 text-[11px] font-bold transition-all shadow-sm">
+              <Zap className="w-3 h-3 fill-current" />
+              <span>Aktif Et</span>
+            </div>
+          </div>
+        </button>
+
+        {/* Hero 2: Master Ultra-HD Gold Preset */}
         <button
           type="button"
           onClick={() => applyPreset('master_studio')}

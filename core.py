@@ -8,7 +8,23 @@ import urllib.parse
 import torch
 import logging
 import yt_dlp
+import threading
+import time
 from audio_separator.separator import Separator
+
+# Suppress background popup cmd windows/tabs on Windows globally across all libraries (ffmpeg, pydub, audio_separator, etc.)
+SUBPROCESS_FLAGS = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+
+if os.name == 'nt':
+    _original_popen = subprocess.Popen
+    class _SilentPopen(_original_popen):
+        def __init__(self, *args, **kwargs):
+            if 'creationflags' not in kwargs:
+                kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+            else:
+                kwargs['creationflags'] |= subprocess.CREATE_NO_WINDOW
+            super().__init__(*args, **kwargs)
+    subprocess.Popen = _SilentPopen
 
 # Patch to support 2026 new models not in audio-separator 0.32.0's supported list
 try:
@@ -212,6 +228,10 @@ roformer_models = {
     'MelBand Roformer | Aspiration by Sucial' : 'aspiration_mel_band_roformer_sdr_18.9845.ckpt',
     'MelBand Roformer | Aspiration Less Aggressive by Sucial' : 'aspiration_mel_band_roformer_less_aggr_sdr_18.1201.ckpt',
     'MelBand Roformer | Bleed Suppressor V1 by unwa-97chris' : 'mel_band_roformer_bleed_suppressor_v1.ckpt',
+    # Denoise Models
+    'Mel-Roformer-Denoise-Aufr33' : 'denoise_mel_band_roformer_aufr33_sdr_27.9959.ckpt',
+    'Mel-Roformer-Denoise-Aufr33-Aggr' : 'denoise_mel_band_roformer_aufr33_aggr_sdr_27.9768.ckpt',
+    'MelBand Roformer | Denoise-Debleed by Gabox' : 'mel_band_roformer_denoise_debleed_gabox.ckpt',
     # 2026 Models
     'BS Roformer 124 bands (ver. 2026.07)' : 'model.safetensors',
     'BS-Roformer-Revive 2 (Bleedless) by pcunwa' : 'bs_roformer_revive2.ckpt',
@@ -405,7 +425,7 @@ def search_youtube(query, max_results=5):
 def leaderboard(list_filter):
     try:
         command = [python_location if python_location else "python", separator_location, "-l", f"--list_filter={list_filter}"]
-        result = subprocess.run(command, capture_output=True, text=True)
+        result = subprocess.run(command, capture_output=True, text=True, creationflags=SUBPROCESS_FLAGS)
         if result.returncode != 0:
             return f"Error: {result.stderr}"
         return "<table border='1'>" + "".join(
@@ -417,7 +437,40 @@ def leaderboard(list_filter):
     except Exception as e:
         return f"Error: {e}"
 
+_cached_audiosr_model = None
+_audiosr_lock = threading.Lock()
+
+def clear_gpu_and_ram_cache(deep: bool = False):
+    """
+    Cleans up all cached PyTorch CUDA allocations, releases cyclic Python garbage,
+    and optionally evicts globally cached models (e.g. AudioSR diffusion model).
+    """
+    import gc
+    import torch
+
+    if deep:
+        global _cached_audiosr_model
+        try:
+            with _audiosr_lock:
+                if _cached_audiosr_model is not None:
+                    del _cached_audiosr_model
+                    _cached_audiosr_model = None
+        except Exception:
+            pass
+
+    gc.collect()
+    if torch.cuda.is_available():
+        try:
+            torch.cuda.synchronize()
+            if hasattr(torch.backends.cuda, 'cufft_plan_cache'):
+                torch.backends.cuda.cufft_plan_cache.clear()
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+        except Exception:
+            pass
+
 def generic_separator(audio, model_filename, params, progress_callback=None):
+    separator = None
     try:
         separator = Separator(
             log_level=logging.WARNING,
@@ -434,6 +487,16 @@ def generic_separator(audio, model_filename, params, progress_callback=None):
         return stems
     except Exception as e:
         raise RuntimeError(f"Separation failed: {e}") from e
+    finally:
+        if separator is not None:
+            try:
+                if hasattr(separator, 'model_instance') and separator.model_instance is not None:
+                    del separator.model_instance
+                    separator.model_instance = None
+            except Exception:
+                pass
+            del separator
+        clear_gpu_and_ram_cache()
 
 def roformer_separator(audio, model_key, out_format, segment_size, override_seg_size, overlap, batch_size, norm_thresh, amp_thresh, single_stem, progress_callback=None):
     model_filename = roformer_models[model_key]
@@ -514,3 +577,275 @@ def demucs_separator(audio, model, out_format, shifts, segment_size, segments_en
         }
     }
     return generic_separator(audio, model, params, progress_callback)
+
+#====================================================#
+#   AI Restoration & Super-Resolution (AudioSR + Roformer)
+#====================================================#
+
+def _setup_torchaudio_soundfile():
+    try:
+        import soundfile as sf
+        import torch
+        import torchaudio
+        def _sf_load(filepath, frame_offset: int = 0, num_frames: int = -1, normalize: bool = True, channels_first: bool = True, format: str = None):
+            data, sr = sf.read(filepath, start=frame_offset, stop=None if num_frames == -1 else frame_offset + num_frames, always_2d=True, dtype='float32')
+            tensor = torch.from_numpy(data)
+            if channels_first:
+                tensor = tensor.t()
+            return tensor, sr
+        torchaudio.load = _sf_load
+    except Exception:
+        pass
+
+def get_audiosr_model(model_name="basic"):
+    global _cached_audiosr_model
+    with _audiosr_lock:
+        if _cached_audiosr_model is None:
+            _setup_torchaudio_soundfile()
+            os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+            import audiosr
+            device_str = "cuda" if torch.cuda.is_available() else "cpu"
+            _cached_audiosr_model = audiosr.build_model(model_name=model_name, device=device_str)
+        return _cached_audiosr_model
+
+def enhance_audio_with_audiosr(audio_path: str, output_path: str, ddim_steps: int = 20, guidance_scale: float = 3.5, progress_callback=None) -> str:
+    """
+    Runs chunked AudioSR Super-Resolution at 48kHz with Hann window cross-fading
+    to prevent seams, phase artifacts, and GPU VRAM Out-of-Memory.
+    """
+    _setup_torchaudio_soundfile()
+    import tempfile
+    import audiosr
+    import numpy as np
+    import soundfile as sf
+    import torch
+
+    model = get_audiosr_model("basic")
+
+    data, sr = sf.read(audio_path)
+    is_stereo = len(data.shape) > 1 and data.shape[1] > 1
+
+    channels = [data[:, i] for i in range(data.shape[1])] if is_stereo else [data]
+    enhanced_channels = []
+    total_channels = len(channels)
+
+    for ch_idx, ch_data in enumerate(channels):
+        if sr != 48000:
+            import librosa
+            ch_48k = librosa.resample(ch_data, orig_sr=sr, target_sr=48000)
+        else:
+            ch_48k = ch_data
+
+        total_samples = len(ch_48k)
+        chunk_samples = int(5.12 * 48000)  # 245760 samples (5.12s)
+        overlap_samples = int(0.5 * 48000) # 24000 samples (0.5s overlap)
+        hop_samples = chunk_samples - overlap_samples
+
+        if total_samples <= chunk_samples:
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_in:
+                tmp_in_name = tmp_in.name
+            try:
+                sf.write(tmp_in_name, ch_48k, 48000)
+                if progress_callback:
+                    progress_callback(0.8, f"Aşama 2: 48kHz AudioSR frekansları inşa ediliyor (Kanal {ch_idx+1}/{total_channels})...")
+                waveform = audiosr.super_resolution(
+                    model,
+                    tmp_in_name,
+                    seed=42,
+                    ddim_steps=ddim_steps,
+                    guidance_scale=guidance_scale
+                )
+                raw_chunk = waveform[0, 0] if isinstance(waveform, np.ndarray) else waveform[0, 0].detach().cpu().numpy()
+                enhanced_ch = raw_chunk[:total_samples]
+            finally:
+                if os.path.exists(tmp_in_name):
+                    os.remove(tmp_in_name)
+        else:
+            output_buffer = np.zeros(total_samples + chunk_samples, dtype=np.float32)
+            weight_buffer = np.zeros(total_samples + chunk_samples, dtype=np.float32)
+
+            # Hann window for smooth cross-fading
+            window = np.ones(chunk_samples, dtype=np.float32)
+            fade_len = overlap_samples
+            fade_in = 0.5 * (1 - np.cos(np.pi * np.arange(fade_len) / fade_len))
+            fade_out = 0.5 * (1 + np.cos(np.pi * np.arange(fade_len) / fade_len))
+            window[:fade_len] = fade_in
+            window[-fade_len:] = fade_out
+
+            num_chunks = int(np.ceil((total_samples - overlap_samples) / hop_samples))
+            for i in range(num_chunks):
+                start = i * hop_samples
+                end = min(start + chunk_samples, total_samples)
+                chunk = ch_48k[start:end]
+
+                actual_len = len(chunk)
+                if actual_len < chunk_samples:
+                    chunk = np.pad(chunk, (0, chunk_samples - actual_len))
+
+                with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_in:
+                    tmp_in_name = tmp_in.name
+                try:
+                    sf.write(tmp_in_name, chunk, 48000)
+                    if progress_callback:
+                        channel_prog = (i + 1) / num_chunks
+                        total_prog = 0.50 + 0.45 * ((ch_idx + channel_prog) / total_channels)
+                        progress_callback(
+                            total_prog,
+                            f"Aşama 2: 48kHz AudioSR frekansları inşa ediliyor ({i+1}/{num_chunks} - Kanal {ch_idx+1}/{total_channels})..."
+                        )
+                    waveform = audiosr.super_resolution(
+                        model,
+                        tmp_in_name,
+                        seed=42,
+                        ddim_steps=ddim_steps,
+                        guidance_scale=guidance_scale
+                    )
+                    raw_chunk = waveform[0, 0] if isinstance(waveform, np.ndarray) else waveform[0, 0].detach().cpu().numpy()
+                    out_chunk = raw_chunk[:chunk_samples]
+                    output_buffer[start:start+chunk_samples] += out_chunk * window
+                    weight_buffer[start:start+chunk_samples] += window
+                finally:
+                    if os.path.exists(tmp_in_name):
+                        os.remove(tmp_in_name)
+
+            weight_buffer[weight_buffer == 0] = 1.0
+            enhanced_ch = (output_buffer / weight_buffer)[:total_samples]
+
+        enhanced_channels.append(enhanced_ch)
+
+    if is_stereo:
+        final_audio = np.stack(enhanced_channels, axis=-1)
+    else:
+        final_audio = enhanced_channels[0]
+
+    # Normalize peaks to prevent clipping
+    max_val = np.max(np.abs(final_audio))
+    if max_val > 0.95:
+        final_audio = final_audio * (0.95 / max_val)
+
+    sf.write(output_path, final_audio, 48000)
+    return output_path
+
+def restore_audio_pipeline(
+    audio_path: str,
+    output_dir: str = None,
+    denoise: bool = True,
+    enhance_sr: bool = True,
+    ddim_steps: int = 20,
+    guidance_scale: float = 3.5,
+    progress_callback = None
+) -> str:
+    """
+    2-Aşamalı AI Ses Restorasyon & Parlatma Boru Hattı:
+    Aşama 1: Mel-Roformer Denoise (Aufr33 SDR 27.99 dB) ile dip gürültü, hiss ve vızıltı yok edilir.
+    Aşama 2: AudioSR (Diffusion Super-Resolution) ile 48kHz kristal tiz ve harmonikler baştan inşa edilir.
+    """
+    try:
+        target_dir = output_dir or out_dir
+        os.makedirs(target_dir, exist_ok=True)
+
+        base_name = os.path.splitext(os.path.basename(audio_path))[0]
+        clean_input = audio_path
+
+        # Aşama 1: Roformer Denoise
+        if denoise:
+            stems = None
+            cached_denoised = os.path.join(target_dir, f"{base_name}_(dry)_denoise_mel_band_roformer_aufr33_sdr_27.flac")
+            if os.path.exists(cached_denoised) and os.path.getsize(cached_denoised) > 1024:
+                clean_input = cached_denoised
+                if progress_callback:
+                    progress_callback(0.48, "Aşama 1 tamamlandı: Önbellekteki temizlenmiş ses kullanılıyor.")
+            else:
+                if progress_callback:
+                    progress_callback(0.05, "Aşama 1/2: Roformer ile dip gürültü ve hiss kazınıyor...")
+                
+                import soundfile as sf
+                import numpy as np
+                import tempfile
+
+                # Roformer MDXC requires minimum ~8.0s (352800 samples at 44.1kHz)
+                info = sf.info(clean_input)
+                original_duration = info.duration
+                pad_needed = original_duration < 8.5
+                temp_padded_path = None
+
+                if pad_needed:
+                    data, file_sr = sf.read(clean_input)
+                    target_len = int(9.0 * file_sr)
+                    if len(data.shape) > 1:
+                        pad_width = ((0, target_len - len(data)), (0, 0))
+                    else:
+                        pad_width = (0, target_len - len(data))
+                    padded_data = np.pad(data, pad_width, mode="constant")
+                    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tf:
+                        temp_padded_path = tf.name
+                    sf.write(temp_padded_path, padded_data, file_sr)
+                    sep_input = temp_padded_path
+                else:
+                    sep_input = clean_input
+
+                denoise_model = "Mel-Roformer-Denoise-Aufr33"
+                stems = roformer_separator(
+                    sep_input,
+                    denoise_model,
+                    "flac",
+                    segment_size=256,
+                    override_seg_size=False,
+                    overlap=8,
+                    batch_size=1,
+                    norm_thresh=0.9,
+                    amp_thresh=0.7,
+                    single_stem="dry",
+                    progress_callback=lambda p, msg: progress_callback(0.05 + p * 0.40, f"Aşama 1 (Denoise Aufr33): {msg}") if progress_callback else None
+                )
+
+                if temp_padded_path and os.path.exists(temp_padded_path):
+                    try:
+                        os.remove(temp_padded_path)
+                    except Exception:
+                        pass
+
+                if stems and len(stems) > 0 and os.path.exists(stems[0]):
+                    clean_stem = stems[0]
+                    if pad_needed:
+                        stem_data, stem_sr = sf.read(clean_stem)
+                        trim_samples = int(original_duration * stem_sr)
+                        trimmed_data = stem_data[:trim_samples]
+                        sf.write(clean_stem, trimmed_data, stem_sr)
+                    clean_input = clean_stem
+                    if progress_callback:
+                        progress_callback(0.48, "Aşama 1 tamamlandı: Dip gürültüsü temizlendi.")
+
+            # Free VRAM from Stage 1 before launching AudioSR
+            clear_gpu_and_ram_cache()
+
+        # Aşama 2: AudioSR Super-Resolution
+        if enhance_sr:
+            if progress_callback:
+                progress_callback(0.50, "Aşama 2/2: AudioSR ile 48kHz frekanslar yeniden üretiliyor...")
+            
+            final_filename = f"Restored_{base_name}_{int(time.time())}.flac"
+            final_output_path = os.path.join(target_dir, final_filename)
+
+            enhance_audio_with_audiosr(
+                clean_input,
+                final_output_path,
+                ddim_steps=ddim_steps,
+                guidance_scale=guidance_scale,
+                progress_callback=progress_callback
+            )
+            if progress_callback:
+                progress_callback(1.0, "Restorasyon tamamlandı! 48kHz stüdyo kalitesi hazır.")
+            return final_output_path
+        else:
+            # Sadece gürültü temizleme istendiyse
+            final_filename = f"Denoised_{base_name}_{int(time.time())}.flac"
+            final_output_path = os.path.join(target_dir, final_filename)
+            import shutil
+            shutil.copy2(clean_input, final_output_path)
+            if progress_callback:
+                progress_callback(1.0, "Gürültü temizleme tamamlandı.")
+            return final_output_path
+    finally:
+        clear_gpu_and_ram_cache(deep=True)
+

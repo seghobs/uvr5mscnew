@@ -108,9 +108,18 @@ export default function StudioPage() {
 
   // Notifications
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const addToast = (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string) => {
+  const addToast = (
+    type: 'success' | 'error' | 'warning' | 'info',
+    title: string,
+    message?: string,
+    duration?: number
+  ) => {
     const id = `${Date.now()}-${Math.random()}`;
-    setToasts((prev) => [...prev, { id, type, title, message }]);
+    setToasts((prev) => {
+      // Limit to latest 4 toasts to keep viewport neat and clean
+      const updated = [...prev, { id, type, title, message, duration }];
+      return updated.slice(-4);
+    });
   };
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));

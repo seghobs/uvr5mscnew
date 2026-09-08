@@ -79,6 +79,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
   const lastQueryRef = useRef<string>('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const ytPlayerRef = useRef<any>(null);
+  const isYtReadyRef = useRef<boolean>(false);
   const previewTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const extractVideoId = (item: SearchResult): string | null => {
@@ -99,11 +100,12 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
 
     const initPlayer = () => {
       const win = window as any;
-      if (win.YT && win.YT.Player && !ytPlayerRef.current) {
+      const target = document.getElementById('yt-hidden-preview-player');
+      if (win.YT && win.YT.Player && !ytPlayerRef.current && target) {
         try {
           ytPlayerRef.current = new win.YT.Player('yt-hidden-preview-player', {
-            height: '0',
-            width: '0',
+            height: '1',
+            width: '1',
             playerVars: {
               autoplay: 0,
               controls: 0,
@@ -114,6 +116,9 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
               rel: 0,
             },
             events: {
+              onReady: () => {
+                isYtReadyRef.current = true;
+              },
               onStateChange: (event: any) => {
                 // 1 = PLAYING, 2 = PAUSED, 3 = BUFFERING, 0 = ENDED
                 if (event.data === 1) {
@@ -133,14 +138,13 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
                 }
               },
               onError: (err: any) => {
-                console.warn('YouTube Preview Player Error:', err);
                 setIsBufferingPreview(false);
                 setIsPlayingPreview(false);
               },
             },
           });
         } catch (e) {
-          console.warn('Error initializing YouTube Player:', e);
+          // ignore
         }
       }
     };
@@ -167,7 +171,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
   useEffect(() => {
     if (isPlayingPreview) {
       previewTimerRef.current = setInterval(() => {
-        if (ytPlayerRef.current?.getCurrentTime) {
+        if (ytPlayerRef.current?.getCurrentTime && isYtReadyRef.current) {
           const cur = ytPlayerRef.current.getCurrentTime() || 0;
           setPreviewCurrentTime(cur);
           const dur = ytPlayerRef.current.getDuration?.() || 0;
@@ -189,9 +193,9 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
 
     if (playingVideoId === vidId) {
       if (isPlayingPreview) {
-        ytPlayerRef.current?.pauseVideo?.();
+        if (isYtReadyRef.current) ytPlayerRef.current?.pauseVideo?.();
       } else {
-        ytPlayerRef.current?.playVideo?.();
+        if (isYtReadyRef.current) ytPlayerRef.current?.playVideo?.();
       }
     } else {
       setPlayingVideoId(vidId);
@@ -201,13 +205,13 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
       setIsPlayingPreview(true);
 
       const doLoad = () => {
-        if (ytPlayerRef.current?.loadVideoById) {
+        if (isYtReadyRef.current && ytPlayerRef.current?.loadVideoById) {
           ytPlayerRef.current.loadVideoById({ videoId: vidId });
           ytPlayerRef.current.playVideo?.();
         }
       };
 
-      if (ytPlayerRef.current?.loadVideoById) {
+      if (isYtReadyRef.current && ytPlayerRef.current?.loadVideoById) {
         doLoad();
       } else {
         setTimeout(doLoad, 600);

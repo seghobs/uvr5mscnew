@@ -79,6 +79,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'Favorites': 'Favoriler',
     'Added to Favorites': 'Favorilere Eklendi',
     'Removed from Favorites': 'Favorilerden Çıkarıldı',
+    'AI Restoration & Polishing': 'AI Restorasyon & Parlatma',
+    'AI Restore': 'AI Onar & Parlat',
   },
   en: {
     'Model Configuration': 'Model Configuration',
@@ -158,6 +160,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'Favorites': 'Favorites',
     'Added to Favorites': 'Added to Favorites',
     'Removed from Favorites': 'Removed from Favorites',
+    'AI Restoration & Polishing': 'AI Restoration & Polishing',
+    'AI Restore': 'AI Restore & Polish',
   },
 };
 

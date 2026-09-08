@@ -36,6 +36,8 @@ __pycache__/
 # Specific files & Database
 assets/favorites.db
 assets/custom_settings.json
+*.db
+*.tsbuildinfo
 
 # Environments & Working Dirs
 .env

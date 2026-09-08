@@ -129,3 +129,20 @@ export interface KaraokeVideoResponse {
   video_file: string;
   download_url: string;
 }
+
+export interface RestoreAudioParams {
+  file_name: string;
+  denoise?: boolean;
+  enhance_sr?: boolean;
+  ddim_steps?: number;
+  guidance_scale?: number;
+}
+
+export interface RestoreAudioResponse {
+  status: string;
+  output_file: string;
+  download_url: string;
+  stem_file?: string;
+  message?: string;
+}
+
