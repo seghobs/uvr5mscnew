@@ -41,6 +41,7 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
   const [activeAB, setActiveAB] = useState<'remix' | 'vocal_only' | 'inst_only'>('remix');
 
   const [isPreviewing, setIsPreviewing] = useState(false);
+  const [isPreparingPreview, setIsPreparingPreview] = useState(false);
   const [isRemixing, setIsRemixing] = useState(false);
   const [previewTime, setPreviewTime] = useState(0);
   const [previewDuration, setPreviewDuration] = useState(0);
@@ -62,13 +63,15 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
   const offsetRef = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const eqCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const previewRequestRef = useRef(0);
+  const bufferKeyRef = useRef('');
 
   // Stop audio on unmount
   useEffect(() => {
     return () => {
       stopPreview();
     };
-  }, []);
+  }, [vocalStem, instStem]);
 
   // Draw dynamic EQ response curve on canvas
   useEffect(() => {
@@ -155,7 +158,8 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
 
   const startPreview = async () => {
     if (!vocalStem || !instStem) return;
-
+    const requestId = ++previewRequestRef.current;
+    setIsPreparingPreview(true);
     try {
       if (!audioCtxRef.current) {
         audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -163,14 +167,26 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
       const ctx = audioCtxRef.current;
       if (ctx.state === 'suspended') await ctx.resume();
 
-      if (!vocalBufferRef.current) {
-        vocalBufferRef.current = await loadAudioBuffer(`/output/${encodeURIComponent(vocalStem)}`, ctx);
+      const key = JSON.stringify([vocalStem, instStem, remixPitch, remixTempo]);
+      if (bufferKeyRef.current !== key || !vocalBufferRef.current || !instBufferRef.current) {
+        const prepare = async (file: string) => {
+          if (remixPitch === 0 && remixTempo === 1) return file;
+          const result = await api.modifyAudio({file_name: file, pitch_semitones: remixPitch, tempo_factor: remixTempo});
+          if (!result.filename) throw new Error(result.message || 'Önizleme sesi hazırlanamadı.');
+          return result.filename;
+        };
+        const vocalFile = await prepare(vocalStem);
+        const instFile = await prepare(instStem);
+        const [vocal, inst] = await Promise.all([
+          loadAudioBuffer(`/output/${encodeURIComponent(vocalFile)}`, ctx),
+          loadAudioBuffer(`/output/${encodeURIComponent(instFile)}`, ctx),
+        ]);
+        if (requestId !== previewRequestRef.current) return;
+        vocalBufferRef.current = vocal; instBufferRef.current = inst; bufferKeyRef.current = key;
       }
-      if (!instBufferRef.current) {
-        instBufferRef.current = await loadAudioBuffer(`/output/${encodeURIComponent(instStem)}`, ctx);
-      }
-
-      setPreviewDuration(Math.max(vocalBufferRef.current.duration, instBufferRef.current.duration));
+      if (requestId !== previewRequestRef.current) return;
+      const playbackDuration = Math.max(vocalBufferRef.current.duration, instBufferRef.current.duration);
+      setPreviewDuration(playbackDuration);
 
       const vSource = ctx.createBufferSource();
       const iSource = ctx.createBufferSource();
@@ -204,9 +220,9 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
       iGain.gain.value = iVol;
 
       // Apply Pitch & Tempo
-      const pitchRatio = Math.pow(2, remixPitch / 12);
-      vSource.playbackRate.value = remixTempo * pitchRatio;
-      iSource.playbackRate.value = remixTempo * pitchRatio;
+      // The server uses the same independent pitch/tempo processing as export.
+      vSource.playbackRate.value = 1;
+      iSource.playbackRate.value = 1;
 
       // Connect Graph: Sources -> Gains -> Master EQ -> Destination
       vSource.connect(vGain);
@@ -233,23 +249,26 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
 
       timerRef.current = setInterval(() => {
         if (!audioCtxRef.current) return;
-        const elapsed = (audioCtxRef.current.currentTime - startTimeRef.current) * remixTempo;
+        const elapsed = audioCtxRef.current.currentTime - startTimeRef.current;
         const current = offsetRef.current + elapsed;
         setPreviewTime(current);
-        if (current >= previewDuration) {
+        if (current >= playbackDuration) {
           stopPreview();
         }
       }, 100);
 
-      vSource.onended = () => {
-        setIsPreviewing(false);
-      };
+      let remaining = 2;
+      const ended = () => { if (--remaining === 0 && requestId === previewRequestRef.current) stopPreview(); };
+      vSource.onended = ended;
+      iSource.onended = ended;
     } catch (e: any) {
       onNotify('error', 'Preview Error', e.message);
-    }
+    } finally { if (requestId === previewRequestRef.current) setIsPreparingPreview(false); }
   };
 
   const stopPreview = () => {
+    previewRequestRef.current++;
+    setIsPreparingPreview(false);
     if (timerRef.current) clearInterval(timerRef.current);
     try {
       vocalSourceRef.current?.stop();
@@ -306,17 +325,13 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
   };
 
   const handleRemixPitchChange = (val: number) => {
+    stopPreview();
     setRemixPitch(val);
-    const pitchRatio = Math.pow(2, val / 12);
-    if (vocalSourceRef.current) vocalSourceRef.current.playbackRate.value = remixTempo * pitchRatio;
-    if (instSourceRef.current) instSourceRef.current.playbackRate.value = remixTempo * pitchRatio;
   };
 
   const handleRemixTempoChange = (val: number) => {
+    stopPreview();
     setRemixTempo(val);
-    const pitchRatio = Math.pow(2, remixPitch / 12);
-    if (vocalSourceRef.current) vocalSourceRef.current.playbackRate.value = val * pitchRatio;
-    if (instSourceRef.current) instSourceRef.current.playbackRate.value = val * pitchRatio;
   };
 
   const handleExportRemix = async () => {
@@ -558,6 +573,7 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
       <div className="flex flex-col sm:flex-row gap-3">
         <button
           onClick={isPreviewing ? stopPreview : startPreview}
+          disabled={isPreparingPreview}
           className={cn(
             'flex-1 py-3.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 text-white',
             isPreviewing
@@ -565,7 +581,7 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
               : 'bg-slate-800 hover:bg-slate-700 border border-slate-700'
           )}
         >
-          {isPreviewing ? (
+          {isPreparingPreview ? <><Loader2 className="w-4 h-4 animate-spin"/><span>Önizleme hazırlanıyor…</span></> : isPreviewing ? (
             <>
               <Square className="w-4 h-4 fill-white" />
               <span>{t('Stop Preview')}</span>

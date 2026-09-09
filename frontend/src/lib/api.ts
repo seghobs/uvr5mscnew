@@ -3,20 +3,21 @@ import { AvailableModels, ModelStatus, SeparationParams, TaskStatus, SearchResul
 async function safeFetch(path: string, options?: RequestInit): Promise<Response> {
   const isBrowser = typeof window !== 'undefined';
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const canRetry = !options?.method || options.method === 'GET';
 
   try {
     const res = await fetch(cleanPath, options);
     if (res.ok) return res;
 
     // If proxy failed, retry directly against FastAPI backend port 8000
-    if (isBrowser && (res.status === 404 || res.status === 405 || res.status >= 500)) {
+    if (isBrowser && canRetry && (res.status === 404 || res.status === 405 || res.status >= 500)) {
       const directUrl = `http://127.0.0.1:8000${cleanPath}`;
       const directRes = await fetch(directUrl, options).catch(() => null);
       if (directRes && directRes.ok) return directRes;
     }
     return res;
   } catch (err) {
-    if (isBrowser) {
+    if (isBrowser && canRetry) {
       const directUrl = `http://127.0.0.1:8000${cleanPath}`;
       const directRes = await fetch(directUrl, options).catch(() => null);
       if (directRes && directRes.ok) return directRes;
@@ -26,6 +27,23 @@ async function safeFetch(path: string, options?: RequestInit): Promise<Response>
 }
 
 export const api = {
+  async referenceRequest(path: 'search' | 'compare' | 'apply', body: unknown): Promise<any> {
+    const res = await safeFetch(`/api/lyrics/reference/${path}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Söz doğrulama tamamlanamadı.');
+    if (!data.task_id) return data;
+    for (let i = 0; i < 7200; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const status = await safeFetch(`/status/${encodeURIComponent(data.task_id)}`);
+      if (!status.ok) throw new Error('Hizalama durumu alınamadı.');
+      const task = await status.json();
+      if (task.status === 'completed') return task.result;
+      if (task.status === 'failed') throw new Error(task.error || 'Düzeltme hizalanamadı.');
+    }
+    throw new Error('İşlem sunucuda devam ediyor olabilir.');
+  },
   async getModels(): Promise<AvailableModels> {
     const res = await safeFetch('/models');
     if (!res.ok) throw new Error('Failed to fetch models');
@@ -258,7 +276,17 @@ export const api = {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || err.message || 'Lyrics transcription failed');
     }
-    return res.json();
+    const data = await res.json();
+    if (!data.task_id) return data;
+    for (let attempt = 0; attempt < 7200; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const statusRes = await safeFetch(`/status/${encodeURIComponent(data.task_id)}`);
+      if (!statusRes.ok) throw new Error('Hizalama görevi sorgulanamadı.');
+      const task = await statusRes.json();
+      if (task.status === 'completed') return task.result;
+      if (task.status === 'failed') throw new Error(task.error || 'Hizalama başarısız.');
+    }
+    throw new Error('Hizalama bekleme süresi doldu; görev sunucuda devam ediyor olabilir.');
   },
 
   async saveLyrics(
@@ -325,6 +353,7 @@ export const api = {
   async generateKaraokeVideo(
     payload: {
       inst_file: string;
+      timing_file?: string;
       segments: Array<{ start: number; end: number; text: string; words?: any[] }>;
       title?: string;
       artist?: string;
@@ -351,7 +380,7 @@ export const api = {
 
     if (data.task_id) {
       const taskId = data.task_id;
-      const maxAttempts = 300; // 5 minutes max
+      const maxAttempts = 9000; // Up to two hours for long 60 fps renders.
       for (let i = 0; i < maxAttempts; i++) {
         await new Promise((r) => setTimeout(r, 800));
         const statusRes = await safeFetch(`/status/${taskId}`);

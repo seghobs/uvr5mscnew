@@ -50,3 +50,6 @@ outputs/*
 !outputs/.gitkeep
 ytdl/*
 !ytdl/.gitkeep
+
+# Local karaoke verification artifacts
+tests/.artifacts/

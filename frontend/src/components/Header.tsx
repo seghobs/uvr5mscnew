@@ -226,7 +226,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/60 p-4 rounded-2xl border border-white/5">
-              UVR5 Studio, FastAPI backend, Next.js web sunucusu ve Windows'ta arka planda çalışan tüm yapay zeka süreçleri <strong>tamamen kapatılacak</strong>.
+              UVR5 Studio, FastAPI backend, Next.js web sunucusu ve Windows’ta arka planda çalışan tüm yapay zeka süreçleri <strong>tamamen kapatılacak</strong>.
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-2">

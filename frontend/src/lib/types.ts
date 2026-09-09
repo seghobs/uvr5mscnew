@@ -103,10 +103,11 @@ export interface LyricSegment {
   start: number;
   end: number;
   text: string;
-  words?: Array<{ word: string; start: number; end: number }>;
+  words?: Array<{ word: string; start: number; end: number; probability?: number | null; timing_source?: 'aligned' | 'ctc' | 'manual' | 'estimated'; needs_review?: boolean }>;
 }
 
 export interface LyricsResponse {
+  timing_issues?: string[];
   status: string;
   cached?: boolean;
   is_edited?: boolean;
@@ -145,4 +146,3 @@ export interface RestoreAudioResponse {
   stem_file?: string;
   message?: string;
 }
-

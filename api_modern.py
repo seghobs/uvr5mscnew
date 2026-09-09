@@ -1,5 +1,6 @@
 import sys
 import os
+from karaoke_ctc import refine_turkish
 
 class _NullStream:
     def write(self, text): pass
@@ -24,6 +25,8 @@ import subprocess
 import time
 import threading
 import html
+import hashlib
+from contextlib import closing
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Request, WebSocket
 from fastapi.staticfiles import StaticFiles
@@ -32,6 +35,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict
 import core
+from karaoke_timing import repair_timing, timing_issues, ass_time, ass_word_tags, escape_ass, align_lyrics
 
 import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
@@ -73,7 +77,7 @@ os.makedirs(YTL_DIR, exist_ok=True)
 # Initialize SQLite database for model favorites, lyrics cache, and project sessions
 def init_favorites_db():
     try:
-        with sqlite3.connect(str(FAVORITES_DB_PATH)) as conn:
+        with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS model_favorites (
                     model_name TEXT PRIMARY KEY,
@@ -102,6 +106,10 @@ def init_favorites_db():
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
+            conn.execute("""CREATE TABLE IF NOT EXISTS lyrics_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, file_key TEXT NOT NULL,
+                segments_json TEXT NOT NULL, saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""")
             conn.commit()
     except Exception as e:
         print(f"Error initializing SQLite DB: {e}")
@@ -130,7 +138,7 @@ def get_saved_lyrics(file_name: str) -> Optional[dict]:
         candidates.append(key.replace("vocal", "inst"))
 
     try:
-        with sqlite3.connect(str(FAVORITES_DB_PATH)) as conn:
+        with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
             cursor = conn.cursor()
             for cand in candidates:
                 cursor.execute(
@@ -139,7 +147,7 @@ def get_saved_lyrics(file_name: str) -> Optional[dict]:
                 )
                 row = cursor.fetchone()
                 if row:
-                    segments = json.loads(row[3])
+                    segments = repair_timing(json.loads(row[3]))
                     return {
                         "status": "success",
                         "cached": True,
@@ -147,6 +155,7 @@ def get_saved_lyrics(file_name: str) -> Optional[dict]:
                         "file_name": row[1],
                         "language": row[2],
                         "segments": segments,
+                        "timing_issues": timing_issues(segments),
                         "lrc_content": row[4] or "",
                         "srt_content": row[5] or "",
                         "is_edited": bool(row[6]),
@@ -158,10 +167,19 @@ def get_saved_lyrics(file_name: str) -> Optional[dict]:
         print(f"Error querying SQLite lyrics for {file_name}: {e}")
     return None
 
+_lyrics_data_lock = threading.RLock()
+
+
 def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bool = False) -> dict:
+    with _lyrics_data_lock:
+        return _save_lyrics_db(file_name, language, segments, is_edited)
+
+
+def _save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bool = False) -> dict:
     init_favorites_db()
+    segments = repair_timing(segments)
     key = _get_lyrics_key(file_name)
-    segments_json = json.dumps(segments, ensure_ascii=False)
+    segments_json = json.dumps(segments, ensure_ascii=False, allow_nan=False)
     
     # Generate standard LRC and SRT strings
     lrc_lines = ["[ti:" + file_name + "]", "[ar:UVR5 AI Studio]"]
@@ -209,9 +227,10 @@ def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: boo
         keys_to_save.append(key.replace("vocal", "inst"))
 
     try:
-        with sqlite3.connect(str(FAVORITES_DB_PATH)) as conn:
+        with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
             cursor = conn.cursor()
             for k in set(keys_to_save):
+                cursor.execute("INSERT INTO lyrics_history(file_key, segments_json) SELECT file_key, segments_json FROM lyrics WHERE file_key = ? AND segments_json != ?", (k, segments_json))
                 cursor.execute("""
                     INSERT INTO lyrics (file_key, file_name, language, segments_json, lrc_content, srt_content, is_edited, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -226,7 +245,7 @@ def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: boo
                 """, (k, file_name, language or "tr", segments_json, lrc_content, srt_content, 1 if is_edited else 0))
             conn.commit()
     except Exception as e:
-        print(f"Error saving lyrics to SQLite: {e}")
+        raise RuntimeError("Sözler veritabanına kaydedilemedi") from e
 
     return {
         "status": "success",
@@ -235,6 +254,7 @@ def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: boo
         "file_name": file_name,
         "language": language,
         "segments": segments,
+        "timing_issues": timing_issues(segments),
         "lrc_content": lrc_content,
         "srt_content": srt_content,
         "is_edited": is_edited,
@@ -245,7 +265,7 @@ def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: boo
 def get_favorites_list():
     init_favorites_db()
     try:
-        with sqlite3.connect(str(FAVORITES_DB_PATH)) as conn:
+        with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT model_name FROM model_favorites ORDER BY created_at DESC")
             rows = cursor.fetchall()
@@ -260,7 +280,7 @@ def toggle_model_favorite(model_name: str) -> dict:
     if not model_name:
         return {"status": "error", "message": "Model name cannot be empty", "favorites": get_favorites_list()}
     try:
-        with sqlite3.connect(str(FAVORITES_DB_PATH)) as conn:
+        with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT model_name FROM model_favorites WHERE model_name = ?", (model_name,))
             row = cursor.fetchone()
@@ -322,12 +342,12 @@ def _cleanup_tasks():
     now = time.time()
     with tasks_lock:
         # Remove expired
-        expired = [tid for tid, t in tasks.items() if now - t.get("created_at", now) > TASK_TTL_SECONDS]
+        expired = [tid for tid, t in tasks.items() if t.get("status") in ("completed", "failed") and now - t.get("updated_at", now) > TASK_TTL_SECONDS]
         for tid in expired:
             tasks.pop(tid, None)
         # Enforce max count (LRU by created_at)
         if len(tasks) > TASK_MAX_COUNT:
-            sorted_ids = sorted(tasks.items(), key=lambda x: x[1].get("created_at", 0))
+            sorted_ids = sorted(((tid, t) for tid, t in tasks.items() if t.get("status") in ("completed", "failed")), key=lambda x: x[1].get("created_at", 0))
             for tid, _ in sorted_ids[: len(tasks) - TASK_MAX_COUNT]:
                 tasks.pop(tid, None)
 
@@ -959,24 +979,21 @@ async def modify_audio_endpoint(request: AudioModRequest):
             
         ext = input_path.suffix
         base_name = input_path.stem
-        out_name = f"{base_name}_Modified_{int(time.time())}{ext}"
+        out_name = f"{base_name}_Modified_{uuid.uuid4().hex}{ext}"
         out_path = _safe_join_and_check(OUTPUT_DIR, out_name)
         
-        sample_rate = 44100
-        try:
-            sr_cmd = ["ffprobe", "-v", "error", "-show_entries", "stream=sample_rate", "-of", "default=noprint_wrappers=1:nokey=1", str(input_path)]
-            sr_out = subprocess.check_output(sr_cmd, text=True, creationflags=SUBPROCESS_FLAGS).strip().split('\n')[0]
-            if sr_out.isdigit():
-                sample_rate = int(sr_out)
-        except:
-            pass
+        import soundfile as sf
+        source_info = sf.info(str(input_path))
+        sample_rate = source_info.samplerate
 
         filters = []
         if request.pitch_semitones != 0:
             rate_multiplier = 2.0 ** (request.pitch_semitones / 12.0)
             new_rate = int(sample_rate * rate_multiplier)
             filters.append(f"asetrate={new_rate}")
-            needed_atempo = request.tempo_factor * rate_multiplier
+            # asetrate already speeds playback by this ratio. Compensate
+            # inversely so pitch changes cannot silently alter lyric timing.
+            needed_atempo = request.tempo_factor / (new_rate / sample_rate)
         else:
             needed_atempo = request.tempo_factor
 
@@ -995,6 +1012,10 @@ async def modify_audio_endpoint(request: AudioModRequest):
 
         if request.pitch_semitones != 0:
             filters.append(f"aresample={sample_rate}")
+
+        if filters:
+            target_samples = round(source_info.frames / request.tempo_factor)
+            filters.extend([f"apad=whole_len={target_samples}", f"atrim=end_sample={target_samples}"])
 
         filter_str = ",".join(filters)
         cmd = ["ffmpeg", "-y", "-i", str(input_path)]
@@ -1071,14 +1092,12 @@ async def get_output(filename: str):
         raise HTTPException(status_code=400, detail="Unsupported file type")
     file_path = _safe_join_and_check(OUTPUT_DIR, safe_name)
     if not file_path.exists():
-        # Fallback: handle Turkish / encoding mismatches (� replacement)
-        # Try case-insensitive / normalized search
+        # Unicode/case equivalents are safe; similar names may be another take
+        # or stem, and must never silently replace the requested audio.
         try:
-            import unicodedata, difflib
+            import unicodedata
             candidates = list(OUTPUT_DIR.iterdir())
             norm_target = unicodedata.normalize('NFC', safe_name).lower()
-            best = None
-            best_ratio = 0
             for cand in candidates:
                 if not cand.is_file():
                     continue
@@ -1089,16 +1108,6 @@ async def get_output(filename: str):
                 if norm_cand == norm_target:
                     file_path = cand
                     break
-                # handle � replacement: try substituting � with Turkish chars
-                # e.g., � vs İ/ı/ş/ğ etc.
-                # Also try difflib for close match (handles garbled names)
-                ratio = difflib.SequenceMatcher(None, norm_target, norm_cand).ratio()
-                if ratio > best_ratio and ratio > 0.85:
-                    best_ratio = ratio
-                    best = cand
-            else:
-                if best is not None:
-                    file_path = best
             if not file_path.exists():
                 raise HTTPException(status_code=404, detail="File not found")
         except HTTPException:
@@ -1259,24 +1268,19 @@ async def remix_audio(request: RemixRequest):
     if not vocal_path.exists() or not inst_path.exists():
         raise HTTPException(status_code=404, detail="Files not found")
         
-    output_filename = f"Remix_{int(time.time())}.{out_format}"
+    output_filename = f"Remix_{uuid.uuid4().hex}.{out_format}"
     output_path = _safe_join_and_check(OUTPUT_DIR, output_filename)
     
-    sample_rate = 44100
-    try:
-        sr_cmd = ["ffprobe", "-v", "error", "-show_entries", "stream=sample_rate", "-of", "default=noprint_wrappers=1:nokey=1", str(inst_path)]
-        sr_out = subprocess.check_output(sr_cmd, text=True, creationflags=SUBPROCESS_FLAGS).strip().split('\n')[0]
-        if sr_out.isdigit():
-            sample_rate = int(sr_out)
-    except:
-        pass
+    import soundfile as sf
+    vocal_info, inst_info = sf.info(str(vocal_path)), sf.info(str(inst_path))
+    sample_rate = vocal_info.samplerate
 
     pitch_filters = []
     if pitch_shift != 0:
         rate_multiplier = 2.0 ** (pitch_shift / 12.0)
         new_rate = int(sample_rate * rate_multiplier)
         pitch_filters.append(f"asetrate={new_rate}")
-        needed_atempo = tempo_factor * rate_multiplier
+        needed_atempo = tempo_factor / (new_rate / sample_rate)
     else:
         needed_atempo = tempo_factor
 
@@ -1293,6 +1297,10 @@ async def remix_audio(request: RemixRequest):
 
     if pitch_shift != 0:
         pitch_filters.append(f"aresample={sample_rate}")
+
+    if pitch_filters:
+        target_samples = round(max(vocal_info.duration, inst_info.duration) / tempo_factor * sample_rate)
+        pitch_filters.extend([f"apad=whole_len={target_samples}", f"atrim=end_sample={target_samples}"])
 
     # Correct filter_complex: label amix output as [mixed], then optionally apply pitch filters to [mixed] -> [out]
     base_filter = f"[0:a]volume={vocal_gain}dB[v];[1:a]volume={inst_gain}dB[i];[v][i]amix=inputs=2:duration=longest:dropout_transition=0,volume=2[mixed]"
@@ -1461,6 +1469,9 @@ class WordModel(BaseModel):
     word: str
     start: float
     end: float
+    probability: Optional[float] = None
+    timing_source: Optional[str] = None
+    needs_review: bool = False
 
 class LyricSegmentModel(BaseModel):
     start: float
@@ -1477,6 +1488,91 @@ class LyricsRequest(BaseModel):
 
 class DownloadWhisperRequest(BaseModel):
     model_type: Optional[str] = "large-v3"
+
+
+class ReferenceSearchRequest(BaseModel):
+    youtube_url: str = Field('', max_length=500)
+    artist: str = Field('', max_length=200)
+    title: str = Field('', max_length=200)
+
+
+class ReferenceCompareRequest(BaseModel):
+    segments: List[LyricSegmentModel] = Field(..., max_length=300)
+    reference: str = Field(..., min_length=1, max_length=30000)
+
+
+class ReferenceApplyRequest(BaseModel):
+    file_name: str = Field(..., min_length=1, max_length=256)
+    segments: List[LyricSegmentModel] = Field(..., max_length=300)
+    edits: dict[int, str]
+    language: str = 'tr'
+    model_name: str = 'large-v3'
+
+
+@app.post('/api/lyrics/reference/search')
+def reference_search_endpoint(req: ReferenceSearchRequest):
+    from karaoke_reference import search_reference
+    try:
+        return search_reference(req.youtube_url, req.artist, req.title)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    except Exception:
+        raise HTTPException(502, 'Söz kaynağına erişilemedi. Sanatçı/şarkı adıyla tekrar deneyin veya referans sözleri yapıştırın.')
+
+
+@app.post('/api/lyrics/reference/compare')
+def reference_compare_endpoint(req: ReferenceCompareRequest):
+    from karaoke_reference import compare_reference
+    try:
+        return {'rows': compare_reference([s.model_dump() for s in req.segments], req.reference)}
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+
+
+def run_reference_alignment(task_id, req, expected_revision):
+    from karaoke_reference import align_changed_rows
+    try:
+        with _lyrics_inference_lock:
+            audio_path = _find_audio_file(req.file_name)
+            if re.search(r'instrumental|other|inst', audio_path.stem, re.I):
+                raise ValueError('Söz düzeltme için vokal dosyasını seçin.')
+            model = get_whisper_model(req.model_name)
+            language = req.language
+            if language == 'auto':
+                saved = get_saved_lyrics(req.file_name)
+                language = (saved or {}).get('language', 'tr')
+                if language in ('auto', '', None):
+                    raise ValueError('Söz düzeltmeden önce şarkı dilini seçin.')
+            def align(clip, text):
+                _update_task(task_id, message='Seçilen düzeltmeler vokalle hizalanıyor...', progress=.4)
+                aligned = align_lyrics(model, clip, text, language)
+                return refine_turkish(clip, aligned, language, lambda *args: None)
+            segments = align_changed_rows(audio_path, [s.model_dump() for s in req.segments], req.edits, align)
+            with _lyrics_data_lock:
+                if _lyrics_revision(req.file_name) != expected_revision:
+                    raise ValueError('Bu sırada sözler değiştirildi. Yeni düzenlemeler korundu; yeniden karşılaştırın.')
+                saved = save_lyrics_db(req.file_name, language, segments, is_edited=True)
+            _update_task(task_id, status='completed', progress=1., result=saved, message='Seçilen satırlar düzeltildi ve hizalandı.')
+    except Exception as exc:
+        _update_task(task_id, status='failed', error=str(exc), message='Düzeltme tamamlanamadı; mevcut kayıt korundu.')
+
+
+@app.post('/api/lyrics/reference/apply')
+def reference_apply_endpoint(req: ReferenceApplyRequest, background_tasks: BackgroundTasks):
+    _find_audio_file(req.file_name)
+    if req.model_name not in ('large-v3', 'large-v3-turbo') or not req.edits or any(
+        i < 0 or i >= len(req.segments) or not t.strip() or len(t) > 1500 for i, t in req.edits.items()
+    ):
+        raise HTTPException(422, 'Geçerli satır düzeltmeleri ve model seçin.')
+    with _lyrics_data_lock:
+        saved = get_saved_lyrics(req.file_name)
+        current = [LyricSegmentModel(**s).model_dump() for s in (saved or {}).get('segments', [])]
+        if current != [s.model_dump() for s in req.segments]:
+            raise HTTPException(409, 'Sözler değişmiş veya kaydedilmemiş. Yeniden karşılaştırın.')
+        revision = _lyrics_revision(req.file_name)
+    task_id = _create_task({'message': 'Seçilen söz düzeltmeleri sıraya alındı...'})
+    background_tasks.add_task(run_reference_alignment, task_id, req, revision)
+    return {'task_id': task_id}
 
 class SaveLyricsRequest(BaseModel):
     file_name: str = Field(..., min_length=1, max_length=256)
@@ -1620,7 +1716,7 @@ async def save_lyrics_endpoint(req: SaveLyricsRequest):
         saved = save_lyrics_db(
             req.file_name,
             req.language or "tr",
-            [s.dict() for s in req.segments],
+            [s.model_dump() for s in req.segments],
             is_edited=True
         )
         return saved
@@ -1634,13 +1730,14 @@ async def clear_karaoke_data_endpoint():
     """
     try:
         deleted_db_rows = 0
-        with sqlite3.connect(str(FAVORITES_DB_PATH)) as conn:
+        with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM lyrics;")
             row = cursor.fetchone()
             if row:
                 deleted_db_rows = row[0]
             cursor.execute("DELETE FROM lyrics;")
+            cursor.execute("DELETE FROM lyrics_history;")
             conn.commit()
             cursor.execute("VACUUM;")
 
@@ -1674,202 +1771,80 @@ async def clear_karaoke_data_endpoint():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/transcribe_lyrics")
-async def transcribe_lyrics_endpoint(req: LyricsRequest):
+_lyrics_inference_lock = threading.RLock()
+
+
+def _lyrics_revision(file_name):
+    current = get_saved_lyrics(file_name)
+    return hashlib.sha256(json.dumps(current.get("segments", []) if current else [], sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: str):
     try:
-        # 1. Check if we already have saved/cached lyrics in SQLite database
-        if not req.force:
-            cached_lyrics = get_saved_lyrics(req.file_name)
-            if cached_lyrics and cached_lyrics.get("segments") and len(cached_lyrics["segments"]) > 0:
-                return cached_lyrics
+        with _lyrics_inference_lock:
+            _update_task(task_id, message="Vokal ses ve kelimeler hazırlanıyor...", progress=0.1)
+            audio_path = _find_audio_file(req.file_name)
+            # Only consider candidates that actually change the stem name.
+            # Previously an unchanged replacement could select the instrumental itself.
+            for pattern in ("instrumental", "other", "inst"):
+                if re.search(pattern, audio_path.name, re.IGNORECASE):
+                    for replacement in ("Vocals", "vocals", "vocal"):
+                        name = re.sub(pattern, replacement, audio_path.name, flags=re.IGNORECASE)
+                        candidate = audio_path.with_name(name)
+                        if name != audio_path.name and candidate.is_file():
+                            audio_path = candidate
+                            break
+                    break
+            model = get_whisper_model(req.model_name if req.model_name in ("large-v3", "large-v3-turbo") else "large-v3")
+            language = None if req.language in (None, "", "auto", "none") else req.language
+            transcript = (req.raw_lyrics_text or "").strip()
+            if not transcript or not language:
+                _update_task(task_id, message="Sözler ve dil tanınıyor...", progress=0.2)
+                decoded, info = model.transcribe(str(audio_path), language=language,
+                    word_timestamps=False, vad_filter=False, condition_on_previous_text=False,
+                    beam_size=5, temperature=0.0)
+                decoded = list(decoded)
+                language = language or info.language
+                if not transcript:
+                    transcript = "\n".join(seg.text.strip() for seg in decoded if seg.text.strip())
+            if not transcript:
+                raise ValueError("Ses içinde söz bulunamadı; mevcut kayıt korundu.")
+            _update_task(task_id, message="Tüm kelimeler vokal sesle hizalanıyor...", progress=0.5)
+            segments = align_lyrics(model, audio_path, transcript, language)
+            segments = refine_turkish(audio_path, segments, language,
+                lambda fraction, message: _update_task(task_id, progress=.6 + .35 * fraction, message=message))
+            # Short display lines without changing ANY word boundary.
+            if not req.raw_lyrics_text:
+                grouped = []
+                for seg in segments:
+                    words = seg["words"]
+                    for i in range(0, len(words), 6):
+                        chunk = words[i:i + 6]
+                        grouped.append({"start": chunk[0]["start"], "end": chunk[-1]["end"],
+                                        "text": " ".join(w["word"] for w in chunk), "words": chunk})
+                segments = grouped
+            with _lyrics_data_lock:
+                if _lyrics_revision(req.file_name) != expected_revision:
+                    raise ValueError("Hizalama sırasında sözler değiştirildi. Yeni düzenlemeler korundu; yeniden hizalayın.")
+                saved = save_lyrics_db(req.file_name, language, segments, is_edited=False)
+            saved["cached"] = False
+            _update_task(task_id, status="completed", progress=1.0, result=saved,
+                         message="Hizalama tamamlandı; şüpheli zamanlar işaretlendi." if saved["timing_issues"] else "Kelime hizalaması tamamlandı.")
+    except Exception as exc:
+        _update_task(task_id, status="failed", error=str(exc), message="Hizalama tamamlanamadı; mevcut kayıt korundu.")
 
-        audio_path = _find_audio_file(req.file_name)
-        if not audio_path.exists():
-            raise HTTPException(status_code=404, detail="Audio file not found")
-            
-        # If the input file is an Instrumental stem, automatically find the matching Vocal stem
-        import re
-        target_path = audio_path
-        fn_lower = req.file_name.lower()
-        if "instrumental" in fn_lower or "inst" in fn_lower or "other" in fn_lower:
-            candidates = [
-                re.sub(r'instrumental', 'Vocals', req.file_name, flags=re.IGNORECASE),
-                re.sub(r'instrumental', 'vocals', req.file_name, flags=re.IGNORECASE),
-                re.sub(r'instrumental', 'vocal', req.file_name, flags=re.IGNORECASE),
-                re.sub(r'inst', 'Vocals', req.file_name, flags=re.IGNORECASE),
-                re.sub(r'other', 'vocals', req.file_name, flags=re.IGNORECASE),
-                re.sub(r'other', 'Vocals', req.file_name, flags=re.IGNORECASE),
-            ]
-            for cand in candidates:
-                try:
-                    p = _find_audio_file(cand)
-                    if p.exists():
-                        target_path = p
-                        break
-                except:
-                    pass
 
-        # Candidate hallucination and non-vocal audio artifact filter list
-        hallucination_phrases = [
-            'altyazı', 'altyazi', 'izlediğiniz için', 'izlediginiz icin', 'teşekkürler', 'tesekkurler',
-            'teşekkür ederim', 'tesekkur ederim', 'abone', 'youtube', 'translated by', 'copyright',
-            'thank you for watching', 'subtitles by', 'öğrenç', 'ogrenc', 'vokal.', 'müzik', 'muzik',
-            'alkış', 'alkis', 'enstrümantal', 'm.k.', 'm.k', 'beğenmeyi unutmayın', 'begenmeyi unutmayin',
-            'hoşça kalın', 'hosca kalin', 'görüşmek üzere', 'gorusmek uzere', 'kanalımıza abone', 'kanalimiza abone'
-        ]
+@app.post("/transcribe_lyrics")
+def transcribe_lyrics_endpoint(req: LyricsRequest, background_tasks: BackgroundTasks):
+    if not req.force and not req.raw_lyrics_text:
+        cached = get_saved_lyrics(req.file_name)
+        if cached and cached.get("segments"):
+            return cached
+    _find_audio_file(req.file_name)
+    task_id = _create_task({"message": "Kelime hizalaması sıraya alındı..."})
+    background_tasks.add_task(run_lyrics_alignment, task_id, req, _lyrics_revision(req.file_name))
+    return {"task_id": task_id, "status": "processing"}
 
-        def _clean_segment_text(txt: str) -> str:
-            txt = re.sub(r'\[.*?\]|\(.*?\)', '', txt)
-            return txt.strip()
-
-        segments = []
-        target_model_key = req.model_name if req.model_name in ("large-v3", "large-v3-turbo") else "large-v3"
-        prompt_text = req.raw_lyrics_text[:350].strip() if (req.raw_lyrics_text and req.raw_lyrics_text.strip()) else None
-        target_lang = None if (not req.language or req.language.lower() in ("auto", "none", "")) else req.language.lower().strip()
-        detected_lang = target_lang or "tr"
-        
-        try:
-            try:
-                model = get_whisper_model(target_model_key)
-            except Exception as e:
-                print(f"[WHISPER] Error loading {target_model_key}: {e}. Falling back to available model...")
-                model = get_whisper_model("large-v3-turbo")
-
-            # Transcribe with Silero VAD to eliminate music hallucinations and speech probability thresholding
-            res_segments, info = model.transcribe(
-                str(target_path),
-                language=target_lang,
-                condition_on_previous_text=False,
-                vad_filter=True,
-                vad_parameters=dict(min_silence_duration_ms=450, speech_pad_ms=200, threshold=0.35),
-                no_speech_threshold=0.55,
-                compression_ratio_threshold=2.4,
-                beam_size=5,
-                best_of=5,
-                temperature=[0.0, 0.2, 0.4],
-                word_timestamps=True,
-                initial_prompt=prompt_text
-            )
-            if info and hasattr(info, 'language') and info.language:
-                detected_lang = info.language
-
-            all_words = []
-            for seg in res_segments:
-                if hasattr(seg, 'words') and seg.words:
-                    for w in seg.words:
-                        w_txt = w.word.strip()
-                        if not w_txt:
-                            continue
-                        low = w_txt.lower()
-                        clean_w = w_txt.strip(' .,!?-_/\\:;"\'').lower()
-                        if clean_w in ('m.k', 'mk', 'm.k.', '...', '..', 'm'):
-                            continue
-                        if any(h in low for h in hallucination_phrases):
-                            continue
-                        # Filter out low-confidence intro artifacts
-                        if w.start < 15.0 and (w.end - w.start < 0.25 or getattr(w, 'probability', 1.0) < 0.35):
-                            continue
-                        
-                        all_words.append({
-                            "word": w_txt,
-                            "start": round(w.start, 2),
-                            "end": round(w.end, 2),
-                            "prob": round(getattr(w, 'probability', 1.0), 2)
-                        })
-
-            if all_words:
-                current_words = []
-                for w in all_words:
-                    if not current_words:
-                        current_words.append(w)
-                        continue
-                    
-                    prev_w = current_words[-1]
-                    gap = w["start"] - prev_w["end"]
-                    cur_dur = prev_w["end"] - current_words[0]["start"]
-                    word_count = len(current_words)
-                    
-                    should_split = (
-                        gap >= 0.55 or
-                        (word_count >= 4 and gap >= 0.25) or
-                        word_count >= 6 or
-                        cur_dur >= 5.0
-                    )
-                    
-                    if should_split:
-                        line_text = " ".join(x["word"] for x in current_words).strip()
-                        clean_text = _clean_segment_text(line_text) or line_text
-                        if clean_text:
-                            segments.append({
-                                "start": current_words[0]["start"],
-                                "end": current_words[-1]["end"],
-                                "text": clean_text,
-                                "words": current_words
-                            })
-                        current_words = [w]
-                    else:
-                        current_words.append(w)
-                
-                if current_words:
-                    line_text = " ".join(x["word"] for x in current_words).strip()
-                    clean_text = _clean_segment_text(line_text) or line_text
-                    if clean_text:
-                        segments.append({
-                            "start": current_words[0]["start"],
-                            "end": current_words[-1]["end"],
-                            "text": clean_text,
-                            "words": current_words
-                        })
-            else:
-                for seg in res_segments:
-                    raw_txt = seg.text.strip()
-                    if not raw_txt:
-                        continue
-                    low = raw_txt.lower()
-                    if any(h in low for h in hallucination_phrases) and (seg.end - seg.start < 2.5 and len(raw_txt) < 25):
-                        continue
-                    txt = _clean_segment_text(raw_txt) or raw_txt
-                    segments.append({
-                        "start": round(seg.start, 2),
-                        "end": round(seg.end, 2),
-                        "text": txt,
-                        "words": []
-                    })
-        except Exception as e:
-            print(f"[WHISPER ERROR] {e}")
-            try:
-                import whisper
-                model = whisper.load_model(target_model_key, download_root=str(WHISPER_DIR))
-                result = model.transcribe(
-                    str(target_path),
-                    language=target_lang,
-                    condition_on_previous_text=False,
-                    initial_prompt=prompt_text
-                )
-                if isinstance(result, dict) and result.get("language"):
-                    detected_lang = result["language"]
-                for seg in result.get("segments", []):
-                    raw_txt = seg.get("text", "").strip()
-                    if raw_txt:
-                        low = raw_txt.lower()
-                        if any(h in low for h in hallucination_phrases) and (seg["end"] - seg["start"] < 2.5 and len(raw_txt) < 25):
-                            continue
-                        segments.append({
-                            "start": round(seg["start"], 2),
-                            "end": round(seg["end"], 2),
-                            "text": _clean_segment_text(raw_txt) or raw_txt,
-                            "words": []
-                        })
-            except Exception as e2:
-                print(f"[WHISPER FALLBACK ERROR] {e2}")
-
-        # Automatically save newly transcribed lyrics to SQLite database
-        saved_res = save_lyrics_db(req.file_name, detected_lang, segments, is_edited=False)
-        return saved_res
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        unload_whisper_models()
 
 class QuickCleanRequest(BaseModel):
     file_name: str = Field(..., min_length=1, max_length=256)
@@ -1963,6 +1938,7 @@ async def generate_visualizer_endpoint(req: VisualizerRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 class KaraokeVideoRequest(BaseModel):
+    timing_file: Optional[str] = None
     inst_file: str = Field(..., min_length=1, max_length=256)
     segments: List[LyricSegmentModel]
     title: Optional[str] = ""
@@ -1977,6 +1953,15 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         _update_task(task_id, status="processing", message="Karaoke ASS altyazıları oluşturuluyor...", progress=0.1)
         req = KaraokeVideoRequest(**req_data)
         inst_path = _find_audio_file(req.inst_file)
+        if req.timing_file:
+            import soundfile as sf
+            timing_path = _find_audio_file(req.timing_file)
+            source_info, target_info = sf.info(str(timing_path)), sf.info(str(inst_path))
+            if abs(source_info.duration - target_info.duration) > 0.02:
+                raise ValueError("Vokal ve enstrümantal süreleri farklı. Aynı ayrıştırmanın eşleşen dosyalarını kullanın.")
+        issues = timing_issues([s.model_dump() for s in req.segments], include_review=False)
+        if issues:
+            raise ValueError(" / ".join(issues[:5]))
         
         is_vertical = req.aspect_ratio == "9:16"
         res_x, res_y = (1080, 1920) if is_vertical else (1920, 1080)
@@ -2007,13 +1992,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             wave_color = "#06b6d4|#38bdf8|#3b82f6"
             bg_color = "0x060914"
 
-        def to_ass_time(sec: float) -> str:
-            sec = max(0.0, sec)
-            hrs = int(sec // 3600)
-            mins = int((sec % 3600) // 60)
-            secs = int(sec % 60)
-            cs = int((sec - int(sec)) * 100)
-            return f"{hrs}:{mins:02d}:{secs:02d}.{cs:02d}"
+        to_ass_time = ass_time
 
         # 16:9 / 9:16 Optimized typography and line spacing
         font_size_active = 62 if is_vertical else 56
@@ -2059,6 +2038,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
                 title_text = parts[0]
             else:
                 title_text = ""
+            title_text = escape_ass(title_text)
             if title_text:
                 ass_lines.append(f"Dialogue: 0,0:00:00.00,1:00:00.00,Title,,0,0,0,,{title_text}")
 
@@ -2068,16 +2048,16 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             if cached and cached.get("segments"):
                 segments_to_use = [LyricSegmentModel(**s) for s in cached["segments"]]
         elif segments_to_use and len(segments_to_use) > 0:
-            save_lyrics_db(req.inst_file, "tr", [s.dict() for s in segments_to_use], is_edited=True)
+            save_lyrics_db(req.inst_file, "tr", [s.model_dump() for s in segments_to_use], is_edited=True)
 
         if segments_to_use and segments_to_use[0].start >= 1.5:
             first_seg = segments_to_use[0]
-            first_text = first_seg.text.strip()
+            first_text = escape_ass(first_seg.text.strip())
             if first_text:
                 ass_lines.append(f"Dialogue: 0,0:00:00.00,{to_ass_time(first_seg.start)},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{first_text}")
 
         for idx, seg in enumerate(segments_to_use):
-            raw_text = seg.text.strip()
+            raw_text = escape_ass(seg.text.strip())
             if not raw_text:
                 continue
 
@@ -2092,125 +2072,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
                 act_end_sec = seg.end + 2.0
             en = to_ass_time(act_end_sec)
 
-            raw_words = [w for w in re.split(r'\s+', raw_text) if w]
-            num_w = len(raw_words)
-            if num_w == 0:
-                continue
-
-            seg_dur = max(0.2, float(seg.end - seg.start))
-            total_fill_cs = max(20, int(round(seg_dur * 100)))
-
-            custom_words = getattr(seg, 'words', None)
-            has_matching_words = (
-                custom_words is not None
-                and len(custom_words) == num_w
-                and all(
-                    (isinstance(cw, dict) and 'start' in cw and 'end' in cw)
-                    or (hasattr(cw, 'start') and hasattr(cw, 'end'))
-                    for cw in custom_words
-                )
-            )
-
-            w_tags = []
-
-            if num_w == 1:
-                # Single-word line (e.g. sustained note like "bitti...") smoothly fills across the FULL configured duration!
-                w_tags.append(f"{{\\kf{total_fill_cs}}}{raw_words[0]}")
-            elif has_matching_words:
-                raw_durs = []
-                raw_gaps = []
-                for i, cw in enumerate(custom_words):
-                    cw_s = float(cw.get('start', 0.0) if isinstance(cw, dict) else getattr(cw, 'start', 0.0))
-                    cw_e = float(cw.get('end', 0.0) if isinstance(cw, dict) else getattr(cw, 'end', 0.0))
-                    raw_durs.append(max(0.08, cw_e - cw_s))
-                    if i < num_w - 1:
-                        next_cw = custom_words[i + 1]
-                        next_s = float(next_cw.get('start', 0.0) if isinstance(next_cw, dict) else getattr(next_cw, 'start', 0.0))
-                        gap = max(0.0, next_s - cw_e)
-                        raw_gaps.append(min(0.6, gap) if gap >= 0.08 else 0.0)
-
-                total_raw = sum(raw_durs) + sum(raw_gaps)
-                if total_raw <= 0:
-                    total_raw = 1.0
-
-                w_cs_list = []
-                gap_cs_list = []
-                allocated_cs = 0
-
-                for i in range(num_w):
-                    cs = max(8, int(round((raw_durs[i] / total_raw) * total_fill_cs)))
-                    w_cs_list.append(cs)
-                    allocated_cs += cs
-                    if i < num_w - 1:
-                        g_cs = int(round((raw_gaps[i] / total_raw) * total_fill_cs)) if raw_gaps[i] > 0 else 0
-                        gap_cs_list.append(g_cs)
-                        allocated_cs += g_cs
-
-                diff = total_fill_cs - allocated_cs
-                if diff != 0:
-                    new_last = w_cs_list[-1] + diff
-                    if new_last >= 5:
-                        w_cs_list[-1] = new_last
-                    else:
-                        w_cs_list[-1] = 5
-                        excess = (sum(w_cs_list) + sum(gap_cs_list)) - total_fill_cs
-                        for k in range(len(w_cs_list) - 2, -1, -1):
-                            can_cut = max(0, w_cs_list[k] - 5)
-                            cut = min(can_cut, excess)
-                            w_cs_list[k] -= cut
-                            excess -= cut
-                            if excess <= 0:
-                                break
-
-                for i in range(num_w):
-                    space = " " if i < num_w - 1 else ""
-                    if i < num_w - 1 and gap_cs_list[i] >= 4:
-                        w_tags.append(f"{{\\kf{w_cs_list[i]}}}{raw_words[i]}{{\\k{gap_cs_list[i]}}}{space}")
-                    else:
-                        w_tags.append(f"{{\\kf{w_cs_list[i]}}}{raw_words[i]}{space}")
-            else:
-                # Syllable / phonetic weighting fallback
-                vowels = set("aeıioöuüAEIİOÖUÜ")
-                weights = []
-                for w in raw_words:
-                    v_cnt = sum(1 for c in w if c in vowels)
-                    clean_len = max(1, len(re.sub(r'[^\w]', '', w)))
-                    punct_bonus = 1.8 if any(p in w for p in '.,?!;:') else 0.0
-                    w_wt = max(1.0, float(v_cnt) * 1.5 + float(clean_len) * 0.2 + punct_bonus)
-                    weights.append(w_wt)
-
-                total_weight = sum(weights) or 1.0
-                w_cs_list = []
-                allocated_cs = 0
-                for i in range(num_w):
-                    if i == num_w - 1:
-                        cs = max(5, total_fill_cs - allocated_cs)
-                    else:
-                        cs = max(5, int(round((weights[i] / total_weight) * total_fill_cs)))
-                        allocated_cs += cs
-                    w_cs_list.append(cs)
-
-                diff = total_fill_cs - sum(w_cs_list)
-                if diff != 0:
-                    new_last = w_cs_list[-1] + diff
-                    if new_last >= 5:
-                        w_cs_list[-1] = new_last
-                    else:
-                        w_cs_list[-1] = 5
-                        excess = sum(w_cs_list) - total_fill_cs
-                        for k in range(len(w_cs_list) - 2, -1, -1):
-                            can_cut = max(0, w_cs_list[k] - 5)
-                            cut = min(can_cut, excess)
-                            w_cs_list[k] -= cut
-                            excess -= cut
-                            if excess <= 0:
-                                break
-
-                for i in range(num_w):
-                    space = " " if i < num_w - 1 else ""
-                    w_tags.append(f"{{\\kf{w_cs_list[i]}}}{raw_words[i]}{space}")
-
-            active_karaoke_text = "".join(w_tags).strip()
+            active_karaoke_text = ass_word_tags(seg.model_dump())
             if idx == 0 and seg.start < 1.5:
                 active_anim = f"{{\\pos({x_center}, {y_active})\\fad(0, 200)}}"
             else:
@@ -2219,11 +2081,11 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             ass_lines.append(f"Dialogue: 1,{st},{en},Active,,0,0,0,,{active_anim}{active_karaoke_text}")
             if idx + 1 < len(segments_to_use):
                 next_seg = segments_to_use[idx + 1]
-                next_text = next_seg.text.strip()
+                next_text = escape_ass(next_seg.text.strip())
                 if next_text and next_seg.start > seg.start:
                     ass_lines.append(f"Dialogue: 0,{st},{to_ass_time(next_seg.start)},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{next_text}")
 
-        timestamp_id = int(time.time())
+        timestamp_id = uuid.uuid4().hex
         ass_filename = f"karaoke_sub_{timestamp_id}.ass"
         ass_path = OUTPUT_DIR / ass_filename
         ass_path.write_text("\n".join(ass_lines), encoding="utf-8")
@@ -2235,8 +2097,8 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         freq_y = 350 if is_vertical else 140
 
         filter_complex = (
-            f"[0:a]showfreqs=s={freq_w}x{freq_h}:mode=bar:ascale=log:fscale=log:colors={wave_color}[freqs];"
-            f"color=c={bg_color}:s={res_x}x{res_y}:d=3600[bg];"
+            f"[0:a]showfreqs=s={freq_w}x{freq_h}:r=60:mode=bar:ascale=log:fscale=log:colors={wave_color}[freqs];"
+            f"color=c={bg_color}:s={res_x}x{res_y}:r=60:d=3600[bg];"
             f"[bg][freqs]overlay=(W-w)/2:{freq_y}:shortest=1[v_raw];"
             f"[v_raw]subtitles=filename={ass_filename}[v]"
         )
@@ -2253,7 +2115,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             "-preset", "ultrafast",
             "-threads", "0",
             "-crf", "22",
-            "-r", "30",
+            "-r", "60",
             "-pix_fmt", "yuv420p",
             "-c:a", "aac",
             "-b:a", "320k",
@@ -2278,8 +2140,12 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
 
 @app.post("/generate_karaoke_video")
 async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest, background_tasks: BackgroundTasks):
+    req.segments = [LyricSegmentModel(**s) for s in repair_timing([s.model_dump() for s in req.segments])]
+    issues = timing_issues([s.model_dump() for s in req.segments], include_review=False)
+    if not req.segments or issues:
+        raise HTTPException(status_code=422, detail=" / ".join(issues[:5]) or "Sözler eksik")
     task_id = _create_task({"message": "Karaoke Videosu Hazırlanıyor...", "model_type": "karaoke_video"})
-    background_tasks.add_task(run_karaoke_video_task, task_id, req.dict())
+    background_tasks.add_task(run_karaoke_video_task, task_id, req.model_dump())
     return {"task_id": task_id, "status": "processing"}
 
 @app.api_route("/clear_memory", methods=["GET", "POST", "OPTIONS"])
