@@ -34,6 +34,16 @@ async function main() {
   assert.equal(timing.wordFill({...word, needs_review:true}, 1.249999), 0);
   assert.equal(timing.wordFill(word,1.5,1.3),0);
   assert.equal(timing.wordFill(word,1.5,0,1.6),0);
+  const lastBound = {word:'GERİYO.',start:98.84083,end:99.40083};
+  const unboundNext = {word:'BENİ',start:99.089533,end:99.089533,timing_source:'estimated'};
+  const preceding = {word:'DE',start:98.52083,end:98.84083};
+  const halfway = (lastBound.start+lastBound.end)/2;
+  assert.ok(Math.abs(timing.wordFillWithNeighbors(lastBound,halfway,preceding,unboundNext)-.5)<1e-10);
+  assert.equal(timing.wordFillWithNeighbors(lastBound,99.40083,preceding,unboundNext),1);
+  assert.equal(timing.wordFillWithNeighbors(lastBound,98,preceding,unboundNext),0);
+  assert.equal(timing.wordFillWithNeighbors(lastBound,halfway,preceding,{...unboundNext,end:100}),0);
+  assert.equal(timing.wordFillWithNeighbors(unboundNext,100,preceding),0);
+  assert.equal(timing.wordFillWithNeighbors(word,1.5,{word:'boş',start:1.6,end:1.6}),.5);
   const uncertain = {word:'İnadını', start:14.868256658595644, end:15.588692493946734, needs_review:true};
   assert.ok(Math.abs(timing.wordFill(uncertain,(uncertain.start+uncertain.end)/2)-.5)<1e-10);
   assert.ok(timing.timingIssues([{start:uncertain.start,end:uncertain.end,text:'İnadını',words:[uncertain]}]).length);
@@ -138,6 +148,7 @@ async function main() {
   collect(component);
   let rowPlayed, wordPlayed, editStopped = false, editPaused = false;
   const editContext = {
+    editedPlaybackStartRef:{current:null},loopLineRef:{current:null},setLoopLineIndex:()=>{},
     activeTab:'lyrics', expandedWordRow:0, selectedWordIndex:1,
     segments:[{start:4.777,end:47,text:'SÖYLE YAĞMUR',words:[
       {word:'SÖYLE',start:4.777,end:5}, {word:'YAĞMUR',start:5,end:46.241}]}],
@@ -161,8 +172,8 @@ async function main() {
   assert.equal(editContext.segments[0].words[1].start,44.610);
   assert.equal(editContext.segments[0].start,4.777);
   editContext.playRow(0);
-  assert.deepEqual(wordPlayed,[0,1]);
-  assert.equal(rowPlayed,undefined);
+  assert.equal(wordPlayed,undefined);
+  assert.equal(rowPlayed,0);
   editContext.expandedWordRow=null;
   editContext.playRow(0);
   assert.equal(rowPlayed,0);
@@ -175,6 +186,8 @@ async function main() {
   assert.equal(timing.rowPlaybackRange(stale).end,46.241);
   assert.equal(timing.rowPlaybackRange({start:3,end:4,text:'x'}).start,3);
   const lineContext = {
+    loopLineRef:{current:1},setLoopLineIndex:()=>{},
+    editedPlaybackStartRef:{current:null},
     segments:[stale], stopWordPreview:()=>{},rowPlaybackRange:timing.rowPlaybackRange,
     audioRef:{current:{currentTime:0,play:()=>Promise.resolve(),pause:()=>{}}},
     activePlayingIndex:null,isPlaying:false,loopLineIndex:null,
@@ -194,6 +207,7 @@ async function main() {
   const clicked = {...word, end:word.start, needs_review: true};
   let previousPlaying = true, mainPlaying = true, warning = '';
   const clickContext = {
+    editedPlaybackStartRef:{current:null},
     loadingLyrics: false, segments: [{words:[clicked]}], activePlayingWord: {segIdx:0,wordIdx:1},
     wordPlayerRef: {current:{playing:true}},
     stopWordPreview: () => { previousPlaying = false; },

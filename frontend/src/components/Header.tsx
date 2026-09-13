@@ -6,6 +6,7 @@ import { Language, AccentColor } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { getTranslation } from '@/lib/translations';
 import { api } from '@/lib/api';
+import { flushAllProjects } from '@/lib/project-storage';
 
 interface HeaderProps {
   lang: Language;
@@ -59,9 +60,10 @@ export const Header: React.FC<HeaderProps> = ({
   const handleShutdownConfirm = async () => {
     setIsShuttingDown(true);
     try {
+      await flushAllProjects();
       await api.shutdown();
-    } catch {
-      // Ignore network abort when server goes down
+    } catch(error) {
+      setIsShuttingDown(false);setMemoryClearedMsg((error as Error).message||'Kapatılamadı. Çalışan işlemleri kontrol edin.');return;
     }
     setTimeout(() => {
       setIsShuttingDown(false);
@@ -72,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header className="sticky top-0 z-40 w-full backdrop-blur-2xl bg-slate-950/70 border-b border-white/[0.08] px-6 lg:px-10 py-3.5 transition-all">
-        <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-6">
+        <div className="max-w-[1840px] mx-auto flex items-center justify-between gap-4 flex-wrap">
           {/* Brand Logo & Tag */}
           <div className="flex items-center gap-4">
             <div className="relative group cursor-pointer">
@@ -86,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
                   accentColor === 'violet' && 'bg-gradient-to-br from-violet-500 to-violet-700 shadow-violet-500/30'
                 )}
               >
-                <Sparkles className="w-5 h-5 text-white animate-pulse" />
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-slate-950 flex items-center justify-center">
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
@@ -108,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({
                     accentColor === 'violet' && 'bg-violet-500/15 text-violet-300 border-violet-500/30 shadow-violet-500/20'
                   )}
                 >
-                  PRO STUDIO
+                  music studio
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium tracking-wide hidden sm:block">

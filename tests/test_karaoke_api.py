@@ -17,6 +17,7 @@ from typing import Optional, List
 from fastapi import BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
+from local_projects import ProjectStore
 from karaoke_timing import repair_timing, timing_issues
 
 
@@ -37,9 +38,10 @@ class ApiTests(unittest.TestCase):
         self.tasks = {}
         def create_task(extra=None):
             key = str(len(self.tasks)); self.tasks[key] = {'status': 'processing', **(extra or {})}; return key
-        self.ns = dict(globals(), FAVORITES_DB_PATH=root/'lyrics.db', OUTPUT_DIR=root,
+        self.ns = dict(globals(), project_store=ProjectStore(root/'projects'), FAVORITES_DB_PATH=root/'lyrics.db', OUTPUT_DIR=root,
                        _lyrics_data_lock=threading.RLock(), _lyrics_inference_lock=threading.RLock(),
                        _find_audio_file=lambda name: root/name, get_whisper_model=lambda name: object(),
+                       get_precision_whisper_model=lambda name: object(),
                        _safe_join_and_check=lambda parent, name: parent/name, ALLOWED_EXTENSIONS={'.wav','.flac','.mp4'},
                        _create_task=create_task, _update_task=lambda tid, **kw: self.tasks[tid].update(kw),
                        run_karaoke_video_task=lambda *a: None,
@@ -48,6 +50,10 @@ class ApiTests(unittest.TestCase):
         self.seg = {'start': 1., 'end': 3., 'text': 'Bir iki', 'words': [
             {'word': 'Bir', 'start': 1.2, 'end': 1.7, 'timing_source': 'manual'},
             {'word': 'iki', 'start': 2.1, 'end': 2.5, 'timing_source': 'manual'}]}
+        anchored = patch('karaoke_anchored.recognize_anchored', side_effect=lambda *args:
+            self.ns['refine_turkish'](args[0], self.ns['align_lyrics'](), 'tr', None))
+        anchored.start()
+        self.addCleanup(anchored.stop)
 
     def tearDown(self): self.tmp.cleanup()
 

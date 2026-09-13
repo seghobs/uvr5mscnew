@@ -29,13 +29,11 @@ import hashlib
 from contextlib import closing
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Request, WebSocket
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict
 import core
-from karaoke_timing import repair_timing, timing_issues, ass_time, ass_word_tags, escape_ass, align_lyrics
+from karaoke_timing import repair_timing, timing_issues, ass_time, ass_word_tags, escape_ass, align_lyrics, render_windows
 
 import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,6 +53,9 @@ if os.name == 'nt':
     subprocess.Popen = _SilentPopen
 
 app = FastAPI(title="UVR5 Premium API")
+from local_projects import ProjectStore
+project_store = ProjectStore(Path(__file__).parent / 'projects')
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -62,7 +63,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-templates = Jinja2Templates(directory="templates")
 
 # Ensure directories exist BEFORE any endpoint uses them
 os.makedirs("uploads", exist_ok=True)
@@ -170,9 +170,20 @@ def get_saved_lyrics(file_name: str) -> Optional[dict]:
 _lyrics_data_lock = threading.RLock()
 
 
-def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bool = False) -> dict:
+def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bool = False, allow_locked_changes: bool = False) -> dict:
     with _lyrics_data_lock:
-        return _save_lyrics_db(file_name, language, segments, is_edited)
+        if not allow_locked_changes:
+            previous=get_saved_lyrics(file_name)
+            locked=[row for row in (previous or {}).get('segments',[]) if row.get('locked')]
+            if locked:
+                if any(not row.get('id') or not any(candidate.get('id')==row['id'] for candidate in segments) for row in locked):
+                    segments=previous['segments']
+                else:
+                    by_id={row['id']:row for row in locked}
+                    segments=[by_id.get(row.get('id'),row) for row in segments]
+        result = _save_lyrics_db(file_name, language, segments, is_edited)
+        project_store.put('lyrics:' + file_name, result)
+        return result
 
 
 def _save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bool = False) -> dict:
@@ -374,6 +385,29 @@ def _update_task(task_id: str, **kwargs):
 ALLOWED_EXTENSIONS = {e.lower() for e in core.extensions}
 ALLOWED_EXTENSIONS.update([".wav", ".mp4", ".lrc", ".srt", ".ass", ".json", ".uvrproj", ".m4a", ".opus", ".webm", ".mkv"])
 MAX_UPLOAD_SIZE = 500 * 1024 * 1024  # 500MB
+
+
+@app.post('/api/projects/bootstrap')
+def bootstrap_projects(body: dict):
+    values=body.get('values', {})
+    if not isinstance(values,dict): raise HTTPException(400, 'Invalid project data')
+    for key,value in values.items():
+        if not isinstance(value,str): raise HTTPException(400, 'Invalid project value')
+        project_store.migrate(key,value)
+    # Preserve existing SQLite lyrics in the project folders without replacing newer snapshots.
+    with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
+        for row in conn.execute('SELECT file_name, language, segments_json FROM lyrics'):
+            project_store.put('lyrics:'+row[0],{'file_name':row[0],'language':row[1],'segments':json.loads(row[2]),'cached':True},only_missing=True)
+    return {'values':{k:v for k,v in project_store.all().items() if k.startswith('uvr')}}
+
+@app.put('/api/projects/value')
+def put_project_value(body: dict):
+    key=body.get('key');value=body.get('value')
+    if not isinstance(key,str) or not key.startswith('uvr') or (value is not None and not isinstance(value,str)):
+        raise HTTPException(400, 'Invalid project entry')
+    if key=='uvr_library':value=project_store.update_library(value,body.get('removed_ids') or [])
+    else:project_store.put(key,value)
+    return {'saved':True,'value':value}
 
 @app.get("/models")
 async def get_models():
@@ -789,7 +823,7 @@ def run_separation_task(task_id, request: SeparationRequest):
     finally:
         core.clear_gpu_and_ram_cache()
 
-def run_ensemble_task(task_id, audio_path, models: list, out_format: str):
+def run_ensemble_task(task_id, audio_path, models: list, out_format: str, profile=None):
     try:
         audio_path = _validate_audio_path(audio_path)
         if not os.path.exists(audio_path):
@@ -800,6 +834,14 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str):
             raise ValueError("No models provided for ensemble")
         if len(models) > 4:
             raise ValueError("Too many models (max 4)")
+
+        if profile == 'studio_pro':
+            from studio_pro import run_studio_pro
+            files = run_studio_pro(core, audio_path, models, out_format, OUTPUT_DIR,
+                lambda p,m: _update_task(task_id, progress=p, message=m))
+            _update_task(task_id, status='completed', progress=1.0,
+                         message='Master Studio Pro tamamlandı', stems=[Path(f).name for f in files])
+            return
 
         results_vocal = []
         results_inst = []
@@ -967,6 +1009,74 @@ class AudioModRequest(BaseModel):
     pitch_semitones: float = Field(default=0.0, ge=-12, le=12)
     tempo_factor: float = Field(default=1.0, ge=0.5, le=2.0)
 
+from audio_pitch import render_pitch_audio
+from audio_jobs import AudioJobs
+audio_jobs = AudioJobs(Path(__file__).parent/'cache'/'pitch', render_pitch_audio)
+
+class AudioJobRequest(AudioModRequest):
+    kind: str = Field(default='preview',pattern='^(preview|export)$')
+    owner: str = Field(default='',max_length=120)
+
+@app.post('/api/audio/jobs')
+def create_audio_job(req: AudioJobRequest):
+    source=_safe_join_and_check(OUTPUT_DIR,req.file_name)
+    if not source.is_file() or source.suffix.lower() not in ALLOWED_EXTENSIONS: raise HTTPException(404,'Ses bulunamadı.')
+    kind=req.kind
+    output=OUTPUT_DIR/(source.stem+'_Modified_'+uuid.uuid4().hex+'.flac') if kind=='export' else None
+    try:return audio_jobs.submit(source,req.pitch_semitones,req.tempo_factor if kind=='export' else 1,kind,req.owner,output)
+    except ValueError as exc:raise HTTPException(400,str(exc))
+
+@app.get('/api/audio/jobs')
+def list_audio_jobs():
+    with tasks_lock: legacy=[dict(id=key,**value) for key,value in tasks.items()]
+    return {'jobs':audio_jobs.list(),'other_jobs':legacy[-30:]}
+
+@app.get('/api/audio/jobs/{identifier}')
+def get_audio_job(identifier: str):
+    try:return audio_jobs.get(identifier)
+    except KeyError:raise HTTPException(404,'İşlem bulunamadı.')
+
+@app.delete('/api/audio/jobs/{identifier}')
+def cancel_audio_job(identifier: str):
+    try:return audio_jobs.cancel(identifier)
+    except KeyError:raise HTTPException(404,'İşlem bulunamadı.')
+
+@app.post('/api/audio/jobs/{identifier}/retry')
+def retry_audio_job(identifier: str):
+    try:return audio_jobs.retry(identifier)
+    except KeyError:raise HTTPException(404,'İşlem bulunamadı.')
+    except ValueError as exc:raise HTTPException(400,str(exc))
+
+@app.get('/api/audio/jobs/{identifier}/result')
+def audio_job_result(identifier: str):
+    from fastapi.responses import Response
+    try:return Response(audio_jobs.result(identifier),media_type='audio/wav')
+    except (KeyError,FileNotFoundError):raise HTTPException(404,'Önbellekteki ses temizlenmiş. Yeniden hazırlayın.')
+    except ValueError as exc:raise HTTPException(409,str(exc))
+
+@app.get('/api/audio/cache')
+def audio_cache_info(): return audio_jobs.prune()
+
+@app.delete('/api/audio/cache')
+def clear_audio_cache(): return audio_jobs.clear_cache_and_history()
+
+@app.post('/api/audio/pitch-preview')
+def pitch_preview_endpoint(request: AudioModRequest):
+    import tempfile
+    from starlette.background import BackgroundTask
+    from audio_pitch import render_pitch_audio
+    source = _safe_join_and_check(OUTPUT_DIR, request.file_name)
+    if not source.is_file() or source.suffix.lower() not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=404, detail='Ses dosyası bulunamadı.')
+    descriptor, target = tempfile.mkstemp(prefix='uvr_pitch_preview_', suffix='.wav')
+    os.close(descriptor)
+    try:
+        render_pitch_audio(source, target, request.pitch_semitones)
+        return FileResponse(target, media_type='audio/wav', background=BackgroundTask(os.unlink, target))
+    except Exception as exc:
+        Path(target).unlink(missing_ok=True)
+        raise HTTPException(status_code=500, detail='Ton önizlemesi hazırlanamadı.') from exc
+
 @app.post("/modify_audio")
 async def modify_audio_endpoint(request: AudioModRequest):
     try:
@@ -977,53 +1087,14 @@ async def modify_audio_endpoint(request: AudioModRequest):
         if input_path.suffix.lower() not in ALLOWED_EXTENSIONS:
             raise HTTPException(status_code=400, detail="Unsupported file type")
             
-        ext = input_path.suffix
+        # Avoid adding another lossy encoding pass after transposition.
+        ext = '.flac'
         base_name = input_path.stem
         out_name = f"{base_name}_Modified_{uuid.uuid4().hex}{ext}"
         out_path = _safe_join_and_check(OUTPUT_DIR, out_name)
         
-        import soundfile as sf
-        source_info = sf.info(str(input_path))
-        sample_rate = source_info.samplerate
-
-        filters = []
-        if request.pitch_semitones != 0:
-            rate_multiplier = 2.0 ** (request.pitch_semitones / 12.0)
-            new_rate = int(sample_rate * rate_multiplier)
-            filters.append(f"asetrate={new_rate}")
-            # asetrate already speeds playback by this ratio. Compensate
-            # inversely so pitch changes cannot silently alter lyric timing.
-            needed_atempo = request.tempo_factor / (new_rate / sample_rate)
-        else:
-            needed_atempo = request.tempo_factor
-
-        if needed_atempo != 1.0:
-            tempo_filters = []
-            t = needed_atempo
-            while t < 0.5:
-                tempo_filters.append("atempo=0.5")
-                t /= 0.5
-            while t > 2.0:
-                tempo_filters.append("atempo=2.0")
-                t /= 2.0
-            if abs(t - 1.0) > 1e-6:
-                tempo_filters.append(f"atempo={t:.6g}")
-            filters.extend(tempo_filters)
-
-        if request.pitch_semitones != 0:
-            filters.append(f"aresample={sample_rate}")
-
-        if filters:
-            target_samples = round(source_info.frames / request.tempo_factor)
-            filters.extend([f"apad=whole_len={target_samples}", f"atrim=end_sample={target_samples}"])
-
-        filter_str = ",".join(filters)
-        cmd = ["ffmpeg", "-y", "-i", str(input_path)]
-        if filter_str:
-            cmd.extend(["-filter:a", filter_str])
-        cmd.append(str(out_path))
-        
-        subprocess.run(cmd, check=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
+        from audio_pitch import render_pitch_audio
+        render_pitch_audio(input_path, out_path, request.pitch_semitones, request.tempo_factor)
         
         return {"status": "success", "filename": out_name}
     except HTTPException:
@@ -1047,13 +1118,23 @@ async def start_ensemble(request: dict, background_tasks: BackgroundTasks):
     out_format = request.get("out_format", "flac")
     if out_format not in core.output_format:
         raise HTTPException(status_code=400, detail="Invalid out_format")
+    profile = (request.get('params') or {}).get('ensemble_profile')
+    if profile not in (None, 'studio_pro'):
+        raise HTTPException(status_code=400, detail='Unknown ensemble profile')
+    if profile == 'studio_pro':
+        from studio_pro import validate_models
+        try:
+            validate_models(models)
+        except ValueError as error:
+            raise HTTPException(status_code=400, detail=str(error))
     task_id = _create_task({"message": "Starting Ensemble...", "model_type": "ensemble"})
     background_tasks.add_task(
         run_ensemble_task, 
         task_id, 
         audio_path, 
-        models, 
-        out_format
+        models,
+        out_format,
+        profile
     )
     return {"task_id": task_id}
 
@@ -1474,6 +1555,8 @@ class WordModel(BaseModel):
     needs_review: bool = False
 
 class LyricSegmentModel(BaseModel):
+    id: Optional[str] = None
+    locked: bool = False
     start: float
     end: float
     text: str
@@ -1705,7 +1788,7 @@ async def download_whisper_endpoint(req: Optional[DownloadWhisperRequest] = None
 
 @app.get("/lyrics/{file_name}")
 async def get_lyrics_endpoint(file_name: str):
-    cached = get_saved_lyrics(file_name)
+    cached = get_saved_lyrics(file_name) or project_store.get('lyrics:' + file_name)
     if cached:
         return cached
     raise HTTPException(status_code=404, detail="No lyrics found in database for this file")
@@ -1717,18 +1800,24 @@ async def save_lyrics_endpoint(req: SaveLyricsRequest):
             req.file_name,
             req.language or "tr",
             [s.model_dump() for s in req.segments],
-            is_edited=True
+            is_edited=True, allow_locked_changes=True
         )
         return saved
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.api_route("/clear_karaoke_data", methods=["POST", "GET", "DELETE", "OPTIONS"])
+@app.post('/api/projects/clear')
+@app.api_route("/clear_karaoke_data", methods=["POST", "DELETE"])
 async def clear_karaoke_data_endpoint():
     """
     Clears all saved/edited karaoke lyrics from SQLite database and wipes all generated files in outputs/, ytdl/, and uploads/ directories.
     """
     try:
+        prepare_service_stop()
+        workspace=Path(__file__).resolve().parent
+        target_dirs=[OUTPUT_DIR,YTL_DIR,UPLOAD_DIR,workspace/'ytdlp',workspace/'ytdl_downloads']
+        if any(d.resolve().parent != workspace or d.is_symlink() or (d.exists() and getattr(d.lstat(),'st_file_attributes',0)&1024) for d in target_dirs):
+            raise ValueError('Temizleme klasörü proje dışında; işlem durduruldu.')
         deleted_db_rows = 0
         with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
             cursor = conn.cursor()
@@ -1741,9 +1830,15 @@ async def clear_karaoke_data_endpoint():
             conn.commit()
             cursor.execute("VACUUM;")
 
+        # Explicit cleanup must also retire disk snapshots, otherwise lyrics can return on reload.
+        for key in project_store.all():
+            if key.startswith(('lyrics:', 'project:', 'uvr-stem-settings:', 'uvr-lyrics-draft:', 'uvr-history:', 'uvr-passages-v2:', 'uvr-passages-v3:')):
+                project_store.put(key, None)
+        library=json.loads(project_store.get('uvr_library') or '[]')
+        project_store.update_library('[]',[item['id'] for item in library])
+        audio_jobs.clear_cache_and_history()
+
         deleted_files = 0
-        target_dirs = [OUTPUT_DIR, YTL_DIR, UPLOAD_DIR, Path("ytdlp").resolve(), Path("ytdl_downloads").resolve()]
-        
         for d in target_dirs:
             if d.exists() and d.is_dir():
                 for item in d.iterdir():
@@ -1752,10 +1847,10 @@ async def clear_karaoke_data_endpoint():
                             item.unlink(missing_ok=True)
                             deleted_files += 1
                         elif item.is_dir():
-                            shutil.rmtree(item, ignore_errors=True)
+                            shutil.rmtree(item)
                             deleted_files += 1
                     except Exception as e:
-                        print(f"Error cleaning {item}: {e}")
+                        raise RuntimeError(f"{item.name} temizlenemedi: {e}") from e
 
         # Ensure required directories still exist
         os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -1768,10 +1863,70 @@ async def clear_karaoke_data_endpoint():
             "deleted_lyrics_count": deleted_db_rows,
             "deleted_files_count": deleted_files
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 _lyrics_inference_lock = threading.RLock()
+
+
+class SyllablesRequest(BaseModel):
+    file_name: str = Field(..., min_length=1, max_length=256)
+    segment: LyricSegmentModel
+
+
+class DeepWordsRequest(BaseModel):
+    file_name: str = Field(..., min_length=1, max_length=256)
+    start: float = Field(..., ge=0, allow_inf_nan=False)
+    end: float = Field(..., gt=0, allow_inf_nan=False)
+
+
+def run_deep_words(task_id, req):
+    try:
+        from karaoke_deep_words import deep_words
+        with _lyrics_inference_lock:
+            result=deep_words(_find_audio_file(req.file_name),req.start,req.end,get_precision_whisper_model,
+                lambda p,m:_update_task(task_id,progress=p,message=m))
+        _update_task(task_id,status='completed',progress=1.,result=result)
+    except Exception as exc:
+        _update_task(task_id,status='failed',error=str(exc),message='Çözümleme tamamlanamadı; mevcut sözler korundu.')
+
+
+def get_precision_whisper_model(key):
+    # Call only under the lyrics inference lock. Keep one large model resident.
+    for other in list(_whisper_cache):
+        if other != key:
+            del _whisper_cache[other]
+    return get_whisper_model(key)
+
+
+@app.post('/api/lyrics/deep-words')
+def deep_words_endpoint(req: DeepWordsRequest, background_tasks: BackgroundTasks):
+    _find_audio_file(req.file_name)
+    if req.end<=req.start or req.end-req.start>60:
+        raise HTTPException(status_code=422,detail='En fazla 60 saniyelik geçerli bir aralık seçin.')
+    task_id=_create_task({'message':'Ayrıntılı söz çözümlemesi sırada...'})
+    background_tasks.add_task(run_deep_words,task_id,req)
+    return {'task_id':task_id}
+
+
+@app.post('/api/lyrics/syllables')
+def syllables_endpoint(req: SyllablesRequest):
+    from karaoke_syllables import detect_syllables
+    audio_path = _find_audio_file(req.file_name)
+    if not _lyrics_inference_lock.acquire(blocking=False):
+        raise HTTPException(status_code=409, detail='Başka bir hizalama çalışıyor. Tamamlanınca tekrar deneyin.')
+    try:
+        return detect_syllables(audio_path, req.segment.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail='Hece tespiti tamamlanamadı. Mevcut sözler ve bağlantılar korundu.')
+    finally:
+        _lyrics_inference_lock.release()
 
 
 def _lyrics_revision(file_name):
@@ -1798,21 +1953,29 @@ def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: st
             model = get_whisper_model(req.model_name if req.model_name in ("large-v3", "large-v3-turbo") else "large-v3")
             language = None if req.language in (None, "", "auto", "none") else req.language
             transcript = (req.raw_lyrics_text or "").strip()
-            if not transcript or not language:
+            if language is None or (not transcript and language != 'tr'):
                 _update_task(task_id, message="Sözler ve dil tanınıyor...", progress=0.2)
                 decoded, info = model.transcribe(str(audio_path), language=language,
                     word_timestamps=False, vad_filter=False, condition_on_previous_text=False,
                     beam_size=5, temperature=0.0)
                 decoded = list(decoded)
                 language = language or info.language
-                if not transcript:
+                if not transcript and language != 'tr':
                     transcript = "\n".join(seg.text.strip() for seg in decoded if seg.text.strip())
-            if not transcript:
+            if language == 'tr':
+                from karaoke_anchored import recognize_anchored, anchor_transcript
+                model=None
+                segments=recognize_anchored(audio_path,get_precision_whisper_model,
+                    lambda fraction,message:_update_task(task_id,progress=.2+.7*fraction,message=message))
+                if transcript:
+                    segments=anchor_transcript(transcript,segments)
+            elif not transcript:
                 raise ValueError("Ses içinde söz bulunamadı; mevcut kayıt korundu.")
-            _update_task(task_id, message="Tüm kelimeler vokal sesle hizalanıyor...", progress=0.5)
-            segments = align_lyrics(model, audio_path, transcript, language)
-            segments = refine_turkish(audio_path, segments, language,
-                lambda fraction, message: _update_task(task_id, progress=.6 + .35 * fraction, message=message))
+            else:
+                _update_task(task_id, message="Tüm kelimeler vokal sesle hizalanıyor...", progress=0.5)
+                segments = align_lyrics(model, audio_path, transcript, language)
+                from karaoke_anchored import bounded_refine
+                segments = bounded_refine(audio_path,segments,language,refine_turkish)
             # Short display lines without changing ANY word boundary.
             if not req.raw_lyrics_text:
                 grouped = []
@@ -1959,7 +2122,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             source_info, target_info = sf.info(str(timing_path)), sf.info(str(inst_path))
             if abs(source_info.duration - target_info.duration) > 0.02:
                 raise ValueError("Vokal ve enstrümantal süreleri farklı. Aynı ayrıştırmanın eşleşen dosyalarını kullanın.")
-        issues = timing_issues([s.model_dump() for s in req.segments], include_review=False)
+        issues = timing_issues([s.model_dump() for s in req.segments], require_words=False, include_review=False)
         if issues:
             raise ValueError(" / ".join(issues[:5]))
         
@@ -1995,13 +2158,13 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         to_ass_time = ass_time
 
         # 16:9 / 9:16 Optimized typography and line spacing
-        font_size_active = 62 if is_vertical else 56
-        font_size_upcoming = 40 if is_vertical else 36
+        font_size_active = 70 if is_vertical else 76
+        font_size_upcoming = 34 if is_vertical else 30
         margin_v_active = 860 if is_vertical else 420
         margin_v_upcoming = 700 if is_vertical else 310
         x_center = res_x // 2
-        y_active = 1060 if is_vertical else 640
-        y_upcoming = 1220 if is_vertical else 770
+        y_active = 1010 if is_vertical else 550
+        y_upcoming = 1260 if is_vertical else 750
 
         ass_lines = [
             "[Script Info]",
@@ -2012,11 +2175,11 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             "",
             "[V4+ Styles]",
             "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
-            f"Style: Title, Arial, 30, &H00FFFFFF, &H00000000, &H00000000, &H80000000, -1, 0, 0, 0, 100, 100, 2, 0, 1, 3, 2, 8, 60, 60, 45, 1",
+            f"Style: Title, Segoe UI, 32, &H00FFFFFF, &H00000000, &H00000000, &H80000000, -1, 0, 0, 0, 100, 100, 1, 0, 1, 0, 0, 7, 110, 110, 85, 1",
             f"Style: BreakNotice, Arial, 44, {break_color}, &H00000000, &H00000000, &H90000000, -1, 1, 0, 0, 100, 100, 2, 0, 1, 4, 3, 2, 80, 80, {margin_v_active}, 1",
             f"Style: BreathCue, Arial, 32, &H00A8FFB2, &H00000000, &H00000000, &H90000000, -1, 0, 0, 0, 100, 100, 2, 0, 1, 3, 2, 2, 80, 80, {margin_v_active + 70}, 1",
-            f"Style: Active, Arial, {font_size_active}, {primary_color}, &H00FFFFFF, &H00000000, &H90000000, -1, 0, 0, 0, 100, 100, 1, 0, 1, 5, 4, 2, 80, 80, {margin_v_active}, 1",
-            f"Style: Upcoming, Arial, {font_size_upcoming}, {upcoming_color}, &H00000000, &H00000000, &H80000000, 0, 0, 0, 0, 100, 100, 1, 0, 1, 3, 2, 2, 80, 80, {margin_v_upcoming}, 1",
+            f"Style: Active, Segoe UI, {font_size_active}, {primary_color}, &H00FFFFFF, &H00000000, &H90000000, -1, 0, 0, 0, 100, 100, 0, 0, 1, 1, 0, 2, 120, 120, {margin_v_active}, 1",
+            f"Style: Upcoming, Segoe UI, {font_size_upcoming}, &H009C9595, &H00000000, &H00000000, &H80000000, 0, 0, 0, 0, 100, 100, 0, 0, 1, 0, 0, 2, 120, 120, {margin_v_upcoming}, 1",
             "",
             "[Events]",
             "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
@@ -2050,6 +2213,9 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         elif segments_to_use and len(segments_to_use) > 0:
             save_lyrics_db(req.inst_file, "tr", [s.model_dump() for s in segments_to_use], is_edited=True)
 
+        windows = render_windows([s.model_dump() for s in segments_to_use])
+        segments_to_use = [LyricSegmentModel(**s) for s, _ in windows]
+
         if segments_to_use and segments_to_use[0].start >= 1.5:
             first_seg = segments_to_use[0]
             first_text = escape_ass(first_seg.text.strip())
@@ -2062,29 +2228,29 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
                 continue
 
             st = to_ass_time(seg.start)
-            if idx + 1 < len(segments_to_use):
-                next_seg = segments_to_use[idx + 1]
-                if next_seg.start >= seg.end:
-                    act_end_sec = min(next_seg.start, seg.end + 0.35)
-                else:
-                    act_end_sec = seg.end + 0.1
-            else:
-                act_end_sec = seg.end + 2.0
+            act_end_sec = windows[idx][1]
             en = to_ass_time(act_end_sec)
 
             active_karaoke_text = ass_word_tags(seg.model_dump())
             if idx == 0 and seg.start < 1.5:
                 active_anim = f"{{\\pos({x_center}, {y_active})\\fad(0, 200)}}"
             else:
-                active_anim = f"{{\\move({x_center}, {y_upcoming}, {x_center}, {y_active}, 0, 250)\\fad(0, 200)}}"
+                active_anim = f"{{\\pos({x_center}, {y_active})\\fad(0, 200)}}"
 
-            ass_lines.append(f"Dialogue: 1,{st},{en},Active,,0,0,0,,{active_anim}{active_karaoke_text}")
+            from karaoke_design import gradient_masks
+            masks = gradient_masks(req.theme, res_x, res_y, y_active, font_size_active) if seg.words else ['']
+            for mask in masks:
+                ass_lines.append(f"Dialogue: 1,{st},{en},Active,,0,0,0,,{active_anim}{mask}{active_karaoke_text}")
             if idx + 1 < len(segments_to_use):
                 next_seg = segments_to_use[idx + 1]
                 next_text = escape_ass(next_seg.text.strip())
                 if next_text and next_seg.start > seg.start:
                     ass_lines.append(f"Dialogue: 0,{st},{to_ass_time(next_seg.start)},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{next_text}")
 
+        from karaoke_design import ambient_events, progress_events
+        import soundfile as sf
+        ass_lines.extend(ambient_events(sf.info(str(inst_path)).duration,res_x,res_y))
+        ass_lines.extend(progress_events(sf.info(str(inst_path)).duration,res_x,req.theme))
         timestamp_id = uuid.uuid4().hex
         ass_filename = f"karaoke_sub_{timestamp_id}.ass"
         ass_path = OUTPUT_DIR / ass_filename
@@ -2092,14 +2258,17 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
 
         out_video_name = f"Karaoke_{Path(req.inst_file).stem}_{req.theme}_{timestamp_id}.mp4"
 
-        freq_w = 900 if is_vertical else 1300
-        freq_h = 200 if is_vertical else 150
-        freq_y = 350 if is_vertical else 140
+        from karaoke_design import studio_background
+        backdrop = studio_background(OUTPUT_DIR, req.theme, is_vertical)
+        freq_w = 840 if is_vertical else 1600
+        freq_h = 64 if is_vertical else 48
+        freq_y = 1760 if is_vertical else 920
 
         filter_complex = (
-            f"[0:a]showfreqs=s={freq_w}x{freq_h}:r=60:mode=bar:ascale=log:fscale=log:colors={wave_color}[freqs];"
-            f"color=c={bg_color}:s={res_x}x{res_y}:r=60:d=3600[bg];"
-            f"[bg][freqs]overlay=(W-w)/2:{freq_y}:shortest=1[v_raw];"
+            f"[0:a]aformat=channel_layouts=mono,showwaves=s={freq_w}x{freq_h}:r=30:mode=line:draw=full:scale=sqrt:colors={wave_color},format=rgba,colorkey=0x000000:0.1:0.1,gblur=sigma=0.7,split[sharp][soft];"
+            f"[soft]gblur=sigma=7[glow];[glow][sharp]overlay=0:0[freqs];"
+            f"[1:v]fps=30,format=rgba[stage];"
+            f"[stage][freqs]overlay=(W-w)/2:{freq_y}:shortest=1[v_raw];"
             f"[v_raw]subtitles=filename={ass_filename}[v]"
         )
 
@@ -2108,15 +2277,24 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         cmd = [
             "ffmpeg", "-y",
             "-i", str(inst_path.resolve()),
+            "-loop", "1", "-i", str(backdrop.resolve()),
             "-filter_complex", filter_complex,
             "-map", "[v]",
             "-map", "0:a",
             "-c:v", "libx264",
-            "-preset", "ultrafast",
+            "-preset", "veryfast",
             "-threads", "0",
             "-crf", "22",
-            "-r", "60",
+            "-r", "30",
+            "-profile:v", "main",
+            "-level:v", "4.0",
+            "-g", "30",
+            "-keyint_min", "30",
+            "-sc_threshold", "0",
+            "-maxrate", "8M",
+            "-bufsize", "16M",
             "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
             "-c:a", "aac",
             "-b:a", "320k",
             "-shortest",
@@ -2141,12 +2319,18 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
 @app.post("/generate_karaoke_video")
 async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest, background_tasks: BackgroundTasks):
     req.segments = [LyricSegmentModel(**s) for s in repair_timing([s.model_dump() for s in req.segments])]
-    issues = timing_issues([s.model_dump() for s in req.segments], include_review=False)
+    issues = timing_issues([s.model_dump() for s in req.segments], require_words=False, include_review=False)
     if not req.segments or issues:
         raise HTTPException(status_code=422, detail=" / ".join(issues[:5]) or "Sözler eksik")
     task_id = _create_task({"message": "Karaoke Videosu Hazırlanıyor...", "model_type": "karaoke_video"})
     background_tasks.add_task(run_karaoke_video_task, task_id, req.model_dump())
     return {"task_id": task_id, "status": "processing"}
+
+
+@app.get('/api/karaoke/background')
+def karaoke_background(theme: str = 'gold', vertical: bool = False):
+    from karaoke_design import studio_background
+    return FileResponse(studio_background(OUTPUT_DIR, theme, vertical), media_type='image/png')
 
 @app.api_route("/clear_memory", methods=["GET", "POST", "OPTIONS"])
 async def clear_memory_endpoint():
@@ -2176,45 +2360,38 @@ async def clear_memory_endpoint():
         "gpu": gpu_info
     }
 
-@app.api_route("/shutdown", methods=["GET", "POST", "OPTIONS"])
-async def shutdown_system_endpoint(background_tasks: BackgroundTasks):
-    """
-    Terminates all UVR5 processes (FastAPI backend, Next.js Node dev server, ffmpeg, background cmd/powershell processes) cleanly on Windows.
-    """
-    def _perform_shutdown():
-        time.sleep(0.6)  # Give the HTTP response time to reach the browser
-        if os.name == 'nt':
-            # Terminate Node.js on port 3000
-            try:
-                out = subprocess.run('netstat -ano | findstr :3000', shell=True, capture_output=True, text=True, creationflags=SUBPROCESS_FLAGS).stdout
-                for line in out.splitlines():
-                    if "LISTENING" in line:
-                        pid = line.strip().split()[-1]
-                        if pid and pid.isdigit() and int(pid) != os.getpid():
-                            subprocess.run(f'taskkill /F /PID {pid} /T', shell=True, creationflags=SUBPROCESS_FLAGS)
-            except Exception:
-                pass
-            
-            # Terminate any background ffmpeg / ffprobe
-            try:
-                subprocess.run('taskkill /F /IM ffmpeg.exe /T', shell=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
-                subprocess.run('taskkill /F /IM ffprobe.exe /T', shell=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
-            except Exception:
-                pass
-            
-            # Finally kill the FastAPI Python process itself
-            try:
-                subprocess.run(f'taskkill /F /PID {os.getpid()} /T', shell=True, creationflags=SUBPROCESS_FLAGS)
-            except Exception:
-                os._exit(0)
-        else:
-            os._exit(0)
+from service_control import revision as service_revision
+LOADED_REVISION=service_revision()
 
-    background_tasks.add_task(_perform_shutdown)
-    return {
-        "status": "shutdown_initiated",
-        "message": "UVR5 Studio ve tüm arka plan servisleri başarıyla kapatılıyor..."
-    }
+@app.get('/api/service')
+def local_service_status():
+    return {'root':str(Path(__file__).resolve().parent),'pid':os.getpid(),'revision':LOADED_REVISION}
+
+@app.post('/api/service/prepare')
+def prepare_service_stop():
+    with tasks_lock:
+        if any(t.get('status')=='processing' for t in tasks.values()):raise HTTPException(409,'Çalışan işlem var. Önce tamamlanmasını bekleyin.')
+    if any(j['status'] in ('queued','processing','cancelling') for j in audio_jobs.list()):raise HTTPException(409,'Ses kuyruğunu önce tamamlayın veya iptal edin.')
+    return {'ready':True}
+
+@app.post('/api/service/restart')
+def restart_local_service(background_tasks: BackgroundTasks):
+    prepare_service_stop()
+    background_tasks.add_task(_launch_service_control,'restart')
+    return {'status':'restarting','previous_pid':os.getpid()}
+
+def _launch_service_control(action):
+    time.sleep(.5)
+    subprocess.Popen([sys.executable,str(Path(__file__).parent/'service_control.py'),action],cwd=Path(__file__).parent,
+        stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,
+        creationflags=(subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.CREATE_NEW_PROCESS_GROUP) if os.name=='nt' else 0,
+        start_new_session=os.name!='nt')
+
+@app.post('/shutdown')
+def shutdown_system_endpoint(background_tasks: BackgroundTasks):
+    prepare_service_stop()
+    background_tasks.add_task(_launch_service_control,'stop')
+    return {'status':'shutdown_initiated'}
 
 class RestoreAudioRequest(BaseModel):
     file_name: str = Field(..., min_length=1, max_length=256)
@@ -2275,20 +2452,16 @@ async def start_restore_audio(req: RestoreAudioRequest, background_tasks: Backgr
     background_tasks.add_task(run_restoration_task, task_id, req.dict())
     return {"task_id": task_id}
 
-# Handle stray WebSocket connections (e.g. from browser extensions) to prevent AssertionError in StaticFiles
+# Close stray WebSocket connections (e.g. from browser extensions).
 @app.websocket("/{path:path}")
 async def websocket_catch_all(websocket: WebSocket, path: str):
     await websocket.accept()
     await websocket.close()
 
-# Serve index via Jinja2 with includes (sidebar + configuration)
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def serve_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-# Keep /static for direct static access and also mount root as fallback for legacy
-app.mount("/static", StaticFiles(directory="static"), name="static_assets")
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# The only UI is the Next.js app; this process serves its API.
+@app.get("/", include_in_schema=False)
+async def serve_index():
+    return RedirectResponse('http://localhost:3000/')
 
 if __name__ == "__main__":
     import uvicorn

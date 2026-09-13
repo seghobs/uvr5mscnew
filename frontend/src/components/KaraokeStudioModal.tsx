@@ -1,7 +1,15 @@
 'use client';
 
+import { EditHistory, protectLockedRows, segmentSignature } from '@/lib/edit-history';
+import { registerProjectFlusher, projectStorage } from '@/lib/project-storage';
+
+import {StudioSelect} from './StudioSelect';
+import {updateLyricInput} from '@/lib/lyric-input';
+
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import {KaraokeVideoPreview} from './KaraokeVideoPreview';
+import { KaraokeToolPopover } from './KaraokeToolPopover';
 import {
   Video,
   X,
@@ -44,9 +52,12 @@ import { Language, LyricSegment } from '@/lib/types';
 import { getTranslation } from '@/lib/translations';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { preserveWords, reconcileWords, uppercaseLyric, uppercaseLyrics, timingIssues, wordFill, serializeProject, importProject, enqueueLyricsSave, rowPlaybackRange, repairTiming, TimedWord } from '@/lib/karaoke-timing';
+import { preserveWords, reconcileWords, uppercaseLyric, uppercaseLyrics, videoSegments, timingIssues, wordFillWithNeighbors, serializeProject, importProject, enqueueLyricsSave, rowPlaybackRange, repairTiming, TimedWord } from '@/lib/karaoke-timing';
 import LyricsReferenceModal from './LyricsReferenceModal';
 import { WordPlayer, checkWordInterval } from '@/lib/word-player';
+import { AudioPassageEditor } from './AudioPassageEditor';
+import {recordLiveRow, clearLiveTimings} from '@/lib/live-sync';
+import { preservePassages, bindDetectedWords, bindDetectedSyllables, bindAllRows, passagePool, poolKey, validRange } from '@/lib/audio-passages';
 
 interface KaraokeStudioModalProps {
   isOpen: boolean;
@@ -119,9 +130,44 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   }, []);
 
   const [segments, setRawSegments] = useState<LyricSegment[]>([]);
-  const setSegments: React.Dispatch<React.SetStateAction<LyricSegment[]>> = update => {
-    setRawSegments(previous => repairTiming(typeof update === "function" ? update(previous) : update));
+  const committedSegments=useRef<LyricSegment[]>([]);
+  const rowTextBaseline=useRef<Record<string,TimedWord[]>>({});
+  type Snapshot={segments:LyricSegment[];pools:Record<string,string>};
+  const history=useRef(new EditHistory<Snapshot>({segments:[],pools:{}}));
+  const historyKey='uvr-history:'+(vocalStem||instStem);
+  const readPools=()=>{const result:Record<string,string>={};const prefixes=['uvr-passages-v2:','uvr-passages-v3:'].map(p=>p+(vocalStem||instStem)+':');for(const key of projectStorage.keys()){if(prefixes.some(p=>key.startsWith(p))&&projectStorage.getItem(key)!==null)result[key]=projectStorage.getItem(key)!;}return result;};
+  const persistHistory=()=>projectStorage.setItem(historyKey,JSON.stringify(history.current.serialize()));
+  const loadSegments=(rows:LyricSegment[])=>{
+    const next=repairTiming(rows).map(row=>({...row,id:row.id||crypto.randomUUID()}));
+    next.forEach((row,index)=>{const old=projectStorage.getItem(poolKey(vocalStem||instStem,index,row.start));const key=poolKey(vocalStem||instStem,index,row.start,row.id);if(old&&!projectStorage.getItem(key))projectStorage.setItem(key,old);});
+    const snapshot={segments:next,pools:readPools()};
+    history.current=new EditHistory(snapshot);
+    try{const saved=JSON.parse(projectStorage.getItem(historyKey)||'null');if(saved&&segmentSignature(saved.current.segments)===segmentSignature(next))history.current.restore(saved);}catch{}
+    committedSegments.current=next;segmentsRef.current=next;setRawSegments(next);
   };
+  const commitSegments=(next:LyricSegment[],allowLocked=false)=>{
+    const previous=committedSegments.current;
+    const protectedRows=allowLocked?next:protectLockedRows(previous,next);
+    const repaired=repairTiming(protectedRows).map(row=>({...row,id:row.id||crypto.randomUUID()}));
+    if(JSON.stringify(previous)===JSON.stringify(repaired))return;
+    committedSegments.current=repaired;segmentsRef.current=repaired;
+    if(allowLocked)history.current.breakGroup();
+    history.current.push({segments:repaired,pools:readPools()});
+    if(allowLocked)history.current.breakGroup();
+    persistHistory();setRawSegments(repaired);triggerAutoSave(repaired);
+  };
+  const setSegments: React.Dispatch<React.SetStateAction<LyricSegment[]>> = update => {
+    const previous=committedSegments.current;
+    commitSegments(typeof update==='function'?update(previous):update);
+  };
+  const restoreEdit=(direction:'undo'|'redo')=>{
+    if(isLiveSyncMode){onNotify('warning','Önce canlı senkronu bitir');return;}
+    const snapshot=history.current[direction]();if(!snapshot)return;
+    for(const key of Object.keys(readPools()))if(!(key in snapshot.pools))projectStorage.removeItem(key);
+    for(const [key,value] of Object.entries(snapshot.pools))projectStorage.setItem(key,value);
+    committedSegments.current=snapshot.segments;segmentsRef.current=snapshot.segments;setRawSegments(snapshot.segments);persistHistory();triggerAutoSave(snapshot.segments,true);
+  };
+  const toggleRowLock=(index:number)=>commitSegments(committedSegments.current.map((row,i)=>i===index?{...row,locked:!row.locked}:row),true);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
   const [rendering, setRendering] = useState(false);
   const [renderStatusMsg, setRenderStatusMsg] = useState('FFmpeg 1080p Render Ediliyor...');
@@ -156,6 +202,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if ((event.target as Element)?.closest?.('[data-karaoke-tool-popover]')) return;
       if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
         setShowExportMenu(false);
       }
@@ -206,6 +253,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   const wordPlayerRef = useRef<WordPlayer | null>(null);
   const wordRequestRef = useRef(0);
+  const editedPlaybackStartRef = useRef<number | null>(null);
   const segmentsRef = useRef(segments);
   const loopLineRef = useRef(loopLineIndex);
   segmentsRef.current = segments;
@@ -228,15 +276,26 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   // Smule Spacebar Live Synchronization State
   const [isLiveSyncMode, setIsLiveSyncMode] = useState(false);
+  const [liveGesture,setLiveGesture]=useState<'tap'|'hold'>('tap');
+  const liveCaptureRef=useRef<{index:number;start:number}|null>(null);
+  const [bulkBindingStatus,setBulkBindingStatus]=useState('');
+  const bulkBindingAbort=useRef<AbortController|null>(null);
+  useEffect(()=>()=>{bulkBindingAbort.current?.abort();},[isOpen,vocalStem,instStem]);
+  const [bulkBindingProblems,setBulkBindingProblems]=useState<string[]>([]);
+  const liveSpaceHandledRef = useRef(false);
+  const liveSyncFinishedRef = useRef(false);
   const [liveSyncIndex, setLiveSyncIndex] = useState<number>(0);
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [spacePressStartTime, setSpacePressStartTime] = useState<number | null>(null);
+  const [passageRow, setPassageRow] = useState<{index:number; original:LyricSegment} | null>(null);
   const [expandedWordRow, setExpandedWordRow] = useState<number | null>(null);
   const rowRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
   // Stop audio on close
   useEffect(() => {
     if (!isOpen && audioRef.current) {
+      liveSyncFinishedRef.current=false;
+      editedPlaybackStartRef.current = null;
       stopWordPreview();
       audioRef.current.pause();
       setIsPlaying(false);
@@ -267,8 +326,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
     const handleLoadedMetadata = () => {
       setDuration(audio.duration || 0);
-      if (savedPos > 0 && savedPos < audio.duration) {
-        audio.currentTime = savedPos;
+      const restorePosition = editedPlaybackStartRef.current ?? savedPos;
+      if (restorePosition >= 0 && restorePosition < audio.duration) {
+        audio.currentTime = restorePosition;
       }
       if (wasPlaying) {
         audio.play().catch(() => {});
@@ -370,117 +430,92 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     }
   }, [isOpen, instStem, vocalStem]);
 
-  // Smule Spacebar Sync Keyboard Listener
-  useEffect(() => {
-    if (!isOpen || activeTab !== 'lyrics' || loadingLyrics) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const activeTag = document.activeElement?.tagName?.toLowerCase();
-      const isTypingInInput = activeTag === 'input' || activeTag === 'textarea';
-
-      // SPACE KEY: Handle Live Sync or Play/Pause
-      if (e.code === 'Space' && !e.repeat) {
-        if (isTypingInInput) {
-          return; // Allow normal space typing inside input
+  // Use a ref for the gesture: React rerenders must not change its start/index.
+  const finishLiveRow=(end:number)=>{
+    const capture=liveCaptureRef.current;
+    if(!capture||!segmentsRef.current[capture.index])return;
+    if(end-capture.start<0.08){
+      liveCaptureRef.current=null;setIsSpacePressed(false);
+      onNotify('warning','Satır kaydedilmedi','Çok kısa basış algılandı. Basılı tut modunda söz boyunca tuşu tutun.');return;
+    }
+    const original=segmentsRef.current[capture.index];
+    const updated=recordLiveRow(original,capture.start,end);
+    const next=segmentsRef.current.map((s,i)=>i===capture.index?updated:s);
+    if(updated!==original){
+      preservePassages(vocalStem||instStem,capture.index,original);
+      segmentsRef.current=next;setSegments(next);triggerAutoSave(next);
+    }else{
+      onNotify('info','Bağlı satır korundu','Bu satırın ses bağlantıları ve süreleri değiştirilmeden sonraki satıra geçildi.');
+    }
+    const index=capture.index+1;
+    setIsSpacePressed(false);setSpacePressStartTime(null);
+    if(index<next.length){
+      setLiveSyncIndex(index);
+      liveCaptureRef.current=liveGesture==='tap'?{index,start:end}:null;
+      rowRefs.current[index]?.scrollIntoView({behavior:'smooth',block:'center'});
+    }else{
+      liveSyncFinishedRef.current=true;
+      setLiveSyncIndex(capture.index);
+      liveCaptureRef.current=null;setIsLiveSyncMode(false);audioRef.current?.pause();
+      stopWordPreview();wordPreviewEndRef.current=null;linePreviewEndRef.current=null;
+      loopLineRef.current=null;setLoopLineIndex(null);editedPlaybackStartRef.current=null;
+      onNotify('success','Canlı senkron tamamlandı','Son satırda kalındı. Bağlı kelimeler korundu; yeniden başlatmak için canlı senkron düğmesini kullan.');
+    }
+  };
+  useEffect(()=>{
+    if(!isOpen||loadingLyrics||(!isLiveSyncMode&&!liveSyncFinishedRef.current&&(activeTab!=='lyrics'||passageRow||showReferenceModal||showPasteModal)))return;
+    const typing=()=>{const el=document.activeElement as HTMLElement|null;return !!el&&(el.isContentEditable||['INPUT','TEXTAREA','SELECT'].includes(el.tagName));};
+    const down=(e:KeyboardEvent)=>{
+      if((e.target as Element|null)?.closest?.('[data-studio-select]'))return;
+      if(isLiveSyncMode&&(e.code==='Enter'||e.code==='NumpadEnter')){
+        e.preventDefault();e.stopImmediatePropagation();
+        liveCaptureRef.current=null;
+        setIsSpacePressed(false);setSpacePressStartTime(null);
+        setIsLiveSyncMode(false);
+        audioRef.current?.pause();stopWordPreview();
+        wordPreviewEndRef.current=null;linePreviewEndRef.current=null;
+        loopLineRef.current=null;setLoopLineIndex(null);editedPlaybackStartRef.current=null;
+        return;
+      }
+      if(e.code==='Space'){
+        if(liveSyncFinishedRef.current&&!isLiveSyncMode&&!typing()){
+          e.preventDefault();e.stopImmediatePropagation();liveSpaceHandledRef.current=true;return;
         }
-        e.preventDefault();
-
-        if (isLiveSyncMode) {
-          // In Smule Live Sync Mode: Space down records Start Time
-          if (!audioRef.current) return;
-          if (audioRef.current.paused) {
-            audioRef.current.play().catch(() => {});
-          }
-
-          const curT = Number(audioRef.current.currentTime.toFixed(3));
-          setIsSpacePressed(true);
-          setSpacePressStartTime(curT);
-
-          if (segments[liveSyncIndex]) {
-            setSegments((prev) => {
-              const next = [...prev];
-              if (next[liveSyncIndex]) {
-                next[liveSyncIndex] = {
-                  ...next[liveSyncIndex],
-                  start: curT,
-                };
-              }
-              return next;
-            });
-          }
-        } else {
-          // Normal mode: Space toggles Play/Pause
-          toggleMasterPlay();
+        if(!isLiveSyncMode&&typing())return;
+        if(isLiveSyncMode){liveSpaceHandledRef.current=true;e.stopImmediatePropagation();}
+        e.preventDefault();if(e.repeat)return;
+        if(!isLiveSyncMode){toggleMasterPlay();return;}
+        const audio=audioRef.current;if(!audio)return;
+        const now=audio.currentTime;
+        const wasPaused=audio.paused;
+        if(liveGesture==='tap'){
+          if(!liveCaptureRef.current)liveCaptureRef.current={index:liveSyncIndex,start:now};
+          else if(now-liveCaptureRef.current.start>=0.08)finishLiveRow(now);
+        }else if(!liveCaptureRef.current){
+          liveCaptureRef.current={index:liveSyncIndex,start:now};setIsSpacePressed(true);setSpacePressStartTime(now);
         }
-      } else if (isLiveSyncMode && !isTypingInInput) {
-        if (e.code === 'Backspace') {
-          e.preventDefault();
-          // Step back to previous line to re-time it
-          handleLiveSyncPrev();
-        } else if (e.code === 'ArrowRight' || e.code === 'Tab') {
-          e.preventDefault();
-          handleLiveSyncNext();
-        } else if (e.code === 'Escape') {
-          setIsLiveSyncMode(false);
-          onNotify('info', 'Canlı Senkron Kapandı', 'Smule senkron modundan çıkıldı.');
-        }
+        // Resume after processing this press; do not swallow the first boundary.
+        // A completed final row clears the capture and must remain paused.
+        if(wasPaused&&liveCaptureRef.current)audio.play().catch(()=>{});
+      }else if(isLiveSyncMode&&!typing()){
+        if(e.code==='Escape'){liveCaptureRef.current=null;setIsSpacePressed(false);setIsLiveSyncMode(false);}
+        if(e.code==='Backspace'){e.preventDefault();handleLiveSyncPrev();}
+        if(e.code==='ArrowRight'||e.code==='Tab'){e.preventDefault();handleLiveSyncNext();}
       }
     };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      const activeTag = document.activeElement?.tagName?.toLowerCase();
-      const isTypingInInput = activeTag === 'input' || activeTag === 'textarea';
-
-      if (e.code === 'Space' && isLiveSyncMode && !isTypingInInput) {
-        e.preventDefault();
-        if (!audioRef.current) return;
-
-        const curT = Number(audioRef.current.currentTime.toFixed(3));
-        setIsSpacePressed(false);
-
-        if (segments[liveSyncIndex]) {
-          setSegments((prev) => {
-            const next = [...prev];
-            if (next[liveSyncIndex]) {
-              const startT = Number(next[liveSyncIndex].start) || 0;
-              const endT = Math.max(Number((startT + 0.4).toFixed(3)), curT);
-              next[liveSyncIndex] = {
-                ...next[liveSyncIndex],
-                end: endT,
-                words: fitWordsToSegmentRange(
-                  next[liveSyncIndex].words || [],
-                  startT,
-                  endT,
-                  next[liveSyncIndex].text || ''
-                ),
-              };
-              triggerAutoSave(next);
-            }
-            return next;
-          });
-
-          // Auto-advance to next line
-          const nextIdx = liveSyncIndex + 1;
-          if (nextIdx < segments.length) {
-            setLiveSyncIndex(nextIdx);
-            rowRefs.current[nextIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          } else {
-            onNotify('success', 'Tüm Sözler Senkronlandı! 🎉', 'Şarkıdaki tüm satırların zamanlaması başarıyla kaydedildi.');
-          }
-        }
-      }
+    const up=(e:KeyboardEvent)=>{
+      if(e.code!=='Space'||(!isLiveSyncMode&&!liveSpaceHandledRef.current))return;
+      e.preventDefault();
+      e.stopImmediatePropagation();liveSpaceHandledRef.current=false;
+      if(isLiveSyncMode&&liveGesture==='hold'&&liveCaptureRef.current&&audioRef.current&&!audioRef.current.paused)finishLiveRow(audioRef.current.currentTime);
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [isOpen, activeTab, isLiveSyncMode, liveSyncIndex, segments, isPlaying, loadingLyrics]);
+    const blur=()=>{if(liveGesture==='hold')liveCaptureRef.current=null;liveSpaceHandledRef.current=false;setIsSpacePressed(false);};
+    window.addEventListener('keydown',down,true);window.addEventListener('keyup',up,true);window.addEventListener('blur',blur);
+    return ()=>{window.removeEventListener('keydown',down,true);window.removeEventListener('keyup',up,true);window.removeEventListener('blur',blur);};
+  },[isOpen,activeTab,isLiveSyncMode,liveSyncIndex,liveGesture,loadingLyrics,isPlaying,passageRow,showReferenceModal,showPasteModal]);
 
   const handleLiveSyncPrev = () => {
+    liveCaptureRef.current=null;setIsSpacePressed(false);
     if (liveSyncIndex > 0) {
       const prevIdx = liveSyncIndex - 1;
       setLiveSyncIndex(prevIdx);
@@ -488,45 +523,112 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         // Rewind slightly before the previous line
         const jumpTime = Math.max(0, segments[prevIdx].start - 1.0);
         seekTo(jumpTime);
+        liveCaptureRef.current=liveGesture==='tap'?{index:prevIdx,start:jumpTime}:null;
       }
       rowRefs.current[prevIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
 
   const handleLiveSyncNext = () => {
+    liveCaptureRef.current=null;setIsSpacePressed(false);
     if (liveSyncIndex < segments.length - 1) {
       const nextIdx = liveSyncIndex + 1;
       setLiveSyncIndex(nextIdx);
+      liveCaptureRef.current=liveGesture==='tap'&&audioRef.current?{index:nextIdx,start:audioRef.current.currentTime}:null;
       rowRefs.current[nextIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
 
   const startLiveSyncMode = (targetIndex = 0) => {
+    liveSyncFinishedRef.current=false;
     setIsLiveSyncMode(true);
     setLiveSyncIndex(targetIndex);
     setIsSpacePressed(false);
 
-    if (segments[targetIndex] && audioRef.current) {
-      const startAt = Math.max(0, segments[targetIndex].start - 0.5);
-      seekTo(startAt);
-      if (audioRef.current.paused) {
-        audioRef.current.play().catch(() => {});
-      }
-    } else if (audioRef.current && audioRef.current.paused) {
-      audioRef.current.play().catch(() => {});
-    }
+    stopWordPreview();wordPreviewEndRef.current=null;linePreviewEndRef.current=null;
+    loopLineRef.current=null;setLoopLineIndex(null);editedPlaybackStartRef.current=null;
+    const audio=audioRef.current;
+    liveCaptureRef.current=liveGesture==='tap'&&audio?{index:targetIndex,start:audio.currentTime}:null;
+    if(audio?.paused)audio.play().catch(()=>{});
 
     rowRefs.current[targetIndex]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    onNotify('info', 'Smule Canlı Senkron Modu Aktif 🎙️', 'Şarkı çalarken söz başladığında Space tuşuna basılı tutun, bittiğinde bırakın!');
+    onNotify('info', 'Smule Canlı Senkron Modu Aktif 🎙️', liveGesture==='tap'?'Mevcut konum başlangıç alındı. Satır bitince Space’e bir kez basın.':'Söz başlayınca Space’i basılı tutun, bitince bırakın.');
   };
 
   const pendingSaveRef = useRef<{ file: string; segments: LyricSegment[]; language: string } | null>(null);
+  const bindEveryRow = async () => {
+    if(bulkBindingAbort.current)return; const controller=new AbortController();bulkBindingAbort.current=controller;
+    setBulkBindingStatus('Hazırlanıyor…');
+    try {
+    const current=segmentsRef.current;
+    const pools=current.map((row,index)=>{
+      try {
+        const stored=JSON.parse(projectStorage.getItem(poolKey(vocalStem||instStem,index,row.start,row.id))||projectStorage.getItem(poolKey(vocalStem||instStem,index,row.start))||'null');
+        if(Array.isArray(stored))return stored.filter(p=>p&&typeof p.id==='string'&&typeof p.label==='string'&&validRange(p.start,p.end));
+      }catch {}
+      return passagePool(row);
+    });
+    const result=bindAllRows(current,pools);
+    const issues:string[]=[];
+    for(let index=0;index<current.length;index++){
+      const row=current[index];
+      if(result.segments[index]!==row)continue;
+      if(/^\s*(solo|enstr[üu]mantal|instrumental)[.\s…!]*$/i.test(row.text))continue;
+      setBulkBindingStatus(`Sesten bağlanıyor: ${index+1}/${current.length}`);
+      try {
+        if(!validRange(row.start,row.end)||row.end-row.start>20)throw Error('Kelime analizi için 20 saniyeyi aşmayan geçerli bir satır süresi gerekli.');
+        const response=await fetch('/api/lyrics/syllables',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file_name:vocalStem||instStem,segment:row}),signal:controller.signal});
+        const data=await response.json();
+        if(response.status===409)throw Error('SUNUCU_MEŞGUL: Başka bir ses analizi çalışıyor. Tamamlandıktan sonra toplu bağlamayı tekrar başlatın.');
+        if(!response.ok)throw Error(data.detail||'Ses analizi tamamlanamadı.');
+        const updated=Array.isArray(data.word_times)?bindDetectedWords(row,data.word_times):bindDetectedSyllables(row,data.passages);
+        const missing=(updated.words||[]).filter(w=>!validRange(w.start,w.end));
+        if(missing.length===(updated.words||[]).length)throw Error('Bu satırda güvenilir kelime sınırı bulunamadı. Satır başlangıç/bitişini kontrol edin.');
+        result.segments[index]=updated;result.count++;
+        if(missing.length)issues.push(`Satır ${index+1}: Bulunan kelimeler bağlandı; kontrol bekleyen: ${missing.map(w=>w.word).join(', ')}`);
+      }catch(error){if(controller.signal.aborted||(error as Error).message.startsWith('SUNUCU_MEŞGUL'))throw error;issues.push(`Satır ${index+1}: ${(error as Error).message}`);}
+    }
+    if(controller.signal.aborted)return;
+    if(JSON.stringify(segmentsRef.current)!==JSON.stringify(current))throw Error('Analiz sırasında sözler değişti. Düzenlemelerin korundu; toplu bağlamayı tekrar başlat.');
+    result.problems=issues;
+    setBulkBindingProblems(issues);
+    if(result.count){
+      audioRef.current?.pause();stopWordPreview();liveCaptureRef.current=null;setIsLiveSyncMode(false);
+      segmentsRef.current=result.segments;setSegments(result.segments);triggerAutoSave(result.segments);
+    }
+    onNotify(result.problems.length?'warning':'success','Tüm satırlarda ses bağlama',`${result.count} satır bağlandı. ${result.problems.length} satır için kontrol gerekiyor. Sözler korundu.`);
+    }catch(error){if(!controller.signal.aborted)onNotify('warning','Toplu bağlama',(error as Error).message);}finally{bulkBindingAbort.current=null;setBulkBindingStatus('');}
+  };
+  const resumeLiveSyncFromRow = (index: number) => {
+    const row = segmentsRef.current[index];
+    if (!row || !audioRef.current) return;
+    const range = rowPlaybackRange(row);
+    const start = Number.isFinite(range.start) && range.start >= 0 && range.end > range.start
+      ? range.start : audioRef.current.currentTime;
+    setActiveTab('lyrics'); setShowAdvancedTools(false);
+    seekTo(start);
+    startLiveSyncMode(index);
+  };
+  const undoAllLiveSync = () => {
+    liveSyncFinishedRef.current=false;
+    liveCaptureRef.current = null;
+    setIsLiveSyncMode(false); setIsSpacePressed(false); setSpacePressStartTime(null);
+    audioRef.current?.pause(); stopWordPreview();
+    wordPreviewEndRef.current = null; linePreviewEndRef.current = null;
+    loopLineRef.current = null; setLoopLineIndex(null); editedPlaybackStartRef.current = null;
+    const restored = clearLiveTimings(segmentsRef.current);
+    segmentsRef.current = restored; setSegments(restored); triggerAutoSave(restored);
+    setLiveSyncIndex(0); seekTo(0);
+    onNotify('success', 'Zamanlamalar temizlendi', 'Sözler korundu. Tüm satır ve kelimeler yeniden zamanlanmayı bekliyor.');
+  };
   const saveToDatabase = async (segmentsToSave: LyricSegment[], notifyUser = false, sourceFile = vocalStem || instStem, language = selectedLyricsLang) => {
     if (!sourceFile) return;
     const snapshot = repairTiming(segmentsToSave);
     setIsSavingDb(true);
     try {
       await enqueueLyricsSave(() => api.saveLyrics(sourceFile, snapshot, language));
+      const draftKey='uvr-lyrics-draft:'+sourceFile;
+      try{const draft=JSON.parse(projectStorage.getItem(draftKey)||'null');if(draft&&JSON.stringify(draft.segments)===JSON.stringify(snapshot))projectStorage.removeItem(draftKey);}catch{}
       setLastSavedTime(new Date().toLocaleTimeString());
       if (notifyUser) onNotify('success', 'Kaydedildi', 'Kelime zamanları değiştirilmeden kaydedildi.');
     } catch (err) {
@@ -544,6 +646,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
 
   const triggerAutoSave = (newSegments: LyricSegment[], immediate = false) => {
+    newSegments=protectLockedRows(committedSegments.current,newSegments);
+    projectStorage.setItem('uvr-lyrics-draft:'+(vocalStem||instStem),JSON.stringify({segments:newSegments,language:selectedLyricsLang}));
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     pendingSaveRef.current = { file: vocalStem || instStem, segments: structuredClone(newSegments), language: selectedLyricsLang };
     // Keep side effects outside React's state updater; the snapshot is the NEW value.
@@ -553,6 +657,18 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   useEffect(() => {
     return () => flushPendingSave();
   }, [isOpen, vocalStem, instStem]);
+
+  useEffect(()=>{if(!isOpen)return;return registerProjectFlusher(async()=>{flushPendingSave();await enqueueLyricsSave(()=>Promise.resolve());if(committedSegments.current.length)await saveToDatabase(committedSegments.current,false);});},[vocalStem,instStem,isOpen]);
+  useEffect(()=>{
+    if(!isOpen)return;
+    const handleHistoryKey=(event:KeyboardEvent)=>{
+      if(!(event.ctrlKey||event.metaKey)||passageRow!==null)return;
+      if((event.target as HTMLElement)?.closest?.('input,textarea,[contenteditable="true"]'))return;
+      const key=event.key.toLowerCase();
+      if(key==='z'||key==='y'){event.preventDefault();event.stopPropagation();restoreEdit(key==='y'||event.shiftKey?'redo':'undo');}
+    };
+    window.addEventListener('keydown',handleHistoryKey,true);return()=>window.removeEventListener('keydown',handleHistoryKey,true);
+  },[isOpen,isLiveSyncMode,passageRow]);
 
   const lyricsRequestRef = useRef(0);
   useEffect(() => () => { lyricsRequestRef.current++; }, [isOpen, vocalStem, instStem]);
@@ -571,13 +687,18 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     flushPendingSave();
     await enqueueLyricsSave(() => Promise.resolve());
     try {
-      const res = await api.transcribeLyrics(sourceFile, targetLang, force, targetModel, rawLyrics);
+      let pending:{segments:LyricSegment[]}|null=null;
+      if(!force){try{pending=JSON.parse(projectStorage.getItem('uvr-lyrics-draft:'+sourceFile)||'null');}catch{}}
+      const res = pending?.segments?.length
+        ? {status:'success',cached:true,segments:pending.segments} as Awaited<ReturnType<typeof api.transcribeLyrics>>
+        : await api.transcribeLyrics(sourceFile, targetLang, force, targetModel, rawLyrics);
+      if(pending?.segments?.length)onNotify('info','Bekleyen düzenlemeler geri yüklendi');
       if (requestId !== lyricsRequestRef.current) return;
       if (res.segments && res.segments.length > 0) {
         const syncedSegments = uppercaseLyrics(res.segments).map(seg => ({...seg, words:reconcileWords(seg.words || [],seg.text,seg.start)}));
-        setSegments(syncedSegments);
+        loadSegments(syncedSegments);
         if (!res.cached && !rawLyrics) setShowReferenceModal(true);
-        if (JSON.stringify(syncedSegments) !== JSON.stringify(res.segments)) triggerAutoSave(syncedSegments, false);
+        if (JSON.stringify(committedSegments.current) !== JSON.stringify(res.segments)||projectStorage.getItem('uvr-lyrics-draft:'+sourceFile)) triggerAutoSave(committedSegments.current, false);
         if (res.cached) {
           const savedAt = res.updated_at
             ? new Date(res.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -599,7 +720,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           );
         }
       } else {
-        setSegments([]);
+        loadSegments([]);
       }
     } catch (err: any) {
       if (requestId === lyricsRequestRef.current) onNotify('warning', 'Hizalama tamamlanamadı', err.message || 'Mevcut sözler korundu.');
@@ -610,13 +731,16 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
 
   const handleSegmentChange = (index: number, field: keyof LyricSegment, val: string | number) => {
-    if (field === 'text') val = uppercaseLyric(String(val));
+    if (field === 'text') {
+      preservePassages(vocalStem || instStem, index, segments[index]);
+      val = uppercaseLyric(String(val));
+    }
     setSegments((prev) => {
       const next = [...prev];
       let currentSeg = { ...next[index], [field]: val };
       const s = Number(currentSeg.start) || 0;
       const e = Number(currentSeg.end) || (s + 2.0);
-      currentSeg.words = field === 'text' ? reconcileWords(currentSeg.words || [], currentSeg.text || '', s) : fitWordsToSegmentRange(
+      currentSeg.words = field === 'text' ? reconcileWords(rowTextBaseline.current[currentSeg.id||String(index)] || currentSeg.words || [], currentSeg.text || '', s) : fitWordsToSegmentRange(
         currentSeg.words || [],
         s,
         Math.max(s + 0.1, e),
@@ -650,6 +774,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     setIsPlaying(false);
     const start = field === 'start' ? Math.max(0, Number(val.toFixed(3)))
       : val < word.start ? Math.max(0, Number((val - 0.05).toFixed(3))) : word.start;
+    editedPlaybackStartRef.current = start;
+    loopLineRef.current = null;
+    setLoopLineIndex(null);
     if (audioRef.current) audioRef.current.currentTime = start;
     setCurrentTime(start);
     setSegments((prev) => {
@@ -726,6 +853,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
 
   const playWord = async (segIdx: number, wordIdx: number) => {
+    editedPlaybackStartRef.current = null;
     if (loadingLyrics) return;
     const word = segments[segIdx]?.words?.[wordIdx];
     if (!word) return;
@@ -1053,6 +1181,14 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       setActivePlayingIndex(null);
     } else {
       // Clear word or line preview limits when master play is clicked so entire song plays continuously
+      loopLineRef.current = null;
+      setLoopLineIndex(null);
+      if (editedPlaybackStartRef.current !== null) {
+        audioRef.current.currentTime = editedPlaybackStartRef.current;
+        setCurrentTime(editedPlaybackStartRef.current);
+        if(isLiveSyncMode&&liveGesture==='tap')liveCaptureRef.current={index:liveSyncIndex,start:editedPlaybackStartRef.current};
+        editedPlaybackStartRef.current = null;
+      }
       wordPreviewEndRef.current = null;
       linePreviewEndRef.current = null;
       setActivePlayingWord(null);
@@ -1061,19 +1197,25 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
 
   const stepCurrentTime = (delta: number) => {
+    editedPlaybackStartRef.current = null;
     stopWordPreview();
     if (!audioRef.current) return;
     const newT = Math.max(0, Math.min(duration, audioRef.current.currentTime + delta));
     audioRef.current.currentTime = newT;
     setCurrentTime(newT);
+    if(isLiveSyncMode&&liveGesture==='tap')liveCaptureRef.current={index:liveSyncIndex,start:newT};
   };
 
   const seekTo = (targetSec: number) => {
+    liveCaptureRef.current=null;setIsSpacePressed(false);
+    editedPlaybackStartRef.current = null;
     stopWordPreview();
     if (!audioRef.current) return;
     const clamped = Math.max(0, Math.min(duration || 9999, targetSec));
     audioRef.current.currentTime = clamped;
     setCurrentTime(clamped);
+    // A live seek selects the new row start now, not on the next Space press.
+    if(isLiveSyncMode&&liveGesture==='tap')liveCaptureRef.current={index:liveSyncIndex,start:clamped};
   };
 
   const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -1093,9 +1235,15 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
 
   const playLine = (index: number) => {
+    editedPlaybackStartRef.current = null;
     stopWordPreview();
     if (!audioRef.current || !segments[index]) return;
     const seg = rowPlaybackRange(segments[index]);
+    // A loop on another row must not seek away from this row during playback.
+    if (loopLineIndex !== index) {
+      loopLineRef.current = null;
+      setLoopLineIndex(null);
+    }
 
     if (activePlayingIndex === index && isPlaying) {
       audioRef.current.pause();
@@ -1121,11 +1269,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
 
   const playRow = (index: number) => {
-    if (activeTab === 'lyrics' && expandedWordRow === index) {
-      void playWord(index, selectedWordIndex);
-    } else {
-      playLine(index);
-    }
+    playLine(index);
   };
 
   const stepSegmentTime = (index: number, field: 'start' | 'end', delta: number) => {
@@ -1213,7 +1357,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       return;
     }
 
-    const issues = timingIssues(segments, false);
+    const issues = timingIssues(videoSegments(segments), false, false);
     if (issues.length) { onNotify("warning", "Önce kelime zamanlarını hizalayın", issues.slice(0, 3).join(" / ")); return; }
     stopWordPreview();
     if (audioRef.current) audioRef.current.pause();
@@ -1228,7 +1372,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       const res = await api.generateKaraokeVideo({
         inst_file: instStem,
         timing_file: vocalStem || instStem,
-        segments: finalizedSegments,
+        segments: videoSegments(finalizedSegments),
         title: title,
         artist: artist,
         header_text: showHeader ? headerPrefix : '',
@@ -1253,31 +1397,31 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
 
   const syncIssues = timingIssues(segments);
-  const renderErrors = timingIssues(segments, false);
+  const renderErrors = timingIssues(videoSegments(segments), false, false);
 
   if (!isOpen || !mounted) return null;
 
   const currentSyncSegment = segments[liveSyncIndex];
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-2xl animate-fade-in">
-      <div className="relative w-full max-w-6xl 2xl:max-w-7xl bg-slate-900/95 border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-1.5 sm:p-3 bg-[#050608]/95 backdrop-blur-2xl animate-fade-in">
+      <div className="relative w-full max-w-[1840px] bg-[#1b1823] border border-white/10 rounded-[22px] shadow-2xl overflow-hidden flex flex-col h-[97dvh] max-h-[97dvh]">
         {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+        <div className="px-5 sm:px-8 py-3 shrink-0 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 sm:p-3 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/10">
+            <div className="p-2.5 rounded-xl bg-amber-400/10 text-amber-300 border border-amber-400/15">
               <Video className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-black font-outfit text-white tracking-tight">
+                <h3 className="text-lg font-semibold font-outfit text-white tracking-tight">
                   Karaoke Stüdyosu
                 </h3>
                 <span className="text-[9px] font-bold font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
                   1080P HD
                 </span>
               </div>
-              <p className="text-xs text-slate-400 truncate max-w-[55vw] sm:max-w-md">
+              <p className="text-xs text-zinc-400 truncate max-w-[55vw] sm:max-w-md">
                 Enstrümantal: <span className="text-slate-200 font-bold">{instStem}</span>
               </p>
             </div>
@@ -1288,44 +1432,52 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
               if (audioRef.current) audioRef.current.pause();
               onClose();
             }}
-            className="p-2 rounded-xl bg-white/[0.05] hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-white/[0.05] hover:bg-white/10 text-zinc-400 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <nav aria-label="Karaoke adımları" className="grid grid-cols-3 gap-2 border-b border-white/10 px-4 py-3 sm:px-6">
+        <nav aria-label="Karaoke adımları" className="grid grid-cols-3 gap-3 shrink-0 border-b border-white/[0.06] px-5 py-2 sm:px-8">
           {([{key: 'verify', label: 'Sözleri doğrula', detail: 'Metni bul ve düzenle'}, {key: 'lyrics', label: 'Senkronu kontrol et', detail: 'Dinle ve kelimeleri ayarla'}, {key: 'video', label: 'Videoyu oluştur', detail: 'Görünümü seç ve indir'}] as const).map((step, index) => (
-            <button key={step.key} type="button" aria-current={activeTab === step.key ? 'step' : undefined} onClick={() => {setActiveTab(step.key); setShowAdvancedTools(false);}} className={cn('flex items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors', activeTab === step.key ? 'bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200')}>
+            <button key={step.key} type="button" aria-current={activeTab === step.key ? 'step' : undefined} onClick={() => {setActiveTab(step.key); setShowAdvancedTools(false); if(step.key==='video'){audioRef.current?.pause();stopWordPreview();liveCaptureRef.current=null;setIsLiveSyncMode(false);}}} className={cn('flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors', activeTab === step.key ? 'bg-white/[0.06] text-amber-200 ring-1 ring-white/10' : 'text-zinc-400 hover:bg-white/5 hover:text-slate-200')}>
               <span className={cn('hidden h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold sm:flex', activeTab === step.key ? 'bg-amber-400 text-slate-950' : 'bg-white/5')}>{index + 1}</span>
-              <span><span className="block text-xs font-semibold sm:text-sm"><span className="sm:hidden">{index + 1}. </span>{step.label}</span><span className="mt-0.5 hidden text-xs text-slate-500 md:block">{step.detail}</span></span>
+              <span><span className="block text-xs font-semibold sm:text-sm"><span className="sm:hidden">{index + 1}. </span>{step.label}</span><span className="sr-only">{step.detail}</span></span>
             </button>
           ))}
         </nav>
-        {activeTab !== 'video' && <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 px-4 py-3 sm:px-6">
+        {activeTab !== 'video' && <div className="flex flex-wrap shrink-0 items-center justify-between gap-3 border-b border-white/5 px-4 py-2 sm:px-6">
           <div className="min-w-0">
             <h4 className="font-semibold text-slate-100">{activeTab === 'verify' ? 'Önce doğru sözler.' : 'Her kelime, kendi zamanında.'}</h4>
-            <p className="mt-1 text-xs text-slate-400">{activeTab === 'verify' ? 'Referans sözleri karşılaştır veya satırları doğrudan düzenle.' : 'Bir kelimeye dokun: dinle, renk dolmasını kontrol et ve gerekirse ayarla.'}</p>
+            <p className="sr-only">{activeTab === 'verify' ? 'Referans sözleri karşılaştır veya satırları doğrudan düzenle.' : 'Bir kelimeye dokun: dinle, renk dolmasını kontrol et ve gerekirse ayarla.'}</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button disabled={loadingLyrics || !!bulkBindingStatus || !segments.length} onClick={()=>void bindEveryRow()} className="rounded-lg border border-pink-400/30 bg-pink-400/10 px-3 py-2 text-sm font-semibold text-pink-200 hover:bg-pink-400/20 disabled:opacity-40">{bulkBindingStatus || 'Tüm satırların ses parçalarını bağla'}</button>
             <button disabled={loadingLyrics || !segments.length} onClick={() => activeTab === 'verify' ? setShowReferenceModal(true) : void fetchInitialLyrics(vocalStem || instStem, true, whisperModel, segments.map(s => s.text).join('\n')).catch(() => {})} className="rounded-lg bg-amber-400 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-40">{loadingLyrics ? 'İşleniyor…' : activeTab === 'verify' ? 'Sözleri bul ve karşılaştır' : 'Otomatik hizala'}</button>
-            <button aria-expanded={showAdvancedTools} onClick={() => setShowAdvancedTools(!showAdvancedTools)} className="rounded-lg border border-white/10 px-3 py-2 text-sm text-slate-300">Diğer araçlar <ChevronDown className="ml-1 inline h-3 w-3"/></button>
+            <button aria-expanded={showAdvancedTools} aria-controls="karaoke-tools" onClick={() => setShowAdvancedTools(!showAdvancedTools)} className={cn("rounded-lg border px-3 py-2 text-sm transition-colors", showAdvancedTools ? "border-indigo-400/30 bg-indigo-400/10 text-indigo-200" : "border-white/10 text-zinc-200 hover:bg-white/5")}>Diğer araçlar <ChevronDown className={cn("ml-1 inline h-3 w-3 transition-transform", showAdvancedTools && "rotate-180")}/></button>
           </div>
         </div>}
         {activeTab === 'lyrics' && (renderErrors.length > 0 || syncIssues.length > 0) && <div role="status" className="flex items-center justify-between gap-3 border-b border-white/5 bg-amber-400/5 px-6 py-2 text-xs text-amber-200">
-          <span>{renderErrors.length ? `${renderErrors.length} zamanlama sorunu · ${renderErrors[0]}` : `${syncIssues.length} kelimenin zamanını kontrol etmeni öneriyoruz. Video oluşturabilirsin.`}</span>
+          <span>{renderErrors.length ? `${renderErrors.length} zamanlama sorunu · ${renderErrors[0]}` : `${syncIssues.length} kelimenin zamanı doğrulanmamış. Eksik kelime süreleri olan satırlar videoda satır olarak gösterilir. Video oluşturabilirsin.`}</span>
           <button className="shrink-0 underline underline-offset-4" onClick={() => {
             const row = segments.findIndex(s => (s.words || []).some(w => w.needs_review || w.timing_source === 'estimated' || w.end <= w.start));
             if (row >= 0) {setExpandedWordRow(row); setSelectedWordIndex(Math.max(0, (segments[row].words || []).findIndex(w => w.needs_review || w.timing_source === 'estimated' || w.end <= w.start))); rowRefs.current[row]?.scrollIntoView({block: 'center', behavior: 'smooth'});}
           }}>İlk uyarıya git</button>
         </div>}
 
+        {activeTab !== 'video' && bulkBindingProblems.length>0 && <details className="shrink-0 border-b border-amber-400/15 px-6 py-2 text-xs text-amber-200"><summary className="cursor-pointer">{bulkBindingProblems.length} satır bağlanamadı · Ayrıntıları göster</summary><ul className="mt-2 max-h-28 overflow-y-auto space-y-1">{bulkBindingProblems.map(problem=><li key={problem}>{problem}</li>)}</ul></details>}
         {/* Secondary Action Toolbar (for Lyrics Tab) */}
         {activeTab !== 'video' && showAdvancedTools && (
-          <div className="px-4 sm:px-6 py-2 border-b border-white/5 bg-slate-950/60 flex items-center justify-between flex-wrap gap-2">
-            <button onClick={() => isLiveSyncMode ? setIsLiveSyncMode(false) : (setActiveTab('lyrics'), startLiveSyncMode(liveSyncIndex))} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300">{isLiveSyncMode ? 'Canlı senkronu kapat' : 'Boşluk tuşuyla canlı senkron'}</button>
+          <div id="karaoke-tools" role="region" aria-label="Diğer karaoke araçları" className="shrink-0 max-h-[32dvh] overflow-y-auto custom-scrollbar border-b border-white/[0.07] bg-indigo-300/[0.025] px-4 py-4 sm:px-6 [&_button]:min-h-9">
+            <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr_1.5fr]">
+            <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-zinc-400">Canlı zamanlama</h4>
+            <button onClick={() => isLiveSyncMode ? setIsLiveSyncMode(false) : (setShowAdvancedTools(false), setActiveTab('lyrics'), startLiveSyncMode(liveSyncIndex))} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-200">{isLiveSyncMode ? 'Canlı senkronu kapat' : 'Boşluk tuşuyla canlı senkron'}</button>
+            {segments.length > 0 && <button onClick={undoAllLiveSync} className="block rounded-lg border border-rose-400/20 px-3 py-2 text-xs text-rose-200 hover:bg-rose-400/10">Tüm zamanlamaları temizle</button>}
+            </div>
             {/* Left Group: Whisper AI Controls */}
-            <div className="flex items-center flex-wrap gap-2">
+            <div className="flex content-start items-center flex-wrap gap-2">
+              <h4 className="mb-1 w-full text-xs font-semibold text-zinc-400">Sesten sözleri çıkar</h4>
               {/* Whisper AI Model Selector Dropdown */}
               <div className="relative" ref={whisperMenuRef}>
                 <button
@@ -1343,8 +1495,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 </button>
 
                 {showWhisperMenu && (
-                  <div className="absolute left-0 top-full mt-2 w-72 bg-slate-900/95 border border-white/15 backdrop-blur-2xl rounded-2xl shadow-2xl p-2 z-[100] space-y-1.5 text-left animate-in fade-in">
-                    <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <KaraokeToolPopover anchor={whisperMenuRef} width={288} onClose={() => setShowWhisperMenu(false)}>
+                    <div className="px-2.5 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                       Whisper Yapay Zeka Modeli
                     </div>
                     <button
@@ -1357,7 +1509,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         'w-full p-2.5 rounded-xl text-left transition-all flex items-start gap-2.5 cursor-pointer',
                         whisperModel === 'large-v3'
                           ? 'bg-amber-500/15 border border-amber-500/30 text-white'
-                          : 'hover:bg-white/5 text-slate-300'
+                          : 'hover:bg-white/5 text-zinc-200'
                       )}
                     >
                       <Crown className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
@@ -1368,7 +1520,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                             FULL HQ
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
+                        <p className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
                           32 Katman • 1.55B Parametre • Tüm sözleri eksiksiz çıkarır
                         </p>
                       </div>
@@ -1384,7 +1536,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         'w-full p-2.5 rounded-xl text-left transition-all flex items-start gap-2.5 cursor-pointer',
                         whisperModel === 'large-v3-turbo'
                           ? 'bg-indigo-500/15 border border-indigo-500/30 text-white'
-                          : 'hover:bg-white/5 text-slate-300'
+                          : 'hover:bg-white/5 text-zinc-200'
                       )}
                     >
                       <Zap className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
@@ -1395,12 +1547,12 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                             HIZLI
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
+                        <p className="text-[10px] text-zinc-400 mt-0.5 leading-tight">
                           4 Katman • ~4x Hızlı transkripsiyon
                         </p>
                       </div>
                     </button>
-                  </div>
+                  </KaraokeToolPopover>
                 )}
               </div>
 
@@ -1422,9 +1574,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 </button>
 
                 {showLangMenu && (
-                  <div className="absolute left-0 top-full mt-2 w-80 bg-slate-900/98 border border-white/15 backdrop-blur-2xl rounded-2xl shadow-2xl p-2.5 z-[100] space-y-2 text-left animate-in fade-in">
+                  <KaraokeToolPopover anchor={langMenuRef} width={320} onClose={() => setShowLangMenu(false)}>
                     <div className="flex items-center justify-between px-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                         Şarkı Sözü Dili (Whisper AI)
                       </span>
                       <span className="text-[9px] text-teal-400 font-mono">99+ Dil Destekli</span>
@@ -1437,7 +1589,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         value={langSearchQuery}
                         onChange={(e) => setLangSearchQuery(e.target.value)}
                         placeholder="Dil ara... (Türkçe, English, 한국어, العربية...)"
-                        className="w-full bg-slate-950/90 border border-white/10 focus:border-teal-500/50 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none"
+                        className="w-full bg-[#14121c]/90 border border-white/10 focus:border-teal-500/50 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none"
                         autoFocus
                       />
                     </div>
@@ -1471,14 +1623,14 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                               'w-full px-3 py-2 rounded-xl text-left transition-all flex items-center justify-between text-xs cursor-pointer',
                               isSelected
                                 ? 'bg-teal-500/20 border border-teal-500/40 text-teal-200 font-bold'
-                                : 'hover:bg-white/5 text-slate-300 font-medium'
+                                : 'hover:bg-white/5 text-zinc-200 font-medium'
                             )}
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-base leading-none">{langItem.flag}</span>
                               <span className="truncate">{langItem.name}</span>
                               {langItem.native !== langItem.name && (
-                                <span className="text-[10px] text-slate-500 truncate font-normal">
+                                <span className="text-[10px] text-zinc-400 truncate font-normal">
                                   ({langItem.native})
                                 </span>
                               )}
@@ -1488,7 +1640,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         );
                       })}
                     </div>
-                  </div>
+                  </KaraokeToolPopover>
                 )}
               </div>
 
@@ -1509,7 +1661,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             </div>
 
             {/* Right Group: Paste, Import, Export, Add Segment */}
-            <div className="flex items-center flex-wrap gap-2">
+            <div className="flex content-start items-center flex-wrap gap-2">
+              <h4 className="mb-1 w-full text-xs font-semibold text-zinc-400">Sözler ve dosyalar</h4>
               <button type="button" disabled={loadingLyrics || !segments.length} onClick={() => setShowReferenceModal(true)} className="rounded-xl border border-indigo-500/40 px-3 py-2 text-xs font-bold text-indigo-300 disabled:opacity-40">Sözleri bul ve doğrula</button>
               {/* Paste & Auto-Align Lyrics Button */}
               <button
@@ -1553,8 +1706,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 </button>
 
                 {showExportMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-slate-900/95 border border-white/15 backdrop-blur-2xl rounded-2xl shadow-2xl p-1.5 z-[100] space-y-1 animate-fade-in text-left">
-                    <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <KaraokeToolPopover anchor={exportMenuRef} width={224} onClose={() => setShowExportMenu(false)}>
+                    <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                       Format Seçin (Export)
                     </div>
                     <button
@@ -1585,7 +1738,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         <span>SRT Altyazı</span>
                       </div>
                     </button>
-                  </div>
+                  </KaraokeToolPopover>
                 )}
               </div>
 
@@ -1599,6 +1752,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 <span>Satır Ekle</span>
               </button>
             </div>
+            </div>
           </div>
         )}
 
@@ -1606,14 +1760,14 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         {activeTab !== 'video' && (
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Master Precision Audio Player & Timeline Progress Bar (Pinned / Sticky Top) */}
-            <div className="px-4 sm:px-6 py-2 bg-slate-950/60 border-b border-white/5 shrink-0 z-20 space-y-2">
+            <div className="px-5 sm:px-8 py-3 bg-[#191621] border-b border-white/5 shrink-0 z-20 space-y-2">
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   {/* Left: Master Play / Rewind / Fast-Forward */}
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => stepCurrentTime(-2)}
-                      className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 transition-all active:scale-95 text-xs font-bold flex items-center gap-1 border border-white/5"
+                      className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-200 transition-all active:scale-95 text-xs font-bold flex items-center gap-1 border border-white/5"
                       title="2 Saniye Geri Sar"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -1644,7 +1798,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
                     <button
                       onClick={() => stepCurrentTime(2)}
-                      className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 transition-all active:scale-95 text-xs font-bold flex items-center gap-1 border border-white/5"
+                      className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-200 transition-all active:scale-95 text-xs font-bold flex items-center gap-1 border border-white/5"
                       title="2 Saniye İleri Sar"
                     >
                       <FastForward className="w-3.5 h-3.5" />
@@ -1653,8 +1807,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                   </div>
 
                   {/* Center: Audio Source Selection (Vocal vs Instrumental) */}
-                  <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-white/5">
-                    <span className="text-[10px] font-bold text-slate-500 px-2 uppercase font-mono">Ses:</span>
+                  <div className="flex items-center gap-1 bg-[#262230]/90 p-1 rounded-xl border border-white/5">
+                    <span className="text-[10px] font-bold text-zinc-400 px-2 uppercase font-mono">Ses:</span>
                     {vocalStem && (
                       <button
                         onClick={() => setActiveAudioSource('vocal')}
@@ -1662,7 +1816,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                           "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all",
                           activeAudioSource === 'vocal'
                             ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm"
-                            : "text-slate-400 hover:text-white"
+                            : "text-zinc-400 hover:text-white"
                         )}
                         title="Söz senkronu yaparken sadece insan sesini net duyun"
                       >
@@ -1676,7 +1830,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all",
                         activeAudioSource === 'inst'
                           ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-sm"
-                          : "text-slate-400 hover:text-white"
+                          : "text-zinc-400 hover:text-white"
                       )}
                       title="Müziğin ritmini ve enstrümantal halini dinleyin"
                     >
@@ -1687,10 +1841,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
                   {/* Right: Real-time Millisecond Clock */}
                   <div className="flex items-center gap-2 font-mono text-xs">
-                    <span className="text-amber-300 font-black text-sm bg-slate-950 px-3 py-1 rounded-xl border border-amber-500/30 shadow-inner">
+                    <span className="text-amber-300 font-black text-sm bg-[#14121c] px-3 py-1 rounded-xl border border-amber-500/30 shadow-inner">
                       ⏱️ {formatPrecisionTime(currentTime)}
                     </span>
-                    <span className="text-slate-500 font-bold">/</span>
+                    <span className="text-zinc-400 font-bold">/</span>
                     <span className="text-slate-200 font-bold text-xs">{formatPrecisionTime(duration)}</span>
                   </div>
                 </div>
@@ -1701,7 +1855,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                   onClick={handleTimelineClick}
                   onMouseMove={handleTimelineMouseMove}
                   onMouseLeave={() => setHoverTime(null)}
-                  className="relative w-full h-3 bg-slate-950/90 hover:bg-slate-950 rounded-xl border border-white/15 cursor-pointer overflow-hidden group select-none flex items-center shadow-inner"
+                  className="relative w-full h-3 bg-[#14121c]/90 hover:bg-[#14121c] rounded-xl border border-white/15 cursor-pointer overflow-hidden group select-none flex items-center shadow-inner"
                 >
                   {/* Active Segment Region Highlight Block on Timeline */}
                   {activePlayingIndex !== null && segments[activePlayingIndex] && duration > 0 && (
@@ -1734,7 +1888,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         style={{ left: `${(hoverTime / duration) * 100}%` }}
                       />
                       <div
-                        className="absolute -top-7 px-2.5 py-0.5 bg-slate-900 text-amber-300 text-[10px] font-mono font-bold rounded-lg shadow-xl border border-amber-500/40 pointer-events-none z-40 transform -translate-x-1/2"
+                        className="absolute -top-7 px-2.5 py-0.5 bg-[#262230] text-amber-300 text-[10px] font-mono font-bold rounded-lg shadow-xl border border-amber-500/40 pointer-events-none z-40 transform -translate-x-1/2"
                         style={{ left: `${(hoverTime / duration) * 100}%` }}
                       >
                         {formatPrecisionTime(hoverTime)}
@@ -1746,14 +1900,19 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 {/* High-Contrast Timeline Ruler & Time Labels (Cleanly positioned under track) */}
                 <div className="flex items-center justify-between px-1 text-[11px] font-mono font-semibold select-none">
                   <span className="text-amber-300 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">00:00.00</span>
-                  <span className="text-slate-300 font-medium">{formatPrecisionTime(duration * 0.25)}</span>
+                  <span className="text-zinc-200 font-medium">{formatPrecisionTime(duration * 0.25)}</span>
                   <span className="text-slate-200 font-bold bg-white/5 px-2.5 py-0.5 rounded-md border border-white/10">{formatPrecisionTime(duration * 0.5)}</span>
-                  <span className="text-slate-300 font-medium">{formatPrecisionTime(duration * 0.75)}</span>
+                  <span className="text-zinc-200 font-medium">{formatPrecisionTime(duration * 0.75)}</span>
                   <span className="text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{formatPrecisionTime(duration)}</span>
                 </div>
               </div>
 
               {/* Smule Live Spacebar HUD Banner */}
+
+            </div>
+
+            {/* Scrollable List of Lyric Rows */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-5 sm:py-7 space-y-5 min-h-0 custom-scrollbar">
               {isLiveSyncMode && (
                 <div className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-pink-950/80 via-purple-950/80 to-slate-950/80 border border-pink-500/40 shadow-xl shadow-pink-500/10 space-y-2.5 animate-fade-in">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -1774,17 +1933,19 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       <button
                         onClick={handleLiveSyncPrev}
                         disabled={liveSyncIndex === 0}
-                        className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold flex items-center gap-1 disabled:opacity-30 transition-all cursor-pointer"
+                        className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-bold flex items-center gap-1 disabled:opacity-30 transition-all cursor-pointer"
                         title="Önceki satıra dön ve tekrar kaydet (Backspace)"
                       >
                         <Undo2 className="w-3.5 h-3.5" />
-                        <span>Geri Al (Backspace)</span>
+                        <span>Önceki satır (Backspace)</span>
                       </button>
+
+                      <button onClick={undoAllLiveSync} disabled={!segments.length} title="Sözleri koruyarak tüm satır ve kelime zamanlamalarını temizle" className="rounded-xl border border-rose-400/25 bg-rose-400/10 px-3 py-1 text-xs font-bold text-rose-200 hover:bg-rose-400/20 disabled:opacity-30">Tüm zamanlamaları temizle</button>
 
                       <button
                         onClick={handleLiveSyncNext}
                         disabled={liveSyncIndex >= segments.length - 1}
-                        className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold flex items-center gap-1 disabled:opacity-30 transition-all cursor-pointer"
+                        className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-bold flex items-center gap-1 disabled:opacity-30 transition-all cursor-pointer"
                         title="Bu satırı atla ve sonrakine geç (Tab / Sağ Ok)"
                       >
                         <span>Atla</span>
@@ -1800,6 +1961,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                     </div>
                   </div>
 
+                  <p className="text-xs text-pink-200">Ses parçası bağlanmış satırlar canlı senkronda değiştirilmez. Enter: canlı senkronu kapat ve oynatmayı durdur.</p>
+                  <label className="block text-xs text-pink-200">Kayıt yöntemi
+                    <StudioSelect aria-label="Canlı senkron kayıt yöntemi" value={liveGesture} className="ml-2 rounded bg-[#262230] p-2" onValueChange={value=>{
+                      const mode=value as 'tap'|'hold';setLiveGesture(mode);setIsSpacePressed(false);
+                      liveCaptureRef.current=mode==='tap'&&audioRef.current?{index:liveSyncIndex,start:audioRef.current.currentTime}:null;
+                    }}><option value="tap">Satır bitince bas</option><option value="hold">Başlayınca tut, bitince bırak</option></StudioSelect>
+                  </label>
                   {/* Real-time Instructions & Active Line Preview */}
                   <div className={cn(
                     "p-2.5 rounded-xl border transition-all flex items-center justify-between gap-4",
@@ -1817,10 +1985,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         {isSpacePressed ? '🔴' : 'SPACE'}
                       </div>
                       <div>
-                        <div className="text-[11px] font-bold text-slate-400">
+                        <div className="text-[11px] font-bold text-zinc-400">
                           {isSpacePressed
                             ? 'SÖZ KAYDEDİLİYOR (Başlangıç: ' + formatPrecisionTime(spacePressStartTime || currentTime) + ') -> BİTTİĞİNDE SPACE TUŞUNU BIRAKIN!'
-                            : 'ŞARKI ÇALARKEN SÖZ BAŞLADIĞINDA SPACE TUŞUNA BASILI TUTUN:'}
+                            : (liveGesture==='tap'?'SATIR BİTİNCE SPACE’E BASIN. İLK BAŞLANGIÇ İÇİN ÖNCE OYNATICIYI KONUMLANDIRIN.':'SÖZ BAŞLADIĞINDA SPACE’E BASILI TUTUN, BİTİNCE BIRAKIN:')}
                         </div>
                         <div className="text-sm font-black text-white mt-0.5">
                           &quot;{currentSyncSegment ? currentSyncSegment.text : 'Söz Kalmadı'}&quot;
@@ -1842,17 +2010,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Scrollable List of Lyric Rows */}
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3.5 min-h-0 custom-scrollbar">
               {loadingLyrics ? (
-                <div className="h-64 flex flex-col items-center justify-center gap-3 text-slate-400">
+                <div className="h-64 flex flex-col items-center justify-center gap-3 text-zinc-400">
                   <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
                   <p className="text-sm font-bold">Whisper AI vokalden şarkı sözlerini çıkarıyor...</p>
                 </div>
               ) : segments.length === 0 ? (
-                <div className="h-64 flex flex-col items-center justify-center gap-3 text-slate-400 text-center">
+                <div className="h-64 flex flex-col items-center justify-center gap-3 text-zinc-400 text-center">
                   <Mic2 className="w-10 h-10 stroke-1 text-amber-400" />
                   <p className="text-sm font-semibold">Henüz şarkı sözü eklenmedi.</p>
                   <button
@@ -1892,44 +2056,47 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       ref={(el) => { rowRefs.current[idx] = el; }}
                       onClick={() => {
                         if (isLiveSyncMode) {
-                          setLiveSyncIndex(idx);
-                          seekTo(Math.max(0, seg.start - 0.5));
+                          resumeLiveSyncFromRow(idx);
                         } else {
-                          seekTo(rowPlaybackRange(seg).start);
+                          setLiveSyncIndex(idx);
+                          const range = rowPlaybackRange(seg);
+                          if(range.end > range.start)playLine(idx);
                         }
                       }}
                       className={cn(
-                        "relative p-3.5 rounded-2xl border transition-all group overflow-hidden cursor-pointer",
+                        "relative p-5 sm:p-6 rounded-2xl border transition-colors duration-200 group overflow-hidden cursor-pointer",
                         loadingLyrics && "pointer-events-none opacity-50",
                         isLiveTarget
                           ? isSpacePressed
                             ? "bg-emerald-500/15 border-emerald-400 shadow-xl shadow-emerald-500/20 ring-2 ring-emerald-400/50"
                             : "bg-pink-500/10 border-pink-400 shadow-xl shadow-pink-500/20 ring-2 ring-pink-400/40"
                           : isSinging
-                          ? "bg-amber-500/10 border-amber-500/60 shadow-lg shadow-amber-500/10"
+                          ? "bg-[#211e17] border-amber-400/40"
                           : isLingering
-                          ? "bg-slate-900/90 border-amber-500/30"
+                          ? "bg-[#262230]/90 border-amber-500/30"
                           : activePlayingIndex === idx
-                          ? "bg-slate-950/90 border-amber-500/40"
-                          : "bg-slate-950/70 border-white/10 hover:border-amber-500/30"
+                          ? "bg-[#14121c]/90 border-amber-500/40"
+                          : "bg-[#262230] border-white/[0.07] hover:border-white/20"
                       )}
                     >
-                      <div className="mb-3 flex items-center justify-between gap-3 text-xs text-slate-500" onClick={e => e.stopPropagation()}>
-                        <span className="font-mono">{String(idx + 1).padStart(2, '0')} <span className="ml-2">{formatPrecisionTime(seg.start)}</span></span>
+                      <div className="mb-3 flex items-center justify-between gap-3 text-xs text-zinc-400" onClick={e => e.stopPropagation()}>
+                        <button type="button" className="rounded-lg border border-violet-300/25 px-3 py-1 text-violet-200" onClick={()=>toggleRowLock(idx)}>{seg.locked?'Kilitli · Kilidi aç':'Satırı kilitle'}</button>
+                        <button type="button" className="font-mono text-left hover:text-indigo-200" onClick={() => isLiveSyncMode ? resumeLiveSyncFromRow(idx) : (setLiveSyncIndex(idx), seg.end > seg.start && playLine(idx))}>{String(idx + 1).padStart(2, '0')} <span className="ml-2">{seg.start === 0 && seg.end === 0 ? 'Zamanlama bekliyor' : formatPrecisionTime(seg.start)}</span></button>
+                        <button type="button" onClick={() => resumeLiveSyncFromRow(idx)} disabled={loadingLyrics} className="ml-auto rounded-lg border border-pink-400/25 bg-pink-400/10 px-3 py-2 text-xs font-semibold text-pink-200 hover:bg-pink-400/20 disabled:opacity-40">Buradan canlı senkrona devam et</button>
                         {activeTab === 'lyrics' && getSegmentWords(seg).some(w => w.needs_review || w.timing_source === 'estimated') && <button onClick={() => {setExpandedWordRow(idx); setSelectedWordIndex(Math.max(0,getSegmentWords(seg).findIndex(w => w.needs_review || w.timing_source === 'estimated')));}} className="rounded-full border border-amber-400/20 bg-amber-400/5 px-2 py-1 text-xs text-amber-200">Kontrol gerekli</button>}
                       </div>
-                      {activeTab === 'lyrics' && <div className="relative z-10 flex flex-wrap gap-x-2 gap-y-2 mb-3" onClick={e => e.stopPropagation()}>
+                      {activeTab === 'lyrics' && <div className="relative z-10 flex flex-wrap gap-x-2.5 gap-y-2 mb-5" onClick={e => e.stopPropagation()}>
                         {getSegmentWords(seg).map((w, wi) => (
-                          <button key={wi} type="button" onClick={() => {setExpandedWordRow(idx); setSelectedWordIndex(wi); void playWord(idx, wi);}} title={`${w.start.toFixed(3)}–${w.end.toFixed(3)} s${w.needs_review ? ' · Zamanlama kontrol edilmeli' : ''}`}
-                            className={cn('inline-flex items-baseline rounded-sm text-left text-xl leading-relaxed font-semibold text-slate-300', expandedWordRow === idx && selectedWordIndex === wi && 'underline decoration-amber-400/60 underline-offset-8')} disabled={loadingLyrics}>
+                          <button key={wi} type="button" onClick={() => {if(isLiveSyncMode){resumeLiveSyncFromRow(idx);return;}setExpandedWordRow(idx); setSelectedWordIndex(wi); void playWord(idx, wi);}} title={`${w.start.toFixed(3)}–${w.end.toFixed(3)} s${w.needs_review ? ' · Zamanlama kontrol edilmeli' : ''}`}
+                            className={cn('inline-flex items-baseline rounded-sm text-left text-xl sm:text-2xl leading-relaxed font-semibold text-zinc-200', expandedWordRow === idx && selectedWordIndex === wi && 'underline decoration-amber-400/60 underline-offset-8')} disabled={loadingLyrics}>
                             <span className="relative inline-block whitespace-pre">
                               <span>{w.word}</span>
-                              <span aria-hidden className="pointer-events-none absolute inset-0 text-amber-400" style={{ clipPath: `inset(0 ${100 - wordFill(w, currentTime, seg.words?.[wi - 1]?.end ?? segments[idx - 1]?.words?.at(-1)?.end ?? 0, seg.words?.[wi + 1]?.start ?? nextSeg?.words?.[0]?.start ?? Infinity) * 100}% 0 0)` }}>{w.word}</span>
+                              <span aria-hidden className="pointer-events-none absolute inset-0 text-amber-400" style={{ clipPath: `inset(0 ${100 - wordFillWithNeighbors(w, currentTime, seg.words?.[wi - 1] ?? segments[idx - 1]?.words?.at(-1), seg.words?.[wi + 1] ?? nextSeg?.words?.[0]) * 100}% 0 0)` }}>{w.word}</span>
                             </span>
                           </button>
                         ))}
                       </div>}
-                      <div className="relative z-10 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
+                      <div className="relative z-10 flex flex-wrap items-center gap-3">
                         {/* Play Line Button */}
                         <button
                           onClick={(e) => {
@@ -1940,9 +2107,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                             'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform active:scale-90 shadow-md',
                             (activePlayingIndex === idx || activePlayingWord?.segIdx === idx) && isPlaying
                               ? 'bg-amber-500 text-slate-950 shadow-amber-500/30'
-                              : 'bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 text-slate-300'
+                              : 'bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 text-zinc-200'
                           )}
-                          title={activeTab === 'lyrics' && expandedWordRow === idx ? 'Seçili kelimenin ayarlanan aralığını dinle' : 'Bu satırı dinle ve senkronu test et'}
+                          title="Satırın tamamını dinle"
                         >
                           {(activePlayingIndex === idx || activePlayingWord?.segIdx === idx) && isPlaying ? (
                             <Pause className="w-4 h-4 fill-current" />
@@ -1953,7 +2120,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
                         {activeTab === 'lyrics' && expandedWordRow === idx && (
                           <button type="button" onClick={e => { e.stopPropagation(); playLine(idx); }}
-                            className="text-xs text-slate-400 hover:text-amber-300 px-2 py-2">
+                            className="text-xs text-zinc-400 hover:text-amber-300 px-2 py-2">
                             Satırın tamamını dinle
                           </button>
                         )}
@@ -1968,7 +2135,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                             'p-2 rounded-xl text-xs font-bold shrink-0 transition-all active:scale-90',
                             isLoopingThis
                               ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30'
-                              : 'bg-white/5 hover:bg-white/10 text-slate-400'
+                              : 'bg-white/5 hover:bg-white/10 text-zinc-400'
                           )}
                           title={isLoopingThis ? 'Döngüyü Kapat' : 'Bu satırı sürekli tekrarla (İnce ayar için)'}
                         >
@@ -1980,7 +2147,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                           {/* Start Timing Box */}
                           <div className="space-y-1">
                             <div className="flex items-center justify-between gap-1">
-                              <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Başlangıç</span>
+                              <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold">Başlangıç</span>
                               <button
                                 onClick={() => setPlayheadToSegment(idx, 'start')}
                                 title="O an çalan süreyi bu satırın başlangıcı yap"
@@ -1989,25 +2156,25 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                                 ⏱️ Şu Anı Al
                               </button>
                             </div>
-                            <div className="flex items-center gap-0.5 bg-slate-900 rounded-lg p-0.5 border border-white/10 focus-within:border-amber-500 shadow-inner">
+                            <div className="flex items-center gap-0.5 bg-[#262230] rounded-lg p-0.5 border border-white/10 focus-within:border-amber-500 shadow-inner">
                               <button
                                 onClick={() => stepSegmentTime(idx, 'start', -0.1)}
                                 title="100ms geriye al"
-                                className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
+                                className="px-1.5 py-0.5 text-[10px] font-mono text-zinc-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
                               >
                                 -0.1
                               </button>
                               <input
                                 type="number"
                                 step="0.001"
-                                value={Number(seg.start.toFixed(3))}
+                                placeholder="—" value={seg.start === 0 && seg.end === 0 ? '' : Number(seg.start.toFixed(3))}
                                 onChange={(e) => handleSegmentChange(idx, 'start', parseFloat(e.target.value) || 0)}
                                 className="w-24 py-2 bg-transparent text-sm font-mono font-bold text-amber-300 text-center focus:outline-none"
                               />
                               <button
                                 onClick={() => stepSegmentTime(idx, 'start', 0.1)}
                                 title="100ms ileriye al"
-                                className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
+                                className="px-1.5 py-0.5 text-[10px] font-mono text-zinc-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
                               >
                                 +0.1
                               </button>
@@ -2019,7 +2186,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                           {/* End Timing Box */}
                           <div className="space-y-1">
                             <div className="flex items-center justify-between gap-1">
-                              <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Bitiş</span>
+                              <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold">Bitiş</span>
                               <button
                                 onClick={() => setPlayheadToSegment(idx, 'end')}
                                 title="O an çalan süreyi bu satırın bitişi yap"
@@ -2028,25 +2195,25 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                                 ⏱️ Şu Anı Al
                               </button>
                             </div>
-                            <div className="flex items-center gap-0.5 bg-slate-900 rounded-lg p-0.5 border border-white/10 focus-within:border-amber-500 shadow-inner">
+                            <div className="flex items-center gap-0.5 bg-[#262230] rounded-lg p-0.5 border border-white/10 focus-within:border-amber-500 shadow-inner">
                               <button
                                 onClick={() => stepSegmentTime(idx, 'end', -0.1)}
                                 title="100ms geriye al"
-                                className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
+                                className="px-1.5 py-0.5 text-[10px] font-mono text-zinc-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
                               >
                                 -0.1
                               </button>
                               <input
                                 type="number"
                                 step="0.001"
-                                value={Number(seg.end.toFixed(3))}
+                                placeholder="—" value={seg.start === 0 && seg.end === 0 ? '' : Number(seg.end.toFixed(3))}
                                 onChange={(e) => handleSegmentChange(idx, 'end', parseFloat(e.target.value) || 0)}
                                 className="w-24 py-2 bg-transparent text-sm font-mono font-bold text-amber-300 text-center focus:outline-none"
                               />
                               <button
                                 onClick={() => stepSegmentTime(idx, 'end', 0.1)}
                                 title="100ms ileriye al"
-                                className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
+                                className="px-1.5 py-0.5 text-[10px] font-mono text-zinc-400 hover:text-amber-400 hover:bg-white/5 rounded active:scale-95"
                               >
                                 +0.1
                               </button>
@@ -2055,31 +2222,28 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         </div>}
 
                         {/* Text Input & Sustain Indicator */}
-                        <div className={cn('flex-1 items-center gap-2', activeTab === 'verify' ? 'flex' : 'hidden')}>
+                        <div className="flex flex-1 min-w-[min(100%,460px)] items-center gap-3" onClick={e => e.stopPropagation()}>
+                          <label className="flex-1 min-w-0">
+                            <span className="block mb-1.5 text-xs font-medium text-zinc-400">Satırı düzenle</span>
                           <input
                             type="text"
+                            aria-label={`${idx + 1}. satırın sözlerini düzenle`}
+                            disabled={seg.locked}
+                            onFocus={()=>{rowTextBaseline.current[seg.id||String(idx)]=structuredClone(seg.words||[]);}}
+                            onBlur={()=>{delete rowTextBaseline.current[seg.id||String(idx)];history.current.breakGroup();}}
                             value={seg.text}
-                            onClick={() => {
-                              if (!isLiveSyncMode) {
-                                seekTo(seg.start);
-                              }
-                            }}
-                            onFocus={() => {
-                              if (!isLiveSyncMode) {
-                                seekTo(seg.start);
-                              }
-                            }}
-                            onChange={(e) => handleSegmentChange(idx, 'text', e.target.value)}
+                            onChange={(e) => updateLyricInput(e.currentTarget, text=>handleSegmentChange(idx, 'text', text))}
                             className={cn(
-                              "w-full p-3 rounded-xl border text-base font-medium placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all",
+                              "w-full px-4 py-3.5 rounded-xl border text-base font-medium placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-all",
                               isLiveTarget
-                                ? "bg-slate-900 border-pink-400 text-pink-200 font-bold"
+                                ? "bg-[#262230] border-pink-400 text-pink-200 font-bold"
                                 : isSinging
-                                ? "bg-slate-900/90 border-amber-500/50 text-amber-200"
-                                : "bg-slate-900/90 border-white/10 text-white"
+                                ? "bg-[#262230]/90 border-amber-500/50 text-amber-200"
+                                : "bg-[#191621] border-white/[0.08] text-white"
                             )}
                             placeholder="Şarkı sözü satırı..."
                           />
+                          </label>
                           {hasSustain && activeTab === 'lyrics' && (
                             <span
                               className="text-[10px] font-mono text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-1 rounded-lg font-bold shrink-0 flex items-center gap-1 shadow-sm"
@@ -2091,15 +2255,20 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                           )}
                         </div>
 
+                        {activeTab === 'lyrics' && <button type="button" disabled={loadingLyrics} onClick={e=>{
+                          e.stopPropagation(); stopWordPreview(); audioRef.current?.pause(); setIsPlaying(false);
+                          if(seg.locked){onNotify('warning','Önce satır kilidini aç');return;}setPassageRow({index:idx,original:structuredClone(seg)});
+                        }} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-medium text-zinc-200 hover:bg-white/[0.08]">Ses parçalarını bağla</button>}
                         {/* Row Actions & Word-by-Word Button */}
                         <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center" onClick={(e) => e.stopPropagation()}>
                           <button
+                            disabled={seg.locked}
                             onClick={() => {setActiveTab('lyrics'); setSelectedWordIndex(0); setExpandedWordRow(expandedWordRow === idx ? null : idx);}}
                             className={cn(
-                              "px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border",
+                              "px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 transition-all cursor-pointer shrink-0 border",
                               expandedWordRow === idx
                                 ? "bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/10"
-                                : "bg-white/5 hover:bg-amber-500/10 hover:border-amber-500/30 text-slate-300 hover:text-amber-200 border-white/10"
+                                : "bg-white/5 hover:bg-amber-500/10 hover:border-amber-500/30 text-zinc-200 hover:text-amber-200 border-white/10"
                             )}
                             title="Kelimeleri tek tek milisaniyelik sürelerle düzenleyin"
                           >
@@ -2110,14 +2279,15 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
                           <button
                             onClick={() => handleAddSegment(idx)}
-                            className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                            className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
                             title="Altına Yeni Satır Ekle"
                           >
                             <Plus className="w-3.5 h-3.5" />
                           </button>
                           <button
+                            disabled={seg.locked}
                             onClick={() => handleDeleteSegment(idx)}
-                            className="p-2 rounded-xl bg-white/[0.03] hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                            className="p-2 rounded-xl bg-white/[0.03] hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 transition-colors cursor-pointer"
                             title="Satırı Sil"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2128,18 +2298,18 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       {/* Expandable Word-Level Timing Editor Tray */}
                       {activeTab === 'lyrics' && expandedWordRow === idx && (
                         <div className="relative z-10 mt-3 pt-3 border-t border-white/10 space-y-3 animate-in fade-in" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-between flex-wrap gap-2 text-xs bg-slate-900/60 p-2.5 rounded-xl border border-white/5">
+                          <div className="flex items-center justify-between flex-wrap gap-2 text-xs bg-[#262230]/60 p-2.5 rounded-xl border border-white/5">
                             <div className="flex items-center gap-2 text-slate-200 font-bold">
                               <Sparkles className="w-4 h-4 text-amber-400" />
                               <span>Seçili kelimeyi ayarla</span>
-                              <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                              <span className="text-[10px] font-mono text-zinc-400 bg-white/5 px-2 py-0.5 rounded border border-white/5">
                                 {getSegmentWords(seg).length} Kelime
                               </span>
                             </div>
                             <div className={cn("flex items-center gap-1.5", !showAdvancedTools && "hidden")}>
                               <button
                                 onClick={() => distributeWordsEvenly(idx)}
-                                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[11px] font-bold border border-white/10 flex items-center gap-1 transition-all cursor-pointer"
+                                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white text-[11px] font-bold border border-white/10 flex items-center gap-1 transition-all cursor-pointer"
                                 title="Kelimeleri satır süresine eşit böl"
                               >
                                 <span>⚖️ Taslak: Eşit Dağıt</span>
@@ -2163,8 +2333,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                           </div>
 
                           {/* Word Chips Grid */}
-                          <div className="flex flex-wrap gap-2">{getSegmentWords(seg).map((word, wordIndex) => <button key={wordIndex} aria-pressed={selectedWordIndex === wordIndex} onClick={() => setSelectedWordIndex(wordIndex)} className={cn('rounded-lg border px-3 py-2 text-sm', selectedWordIndex === wordIndex ? 'border-amber-400/40 bg-amber-400/10 text-amber-200' : 'border-white/10 text-slate-400')}>{word.word}</button>)}</div>
-                          <div className="max-w-md">
+                          <div className="flex flex-wrap gap-2">{getSegmentWords(seg).map((word, wordIndex) => <button key={wordIndex} aria-pressed={selectedWordIndex === wordIndex} onClick={() => setSelectedWordIndex(wordIndex)} className={cn('rounded-lg border px-3 py-2 text-sm', selectedWordIndex === wordIndex ? 'border-amber-400/40 bg-amber-400/10 text-amber-200' : 'border-white/10 text-zinc-400')}>{word.word}</button>)}</div>
+                          <div className="w-full max-w-2xl">
                             {getSegmentWords(seg).map((w, wIdx) => {
                               if (wIdx !== selectedWordIndex) return null;
                               const isWordSinging = isPlaying && currentTime >= w.start && currentTime < w.end
@@ -2178,19 +2348,19 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                                     "p-2.5 rounded-xl border transition-all flex flex-col gap-2 shadow-sm cursor-pointer select-none",
                                     isWordSinging
                                       ? "bg-amber-500/25 border-amber-400 ring-2 ring-amber-400/60 shadow-lg shadow-amber-500/20"
-                                      : "bg-slate-900/90 border-white/10 hover:border-amber-500/40"
+                                      : "bg-[#262230]/90 border-white/10 hover:border-amber-500/40"
                                   )}
                                 >
                                   {/* Word Header with Play, Text Input & Delete */}
                                   <div className="flex items-center justify-between gap-1.5" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                                      <span className="text-[10px] font-mono font-bold text-slate-500 shrink-0">#{wIdx + 1}</span>
+                                      <span className="text-[10px] font-mono font-bold text-zinc-400 shrink-0">#{wIdx + 1}</span>
                                       <input
                                         type="text"
                                         value={w.word}
-                                        onChange={(e) => handleWordTextChange(idx, wIdx, e.target.value)}
+                                        onChange={(e) => updateLyricInput(e.currentTarget, text=>handleWordTextChange(idx, wIdx, text))}
                                         className={cn(
-                                          "w-full bg-transparent px-1.5 py-0.5 rounded border border-transparent focus:border-amber-500/50 text-xs font-black truncate focus:outline-none focus:bg-slate-950 font-outfit",
+                                          "w-full bg-transparent px-1.5 py-0.5 rounded border border-transparent focus:border-amber-500/50 text-xs font-black truncate focus:outline-none focus:bg-[#14121c] font-outfit",
                                           isWordSinging ? "text-amber-200 underline decoration-amber-400" : "text-white"
                                         )}
                                       />
@@ -2202,7 +2372,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                                           "p-1 rounded-lg transition-all active:scale-95 cursor-pointer",
                                           isThisWordPlaying
                                             ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30 ring-1 ring-amber-400"
-                                            : "bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 text-slate-400"
+                                            : "bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 text-zinc-400"
                                         )}
                                         title={isThisWordPlaying ? "Kelimeyi Durdur" : "Sadece bu kelimeyi dinle"}
                                       >
@@ -2210,7 +2380,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                                       </button>
                                       <button
                                         onClick={() => {handleDeleteWord(idx, wIdx); setSelectedWordIndex(Math.max(0, wIdx - 1));}}
-                                        className="p-1 rounded-lg bg-white/5 hover:bg-rose-500/20 hover:text-rose-400 text-slate-500 transition-all active:scale-95 cursor-pointer"
+                                        className="p-1 rounded-lg bg-white/5 hover:bg-rose-500/20 hover:text-rose-400 text-zinc-400 transition-all active:scale-95 cursor-pointer"
                                         title="Bu kelimeyi kaldır"
                                       >
                                         <Trash2 className="w-3 h-3" />
@@ -2222,7 +2392,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                                   <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono" onClick={(e) => e.stopPropagation()}>
                                     {/* Word Start */}
                                     <div className="space-y-0.5">
-                                      <div className="flex items-center justify-between text-[9px] text-slate-400 font-bold px-0.5">
+                                      <div className="flex items-center justify-between text-[9px] text-zinc-400 font-bold px-0.5">
                                         <span>Başla</span>
                                         <button
                                           onClick={() => setPlayheadToWord(idx, wIdx, 'start')}
@@ -2232,23 +2402,23 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                                           ⏱️ Al
                                         </button>
                                       </div>
-                                      <div className="flex items-center bg-slate-950 rounded-lg border border-white/10 p-0.5 focus-within:border-amber-500 shadow-inner">
+                                      <div className="flex items-center bg-[#14121c] rounded-lg border border-white/10 p-0.5 focus-within:border-amber-500 shadow-inner">
                                         <button
                                           onClick={() => stepWordTime(idx, wIdx, 'start', -0.05)}
-                                          className="px-1 text-slate-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
+                                          className="px-1 text-zinc-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
                                         >
                                           -
                                         </button>
                                         <input
                                           type="number"
                                           step="0.001"
-                                          value={Number(w.start.toFixed(3))}
+                                          placeholder="—" value={w.start === 0 && w.end === 0 ? '' : Number(w.start.toFixed(3))}
                                           onChange={(e) => handleWordTimeChange(idx, wIdx, 'start', parseFloat(e.target.value) || 0)}
                                           className="w-full bg-transparent py-2 text-center text-amber-300 font-semibold text-sm focus:outline-none"
                                         />
                                         <button
                                           onClick={() => stepWordTime(idx, wIdx, 'start', 0.05)}
-                                          className="px-1 text-slate-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
+                                          className="px-1 text-zinc-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
                                         >
                                           +
                                         </button>
@@ -2257,7 +2427,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
                                     {/* Word End */}
                                     <div className="space-y-0.5">
-                                      <div className="flex items-center justify-between text-[9px] text-slate-400 font-bold px-0.5">
+                                      <div className="flex items-center justify-between text-[9px] text-zinc-400 font-bold px-0.5">
                                         <span>Bitir</span>
                                         <button
                                           onClick={() => setPlayheadToWord(idx, wIdx, 'end')}
@@ -2267,23 +2437,23 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                                           ⏱️ Al
                                         </button>
                                       </div>
-                                      <div className="flex items-center bg-slate-950 rounded-lg border border-white/10 p-0.5 focus-within:border-amber-500 shadow-inner">
+                                      <div className="flex items-center bg-[#14121c] rounded-lg border border-white/10 p-0.5 focus-within:border-amber-500 shadow-inner">
                                         <button
                                           onClick={() => stepWordTime(idx, wIdx, 'end', -0.05)}
-                                          className="px-1 text-slate-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
+                                          className="px-1 text-zinc-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
                                         >
                                           -
                                         </button>
                                         <input
                                           type="number"
                                           step="0.001"
-                                          value={Number(w.end.toFixed(3))}
+                                          placeholder="—" value={w.start === 0 && w.end === 0 ? '' : Number(w.end.toFixed(3))}
                                           onChange={(e) => handleWordTimeChange(idx, wIdx, 'end', parseFloat(e.target.value) || 0)}
                                           className="w-full bg-transparent py-2 text-center text-amber-300 font-semibold text-sm focus:outline-none"
                                         />
                                         <button
                                           onClick={() => stepWordTime(idx, wIdx, 'end', 0.05)}
-                                          className="px-1 text-slate-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
+                                          className="px-1 text-zinc-400 hover:text-amber-300 hover:bg-white/5 rounded active:scale-95"
                                         >
                                           +
                                         </button>
@@ -2308,10 +2478,11 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         {/* Tab 2: Video Customization & Render */}
         {activeTab === 'video' && (
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 min-h-0 custom-scrollbar">
+            <KaraokeVideoPreview onPlay={()=>{audioRef.current?.pause();stopWordPreview();}} key={instStem} file={instStem} segments={segments} theme={theme} aspectRatio={aspectRatio} header={showHeader ? [headerPrefix.trim(),[title.trim(),artist.trim()].filter(Boolean).join(' - ')].filter(Boolean).join(' • ') : ''} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Aspect Ratio Picker */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/10 space-y-3">
-                <label className="text-xs font-bold text-slate-300 flex items-center gap-2">
+              <div className="p-4 rounded-2xl bg-[#14121c]/60 border border-white/10 space-y-3">
+                <label className="text-xs font-bold text-zinc-200 flex items-center gap-2">
                   <Monitor className="w-4 h-4 text-amber-400" />
                   <span>Video Formatı / En Boy Oranı</span>
                 </label>
@@ -2322,13 +2493,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       'p-3 rounded-xl border text-left transition-all flex items-center gap-3',
                       aspectRatio === '16:9'
                         ? 'bg-amber-500/20 border-amber-500/50 text-white'
-                        : 'bg-white/5 border-white/5 text-slate-400 hover:text-white'
+                        : 'bg-white/5 border-white/5 text-zinc-400 hover:text-white'
                     )}
                   >
                     <Monitor className="w-5 h-5 text-amber-400" />
                     <div>
                       <div className="text-xs font-black">16:9 (Yatay)</div>
-                      <div className="text-[10px] text-slate-400">YouTube Standart</div>
+                      <div className="text-[10px] text-zinc-400">YouTube Standart</div>
                     </div>
                   </button>
 
@@ -2338,21 +2509,21 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       'p-3 rounded-xl border text-left transition-all flex items-center gap-3',
                       aspectRatio === '9:16'
                         ? 'bg-amber-500/20 border-amber-500/50 text-white'
-                        : 'bg-white/5 border-white/5 text-slate-400 hover:text-white'
+                        : 'bg-white/5 border-white/5 text-zinc-400 hover:text-white'
                     )}
                   >
                     <Smartphone className="w-5 h-5 text-amber-400" />
                     <div>
                       <div className="text-xs font-black">9:16 (Dikey)</div>
-                      <div className="text-[10px] text-slate-400">Shorts / Reels / TikTok</div>
+                      <div className="text-[10px] text-zinc-400">Shorts / Reels / TikTok</div>
                     </div>
                   </button>
                 </div>
               </div>
 
               {/* Theme Color Picker */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/10 space-y-3">
-                <label className="text-xs font-bold text-slate-300 flex items-center gap-2">
+              <div className="p-4 rounded-2xl bg-[#14121c]/60 border border-white/10 space-y-3">
+                <label className="text-xs font-bold text-zinc-200 flex items-center gap-2">
                   <Palette className="w-4 h-4 text-amber-400" />
                   <span>Görsel Tema & Renk Paleti</span>
                 </label>
@@ -2370,7 +2541,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         'p-2.5 rounded-xl border text-left transition-all flex items-center gap-2.5',
                         theme === tItem.id
                           ? 'bg-white/10 border-amber-500/50 text-white shadow-md'
-                          : 'bg-white/5 border-white/5 text-slate-400 hover:text-white'
+                          : 'bg-white/5 border-white/5 text-zinc-400 hover:text-white'
                       )}
                     >
                       <div className={cn('w-4 h-4 rounded-full bg-gradient-to-r shrink-0', tItem.color)} />
@@ -2382,9 +2553,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             </div>
 
             {/* Video Header & Watermark Banner Customizer */}
-            <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/10 space-y-3">
+            <div className="p-4 rounded-2xl bg-[#14121c]/60 border border-white/10 space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-300 flex items-center gap-2">
+                <label className="text-xs font-bold text-zinc-200 flex items-center gap-2">
                   <Music className="w-4 h-4 text-amber-400" />
                   <span>Video Üst Başlığı & Filigran (Özelleştirilebilir)</span>
                 </label>
@@ -2395,7 +2566,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                     "px-3 py-1 rounded-xl text-xs font-bold transition-all border",
                     showHeader
                       ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                      : "bg-white/5 text-slate-400 border-white/10"
+                      : "bg-white/5 text-zinc-400 border-white/10"
                   )}
                 >
                   {showHeader ? "✓ Başlık Açık" : "✕ Başlık Gizli"}
@@ -2406,32 +2577,32 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1 font-bold">1. Ön Başlık / Kanal Adı</span>
+                      <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1 font-bold">1. Ön Başlık / Kanal Adı</span>
                       <input
                         type="text"
                         value={headerPrefix}
                         onChange={(e) => setHeaderPrefix(e.target.value)}
-                        className="w-full p-2.5 rounded-xl bg-slate-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
+                        className="w-full p-2.5 rounded-xl bg-[#262230] border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
                         placeholder="Örn: KARAOKE STUDIO, @Kanalım..."
                       />
                     </div>
                     <div>
-                      <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1 font-bold">2. Şarkı Adı</span>
+                      <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1 font-bold">2. Şarkı Adı</span>
                       <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="w-full p-2.5 rounded-xl bg-slate-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
+                        className="w-full p-2.5 rounded-xl bg-[#262230] border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
                         placeholder="Şarkı Adı..."
                       />
                     </div>
                     <div>
-                      <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1 font-bold">3. Sanatçı Adı</span>
+                      <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1 font-bold">3. Sanatçı Adı</span>
                       <input
                         type="text"
                         value={artist}
                         onChange={(e) => setArtist(e.target.value)}
-                        className="w-full p-2.5 rounded-xl bg-slate-900 border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
+                        className="w-full p-2.5 rounded-xl bg-[#262230] border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
                         placeholder="Sanatçı..."
                       />
                     </div>
@@ -2439,7 +2610,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
                   {/* Live Header Text Preview */}
                   <div className="p-3 rounded-xl bg-black/50 border border-white/10 flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-mono uppercase text-slate-500 font-bold shrink-0">Ekranda Gözükecek Başlık:</span>
+                    <span className="text-[10px] font-mono uppercase text-zinc-400 font-bold shrink-0">Ekranda Gözükecek Başlık:</span>
                     <span className="text-xs font-bold font-mono text-amber-300 truncate">
                       {headerPrefix.trim() ? `${headerPrefix.trim()} • ` : ''}
                       {title.trim() || 'Şarkı Adı'}
@@ -2478,10 +2649,12 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
         {activeTab === 'video' && renderErrors.length > 0 && <div role="alert" className="border-t border-amber-400/15 bg-amber-400/5 px-6 py-3 text-sm text-amber-200">Video oluşturmadan önce düzelt: {renderErrors[0]} <button className="ml-2 underline underline-offset-4" onClick={() => setActiveTab('lyrics')}>Senkrona dön</button></div>}
         {/* Modal Footer */}
-        <div className="px-4 py-3 sm:px-6 border-t border-white/10 bg-slate-950/60 flex items-center justify-between gap-3">
-          <div className="text-xs text-slate-400">
+        <div className="px-5 py-3 sm:px-8 shrink-0 border-t border-white/[0.06] bg-[#14121c]/60 flex items-center justify-between gap-3">
+          <div className="text-xs text-zinc-400">
             <span className="font-semibold text-slate-200">{segments.length} satır</span>
-            <button onClick={() => {flushPendingSave(); void saveToDatabase(segments, true).catch(() => {});}} className="ml-3 text-slate-400 hover:text-slate-200" title={lastSavedTime ? `Son kayıt: ${lastSavedTime}` : 'Şimdi kaydet'}>{isSavingDb ? 'Kaydediliyor…' : lastSavedTime ? '✓ Kaydedildi' : 'Kaydet'}</button>
+            <button disabled={!history.current.past.length||isLiveSyncMode} onClick={()=>restoreEdit('undo')} className="ml-3 disabled:opacity-30">Geri al</button>
+            <button disabled={!history.current.future.length||isLiveSyncMode} onClick={()=>restoreEdit('redo')} className="ml-3 disabled:opacity-30">İleri al</button>
+            <button onClick={() => {flushPendingSave(); void saveToDatabase(segments, true).catch(() => {});}} className="ml-3 text-zinc-400 hover:text-slate-200" title={lastSavedTime ? `Son kayıt: ${lastSavedTime}` : 'Şimdi kaydet'}>{isSavingDb ? 'Kaydediliyor…' : lastSavedTime ? '✓ Kaydedildi' : 'Kaydet'}</button>
           </div>
 
           <div className="flex items-center gap-3">
@@ -2490,7 +2663,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 if (audioRef.current) audioRef.current.pause();
                 onClose();
               }}
-              className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold transition-all"
+              className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-200 text-xs font-bold transition-all"
             >
               Kapat
             </button>
@@ -2516,6 +2689,16 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         </div>
       </div>
 
+      {passageRow && <AudioPassageEditor key={`${vocalStem || instStem}:${passageRow.index}`} file={vocalStem || instStem} row={passageRow.index} segment={passageRow.original}
+        onClose={()=>setPassageRow(null)} onApply={updated=>{
+          if (JSON.stringify(segments[passageRow.index]) !== JSON.stringify(passageRow.original)) throw Error('Satır bu sırada değişti. Düzenleyiciyi yeniden açın; son değişiklikler korundu.');
+          const linked=(updated.words || []).filter(w=>w.end>w.start);
+          const earlier=segments.slice(0,passageRow.index).flatMap(s=>s.words || []).filter(w=>w.end>w.start);
+          const later=segments.slice(passageRow.index+1).flatMap(s=>s.words || []).filter(w=>w.end>w.start);
+          if(linked.some(w=>earlier.some(p=>p.end>w.start+1e-7)||later.some(p=>p.start<w.end-1e-7))) throw Error('Bir ses bağlantısı başka satırın zamanına taşıyor. Sıralamayı korumak için bağlantıyı düzeltin.');
+          const next=segments.map((s,i)=>i===passageRow.index?updated:s);
+          setSegments(next); triggerAutoSave(next,true); setPassageRow(null);
+        }} />}
       {showReferenceModal && <LyricsReferenceModal key={vocalStem || instStem} sourceFile={vocalStem || instStem} duration={duration} segments={segments} onClose={() => setShowReferenceModal(false)} onApply={async (snapshot, edits) => {
         if (JSON.stringify(snapshot) !== JSON.stringify(segments)) throw new Error('Sözler değişti; pencereyi yeniden açıp karşılaştırın.');
         const requestId = ++lyricsRequestRef.current;
@@ -2533,8 +2716,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       }}/>}
       {/* Paste Lyrics & Auto-Align Modal */}
       {showPasteModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in">
-          <div className="bg-slate-900 border border-purple-500/30 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-[#14121c]/80 backdrop-blur-md animate-in fade-in">
+          <div className="bg-[#262230] border border-purple-500/30 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <ClipboardPaste className="w-5 h-5 text-purple-400" />
@@ -2542,29 +2725,29 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
               </div>
               <button
                 onClick={() => setShowPasteModal(false)}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed">
               Kaydınıza uygun sözleri aşağıya yapıştırın. Metin vokalle hizalanır; belirsiz kelime sınırları kontrol için işaretlenir. Yalnızca bazı satırları düzeltmek için “Sözleri bul ve doğrula” seçeneğini kullanın.
             </p>
 
             <textarea
               value={pastedLyricsText}
-              onChange={(e) => setPastedLyricsText(uppercaseLyric(e.target.value))}
+              onChange={(e) => updateLyricInput(e.currentTarget, setPastedLyricsText)}
               placeholder={"Örnek:\nBir fırtına tuttu bizi deryaya kardı\nO bizim kavuşmalarımız a mahşere kaldı\n..."}
               rows={8}
-              className="w-full bg-slate-950/90 border border-white/10 focus:border-purple-500 rounded-2xl p-3.5 text-xs text-slate-200 outline-none resize-none font-mono leading-relaxed placeholder:text-slate-600"
+              className="w-full bg-[#14121c]/90 border border-white/10 focus:border-purple-500 rounded-2xl p-3.5 text-xs text-slate-200 outline-none resize-none font-mono leading-relaxed placeholder:text-slate-600"
             />
 
             <div className="flex items-center justify-end gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setShowPasteModal(false)}
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-bold transition-all cursor-pointer"
+                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-200 text-xs font-bold transition-all cursor-pointer"
               >
                 Vazgeç
               </button>

@@ -6,6 +6,7 @@ export function repairTiming(segments: LyricSegment[]): LyricSegment[] {
   const result = segments.map(seg => ({...seg, ...(seg.words ? {words:seg.words.map(w => ({...w}))} : {})}));
   let previous: TimedWord | undefined;
   for (const seg of result) {
+    if(seg.locked){previous=undefined;continue;}
     for (const word of seg.words || []) {
       if (![word.start,word.end].every(Number.isFinite) || word.start < 0 || word.end <= word.start) {
         previous = undefined; continue;
@@ -17,6 +18,7 @@ export function repairTiming(segments: LyricSegment[]): LyricSegment[] {
     }
   }
   for (const seg of result) {
+    if(seg.locked)continue;
     if (seg.words?.length && seg.words.every(w => [w.start,w.end].every(Number.isFinite) && w.start >= 0 && w.end > w.start)) {
       if (Number.isFinite(seg.start)) seg.start = Math.min(seg.start,...seg.words.map(w => w.start));
       if (Number.isFinite(seg.end)) seg.end = Math.max(seg.end,...seg.words.map(w => w.end));
@@ -42,7 +44,7 @@ export function uppercaseLyrics(segments: LyricSegment[]): LyricSegment[] {
     ...(seg.words ? {words:seg.words.map(w => ({...w,word:uppercaseLyric(w.word)}))} : {})}));
 }
 
-export function timingIssues(segments: LyricSegment[], includeReview = true): string[] {
+export function timingIssues(segments: LyricSegment[], includeReview = true, requireWords = true): string[] {
   const issues: string[] = [];
   let previousEnd = 0;
   segments.forEach((seg, i) => {
@@ -50,7 +52,7 @@ export function timingIssues(segments: LyricSegment[], includeReview = true): st
     if (![seg.start, seg.end].every(Number.isFinite) || seg.start < 0 || seg.end <= seg.start) {
       issues.push(`${label}: geçersiz satır süresi`);
     }
-    if (!seg.words?.length) { issues.push(`${label}: kelimeler sesle hizalanmalı`); return; }
+    if (!seg.words?.length) { if(requireWords)issues.push(`${label}: kelimeler sesle hizalanmalı`); return; }
     if (seg.words.map(w => w.word.trim()).join(' ') !== seg.text.trim().split(/\s+/).join(' ')) {
       issues.push(`${label}: metin değişmiş, yeniden hizalama gerekli`);
     }
@@ -64,12 +66,25 @@ export function timingIssues(segments: LyricSegment[], includeReview = true): st
   return issues;
 }
 
+// Export unaligned lyrics at their measured row interval without inventing word times.
+export function videoSegments(segments: LyricSegment[]): LyricSegment[] {
+  return segments.map(seg => timingIssues([seg], false).length ? {...seg, words:[]} : seg);
+}
+
 export function wordFill(word: TimedWord, time: number, previousEnd = 0, nextStart = Infinity): number {
   // Editor preview follows the stored interval, including uncertain drafts.
   // Confidence remains visible via the ? badge and is checked for export.
   if (![word.start, word.end, time].every(Number.isFinite) || word.start < 0 || word.end <= word.start
     || word.start < previousEnd - 1e-7 || word.end > nextStart + 1e-7 || time < word.start) return 0;
   return Math.min(1, (time - word.start) / (word.end - word.start));
+}
+
+export function wordFillWithNeighbors(word: TimedWord, time: number, previous?: TimedWord, next?: TimedWord): number {
+  const hasInterval = (neighbor?: TimedWord): neighbor is TimedWord => !!neighbor
+    && Number.isFinite(neighbor.start) && Number.isFinite(neighbor.end)
+    && neighbor.start >= 0 && neighbor.end > neighbor.start;
+  // Unbound words have a zero-length placeholder, not an acoustic boundary.
+  return wordFill(word, time, hasInterval(previous) ? previous.end : 0, hasInterval(next) ? next.start : Infinity);
 }
 
 // Preserve measured timestamps even when line text/bounds are edited.
@@ -113,6 +128,8 @@ export function importProject(text: string): LyricSegment[] {
   const list = Array.isArray(parsed) ? parsed : (parsed.segments || parsed.lyrics || []);
   if (!Array.isArray(list)) throw new Error('Geçersiz proje dosyası');
   return list.map((item: any) => ({
+    ...(typeof item.id==='string'?{id:item.id}:{}),
+    ...(typeof item.locked==='boolean'?{locked:item.locked}:{}),
     start: Number(item.start), end: Number(item.end), text: String(item.text || item.line || '').trim(),
     words: Array.isArray(item.words) ? item.words.map((w: any) => ({ ...w, word: String(w.word), start: Number(w.start), end: Number(w.end) })) : [],
   })).filter(s => s.text);

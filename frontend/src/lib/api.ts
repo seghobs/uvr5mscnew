@@ -413,7 +413,7 @@ export const api = {
     deleted_lyrics_count: number;
     deleted_files_count: number;
   }> {
-    const res = await safeFetch('/clear_karaoke_data', {
+    const res = await safeFetch('/api/projects/clear', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });

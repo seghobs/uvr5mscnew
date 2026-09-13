@@ -828,7 +828,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
 
       {/* Audio Queue List */}
       {queue.length > 0 && (
-        <div className="glass-panel rounded-3xl p-6 space-y-4 border border-white/10 shadow-2xl">
+        <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-4 border border-white/10 shadow-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <FileAudio className="w-4 h-4 text-indigo-400" />

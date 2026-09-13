@@ -1,5 +1,7 @@
 'use client';
 
+import {StudioSelect} from './StudioSelect';
+
 import React, { useState } from 'react';
 import {
   FolderArchive,
@@ -123,7 +125,7 @@ export const BatchProcessingView: React.FC<BatchProcessingViewProps> = ({
   const modelsForType = availableModels[modelType] || [];
 
   return (
-    <div className="glass-panel rounded-3xl p-6 lg:p-8 shadow-2xl space-y-6 border border-white/10">
+    <div className="glass-panel rounded-3xl p-6 sm:p-8 lg:p-8 shadow-2xl space-y-6 border border-white/10">
       {/* Header */}
       <div className="flex items-center gap-3.5">
         <div className="p-3 rounded-2xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
@@ -179,9 +181,10 @@ export const BatchProcessingView: React.FC<BatchProcessingViewProps> = ({
           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
             Model Mimarisi
           </label>
-          <select
+          <StudioSelect
+            aria-label="Model Mimarisi"
             value={modelType}
-            onChange={(e) => setModelType(e.target.value)}
+            onValueChange={(value) => setModelType(value)}
             className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-white/10 text-white text-xs font-bold outline-none cursor-pointer"
           >
             <option value="roformer">BS / Mel Roformer</option>
@@ -189,7 +192,7 @@ export const BatchProcessingView: React.FC<BatchProcessingViewProps> = ({
             <option value="mdxnet">MDX-NET</option>
             <option value="vrarch">VR Arch</option>
             <option value="demucs">Demucs v4</option>
-          </select>
+          </StudioSelect>
         </div>
 
         {/* Model Key */}
@@ -197,9 +200,10 @@ export const BatchProcessingView: React.FC<BatchProcessingViewProps> = ({
           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
             Kullanılacak Model
           </label>
-          <select
+          <StudioSelect
+            aria-label="Kullanılacak Model"
             value={modelKey}
-            onChange={(e) => setModelKey(e.target.value)}
+            onValueChange={(value) => setModelKey(value)}
             className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-white/10 text-white text-xs font-bold outline-none cursor-pointer"
           >
             {modelsForType.map((m) => (
@@ -207,7 +211,7 @@ export const BatchProcessingView: React.FC<BatchProcessingViewProps> = ({
                 {m}
               </option>
             ))}
-          </select>
+          </StudioSelect>
         </div>
       </div>
 

@@ -1,5 +1,7 @@
 'use client';
 
+import { initializeProjects, projectStorage } from '@/lib/project-storage';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   TabId,
@@ -12,6 +14,7 @@ import {
 } from '@/lib/types';
 import { getTranslation } from '@/lib/translations';
 import { api } from '@/lib/api';
+import { LocalStudioPanel } from '@/components/LocalStudioPanel';
 import { Header } from '@/components/Header';
 import { NavigationTabs } from '@/components/NavigationTabs';
 import { UploadZone, UploadedItem } from '@/components/UploadZone';
@@ -28,31 +31,35 @@ import { Loader2, Sparkles, CheckCircle2, Music, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function StudioPage() {
+  const [projectsReady,setProjectsReady]=useState(false);
+  const [projectError,setProjectError]=useState('');
+  const loadProjects=()=>{setProjectError('');void initializeProjects().then(()=>setProjectsReady(true)).catch(e=>setProjectError(e.message));};
+  useEffect(loadProjects,[]);
   // Localization & Theme
   const [lang, setLang] = useState<Language>('tr');
   const [accentColor, setAccentColor] = useState<AccentColor>('indigo');
 
   useEffect(() => {
     try {
-      const savedLang = localStorage.getItem('uvr_lang') as Language;
+      const savedLang = projectStorage.getItem('uvr_lang') as Language;
       if (savedLang && (savedLang === 'tr' || savedLang === 'en')) setLang(savedLang);
-      const savedAccent = localStorage.getItem('uvr_accent') as AccentColor;
+      const savedAccent = projectStorage.getItem('uvr_accent') as AccentColor;
       if (savedAccent) setAccentColor(savedAccent);
     } catch {}
-  }, []);
+  }, [projectsReady]);
 
   const handleToggleLang = () => {
     const nextLang = lang === 'tr' ? 'en' : 'tr';
     setLang(nextLang);
     try {
-      localStorage.setItem('uvr_lang', nextLang);
+      projectStorage.setItem('uvr_lang', nextLang);
     } catch {}
   };
 
   const handleChangeAccent = (color: AccentColor) => {
     setAccentColor(color);
     try {
-      localStorage.setItem('uvr_accent', color);
+      projectStorage.setItem('uvr_accent', color);
     } catch {}
   };
 
@@ -105,6 +112,15 @@ export default function StudioPage() {
   const [progress, setProgress] = useState(0);
   const [processingMessage, setProcessingMessage] = useState('');
   const [separatedStems, setSeparatedStems] = useState<string[]>([]);
+  const [activeProjectId,setActiveProjectId]=useState<number|null>(null);
+
+  useEffect(()=>{
+    if(!projectsReady||activeProjectId===null||!['roformer','mdx23c','mdxnet','vrarch','demucs'].includes(currentTab))return;
+    const library:LibraryItem[]=JSON.parse(projectStorage.getItem('uvr_library')||'[]');
+    const settings={params,model:selectedModel,tab:currentTab,ensembleMode,ensembleSlots,format:outputFormat};
+    const updated=library.map(item=>item.id===activeProjectId?{...item,settings}:item);
+    if(JSON.stringify(updated)!==JSON.stringify(library))projectStorage.setItem('uvr_library',JSON.stringify(updated));
+  },[projectsReady,activeProjectId,params,selectedModel,currentTab,ensembleMode,ensembleSlots,outputFormat]);
 
   // Notifications
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -241,16 +257,18 @@ export default function StudioPage() {
             // Add to library history
             try {
               const prevLib: LibraryItem[] = JSON.parse(
-                localStorage.getItem('uvr_library') || '[]'
+                projectStorage.getItem('uvr_library') || '[]'
               );
               const newEntry: LibraryItem = {
                 id: Date.now(),
                 filename: currentItem.name,
                 stems,
                 timestamp: new Date().toLocaleTimeString(),
+                settings:{params,model:selectedModel,tab:currentTab,ensembleMode,ensembleSlots,format:outputFormat},
               };
+              setActiveProjectId(newEntry.id);
               const updatedLib = [newEntry, ...prevLib];
-              localStorage.setItem('uvr_library', JSON.stringify(updatedLib));
+              projectStorage.setItem('uvr_library', JSON.stringify(updatedLib));
             } catch (err) {
               console.error(err);
             }
@@ -273,6 +291,7 @@ export default function StudioPage() {
 
   // Load Project Session from Library (PSD Style)
   const handleLoadProject = (project: LibraryItem) => {
+    setActiveProjectId(project.id);
     // 1. Set Queue with loaded file
     const loadedItem: UploadedItem = {
       id: `${project.id || Date.now()}`,
@@ -286,7 +305,8 @@ export default function StudioPage() {
     setSeparatedStems(project.stems || []);
 
     // 3. Switch back to studio workspace tab
-    setCurrentTab('roformer');
+    setCurrentTab(project.settings?.tab||'roformer');
+    if(project.settings){setParams(project.settings.params);setSelectedModel(project.settings.model);setEnsembleMode(project.settings.ensembleMode);setEnsembleSlots(project.settings.ensembleSlots);setOutputFormat(project.settings.format);}
 
     // 4. Toast notification
     addToast(
@@ -304,8 +324,9 @@ export default function StudioPage() {
     }, 150);
   };
 
+  if(!projectsReady)return <div className="min-h-screen bg-[#17141f] text-slate-200 flex items-center justify-center"><div role="status">{projectError||'Yerel projeler yükleniyor…'}{projectError&&<button className="ml-4 rounded-xl border border-violet-300/30 p-3" onClick={loadProjects}>Tekrar dene</button>}</div></div>;
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30 font-sans">
+    <div className="min-h-screen studio-shell text-slate-100 flex flex-col selection:bg-indigo-500/30 font-sans">
       <Header
         lang={lang}
         accentColor={accentColor}
@@ -316,7 +337,14 @@ export default function StudioPage() {
         device={device}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-[1840px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-8 space-y-8">
+        <section className="flex flex-wrap items-center justify-between gap-4 px-1">
+          <div><p className="text-xs font-semibold tracking-[0.16em] uppercase text-indigo-300 mb-2">{lang==='tr'?'Senin küçük müzik atölyen':'Your little music studio'}</p>
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight font-outfit">{lang==='tr'?'Müziğine yer aç.':'Make room for your music.'}</h2>
+          <p className="mt-2 text-sm sm:text-base text-slate-400">{lang==='tr'?'Sesini ayır, yeniden karıştır ve birlikte söyle.':'Separate, remix, and sing along.'}</p></div>
+          <span aria-hidden="true" className="hidden sm:flex items-center gap-3 rounded-full border border-indigo-300/15 bg-indigo-400/10 px-5 py-3 text-indigo-200"><Music className="h-5 w-5"/><Sparkles className="h-4 w-4 text-rose-300"/></span>
+        </section>
+        <LocalStudioPanel />
         {/* Navigation Tabs */}
         <NavigationTabs
           currentTab={currentTab}
@@ -344,9 +372,9 @@ export default function StudioPage() {
             onNotify={addToast}
           />
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
             {/* Left Column: Upload Deck, Processing Status & Audio Players (8 cols) */}
-            <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+            <div className="xl:col-span-7 2xl:col-span-8 space-y-6">
               {/* Upload & Queue */}
               <UploadZone
                 queue={queue}
@@ -394,7 +422,7 @@ export default function StudioPage() {
                 <div id="separated-stems-section" className="space-y-4 pt-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                      <Music className="w-4 h-4 text-slate-400" />
                       <h3 className="text-base font-bold font-outfit text-white tracking-tight">
                         {t('Separated Stems')} ({separatedStems.length})
                       </h3>
@@ -409,9 +437,12 @@ export default function StudioPage() {
                         allStems={separatedStems}
                         lang={lang}
                         accentColor={accentColor}
-                        onNewStemCreated={(newStem) =>
-                          setSeparatedStems((prev) => [newStem, ...prev])
-                        }
+                        onNewStemCreated={(newStem) => {
+                          setSeparatedStems((prev) => [newStem, ...prev]);
+                          const library:LibraryItem[]=JSON.parse(projectStorage.getItem('uvr_library')||'[]');
+                          const updated=library.map(item=>item.stems.includes(stem)?{...item,stems:[...new Set([newStem,...item.stems])]}:item);
+                          projectStorage.setItem('uvr_library',JSON.stringify(updated));
+                        }}
                         onNotify={addToast}
                       />
                     ))}
@@ -441,7 +472,7 @@ export default function StudioPage() {
             </div>
 
             {/* Right Column: Model Configuration Rack (4 cols) */}
-            <div className="lg:col-span-5 xl:col-span-4 sticky top-24">
+            <div className="xl:col-span-5 2xl:col-span-4 xl:sticky xl:top-24">
               <ModelConfiguration
                 currentTab={currentTab}
                 availableModels={availableModels}

@@ -1,0 +1,10 @@
+{
+  "id": "studio_pro",
+  "name": "Master Studio Pro",
+  "models": [
+    {"model_type":"roformer","model_key":"BS-Roformer-Viperx-1297","vocal_weight":0.25,"inst_weight":0.25},
+    {"model_type":"mdx23c","model_key":"MDX23C-8KFFT-InstVoc_HQ.ckpt","vocal_weight":0.20,"inst_weight":0.20},
+    {"model_type":"roformer","model_key":"MelBand Roformer Kim | FT 2 Bleedless by unwa","vocal_weight":0.45,"inst_weight":0.10},
+    {"model_type":"roformer","model_key":"MelBand Roformer Kim | Inst V2 by Unwa","vocal_weight":0.10,"inst_weight":0.45}
+  ]
+}

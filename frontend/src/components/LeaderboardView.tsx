@@ -80,7 +80,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lang, accentCo
   }, [filter]);
 
   return (
-    <div className="glass-panel rounded-3xl p-6 lg:p-8 shadow-2xl space-y-6 border border-white/10">
+    <div className="glass-panel rounded-3xl p-6 sm:p-8 lg:p-8 shadow-2xl space-y-6 border border-white/10">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">

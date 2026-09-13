@@ -80,8 +80,9 @@ class TimingTests(unittest.TestCase):
     def test_invalid_timings_cannot_render(self):
         for ws in ([('a', 1, 1)], [('a', 1, .9)], [('a', 1, 2), ('b', 1.9, 3)]):
             with self.assertRaises(ValueError): ass_word_tags(segment(ws))
-        with self.assertRaises(ValueError):
-            ass_word_tags({'start': 1, 'end': 2, 'text': 'missing', 'words': []})
+        for start,end in ((1,1),(2,1),(-1,2)):
+            with self.assertRaises(ValueError):
+                ass_word_tags({'start': start, 'end': end, 'text': 'missing', 'words': []})
 
     def test_cross_line_overlap_is_rejected(self):
         self.assertTrue(timing_issues([segment([('a', 1, 2)]), segment([('b', 1.9, 3)])]))

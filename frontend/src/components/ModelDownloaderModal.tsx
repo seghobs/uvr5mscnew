@@ -204,7 +204,7 @@ export const ModelDownloaderModal: React.FC<ModelDownloaderModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
-      <div className="glass-panel w-full max-w-4xl max-h-[85vh] rounded-3xl p-6 sm:p-8 flex flex-col gap-6 shadow-2xl border border-white/15 relative overflow-hidden bg-slate-950/90">
+      <div className="glass-panel w-full max-w-6xl max-h-[85vh] rounded-3xl p-6 sm:p-8 flex flex-col gap-6 shadow-2xl border border-white/15 relative overflow-hidden bg-slate-950/90">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4 shrink-0">
           <div className="flex items-center gap-3.5">

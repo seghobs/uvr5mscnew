@@ -5,6 +5,7 @@ export type Language = 'tr' | 'en';
 export type AccentColor = 'indigo' | 'emerald' | 'rose' | 'amber' | 'violet';
 
 export interface SeparationParams {
+  ensemble_profile?: "studio_pro";
   // Roformer / MDX23C
   segment_size?: number;
   override_segment_size?: boolean;
@@ -44,6 +45,7 @@ export interface ModelStatus {
 }
 
 export interface LibraryItem {
+  settings?: {params: SeparationParams; model: string; tab: TabId; ensembleMode: boolean; ensembleSlots: EnsembleSlot[]; format: string};
   id: number;
   filename: string;
   stems: string[];
@@ -100,6 +102,8 @@ export interface AudioAnalysis {
 }
 
 export interface LyricSegment {
+  id?: string;
+  locked?: boolean;
   start: number;
   end: number;
   text: string;

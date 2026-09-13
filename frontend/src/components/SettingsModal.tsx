@@ -6,6 +6,7 @@ import { Language, AccentColor, SeparationParams } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { getTranslation } from '@/lib/translations';
 import { api } from '@/lib/api';
+import { flushAllProjects, initializeProjects } from '@/lib/project-storage';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -41,7 +42,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
     setIsClearingKaraoke(true);
     try {
+      await flushAllProjects();
       const res = await api.clearKaraokeData();
+      await initializeProjects();
       onNotify(
         'success',
         lang === 'tr' ? 'Karaoke Veritabanı Temizlendi' : 'Karaoke Database Cleared',
@@ -50,6 +53,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           : `Wiped ${res.deleted_lyrics_count} lyrics rows and ${res.deleted_files_count} output files.`
       );
       setConfirmClear(false);
+      window.location.reload();
     } catch (err: any) {
       onNotify('error', 'Hata', err.message || 'Karaoke verileri temizlenemedi.');
     } finally {

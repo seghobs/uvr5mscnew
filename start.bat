@@ -1,4 +1,9 @@
 @echo off
+title UVR5 - Calistir
 cd /d "%~dp0frontend"
-powershell -NoProfile -WindowStyle Hidden -Command "Start-Process cmd -ArgumentList '/c npm run dev' -WorkingDirectory '%~dp0frontend' -WindowStyle Hidden"
-exit
+call npm run dev
+set "uvr_exit_code=%errorlevel%"
+echo.
+echo Uygulama durdu. Pencereyi kapatmak icin bir tusa basin.
+pause >nul
+exit /b %uvr_exit_code%

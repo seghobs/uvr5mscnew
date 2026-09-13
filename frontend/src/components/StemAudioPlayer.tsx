@@ -15,11 +15,18 @@ import {
   Mic,
   Loader2,
   ArrowRightLeft,
+  Droplets,
+  Scissors,
+  Clapperboard,
 } from 'lucide-react';
 import { Language, AccentColor } from '@/lib/types';
-import { cn, formatTime, getNoteName, chromaticNotes } from '@/lib/utils';
+import { cn, formatTime, chromaticNotes } from '@/lib/utils';
 import { getTranslation } from '@/lib/translations';
 import { api } from '@/lib/api';
+import { runAudioJob } from '@/lib/audio-jobs';
+import { NOTE_NAMES, transposeKey } from '@/lib/musical-key';
+import { projectStorage } from '@/lib/project-storage';
+import { StudioSelect } from './StudioSelect';
 import { LyricsModal } from './LyricsModal';
 import { VisualizerExportModal } from './VisualizerExportModal';
 import { KaraokeStudioModal } from './KaraokeStudioModal';
@@ -44,6 +51,8 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
   onNotify,
 }) => {
   const t = (key: string) => getTranslation(lang, key);
+  const stemAccent = {indigo:'183 161 245',emerald:'129 200 178',rose:'233 154 180',amber:'251 191 36',violet:'202 159 233'}[accentColor];
+  const toolButton = 'px-3 py-2 rounded-xl bg-white/[0.035] hover:bg-preset/10 text-slate-300 hover:text-preset border border-white/10 hover:border-preset/30 text-xs font-semibold transition-colors flex items-center gap-1.5 active:scale-95 disabled:opacity-50';
   const containerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WaveSurfer | null>(null);
 
@@ -72,53 +81,46 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
 
   // Pitch & Tempo State
   const [showPitchTempo, setShowPitchTempo] = useState(false);
-  const [pitchShift, setPitchShift] = useState(0);
-  const [tempoFactor, setTempoFactor] = useState(1.0);
+  const settingsKey='uvr-stem-settings:'+stem;
+  const readSettings=()=>{try{return JSON.parse(projectStorage.getItem(settingsKey)||'{}');}catch{return {};}};
+  const [sourceKeyOverride,setSourceKeyOverride]=useState<string>(()=>readSettings().sourceKey||'');
+  const [pitchShift, setPitchShift] = useState<number>(()=>readSettings().pitch??0);
+  const [tempoFactor, setTempoFactor] = useState<number>(()=>readSettings().tempo??1.0);
   const [isModifying, setIsModifying] = useState(false);
 
-  const updateLivePlayback = useCallback((pitch: number, tempo: number) => {
-    if (!wsRef.current) return;
-    const media = wsRef.current.getMediaElement();
-    if (media) {
-      if (pitch !== 0) {
-        const pitchRatio = Math.pow(2, pitch / 12);
-        const effectiveRate = Math.max(0.2, Math.min(4.0, tempo * pitchRatio));
-        try {
-          (media as any).preservesPitch = false;
-        } catch {}
-        try {
-          media.playbackRate = effectiveRate;
-        } catch {}
-      } else {
-        try {
-          (media as any).preservesPitch = true;
-        } catch {}
-        try {
-          media.playbackRate = Math.max(0.2, Math.min(4.0, tempo));
-        } catch {}
-      }
-    } else {
-      try {
-        wsRef.current.setPlaybackRate(tempo, pitch === 0);
-      } catch {}
-    }
+  const [preparingPitch,setPreparingPitch]=useState(false);
+  const [pitchProgress,setPitchProgress]=useState('');
+  const previewOwner=useRef('');
+  if(!previewOwner.current)previewOwner.current=globalThis.crypto.randomUUID();
+  const [pitchError,setPitchError]=useState('');
+  const [previewRetry,setPreviewRetry]=useState(0);
+  const appliedPitchRef=useRef(0);
+  const playbackSettings=useRef({pitch:0,tempo:1,volume:1,muted:false});
+  playbackSettings.current={pitch:pitchShift,tempo:tempoFactor,volume,muted:isMuted};
+  const resumePreviewRef=useRef(false);
+  const previewBusyRef=useRef(false);
+  const previewPositionRef=useRef(0);
+
+  const updateLivePlayback = useCallback((_pitch:number,tempo:number) => {
+    // Pitch is baked into a duration-preserving preview. Native tempo preserves it.
+    wsRef.current?.setPlaybackRate(tempo,true);
   }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const colorMap: Record<AccentColor, { progress: string; cursor: string }> = {
-      indigo: { progress: '#6366f1', cursor: '#818cf8' },
-      emerald: { progress: '#10b981', cursor: '#34d399' },
-      rose: { progress: '#f43f5e', cursor: '#fb7185' },
+      indigo: { progress: '#9275d6', cursor: '#d0c3ff' },
+      emerald: { progress: '#45a98c', cursor: '#ade0cf' },
+      rose: { progress: '#d7658c', cursor: '#f3bbcc' },
       amber: { progress: '#f59e0b', cursor: '#fbbf24' },
-      violet: { progress: '#8b5cf6', cursor: '#a78bfa' },
+      violet: { progress: '#ac74d1', cursor: '#ddc2f4' },
     };
     const themeColors = colorMap[accentColor] || colorMap.indigo;
 
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: '#334155',
+      waveColor: '#62566f',
       progressColor: themeColors.progress,
       cursorColor: themeColors.cursor,
       barWidth: 2.5,
@@ -130,7 +132,7 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
 
     ws.on('ready', () => {
       setDuration(ws.getDuration());
-      updateLivePlayback(pitchShift, tempoFactor);
+      updateLivePlayback(0, playbackSettings.current.tempo);
     });
 
     ws.on('play', () => setIsPlaying(true));
@@ -149,21 +151,59 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
     });
 
     wsRef.current = ws;
+    appliedPitchRef.current=0;
 
     return () => {
       try {
+        wsRef.current=null;
         ws.destroy();
       } catch (err) {}
     };
   }, [stem, accentColor]);
 
-  // Update playback rate/pitch when state changes without destroying WaveSurfer
+  // Changing tone rebuilds only the preview, never the user's source file.
+  useEffect(()=>{
+    const ws=wsRef.current;if(!ws)return;
+    const controller=new AbortController();
+    if(!previewBusyRef.current){
+      previewPositionRef.current=ws.getCurrentTime();
+      resumePreviewRef.current=ws.isPlaying();
+    }
+    const needsPreview=pitchShift!==appliedPitchRef.current;
+    if(!needsPreview&&!previewBusyRef.current){setPitchError('');return;}
+    previewBusyRef.current=true;setPreparingPitch(true);setPitchError('');ws.pause();
+    const timer=setTimeout(async()=>{
+      try{
+        if(pitchShift===0){
+          await ws.load(`/output/${encodeURIComponent(stem)}`);
+        }else{
+          const job=await runAudioJob({file_name:stem,pitch_semitones:pitchShift,kind:'preview',owner:previewOwner.current},controller.signal,j=>setPitchProgress(j.message));
+          const response=await fetch(`/api/audio/jobs/${job.id}/result`,{signal:controller.signal});
+          if(!response.ok)throw Error('Önizleme dosyası alınamadı. Tekrar dene.');
+          const blob=await response.blob();if(controller.signal.aborted)return;
+          await ws.loadBlob(blob);
+        }
+        if(controller.signal.aborted||wsRef.current!==ws)return;
+        appliedPitchRef.current=pitchShift;
+        ws.setPlaybackRate(playbackSettings.current.tempo,true);
+        ws.setTime(Math.min(previewPositionRef.current,ws.getDuration()));
+        setCurrentTime(ws.getCurrentTime());
+        ws.setVolume(playbackSettings.current.volume);ws.setMuted(playbackSettings.current.muted);
+        previewBusyRef.current=false;setPreparingPitch(false);
+        if(resumePreviewRef.current)await ws.play();
+      }catch(error){
+        if(!controller.signal.aborted){previewBusyRef.current=false;setPreparingPitch(false);setPitchError((error as Error).message);}
+      }
+    },350);
+    return ()=>{clearTimeout(timer);controller.abort();};
+  },[pitchShift,stem,accentColor,previewRetry]);
+
   useEffect(() => {
     updateLivePlayback(pitchShift, tempoFactor);
   }, [pitchShift, tempoFactor, updateLivePlayback]);
 
   const handleTogglePlay = () => {
-    if (!wsRef.current) return;
+    if (!wsRef.current || previewBusyRef.current || pitchError) return;
     wsRef.current.playPause();
   };
 
@@ -203,11 +243,8 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
   const handleExportStem = async () => {
     setIsModifying(true);
     try {
-      const res = await api.modifyAudio({
-        file_name: stem,
-        pitch_semitones: pitchShift,
-        tempo_factor: tempoFactor,
-      });
+      const job=await runAudioJob({file_name:stem,pitch_semitones:pitchShift,tempo_factor:tempoFactor,kind:'export'});
+      const res={status:'success',filename:job.output_file!,message:''};
 
       if (res.status === 'success') {
         onNotify('success', t('Process & Export New Stem'), res.filename);
@@ -234,6 +271,9 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
   const [showLyricsModal, setShowLyricsModal] = useState(false);
   const [showVisualizerModal, setShowVisualizerModal] = useState(false);
 
+  const sourceKey=sourceKeyOverride||analysis?.key||'';
+  const noteLabel=(shift:number)=>transposeKey(sourceKey,shift,lang)||`${shift>0?'+':''}${shift} yarım ton`;
+  useEffect(()=>{projectStorage.setItem(settingsKey,JSON.stringify({pitch:pitchShift,tempo:tempoFactor,sourceKey:sourceKeyOverride}));},[settingsKey,pitchShift,tempoFactor,sourceKeyOverride]);
   // Auto-analyze audio key and BPM on mount
   useEffect(() => {
     let isMounted = true;
@@ -320,39 +360,28 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
 
   return (
     <div
-      className={cn(
-        'border rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-xl space-y-4 transition-all duration-300 relative overflow-hidden',
-        isVocal
-          ? 'bg-gradient-to-br from-rose-950/25 via-slate-900/95 to-slate-950 border-rose-500/30 shadow-rose-950/20'
-          : isInst
-          ? 'bg-gradient-to-br from-emerald-950/25 via-slate-900/95 to-slate-950 border-emerald-500/30 shadow-emerald-950/20'
-          : 'bg-slate-900/80 border-slate-800'
-      )}
+      style={{'--preset-accent':stemAccent} as React.CSSProperties}
+      className="stem-player border border-white/10 rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-preset/5 via-[#211d2b] to-[#191621] shadow-xl shadow-black/10 space-y-4 relative overflow-hidden"
     >
       {/* ROW 1: Stem Identification Badge, Title & Key/BPM */}
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/5">
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex flex-wrap items-center gap-3 min-w-0">
           <div
-            className={cn(
-              'px-3 py-1.5 rounded-xl border flex items-center gap-2 shrink-0 shadow-lg font-black text-xs uppercase tracking-wider font-outfit select-none',
-              isVocal && 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-rose-500/10',
-              isInst && 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-emerald-500/10',
-              !isVocal && !isInst && 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-            )}
+            className={toolButton}
           >
             {isVocal ? (
               <>
-                <Mic className="w-4 h-4 text-rose-400 fill-rose-400/20 shrink-0" />
+                <Mic className="w-4 h-4 text-preset fill-preset/20 shrink-0" />
                 <span>VOKAL (İNSAN SESİ)</span>
               </>
             ) : isInst ? (
               <>
-                <Music className="w-4 h-4 text-emerald-400 shrink-0" />
+                <Music className="w-4 h-4 text-preset shrink-0" />
                 <span>ENSTRÜMANTAL (MÜZİK)</span>
               </>
             ) : (
               <>
-                <Music className="w-4 h-4 text-indigo-400 shrink-0" />
+                <Music className="w-4 h-4 text-preset shrink-0" />
                 <span>AYRILMIŞ KANAL</span>
               </>
             )}
@@ -363,7 +392,7 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
               {stem}
             </h4>
             {analysis && (
-              <div className="flex items-center gap-1.5 text-[10px] font-mono text-amber-400/90 mt-0.5">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 mt-1">
                 <span className="font-bold">🎼 {analysis.key} ({analysis.camelot})</span>
                 <span className="text-slate-600">•</span>
                 <span className="font-bold">⚡ {analysis.bpm} BPM</span>
@@ -376,7 +405,7 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
         <a
           href={`/output/${encodeURIComponent(stem)}`}
           download={stem}
-          className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all active:scale-95 shrink-0"
+          className="p-2.5 rounded-xl bg-white/[0.035] hover:bg-preset/10 border border-white/10 text-slate-400 hover:text-preset transition-colors active:scale-95 shrink-0"
           title={t('Download')}
         >
           <Download className="w-4 h-4" />
@@ -390,10 +419,10 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
           <button
             onClick={() => handleQuickClean('dereverb')}
             disabled={isQuickCleaning}
-            className="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+            className={toolButton}
             title="Vokal arkasındaki tüm oda yankısını siler"
           >
-            {isQuickCleaning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>💧</span>}
+            {isQuickCleaning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Droplets className="w-3.5 h-3.5 text-preset" />}
             <span>{isQuickCleaning ? `Temizleniyor %${cleanProgress || 10}` : 'Yankıyı Sil'}</span>
           </button>
         )}
@@ -402,10 +431,10 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
           <button
             onClick={() => handleQuickClean('debleed')}
             disabled={isQuickCleaning}
-            className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+            className={toolButton}
             title="Enstrümantaldeki tüm artık vokal fısıltılarını kazır"
           >
-            {isQuickCleaning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>✂️</span>}
+            {isQuickCleaning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Scissors className="w-3.5 h-3.5 text-preset" />}
             <span>{isQuickCleaning ? `Kazınıyor %${cleanProgress || 10}` : 'Kalıntıyı Kazı'}</span>
           </button>
         )}
@@ -414,10 +443,10 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
         {isVocal && (
           <button
             onClick={() => setShowLyricsModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
+            className={toolButton}
             title="Şarkı Sözlerini (.LRC/.SRT) Çıkar & Oynat"
           >
-            <span>🎤</span>
+            <Mic className="w-3.5 h-3.5 text-preset" />
             <span>Sözler</span>
           </button>
         )}
@@ -425,30 +454,30 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
         {/* 1080p YouTube Karaoke Video Generator */}
         <button
           onClick={() => setShowKaraokeModal(true)}
-          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-md shadow-amber-500/10"
+          className={toolButton}
           title="Şarkı sözlerini düzenleyip 1080p YouTube Karaoke Videosu (MP4) Oluştur"
         >
-          <span>🎤</span>
+          <Mic className="w-3.5 h-3.5 text-preset" />
           <span>Karaoke Video</span>
         </button>
 
         {/* 1080p Video Visualizer Export */}
         <button
           onClick={() => setShowVisualizerModal(true)}
-          className="px-3 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
+          className={toolButton}
           title="1080p Dalga Formlu Video (TikTok/Reels/YouTube) Oluştur"
         >
-          <span>🎬</span>
+          <Clapperboard className="w-3.5 h-3.5 text-preset" />
           <span>Video Klip</span>
         </button>
 
         {/* AI Restoration & Super-Resolution (AudioSR + Roformer Denoise) */}
         <button
           onClick={() => setShowRestoreModal(true)}
-          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:to-indigo-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-md shadow-cyan-500/10"
+          className={toolButton}
           title="AudioSR + Roformer Denoise ile 48kHz Stüdyo Master Restorasyonu"
         >
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <Sparkles className="w-3.5 h-3.5 text-preset" />
           <span>AI Onar & Parlat</span>
         </button>
 
@@ -456,10 +485,10 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
         {counterpartStem && (
           <button
             onClick={() => setShowABCompareModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-cyan-500/20 to-indigo-500/20 hover:from-amber-500/30 hover:to-cyan-500/30 text-white border border-cyan-500/40 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-md shadow-cyan-500/10"
+            className={toolButton}
             title="Orijinal ve Onarılmış ses arasındaki kalite farkını canlı senkronize dinleyin ve spektrumu inceleyin"
           >
-            <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-300" />
+            <ArrowRightLeft className="w-3.5 h-3.5 text-preset" />
             <span>A/B Karşılaştır</span>
           </button>
         )}
@@ -470,8 +499,8 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
           className={cn(
             'px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95',
             showPitchTempo || pitchShift !== 0 || tempoFactor !== 1.0
-              ? 'bg-violet-500/25 border-violet-500/50 text-violet-300'
-              : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
+              ? 'bg-preset/15 border-preset/30 text-preset'
+              : 'bg-white/[0.035] border-white/10 text-slate-300 hover:bg-preset/10 hover:text-preset'
           )}
         >
           <Sliders className="w-3.5 h-3.5" />
@@ -480,7 +509,9 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
       </div>
 
       {/* Waveform Player */}
-      <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 space-y-3">
+      <div className="bg-[#14121c]/75 p-4 rounded-2xl border border-white/[0.06] space-y-3">
+        {preparingPitch&&<p role="status" className="flex items-center gap-2 text-xs text-preset"><Loader2 size={14} className="animate-spin"/>{pitchProgress||'Ton hazırlanıyor · Tempo korunuyor…'}</p>}
+        {pitchError&&<div role="alert" className="text-xs text-rose-300">{pitchError} <button className="underline" onClick={()=>setPreviewRetry(value=>value+1)}>Tekrar dene</button></div>}
         <div ref={containerRef} className="w-full cursor-pointer" />
 
         {/* Player Controls */}
@@ -489,6 +520,7 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
             {/* Play/Pause Button */}
             <button
               onClick={handleTogglePlay}
+              disabled={preparingPitch||!!pitchError}
               className={cn(
                 'w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg transition-transform active:scale-90',
                 accentColor === 'indigo' && 'bg-indigo-600 hover:bg-indigo-500',
@@ -536,6 +568,13 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
       {/* Pitch & Tempo Interactive Panel */}
       {showPitchTempo && (
         <div className="p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 space-y-6">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-200">
+            <span>Kaynak ton</span><StudioSelect value={sourceKeyOverride} onValueChange={setSourceKeyOverride} aria-label="Kaynak tonunu düzelt">
+              <option value="">Analiz: {analysis?.key||'Henüz bilinmiyor'}</option>
+              {NOTE_NAMES.flatMap(n=>['major','minor'].map(mode=><option key={n+mode} value={`${n} ${mode}`}>{transposeKey(`${n} ${mode}`,0,lang)}</option>))}
+            </StudioSelect><span>→ {noteLabel(pitchShift)}</span>
+          </div>
+          <p className="text-xs text-slate-300">Ton ve tempo bağımsızdır. Ton değiştirmek hızı değiştirmez; tempo ayarı seçilen tonu korur. Yüksek kaliteli ton önizlemesi, şarkının uzunluğuna göre biraz zaman alabilir.</p>
           {/* Header & Reset Button */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -567,7 +606,7 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
                     {pitchShift > 0 ? `+${pitchShift}` : pitchShift}
                   </span>
                   <span className="text-xs font-mono font-bold text-violet-300 px-2 py-0.5 rounded bg-violet-500/20 border border-violet-500/30">
-                    {getNoteName(pitchShift, lang)}
+                    {noteLabel(pitchShift)}
                   </span>
                 </div>
               </div>
@@ -583,9 +622,9 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
               />
 
               <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase">
-                <span>-12 (Do↓)</span>
-                <span>0 (Do)</span>
-                <span>+12 (Do↑)</span>
+                <span>-12 (−1 oktav)</span>
+                <span>0 (Orijinal)</span>
+                <span>+12 (+1 oktav)</span>
               </div>
 
               {/* 12-TET Chromatic Note Buttons */}
@@ -612,7 +651,7 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
                             : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/60 hover:text-white'
                         )}
                       >
-                        {lang === 'en' ? n.labelEN : n.labelTR}
+                        {noteLabel(n.semitones)} ({n.semitones>0?'+':''}{n.semitones})
                       </button>
                     );
                   })}

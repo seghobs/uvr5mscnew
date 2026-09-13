@@ -87,58 +87,6 @@ function getPythonExe() {
   return 'pythonw';
 }
 
-async function checkBackendHealth() {
-  try {
-    const res = await fetch('http://127.0.0.1:8000/models', { signal: AbortSignal.timeout(1500) });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
-function killPort8000IfStale() {
-  try {
-    if (process.platform === 'win32') {
-      const output = execSync('netstat -ano | findstr :8000 | findstr LISTENING', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
-      const lines = output.trim().split('\n');
-      for (const line of lines) {
-        const parts = line.trim().split(/\s+/);
-        const pid = parts[parts.length - 1];
-        if (pid && !isNaN(Number(pid))) {
-          console.log(`  ${c.gold}🧹 8000 portundaki eski işlem temizleniyor (PID: ${pid})...${c.reset}`);
-          try {
-            execSync(`taskkill /F /PID ${pid}`, { stdio: 'ignore' });
-          } catch {}
-        }
-      }
-    }
-  } catch {}
-}
-
-function launchBackend(pythonExe) {
-  killPort8000IfStale();
-
-  if (process.platform === 'win32') {
-    try {
-      const psCmd = `Start-Process -FilePath "${pythonExe}" -ArgumentList "${apiScript}" -WorkingDirectory "${rootDir}" -WindowStyle Hidden`;
-      execSync(`powershell -NoProfile -NonInteractive -Command "${psCmd}"`, {
-        stdio: 'ignore',
-        windowsHide: true,
-      });
-      return;
-    } catch {}
-  }
-
-  const child = spawn(pythonExe, [apiScript], {
-    cwd: rootDir,
-    detached: true,
-    stdio: 'ignore',
-    windowsHide: true,
-  });
-
-  child.unref();
-}
-
 function spawnBrowserWatcher() {
   const browserScript = path.join(__dirname, 'open-browser.js');
   const watcher = spawn(process.execPath, [browserScript], {
@@ -151,44 +99,13 @@ function spawnBrowserWatcher() {
 }
 
 async function main() {
-  const pythonExe = getPythonExe();
   printBanner();
-  printServices(pythonExe);
-
-  const isAlreadyRunning = await checkBackendHealth();
-  if (isAlreadyRunning) {
-    console.log(`  ${c.brightGreen}✔ [FASTAPI]${c.white} Backend servisi 100% aktif ve yanıt veriyor! ${c.dim}(Port :8000)${c.reset}`);
-    spawnBrowserWatcher();
-    console.log(`  ${c.brightCyan}🚀 [NEXT.JS]${c.white} Studio UI derleniyor, Chrome otomatik başlatılacak...\n${c.reset}`);
-    return;
-  }
-
-  launchBackend(pythonExe);
-
-  const spinners = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-  let spinIdx = 0;
-  const maxAttempts = 40; // 20 seconds max
-
-  for (let i = 0; i < maxAttempts; i++) {
-    const sym = spinners[spinIdx % spinners.length];
-    spinIdx++;
-    const progressBlocks = '■'.repeat(Math.min(20, Math.floor((i / 15) * 20))).padEnd(20, '─');
-    process.stdout.write(`\r  ${c.brightYellow}${sym}${c.gold} [FASTAPI] AI Modelleri & PyTorch Yükleniyor [${c.brightCyan}${progressBlocks}${c.gold}] (${(i * 0.5).toFixed(1)}s)${c.reset}   `);
-    
-    await new Promise((r) => setTimeout(r, 500));
-    const ready = await checkBackendHealth();
-    if (ready) {
-      process.stdout.write(`\r  ${c.brightGreen}✔ [FASTAPI]${c.white} Backend & AI Çekirdeği 100% Hazır! [${c.brightGreen}${'■'.repeat(20)}${c.white}] ${c.dim}(Port :8000)${c.reset}      \n`);
-      spawnBrowserWatcher();
-      console.log(`  ${c.brightCyan}🚀 [NEXT.JS]${c.white} Studio UI derleniyor, Chrome otomatik başlatılacak...\n${c.reset}`);
-      return;
-    }
-  }
-
+  const pythonExe = getPythonExe().replace(/pythonw(?=\.exe$)/i, 'python');
+  console.log('Yerel servis ve sürüm kontrol ediliyor…');
+  const { spawnSync } = require('child_process');
+  const result = spawnSync(pythonExe, [path.join(rootDir,'service_control.py'),'ensure'], {cwd:rootDir,stdio:'inherit',windowsHide:true});
+  if(result.error)throw result.error;
+  if(result.status!==0)throw new Error('Sunucu hazırlanamadı; yukarıdaki açıklamayı kontrol edin.');
   spawnBrowserWatcher();
-  console.log(`\n  ${c.gold}⚠️ [UYARI] Backend başlangıcı gecikti, Next.js başlatılıyor...${c.reset}\n`);
 }
-
-main().catch((err) => {
-  console.error('[Hata] Backend kontrolü başarısız:', err);
-});
+main().catch(error=>{console.error(error.message);process.exitCode=1;});

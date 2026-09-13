@@ -1,5 +1,7 @@
 'use client';
 
+import { projectStorage } from '@/lib/project-storage';
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Language, AccentColor, LibraryItem } from '@/lib/types';
 import { cn, formatTime } from '@/lib/utils';
@@ -44,7 +46,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const [library, setLibrary] = useState<LibraryItem[]>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem('uvr_library');
+        const stored = projectStorage.getItem('uvr_library');
         return stored ? JSON.parse(stored) : [];
       } catch {
         return [];
@@ -52,6 +54,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     }
     return [];
   });
+
+  useEffect(()=>{const refresh=(event:Event)=>{if((event as CustomEvent).detail?.key==='uvr_library'){try{setLibrary(JSON.parse(projectStorage.getItem('uvr_library')||'[]'));}catch{}}};window.addEventListener('uvr-project-changed',refresh);return()=>window.removeEventListener('uvr-project-changed',refresh);},[]);
 
   const exportProjectFile = (item: LibraryItem) => {
     const jsonStr = JSON.stringify(item, null, 2);
@@ -78,7 +82,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         // Add to library if not exists
         setLibrary((prev) => {
           const updated = [project, ...prev.filter((p) => p.id !== project.id)];
-          localStorage.setItem('uvr_library', JSON.stringify(updated));
+          projectStorage.setItem('uvr_library', JSON.stringify(updated));
           return updated;
         });
         onNotify('success', 'Proje İçe Aktarıldı', `"${project.filename}" kütüphaneye eklendi.`);
@@ -202,7 +206,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     const updated = library.filter((item) => item.id !== id);
     setLibrary(updated);
     try {
-      localStorage.setItem('uvr_library', JSON.stringify(updated));
+      projectStorage.setItem('uvr_library', JSON.stringify(updated));
     } catch {}
     onNotify('info', 'Item Removed', 'Removed from library history');
   };
@@ -211,7 +215,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     if (confirm('Kütüphanedeki tüm işlem geçmişini silmek istediğinize emin misiniz?')) {
       setLibrary([]);
       try {
-        localStorage.removeItem('uvr_library');
+        projectStorage.removeItem('uvr_library');
       } catch {}
       if (audioRef.current) {
         audioRef.current.pause();
@@ -224,7 +228,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="glass-panel rounded-3xl p-6 lg:p-8 shadow-2xl space-y-6 border border-white/10">
+    <div className="glass-panel rounded-3xl p-6 sm:p-8 lg:p-8 shadow-2xl space-y-6 border border-white/10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">

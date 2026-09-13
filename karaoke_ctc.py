@@ -17,6 +17,8 @@ def normalized_words(words, vocab):
     result = []
     for word in words:
         text = unicodedata.normalize('NFC', word['word']).replace('I', 'ı').replace('İ', 'i').lower()
+        # Fold unsupported circumflexes only in the acoustic target, not lyrics.
+        text = ''.join({'â':'a','î':'i','û':'u'}.get(c,c) if c not in vocab else c for c in text)
         text = ''.join(c for c in text if not unicodedata.category(c).startswith('P'))
         if not text or any(c not in vocab or c.isspace() for c in text):
             raise ValueError('Kelimenin tüm harfleri hizalama modelinde temsil edilemiyor.')
@@ -24,7 +26,7 @@ def normalized_words(words, vocab):
     return result
 
 
-def words_from_spans(words, normalized, spans, targets, scale, offset):
+def words_from_spans(words, normalized, spans, targets, scale, offset, include_syllables=False):
     if [s.token for s in spans] != targets:
         raise ValueError('Harf hizalaması tüm tekrarları koruyamadı.')
     result, cursor = [], 0
@@ -35,10 +37,17 @@ def words_from_spans(words, normalized, spans, targets, scale, offset):
         start, end = offset + chars[0].start * scale, offset + chars[-1].end * scale
         result.append({**original, 'start': start, 'end': end, 'probability': score,
                        'timing_source': 'ctc', 'needs_review': score < .5 or end <= start})
+        if include_syllables:
+            from karaoke_syllables import syllable_ranges
+            result[-1]['syllables'] = [
+                {'text': text[a:b], 'start': offset + chars[a].start * scale,
+                 'end': offset + chars[b-1].end * scale,
+                 'score': sum(float(c.score) for c in chars[a:b]) / (b-a)}
+                for a, b in syllable_ranges(text)]
     return result
 
 
-def refine_turkish(audio_path, segments, language, progress=None):
+def refine_turkish(audio_path, segments, language, progress=None, include_syllables=False):
     if language != 'tr':
         return segments
     import soundfile as sf
@@ -106,7 +115,7 @@ def refine_turkish(audio_path, segments, language, progress=None):
                 path, scores = AF.forced_align(emissions, targets, blank=0)
                 spans = AF.merge_tokens(path[0], scores[0].exp(), blank=0)
                 aligned = words_from_spans(words, normalized, spans, target_ids,
-                                           len(audio) / rate / emissions.shape[1], offset)
+                                           len(audio) / rate / emissions.shape[1], offset, include_syllables)
             except (ValueError, RuntimeError):
                 for word in words:
                     word['needs_review'] = True

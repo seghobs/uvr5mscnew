@@ -1,5 +1,7 @@
 'use client';
 
+import {StudioSelect} from './StudioSelect';
+
 import React, { useState, useEffect } from 'react';
 import {
   Sliders,
@@ -36,6 +38,7 @@ import { cn } from '@/lib/utils';
 import { getTranslation } from '@/lib/translations';
 import { useFavorites } from '@/hooks/useFavorites';
 import { api } from '@/lib/api';
+import studioPro from '@/lib/studio-pro-preset.json';
 
 interface ModelConfigurationProps {
   currentTab: TabId;
@@ -157,12 +160,25 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
     return 'roformer';
   };
 
-  const applyPreset = (presetType: 'zero_loss_exchange' | 'master_studio' | 'strings' | 'vocal' | 'piano') => {
+  const applyPreset = (presetType: 'studio_pro' | 'zero_loss_exchange' | 'master_studio' | 'strings' | 'vocal' | 'piano') => {
     if (!ensembleMode) {
       onToggleEnsembleMode();
     }
 
-    if (presetType === 'zero_loss_exchange') {
+    if (presetType === 'studio_pro') {
+      const slots = studioPro.models.map(({model_type,model_key}) => ({model_type,model_key}));
+      const missing = slots.filter(m => !availableModels[m.model_type]?.includes(m.model_key));
+      if (missing.length) {
+        onNotify('warning', 'Model listesi eksik', 'Model merkezini kontrol edin: ' + missing.map(m => m.model_key).join(', '));
+        return;
+      }
+      onChangeEnsembleSlots(slots);
+      onChangeParams({...params, ensemble_profile:'studio_pro', segment_size:256,
+        override_segment_size:false, overlap:8, batch_size:1, normalization_threshold:1,
+        amplification_threshold:0, single_stem:''});
+      onChangeOutputFormat('flac');
+      onNotify('success', 'Master Studio Pro hazır', '4 uzman model · vokal ve enstrüman için ayrı ağırlıklar · FLAC. İşlem daha uzun sürebilir.');
+    } else if (presetType === 'zero_loss_exchange') {
       const s1 =
         availableModels.roformer?.find((m) => m.includes('1297')) ||
         availableModels.roformer?.[0] ||
@@ -188,6 +204,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
       ]);
       onChangeParams({
         ...params,
+        ensemble_profile: undefined,
         overlap: 8,
         segment_size: 256,
         normalization_threshold: 0.9,
@@ -221,6 +238,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
       ]);
       onChangeParams({
         ...params,
+        ensemble_profile: undefined,
         overlap: 8,
         segment_size: 512,
         normalization_threshold: 0.9,
@@ -254,6 +272,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
       ]);
       onChangeParams({
         ...params,
+        ensemble_profile: undefined,
         overlap: 8,
         segment_size: 512,
         normalization_threshold: 0.9,
@@ -284,6 +303,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
       ]);
       onChangeParams({
         ...params,
+        ensemble_profile: undefined,
         overlap: 8,
         segment_size: 256,
         normalization_threshold: 0.9,
@@ -308,6 +328,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
       ]);
       onChangeParams({
         ...params,
+        ensemble_profile: undefined,
         overlap: 8,
         segment_size: 256,
         denoise: true,
@@ -321,7 +342,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
   };
 
   return (
-    <div className="glass-panel rounded-3xl p-6 lg:p-7 shadow-2xl space-y-6 border border-white/10 relative">
+    <div className="glass-panel rounded-3xl p-6 sm:p-8 lg:p-7 shadow-2xl space-y-6 border border-white/10 relative">
       {/* Header with Title & Model Hub shortcut */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -361,14 +382,16 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
       </div>
 
       {/* Quick Ensemble Presets Deck */}
-      <div className="space-y-3">
+      <div className="space-y-3" style={{'--preset-accent': {
+        indigo:'183 161 245', emerald:'129 200 178', rose:'233 154 180', amber:'251 191 36', violet:'202 159 233',
+      }[accentColor]} as React.CSSProperties}>
         <div className="flex items-center justify-between">
           <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 font-outfit">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <Sparkles className="w-3.5 h-3.5 text-preset" />
             <span>Hazır Akıllı Stüdyo Presetleri</span>
           </label>
-          <span className="text-[9px] text-amber-400 font-mono font-bold bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
-            <Zap className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+          <span className="text-[9px] text-preset font-mono font-bold bg-preset/10 px-2 py-0.5 rounded-full border border-preset/20 flex items-center gap-1">
+            <Zap className="w-2.5 h-2.5 fill-preset text-preset" />
             <span>1-TIKLA AYARLA</span>
           </span>
         </div>
@@ -377,22 +400,22 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
         <button
           type="button"
           onClick={() => applyPreset('zero_loss_exchange')}
-          className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-cyan-500/15 via-slate-900/90 to-emerald-950/40 border border-cyan-500/40 hover:border-cyan-400 text-left transition-all active:scale-[0.99] shadow-lg shadow-cyan-500/10 group relative overflow-hidden cursor-pointer"
+          className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-preset/15 via-slate-900/90 to-preset/5 border border-preset/25 hover:border-preset text-left transition-all active:scale-[0.99] shadow-lg shadow-preset/10 group relative overflow-hidden cursor-pointer"
         >
           {/* Subtle Ambient Glow */}
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-cyan-500/15 rounded-full blur-2xl pointer-events-none group-hover:bg-cyan-500/25 transition-colors" />
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-preset/15 rounded-full blur-2xl pointer-events-none group-hover:bg-preset/25 transition-colors" />
 
           <div className="relative z-10 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400/20 to-emerald-600/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-md shadow-cyan-500/20 shrink-0 group-hover:scale-105 group-hover:border-cyan-300 transition-all">
-                <ArrowLeftRight className="w-5 h-5 text-cyan-300" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-preset/20 to-preset/30 border border-preset/25 flex items-center justify-center text-preset shadow-md shadow-preset/20 shrink-0 group-hover:scale-105 group-hover:border-preset transition-all">
+                <ArrowLeftRight className="w-5 h-5 text-preset" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black font-outfit text-white tracking-tight group-hover:text-cyan-300 transition-colors truncate">
+                  <span className="text-xs font-black font-outfit text-white tracking-tight group-hover:text-preset transition-colors truncate">
                     4X S-Tier Ultra-Clean Studio
                   </span>
-                  <span className="text-[9px] font-mono font-black text-cyan-300 bg-cyan-400/15 px-1.5 py-0.5 rounded border border-cyan-400/30 shrink-0">
+                  <span className="text-[9px] font-mono font-black text-preset bg-preset/15 px-1.5 py-0.5 rounded border border-preset/30 shrink-0">
                     4X AI
                   </span>
                 </div>
@@ -402,7 +425,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
               </div>
             </div>
 
-            <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 group-hover:bg-cyan-500 group-hover:text-slate-950 text-cyan-200 text-[11px] font-bold transition-all shadow-sm">
+            <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-preset/20 border border-preset/25 group-hover:bg-preset group-hover:text-slate-950 text-preset text-[11px] font-bold transition-all shadow-sm">
               <Zap className="w-3 h-3 fill-current" />
               <span>Aktif Et</span>
             </div>
@@ -413,22 +436,22 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
         <button
           type="button"
           onClick={() => applyPreset('master_studio')}
-          className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-900/90 to-indigo-950/40 border border-amber-500/30 hover:border-amber-400 text-left transition-all active:scale-[0.99] shadow-lg shadow-amber-500/5 group relative overflow-hidden cursor-pointer"
+          className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-preset/10 via-slate-900/90 to-preset/5 border border-preset/30 hover:border-preset text-left transition-all active:scale-[0.99] shadow-lg shadow-preset/5 group relative overflow-hidden cursor-pointer"
         >
           {/* Subtle Ambient Light */}
-          <div className="absolute -right-8 -top-8 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-amber-500/20 transition-colors" />
+          <div className="absolute -right-8 -top-8 w-28 h-28 bg-preset/10 rounded-full blur-2xl pointer-events-none group-hover:bg-preset/20 transition-colors" />
 
           <div className="relative z-10 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/20 to-amber-600/30 border border-amber-400/30 flex items-center justify-center text-amber-300 shadow-md shadow-amber-500/20 shrink-0 group-hover:scale-105 group-hover:border-amber-300 transition-all">
-                <Crown className="w-5 h-5 text-amber-400 fill-amber-400/20" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-preset/20 to-preset/30 border border-preset/30 flex items-center justify-center text-preset shadow-md shadow-preset/20 shrink-0 group-hover:scale-105 group-hover:border-preset transition-all">
+                <Crown className="w-5 h-5 text-preset fill-preset/20" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black font-outfit text-white tracking-tight group-hover:text-amber-300 transition-colors truncate">
+                  <span className="text-xs font-black font-outfit text-white tracking-tight group-hover:text-preset transition-colors truncate">
                     Master Ultra-HD Studio Gold
                   </span>
-                  <span className="text-[9px] font-mono font-black text-amber-300 bg-amber-400/15 px-1.5 py-0.5 rounded border border-amber-400/30 shrink-0">
+                  <span className="text-[9px] font-mono font-black text-preset bg-preset/15 px-1.5 py-0.5 rounded border border-preset/30 shrink-0">
                     4X AI
                   </span>
                 </div>
@@ -438,13 +461,24 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
               </div>
             </div>
 
-            <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 group-hover:bg-amber-500 group-hover:text-slate-950 text-amber-300 text-[11px] font-bold transition-all shadow-sm">
+            <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-preset/15 border border-preset/30 group-hover:bg-preset group-hover:text-slate-950 text-preset text-[11px] font-bold transition-all shadow-sm">
               <Zap className="w-3 h-3 fill-current" />
               <span>Uygula</span>
             </div>
           </div>
         </button>
 
+        <button type="button" onClick={() => applyPreset('studio_pro')}
+          className="w-full p-3.5 rounded-2xl border border-preset/25 bg-preset/10 hover:bg-preset/15 text-left transition-colors">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <ShieldCheck className="w-6 h-6 text-preset shrink-0" />
+              <div><div className="text-sm font-bold text-white">Master Studio Pro <span className="text-[10px] text-preset">YENİ · 4 MODEL</span></div>
+              <p className="text-xs text-slate-300 mt-1">Doğal vokal ve temiz enstrüman için uzman karışımı</p>
+              <p className="text-[10px] text-slate-400 mt-1">FLAC · Daha uzun işlem · Sonuç şarkıya göre değişir</p></div>
+            </div><span className="text-xs font-bold text-preset">Uygula</span>
+          </div>
+        </button>
         {/* 3 Specialized Mini Presets Grid */}
         <div className="grid grid-cols-3 gap-2">
           <button
@@ -651,15 +685,17 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
               <label className="text-[10px] font-mono text-slate-400 ml-1">
                 Slot {idx + 1} {idx === 0 ? '(Lead)' : idx === 1 ? '(Blend)' : ''}
               </label>
-              <select
+              <StudioSelect
+                aria-label={`Slot ${idx+1} modeli`}
                 value={slot.model_key}
-                onChange={(e) => {
-                  const key = e.target.value;
+                onValueChange={(value) => {
+                  const key = value;
                   const updated = [...ensembleSlots];
                   updated[idx] = {
                     model_key: key,
                     model_type: getModelType(key),
                   };
+                  onChangeParams({...params, ensemble_profile:undefined});
                   onChangeEnsembleSlots(updated);
                 }}
                 className="w-full bg-slate-950 border border-white/10 rounded-2xl p-3 text-xs text-white outline-none focus:border-indigo-500"
@@ -674,7 +710,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
                     ))}
                   </optgroup>
                 ))}
-              </select>
+              </StudioSelect>
             </div>
           ))}
         </div>
@@ -757,32 +793,34 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <label className="text-[11px] font-mono text-slate-400">{t('Segment Size')}</label>
-            <select
+            <StudioSelect
+              aria-label={t('Segment Size')}
               value={params.segment_size || 256}
-              onChange={(e) =>
-                onChangeParams({ ...params, segment_size: parseInt(e.target.value, 10) })
+              onValueChange={(value) =>
+                onChangeParams({ ...params, segment_size: parseInt(value, 10) })
               }
               className="w-full bg-slate-950 border border-white/10 rounded-xl p-2.5 text-xs text-white"
             >
               <option value="128">128 (Hızlı / Düşük VRAM)</option>
               <option value="256">256 (Varsayılan)</option>
               <option value="512">512 (Yüksek Kalite)</option>
-            </select>
+            </StudioSelect>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-[11px] font-mono text-slate-400">{t('Overlap')}</label>
-            <select
+            <StudioSelect
+              aria-label={t('Overlap')}
               value={params.overlap || 8}
-              onChange={(e) =>
-                onChangeParams({ ...params, overlap: parseInt(e.target.value, 10) })
+              onValueChange={(value) =>
+                onChangeParams({ ...params, overlap: parseInt(value, 10) })
               }
               className="w-full bg-slate-950 border border-white/10 rounded-xl p-2.5 text-xs text-white"
             >
               <option value="2">2 (Düşük)</option>
               <option value="4">4 (Orta)</option>
               <option value="8">8 (Önerilen)</option>
-            </select>
+            </StudioSelect>
           </div>
         </div>
 
@@ -869,17 +907,18 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[10px] font-mono text-slate-400">Shifts (Varyasyon)</label>
-                  <select
+                  <StudioSelect
+                    aria-label="Shifts (Varyasyon)"
                     value={params.shifts || 2}
-                    onChange={(e) =>
-                      onChangeParams({ ...params, shifts: parseInt(e.target.value, 10) })
+                    onValueChange={(value) =>
+                      onChangeParams({ ...params, shifts: parseInt(value, 10) })
                     }
                     className="w-full bg-slate-950 border border-white/10 rounded-xl p-2 text-xs text-white"
                   >
                     <option value="1">1 (Hızlı)</option>
                     <option value="2">2 (Dengeli)</option>
                     <option value="4">4 (Yüksek Kalite)</option>
-                  </select>
+                  </StudioSelect>
                 </div>
               </div>
             )}

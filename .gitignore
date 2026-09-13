@@ -41,6 +41,9 @@ assets/custom_settings.json
 
 # Environments & Working Dirs
 .env
+.env.*
+!.env.example
+*.log
 .venv
 env/
 venv/
@@ -53,3 +56,9 @@ ytdl/*
 
 # Local karaoke verification artifacts
 tests/.artifacts/
+
+# Local project data, job cache and service runtime
+/projects/
+/cache/
+/logs/
+/.runtime/

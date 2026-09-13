@@ -5,11 +5,27 @@ import re
 from decimal import Decimal, ROUND_CEILING
 
 
+def render_windows(segments):
+    """One active display slot; clip display tails, never rewrite saved timings."""
+    ordered = sorted((s for s in segments if s.get('text', '').strip()), key=lambda s: s['start'])
+    result = []
+    for index, segment in enumerate(ordered):
+        end = segment['end'] + (0.35 if index + 1 < len(ordered) else 2.0)
+        if index + 1 < len(ordered):
+            end = min(end, ordered[index + 1]['start'])
+        if centiseconds(end) > centiseconds(segment['start']):
+            result.append((segment, end))
+    return result
+
+
 def repair_timing(segments):
     """Repair sub-sample overflow only; never guess acoustic word boundaries."""
     result = copy.deepcopy(segments)
     previous = None
     for seg in result:
+        if seg.get("locked"):
+            previous = None
+            continue
         for word in seg.get('words') or []:
             start, end = word.get('start'), word.get('end')
             if not all(isinstance(t, (int, float)) and math.isfinite(t) for t in (start, end)) or start < 0 or end <= start:
@@ -20,6 +36,7 @@ def repair_timing(segments):
                     previous['end'] = start
             previous = word
     for seg in result:
+        if seg.get('locked'): continue
         words = seg.get('words') or []
         if words and all(isinstance(w.get(k), (int, float)) and math.isfinite(w[k]) for w in words for k in ('start','end')) and all(w['start'] >= 0 and w['end'] > w['start'] for w in words):
             # Expand an obsolete envelope, retaining intentional lead-in/out.
@@ -77,9 +94,12 @@ def escape_ass(text):
 
 
 def ass_word_tags(segment):
-    errors = timing_issues([segment], include_review=False)
+    errors = timing_issues([segment], require_words=False, include_review=False)
     if errors:
         raise ValueError("; ".join(errors[:4]))
+    if not segment.get("words"):
+        # No measured word progress exists: don't inherit the completed-fill color.
+        return r"{\1c&HFFFFFF&}" + escape_ass(segment.get("text", "").strip())
     cursor = centiseconds(segment["start"])
     tags = []
     for i, word in enumerate(segment["words"]):

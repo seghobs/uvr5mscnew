@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  // Whole-song high-quality audio processing can exceed the default 30 seconds.
+  experimental: { proxyTimeout: 660000 },
   async rewrites() {
     return [
       {

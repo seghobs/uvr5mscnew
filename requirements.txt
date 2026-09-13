@@ -1,14 +1,12 @@
 audio-separator[gpu]==0.32.0
-gradio==5.27.1
 yt_dlp>=2023.12.30
-pypresence>=4.3.0
 fastapi>=0.110.0
 uvicorn[standard]>=0.29.0
 python-multipart>=0.0.9
 imageio-ffmpeg>=0.4.9
 pydantic>=2.6.0
-jinja2>=3.1.0
 aiofiles>=23.0.0
 faster-whisper==1.2.1
 stable-ts==2.19.1
 transformers==5.16.1
+psutil==7.2.2
