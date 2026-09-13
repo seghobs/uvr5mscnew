@@ -84,6 +84,23 @@ cd uvr5mscnew
 > [!IMPORTANT]
 > **`setup.bat` kurar; `start.bat` çalıştırır.** Kurulum betiği web uygulamasını başlatmaz. Kurulum başarısız olursa başarı mesajı vermez; hata adımını ve `logs/setup.log` dosyasını gösterir.
 
+### Tam kaldırma
+
+**`uninstaller.bat`** dosyasını açın. Gösterilen klasörü kontrol edip **`SIL`** yazdığınızda uygulamaya ait işlemler durdurulur ve **proje klasörünün tamamı** silinir. Enter ile onay vermeden çıkarsanız hiçbir dosya silinmez.
+
+| Silinenler | Kapsam |
+|---|---|
+| Modeller ve bağımlılıklar | Model ağırlıkları, `env/`, `node_modules/`, Miniforge ve proje içine kurulmuş araçlar |
+| Çalışmalar | Sesler, indirmeler, çıktılar, kayıtlı projeler, veritabanları ve favoriler |
+| Uygulama dosyaları | Kaynak kodu, `.git/`, derlemeler, günlükler, önbellekler ve kaldırıcı dahil bütün betikler |
+| Proje dışındaki sahipliği doğrulanan kayıtlar | Bu klasöre işaret eden kullanıcı Conda ortam kayıtları, kaldırma kayıtları ve kısayollar |
+
+> **Bu işlem geri alınamaz.** Saklamak istediğiniz sesleri ve projeleri önce uygulama klasörünün dışına yedekleyin. Kaldırıcı, klasör içindeki bağlantıların/junction'ların hedeflerini takip etmez; bağlantının kendisini kaldırır. Projeyi yeniden kullanmak için depoyu yeniden indirip `setup.bat` çalıştırmanız gerekir.
+
+Yeni kurulumlarda pip, npm, Conda, Hugging Face, Torch ve geçici çalışma dosyaları proje içindeki `cache/` altında tutulur. Böylece kaldırıcı bunları da siler. Başka uygulamaların kullandığı sistem Python/Node kurulumları silinmez. Eski sürümlerin ortak kullanıcı önbelleklerine yazdığı ve sahipliği kesin belirlenemeyen dosyalar topluca silinmez; Windows'un tuttuğu geçmiş kayıtları ve tarayıcı verileri de bu kaldırmanın kapsamında değildir. Dolayısıyla bilgisayar genelinde hiçbir iz kalmayacağına dair garanti verilmez.
+
+Kilitli dosya veya erişim hatasında kaldırıcı başarı mesajı vermez ve kalan dosyalar olabileceğini bildirir. Açık proje terminallerini ve dosyalarını kapatıp kalan klasörü kontrol edin. Kaldırma devam ederken `start.bat` ve `setup.bat` yeni işlem başlatmayı reddeder.
+
 ### Otomatik olarak neler hazırlanır?
 
 | Adım | Yapılan işlem |
@@ -262,7 +279,9 @@ flowchart LR
 uvr5mscnew/
 ├── setup.bat                  # Otomatik kurulum
 ├── start.bat                  # Windows başlatıcısı
-├── scripts/                   # Kurulum ve doğrulama yardımcıları
+├── uninstaller.bat            # Onayla tam kaldırma
+├── local_runtime.py           # Proje içi önbellek ve geçici dosya yolları
+├── scripts/                   # Kurulum, kaldırma ve doğrulama yardımcıları
 ├── api_modern.py              # FastAPI uç noktaları
 ├── service_control.py         # Projeye ait servislerin yönetimi
 ├── core.py                    # Ses ayırma ve restorasyon

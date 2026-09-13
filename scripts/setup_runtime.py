@@ -16,6 +16,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from local_runtime import configure_local_runtime
 os.environ['PYTHONNOUSERSITE'] = '1'
 DLL_HANDLES = []
 
@@ -42,7 +43,7 @@ def command(args):
 
 
 def pip(*args):
-    command([sys.executable, '-m', 'pip', '--isolated', 'install', '--retries', '3', '--timeout', '120', *args])
+    command([sys.executable, '-m', 'pip', '--isolated', '--cache-dir', ROOT/'cache/pip', 'install', '--retries', '3', '--timeout', '120', *args])
 
 
 def install_dependencies(package, excluded, constraints):
@@ -204,6 +205,7 @@ def main():
     parser.add_argument('action', choices=['install', 'models', 'tools', 'verify'])
     args = parser.parse_args()
     os.chdir(ROOT)
+    configure_local_runtime(ROOT)
     configure_paths()
     {'install': install, 'models': models, 'tools': tools, 'verify': verify}[args.action]()
 

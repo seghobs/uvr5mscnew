@@ -1,5 +1,7 @@
 import sys
 import os
+from local_runtime import configure_local_runtime
+configure_local_runtime()
 from karaoke_ctc import refine_turkish
 
 class _NullStream:

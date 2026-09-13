@@ -14,6 +14,13 @@ $env:PYTHONNOUSERSITE = '1'
 $env:PIP_DISABLE_PIP_VERSION_CHECK = '1'
 $env:CONDA_CHANNEL_PRIORITY = 'strict'
 $env:CONDA_SUBDIR = 'win-64'
+$env:CONDA_REGISTER_ENVS = 'false'
+$env:CONDA_PKGS_DIRS = Join-Path $root 'cache\conda\pkgs'
+$env:CONDA_ENVS_PATH = Join-Path $root 'cache\conda\envs'
+$env:npm_config_cache = Join-Path $root 'cache\npm'
+$env:TEMP = Join-Path $root 'cache\tmp'
+$env:TMP = $env:TEMP
+New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 function Invoke-Checked {
@@ -51,7 +58,7 @@ function Install-Bootstrap {
         if (-not $downloaded) { throw 'Kurulum araci indirilemedi.' }
     }
     # NSIS requires /D to be the final unquoted argument, including paths with spaces.
-    $process = Start-Process -FilePath $installer -ArgumentList "/S /InstallationType=JustMe /RegisterPython=0 /AddToPath=0 /D=$bootstrap" -WindowStyle Hidden -Wait -PassThru
+    $process = Start-Process -FilePath $installer -ArgumentList "/S /InstallationType=JustMe /RegisterPython=0 /AddToPath=0 /NoRegistry=1 /NoShortcuts=1 /D=$bootstrap" -WindowStyle Hidden -Wait -PassThru
     if ($process.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $conda)) { throw 'Miniforge kurulumu tamamlanamadi. tools/setup-runtime konumunu ve gunlugu kontrol edin.' }
 }
 
@@ -63,6 +70,7 @@ try {
     New-Item -ItemType Directory -Path (Join-Path $root 'logs') -Force | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $root '.runtime') -Force | Out-Null
     $lock = [IO.File]::Open((Join-Path $root '.runtime\setup.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
+    if (Test-Path -LiteralPath (Join-Path $root '.runtime\uninstalling')) { throw 'Kaldirma islemi baslatilmis; setup calistirilamaz.' }
     Start-Transcript -Path (Join-Path $root 'logs\setup.log') -Append | Out-Null
     $transcript = $true
     Write-Host 'UVR5 Next Studio - Otomatik kurulum' -ForegroundColor Cyan
