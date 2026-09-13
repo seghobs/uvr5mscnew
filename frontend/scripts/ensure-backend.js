@@ -103,7 +103,7 @@ async function main() {
   const pythonExe = getPythonExe().replace(/pythonw(?=\.exe$)/i, 'python');
   console.log('Yerel servis ve sürüm kontrol ediliyor…');
   const { spawnSync } = require('child_process');
-  const result = spawnSync(pythonExe, [path.join(rootDir,'service_control.py'),'ensure'], {cwd:rootDir,stdio:'inherit',windowsHide:true});
+  const result = spawnSync(pythonExe, [path.join(rootDir,'service_control.py'),'launch'], {cwd:rootDir,stdio:'inherit',windowsHide:true});
   if(result.error)throw result.error;
   if(result.status!==0)throw new Error('Sunucu hazırlanamadı; yukarıdaki açıklamayı kontrol edin.');
   spawnBrowserWatcher();

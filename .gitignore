@@ -63,3 +63,5 @@ tests/.artifacts/
 /logs/
 /.runtime/
 /tools/setup-runtime/
+/.local-settings.json
+/.local-settings.json.tmp

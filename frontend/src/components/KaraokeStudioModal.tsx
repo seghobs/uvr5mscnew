@@ -54,6 +54,7 @@ import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { preserveWords, reconcileWords, uppercaseLyric, uppercaseLyrics, videoSegments, timingIssues, wordFillWithNeighbors, serializeProject, importProject, enqueueLyricsSave, rowPlaybackRange, repairTiming, TimedWord } from '@/lib/karaoke-timing';
 import LyricsReferenceModal from './LyricsReferenceModal';
+import LyricsCatalogSearch from './LyricsCatalogSearch';
 import { WordPlayer, checkWordInterval } from '@/lib/word-player';
 import { AudioPassageEditor } from './AudioPassageEditor';
 import {recordLiveRow, clearLiveTimings} from '@/lib/live-sync';
@@ -169,6 +170,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
   const toggleRowLock=(index:number)=>commitSegments(committedSegments.current.map((row,i)=>i===index?{...row,locked:!row.locked}:row),true);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
+  const [lyricsProgress,setLyricsProgress] = useState('Vokal ve sözler kontrol ediliyor...');
+  const [aiTranscriptDraft,setAITranscriptDraft]=useState<string|null>(null);
   const [rendering, setRendering] = useState(false);
   const [renderStatusMsg, setRenderStatusMsg] = useState('FFmpeg 1080p Render Ediliyor...');
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -199,6 +202,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const [pastedLyricsText, setPastedLyricsText] = useState('');
   const [showReferenceModal, setShowReferenceModal] = useState(false);
   const [isAligningPasted, setIsAligningPasted] = useState(false);
+  const [catalogBusy, setCatalogBusy] = useState(false);
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -683,6 +687,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   ) => {
     const requestId = ++lyricsRequestRef.current;
     setLoadingLyrics(true);
+    setLyricsProgress('Vokal ve sözler kontrol ediliyor...');
     stopWordPreview();
     audioRef.current?.pause();
     flushPendingSave();
@@ -692,7 +697,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       if(!force){try{pending=JSON.parse(projectStorage.getItem('uvr-lyrics-draft:'+sourceFile)||'null');}catch{}}
       const res = pending?.segments?.length
         ? {status:'success',cached:true,segments:pending.segments} as Awaited<ReturnType<typeof api.transcribeLyrics>>
-        : await api.transcribeLyrics(sourceFile, targetLang, force, targetModel, rawLyrics);
+        : await api.transcribeLyrics(sourceFile, targetLang, force, targetModel, rawLyrics,setLyricsProgress);
       if(pending?.segments?.length)onNotify('info','Bekleyen düzenlemeler geri yüklendi');
       if (requestId !== lyricsRequestRef.current) return;
       if (res.segments && res.segments.length > 0) {
@@ -714,7 +719,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           setLastSavedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
           const modelTitle = targetModel === 'large-v3' ? 'Whisper Large-V3 (Full HQ - 32 Katman)' : 'Whisper Large-V3-Turbo (Hızlı)';
           const activeL = WHISPER_LANGUAGES.find((l) => l.code === (targetLang || 'auto')) || { name: targetLang, flag: '🌐' };
-          onNotify(
+          if(!rawLyrics)onNotify(
             'success',
             'Sözler Çıkarıldı & Kaydedildi!',
             `${res.segments.length} satır şarkı sözü [${activeL.flag} ${activeL.name}] diliyle ${modelTitle} tarafından başarıyla çıkarıldı.`
@@ -723,6 +728,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       } else {
         loadSegments([]);
       }
+      return res;
     } catch (err: any) {
       if (requestId === lyricsRequestRef.current) onNotify('warning', 'Hizalama tamamlanamadı', err.message || 'Mevcut sözler korundu.');
       throw err;
@@ -1352,6 +1358,34 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     return `${Math.floor(ms / 60000).toString().padStart(2, '0')}:${Math.floor(ms / 1000 % 60).toString().padStart(2, '0')}.${(ms % 1000).toString().padStart(3, '0')}`;
   };
 
+  const reviewAllWithAI = async () => {
+    const requestId=++lyricsRequestRef.current;
+    setLoadingLyrics(true);setLyricsProgress('Gemini tüm satırları inceliyor...');
+    stopWordPreview();audioRef.current?.pause();
+    try{
+      const snapshot=structuredClone(segments);
+      flushPendingSave();await saveToDatabase(snapshot,false);
+      const result=await api.reviewLyricsAI(vocalStem||instStem,snapshot,setLyricsProgress);
+      if(requestId!==lyricsRequestRef.current)return;
+      loadSegments(result.segments);
+      onNotify('success','AI incelemesi tamamlandı',`${result.ai_report.checked} satır incelendi, ${result.ai_report.changed} satır düzeltildi. Sesle doğrulanamayan ${result.ai_report.rejected} öneri uygulanmadı.`);
+    }catch(error){onNotify('error','AI düzeltmesi uygulanamadı',error instanceof Error?error.message:'Mevcut sözler korundu.');}
+    finally{if(requestId===lyricsRequestRef.current)setLoadingLyrics(false);}
+  };
+
+  const extractWithGemini = async () => {
+    const requestId=++lyricsRequestRef.current;
+    setLoadingLyrics(true);setLyricsProgress('Gemini vokal kaydını dinliyor...');setAITranscriptDraft(null);
+    stopWordPreview();audioRef.current?.pause();
+    try{
+      const result=await api.transcribeAudioAI(vocalStem||instStem,setLyricsProgress);
+      if(requestId!==lyricsRequestRef.current)return;
+      setAITranscriptDraft(result.segments.map(row=>row.text).join('\n')||'Bu kayıtta anlaşılır söz bulunamadı.');
+      onNotify('info','Gemini taslağı hazır','Kayıtlı sözler değiştirilmedi. Taslağı dinleyerek karşılaştırın.');
+    }catch(error){onNotify('error','Gemini söz çıkaramadı',error instanceof Error?error.message:'Kayıtlı sözler korundu.');}
+    finally{if(requestId===lyricsRequestRef.current)setLoadingLyrics(false);}
+  };
+
   const handleGenerateVideo = async () => {
     if (segments.length === 0) {
       onNotify('warning', 'Söz Eksik', 'Lütfen en az bir şarkı sözü satırı ekleyin.');
@@ -1666,6 +1700,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             <div className="flex content-start items-center flex-wrap gap-2">
               <h4 className="mb-1 w-full text-xs font-semibold text-zinc-400">Sözler ve dosyalar</h4>
               <button type="button" disabled={loadingLyrics || !segments.length} onClick={() => setShowReferenceModal(true)} className="rounded-xl border border-indigo-500/40 px-3 py-2 text-xs font-bold text-indigo-300 disabled:opacity-40">Sözleri bul ve doğrula</button>
+              <button type="button" disabled={loadingLyrics || !segments.length} onClick={()=>void reviewAllWithAI()} className="rounded-xl border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-xs font-bold text-violet-200 disabled:opacity-40">Gemini ile tüm satırları düzelt</button>
+              <button type="button" disabled={loadingLyrics} onClick={()=>void extractWithGemini()} className="rounded-xl border border-violet-400/30 px-3 py-2 text-xs font-bold text-violet-200 disabled:opacity-40">Gemini ile sesten söz çıkar</button>
+              {aiTranscriptDraft!==null&&<section className="w-full rounded-xl border border-violet-400/20 bg-violet-400/5 p-4"><div className="mb-2 flex justify-between text-sm"><span>Gemini söz taslağı · kayıtlı sözleri değiştirmez</span><button onClick={()=>setAITranscriptDraft(null)}>Kapat</button></div><textarea aria-label="Gemini söz taslağı" readOnly value={aiTranscriptDraft} className="h-64 w-full rounded-lg bg-black/20 p-3 text-sm"/></section>}
               {/* Paste & Auto-Align Lyrics Button */}
               <button
                 onClick={() => setShowPasteModal(true)}
@@ -2015,7 +2052,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
               {loadingLyrics ? (
                 <div className="h-64 flex flex-col items-center justify-center gap-3 text-zinc-400">
                   <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
-                  <p className="text-sm font-bold">Whisper AI vokalden şarkı sözlerini çıkarıyor...</p>
+                  <p className="text-sm font-bold">{lyricsProgress}</p>
+                  <p className="mt-2 text-xs text-zinc-400">Türkçe sözler dört çözümlemede karşılaştırılır. Doğrulanamayan kelimeler otomatik eklenmez.</p>
                 </div>
               ) : segments.length === 0 ? (
                 <div className="h-64 flex flex-col items-center justify-center gap-3 text-zinc-400 text-center">
@@ -2719,11 +2757,11 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       {/* Paste Lyrics & Auto-Align Modal */}
       {showPasteModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-[#14121c]/80 backdrop-blur-md animate-in fade-in">
-          <div className="bg-[#262230] border border-purple-500/30 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+          <div role="dialog" aria-modal="true" aria-label="Söz ara, yapıştır ve senkronla" className="bg-[#262230] border border-purple-500/30 rounded-3xl max-w-2xl max-h-[90vh] overflow-y-auto w-full p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <ClipboardPaste className="w-5 h-5 text-purple-400" />
-                <h3 className="text-base font-bold font-outfit text-white">Söz Yapıştır & Otomatik Hizala</h3>
+                <h3 className="text-base font-bold font-outfit text-white">Söz Ara, Yapıştır & Senkronla</h3>
               </div>
               <button
                 onClick={() => setShowPasteModal(false)}
@@ -2734,10 +2772,15 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             </div>
 
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Kaydınıza uygun sözleri aşağıya yapıştırın. Metin vokalle hizalanır; belirsiz kelime sınırları kontrol için işaretlenir. Yalnızca bazı satırları düzeltmek için “Sözleri bul ve doğrula” seçeneğini kullanın.
+              Önce aradığınız şarkıyı belirtin. Sonuçlardan uygun sözleri seçin; bulamazsanız aşağıya elle yapıştırın. Sözleri kontrol ettikten sonra senkronlamayı başlatın.
             </p>
 
+            <LyricsCatalogSearch initialTitle={title} initialArtist={artist} onSelect={setPastedLyricsText} onBusyChange={setCatalogBusy} disabled={isAligningPasted}/>
+            <label htmlFor="pasted-song-lyrics" className="block text-xs font-semibold text-zinc-300">Sözler · seçilen metni düzenleyin veya elle yapıştırın</label>
+
             <textarea
+              id="pasted-song-lyrics"
+              disabled={isAligningPasted||catalogBusy}
               value={pastedLyricsText}
               onChange={(e) => updateLyricInput(e.currentTarget, setPastedLyricsText)}
               placeholder={"Örnek:\nBir fırtına tuttu bizi deryaya kardı\nO bizim kavuşmalarımız a mahşere kaldı\n..."}
@@ -2755,14 +2798,16 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
               </button>
               <button
                 type="button"
-                disabled={!pastedLyricsText.trim() || isAligningPasted}
+                disabled={!pastedLyricsText.trim() || isAligningPasted || catalogBusy}
                 onClick={async () => {
                   setIsAligningPasted(true);
                   try {
-                    await fetchInitialLyrics(vocalStem || instStem, true, whisperModel, pastedLyricsText);
+                    const result=await fetchInitialLyrics(vocalStem || instStem, true, whisperModel, pastedLyricsText);
                     setShowPasteModal(false);
                     setPastedLyricsText('');
-                    onNotify('info', 'Hizalama tamamlandı', 'Kelime sınırları ses üzerinden çıkarıldı. İşaretlenen zamanları kontrol edin.');
+                    const report=result?.paste_report;
+                    onNotify(report?.pending.length?'warning':'info',report?'Satır satır senkron tamamlandı':'Hizalama tamamlandı',
+                      report?`${report.total} satır eklendi, ${report.aligned} satır sesle eşleşti. ${report.pending.length} satır senkron bekliyor; bu satırların süresi otomatik uydurulmadı.`:'Kelime sınırları ses üzerinden çıkarıldı. İşaretlenen zamanları kontrol edin.');
                   } catch (e: any) {
                     onNotify('error', 'Hizalama Hatası', e.message);
                   } finally {
@@ -2774,7 +2819,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 {isAligningPasted ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Hizalanıyor...</span>
+                    <span>{lyricsProgress}</span>
                   </>
                 ) : (
                   <>

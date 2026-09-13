@@ -142,3 +142,16 @@ export function enqueueLyricsSave<T>(save: () => Promise<T>): Promise<T> {
   saveQueue = next;
   return next;
 }
+/** Display breaks without adding artificial lyric rows or touching saved timings. */
+export function soloWindows(segments: Array<{start:number;end:number;text:string}>, duration:number): Array<[number,number]> {
+  const rows=segments.filter(s=>s.text.trim()).slice().sort((a,b)=>a.start-b.start);
+  const gaps:Array<[number,number]>=[];
+  let cursor=0;
+  rows.forEach((row,i)=>{
+    const start=Math.max(0,Math.min(duration,row.start));
+    if(start-cursor>=3)gaps.push([cursor,start]);
+    cursor=Math.max(cursor,Math.min(duration,row.end+(i===rows.length-1?2:.35),rows[i+1]?.start??Infinity));
+  });
+  if(duration-cursor>=3)gaps.push([cursor,duration]);
+  return gaps;
+}

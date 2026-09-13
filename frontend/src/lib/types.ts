@@ -111,6 +111,7 @@ export interface LyricSegment {
 }
 
 export interface LyricsResponse {
+  paste_report?: {mode:'line_by_line';total:number;aligned:number;pending:number[]} | null;
   timing_issues?: string[];
   status: string;
   cached?: boolean;

@@ -65,6 +65,16 @@ Model kalitesi ve işlem süresi; kaydın yapısına, seçilen modele, işlem ay
 
 ## Kurulum
 
+### Gemini 3.8 Flash ile ses ve söz incelemesi
+
+Genel Ayarlar içindeki **Yapay zekâ ile söz düzeltme** bölümünde Google API anahtarınızı kaydedip bağlantıyı test edebilirsiniz. Model `gemini-3.8-flash` olarak sabittir. Otomatik inceleme açıksa yeni söz çözümlemesinde bütün satırlar sesle birlikte incelenir; kayıtlı sözler için **Gemini ile tüm satırları düzelt** düğmesini kullanın.
+
+Gemini'ye söz metinleri ve ilgili vokal bölümleri gönderilir. Ses, mono 16 kHz WAV olarak hazırlanır; her düzeltme isteği en fazla 90 saniyelik bölümü kapsar. Farklı kelime önerileri ayrıca yerel çözümlemede dört denemeyle doğrulanmadan uygulanmaz. Yazım/noktalama düzeltmeleri mevcut kelime sürelerini korur. Kilitli satırlar değiştirilmez. Bağlantı hatası, geçersiz model yanıtı veya inceleme sırasında yeni düzenleme yapılması halinde AI sonucu kaydedilmez.
+
+**Gemini ile sesten söz çıkar**, kaydı 60 saniyelik bölümler halinde doğrudan dinletir ve ayrı bir söz taslağı gösterir. Bu taslak kayıtlı sözleri değiştirmez; modelin satır zamanları doğrulanmış kelime zamanları sayılmaz. Arama aracı kullanılmaz. Geçici HTTP 5xx hatalarında bir kez yeniden denenir; servis veya kota sorunu başarı olarak gösterilmez.
+
+Anahtar yalnız proje kökündeki, Git tarafından dışlanan `.local-settings.json` dosyasında saklanır; tarayıcıya geri verilmez. Bu dosyayı paylaşmayın. Kurulum anahtar içermez; kaldırıcı proje klasörüyle birlikte bu dosyayı da kaldırır. Gemini önerileri doğruluk garantisi değildir; Google bağlantısı, model erişimi ve kota gerekir.
+
 ### Tek dosyayla otomatik kurulum
 
 1. Depoyu klonlayın veya GitHub'dan ZIP olarak indirip **tamamen bir klasöre çıkarın**.
@@ -421,6 +431,12 @@ API bağlantısını kontrol edin ve panelde yeniden deneyin. Bekleyen değişik
 Bir hata bildirirken uyguladığınız adımları, kullanılan model/işlem türünü ve ilgili hata mesajını paylaşın. Günlüklerde veya ekran görüntülerinde kişisel dosya yolları bulunabileceğini göz önünde bulundurun.
 
 Kod değişikliklerinden sonra ilgili Python ve ön yüz testlerini çalıştırın. Özellikle söz kayıtlarını, satır kimliklerini, kilitleri ve ses bağlantılarını etkileyen değişikliklerde kayıt/yeniden yükleme davranışını kontrol edin.
+
+## Söz arama ve senkronlama
+
+Karaoke stüdyosunda **Diğer araçlar → Söz Yapıştır & Senkronla** penceresine şarkı adını veya bir söz parçasını, isterseniz sanatçıyı girin. LyricsTranslate, LRCLIB, Genius, LyricFind ve Musixmatch sonuçları kaynaklarına göre listelenir. Uygun sonucu seçince sözler düzenleme alanına alınır; inceleyip **Otomatik Senkronla & Başlat** ile uygulayın. Söz bulunamazsa aynı alana elle yapıştırabilirsiniz. Dört senkronlama denemesi sonuç vermezse satırlar zamanlama bekler halde eklenir.
+
+Arama ve sonuç seçimi kayıtlı sözleri değiştirmez. Kaynak erişim hataları ayrı gösterilir. Musixmatch ortamda `MUSIXMATCH_API_KEY` ister; LyricFind söz erişimi yetkiye bağlıdır. Ayrı bir sunucu çalıştırılmaz; bağımlılıklar `setup.bat` ile kurulur. [Kaynak entegrasyonu ve test notları](lyric_sources/README.md).
 
 ## Köken ve lisanslar
 

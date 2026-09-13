@@ -55,6 +55,8 @@ if os.name == 'nt':
     subprocess.Popen = _SilentPopen
 
 app = FastAPI(title="UVR5 Premium API")
+from lyric_sources.api import router as lyric_catalog_router
+app.include_router(lyric_catalog_router)
 from local_projects import ProjectStore
 project_store = ProjectStore(Path(__file__).parent / 'projects')
 
@@ -1936,6 +1938,101 @@ def _lyrics_revision(file_name):
     return hashlib.sha256(json.dumps(current.get("segments", []) if current else [], sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
+class LyricsAISettings(BaseModel):
+    api_key: Optional[str] = Field(None,max_length=512)
+    enabled: bool = False
+
+
+@app.middleware('http')
+async def protect_lyrics_ai_settings(request, call_next):
+    if request.url.path.startswith('/api/settings/lyrics-ai') or request.url.path in ('/api/lyrics/ai-review','/api/lyrics/ai-transcribe'):
+        origin=request.headers.get('origin')
+        if origin and origin not in {'http://localhost:3000','http://127.0.0.1:3000','http://localhost:8000','http://127.0.0.1:8000'}:
+            from fastapi.responses import JSONResponse
+            return JSONResponse({'detail':'Bu işlem yalnız yerel uygulamadan kullanılabilir.'},status_code=403)
+    return await call_next(request)
+
+
+@app.get('/api/settings/lyrics-ai')
+def lyrics_ai_settings():
+    from lyrics_ai import public_settings
+    return public_settings()
+
+
+@app.put('/api/settings/lyrics-ai')
+def update_lyrics_ai_settings(req: LyricsAISettings):
+    from lyrics_ai import save_settings
+    try:return save_settings(req.api_key,req.enabled)
+    except ValueError:raise HTTPException(400,'API anahtarının biçimi geçersiz.')
+
+
+@app.post('/api/settings/lyrics-ai/test')
+def test_lyrics_ai_settings():
+    from lyrics_ai import settings,generate
+    try:
+        key=settings().get('api_key')
+        if not key:raise ValueError('Önce API anahtarını kaydedin.')
+        generate('Yalnız OK yaz.',key)
+        return {'ok':True}
+    except ValueError as exc:raise HTTPException(400,str(exc))
+
+
+class LyricsAIReview(BaseModel):
+    file_name: str = Field(...,min_length=1,max_length=256)
+    segments: List[LyricSegmentModel] = Field(...,min_length=1,max_length=500)
+
+
+class LyricsAITranscribe(BaseModel):
+    file_name: str = Field(...,min_length=1,max_length=256)
+
+
+def run_ai_transcription(task_id,req):
+    try:
+        from lyrics_ai import settings,transcribe_audio
+        config=settings()
+        if not config.get('api_key'):raise ValueError('Önce ayarlardan API anahtarını kaydedin.')
+        result=transcribe_audio(_find_audio_file(req.file_name),config['api_key'],
+            progress=lambda p,m:_update_task(task_id,progress=p,message=m))
+        # A draft has approximate segment times, never verified word timings.
+        _update_task(task_id,status='completed',progress=1.,result=result)
+    except Exception as exc:_update_task(task_id,status='failed',error=str(exc),message='Gemini söz taslağı oluşturulamadı; kayıtlı sözler korundu.')
+
+
+@app.post('/api/lyrics/ai-transcribe')
+def ai_transcribe_endpoint(req: LyricsAITranscribe,background_tasks: BackgroundTasks):
+    _find_audio_file(req.file_name)
+    task_id=_create_task({'message':'Gemini vokal kaydını dinlemeye hazırlanıyor...'})
+    background_tasks.add_task(run_ai_transcription,task_id,req)
+    return {'task_id':task_id}
+
+
+def run_ai_review(task_id,req,expected_revision):
+    try:
+        from lyrics_ai import correct_rows
+        with _lyrics_inference_lock:
+            result,report=correct_rows(_find_audio_file(req.file_name),[s.model_dump() for s in req.segments],
+                get_precision_whisper_model,lambda p,m:_update_task(task_id,progress=p,message=m))
+            if report is None:raise ValueError('AI desteğini ayarlardan açıp API anahtarını kaydedin.')
+            with _lyrics_data_lock:
+                if _lyrics_revision(req.file_name)!=expected_revision:raise ValueError('İnceleme sırasında sözler değişti; yeni düzenlemeler korundu.')
+                saved=save_lyrics_db(req.file_name,'tr',result,is_edited=True)
+            saved['ai_report']=report
+            _update_task(task_id,status='completed',progress=1.,result=saved)
+    except Exception as exc:
+        _update_task(task_id,status='failed',error=str(exc),message='AI incelemesi uygulanamadı; mevcut sözler korundu.')
+
+
+@app.post('/api/lyrics/ai-review')
+def ai_review_endpoint(req: LyricsAIReview,background_tasks: BackgroundTasks):
+    _find_audio_file(req.file_name)
+    from lyrics_ai import public_settings
+    config=public_settings()
+    if not config['enabled'] or not config['configured']:raise HTTPException(400,'Önce ayarlardan AI desteğini açıp anahtarı kaydedin.')
+    task_id=_create_task({'message':'Gemini incelemesi sırada...'})
+    background_tasks.add_task(run_ai_review,task_id,req,_lyrics_revision(req.file_name))
+    return {'task_id':task_id}
+
+
 def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: str):
     try:
         with _lyrics_inference_lock:
@@ -1955,6 +2052,7 @@ def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: st
             model = get_whisper_model(req.model_name if req.model_name in ("large-v3", "large-v3-turbo") else "large-v3")
             language = None if req.language in (None, "", "auto", "none") else req.language
             transcript = (req.raw_lyrics_text or "").strip()
+            paste_report=None
             if language is None or (not transcript and language != 'tr'):
                 _update_task(task_id, message="Sözler ve dil tanınıyor...", progress=0.2)
                 decoded, info = model.transcribe(str(audio_path), language=language,
@@ -1965,19 +2063,38 @@ def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: st
                 if not transcript and language != 'tr':
                     transcript = "\n".join(seg.text.strip() for seg in decoded if seg.text.strip())
             if language == 'tr':
-                from karaoke_anchored import recognize_anchored, anchor_transcript
+                from karaoke_anchored import recognize_anchored, anchor_transcript, anchor_transcript_rows
                 model=None
-                segments=recognize_anchored(audio_path,get_precision_whisper_model,
-                    lambda fraction,message:_update_task(task_id,progress=.2+.7*fraction,message=message))
+                try:
+                    segments=recognize_anchored(audio_path,get_precision_whisper_model,
+                        lambda fraction,message:_update_task(task_id,progress=.2+.7*fraction,message=message))
+                except ValueError:
+                    if not transcript:raise
+                    segments=[]
                 if transcript:
-                    segments=anchor_transcript(transcript,segments)
+                    try:
+                        segments=anchor_transcript(transcript,segments)
+                    except ValueError:
+                        segments,paste_report=anchor_transcript_rows(transcript,segments,
+                            lambda fraction,message:_update_task(task_id,progress=.85+.05*fraction,message=message))
             elif not transcript:
                 raise ValueError("Ses içinde söz bulunamadı; mevcut kayıt korundu.")
             else:
                 _update_task(task_id, message="Tüm kelimeler vokal sesle hizalanıyor...", progress=0.5)
-                segments = align_lyrics(model, audio_path, transcript, language)
-                from karaoke_anchored import bounded_refine
-                segments = bounded_refine(audio_path,segments,language,refine_turkish)
+                try:
+                    segments = align_lyrics(model, audio_path, transcript, language)
+                    from karaoke_anchored import bounded_refine
+                    segments = bounded_refine(audio_path,segments,language,refine_turkish)
+                except ValueError:
+                    if not req.raw_lyrics_text:raise
+                    from karaoke_anchored import anchor_transcript_rows
+                    decoded,_=model.transcribe(str(audio_path),language=language,word_timestamps=True,
+                        condition_on_previous_text=False,beam_size=5,temperature=0.)
+                    recognized=[{'words':[{'word':w.word.strip(),'start':w.start,'end':w.end,
+                        'probability':w.probability,'timing_source':'whisper','needs_review':True}
+                        for w in seg.words or [] if w.probability>=.6 and w.end>w.start]} for seg in decoded]
+                    segments,paste_report=anchor_transcript_rows(transcript,recognized,
+                        lambda fraction,message:_update_task(task_id,progress=.85+.05*fraction,message=message))
             # Short display lines without changing ANY word boundary.
             if not req.raw_lyrics_text:
                 grouped = []
@@ -1988,11 +2105,18 @@ def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: st
                         grouped.append({"start": chunk[0]["start"], "end": chunk[-1]["end"],
                                         "text": " ".join(w["word"] for w in chunk), "words": chunk})
                 segments = grouped
+            from lyrics_ai import correct_rows
+            ai_report=None
+            if not req.raw_lyrics_text:
+                segments,ai_report=correct_rows(audio_path,segments,get_precision_whisper_model,
+                    lambda p,m:_update_task(task_id,progress=.9+.08*p,message=m))
             with _lyrics_data_lock:
                 if _lyrics_revision(req.file_name) != expected_revision:
                     raise ValueError("Hizalama sırasında sözler değiştirildi. Yeni düzenlemeler korundu; yeniden hizalayın.")
                 saved = save_lyrics_db(req.file_name, language, segments, is_edited=False)
             saved["cached"] = False
+            saved['ai_report']=ai_report
+            saved['paste_report']=paste_report
             _update_task(task_id, status="completed", progress=1.0, result=saved,
                          message="Hizalama tamamlandı; şüpheli zamanlar işaretlendi." if saved["timing_issues"] else "Kelime hizalaması tamamlandı.")
     except Exception as exc:
@@ -2009,6 +2133,40 @@ def transcribe_lyrics_endpoint(req: LyricsRequest, background_tasks: BackgroundT
     task_id = _create_task({"message": "Kelime hizalaması sıraya alındı..."})
     background_tasks.add_task(run_lyrics_alignment, task_id, req, _lyrics_revision(req.file_name))
     return {"task_id": task_id, "status": "processing"}
+
+
+def run_pasted_sync(task_id,req,expected_revision):
+    from paste_sync import synchronize
+    from karaoke_anchored import anchor_transcript_rows
+    try:
+        text=(req.raw_lyrics_text or '').strip()
+        acquired=_lyrics_inference_lock.acquire(timeout=1)
+        try:
+            if acquired:
+                path=_find_audio_file(req.file_name)
+                segments,report=synchronize(path,text,req.language,
+                    lambda p,m:_update_task(task_id,progress=p,message=m))
+            else:
+                segments,report=anchor_transcript_rows(text,[])
+                report.update(attempts=0,reason='Ses motoru meşgul; sözler bekletilmeden eklendi.')
+        finally:
+            if acquired:_lyrics_inference_lock.release()
+        with _lyrics_data_lock:
+            if _lyrics_revision(req.file_name)!=expected_revision:raise ValueError('Sözler değiştirildi; yeni düzenlemeler korundu.')
+            saved=save_lyrics_db(req.file_name,req.language or 'tr',segments,is_edited=True)
+        saved.update(cached=False,paste_report=report)
+        _update_task(task_id,status='completed',progress=1.,result=saved,message='Sözler satır satır eklendi. Eşleşmeyen satırlar senkron bekliyor.')
+    except Exception as exc:_update_task(task_id,status='failed',error=str(exc),message='Sözler kaydedilemedi; mevcut kayıt korundu.')
+
+
+@app.post('/api/lyrics/paste')
+def paste_lyrics_endpoint(req: LyricsRequest,background_tasks: BackgroundTasks):
+    text=(req.raw_lyrics_text or '').strip()
+    if not text or len(text)>100000 or len(text.splitlines())>500:raise HTTPException(422,'1–500 satır söz yapıştırın.')
+    _find_audio_file(req.file_name)
+    task_id=_create_task({'message':'Sözler hazırlanıyor · en fazla 4 deneme','model_type':'paste_sync'})
+    background_tasks.add_task(run_pasted_sync,task_id,req,_lyrics_revision(req.file_name))
+    return {'task_id':task_id,'status':'processing'}
 
 
 class QuickCleanRequest(BaseModel):
@@ -2218,6 +2376,10 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
 
         windows = render_windows([s.model_dump() for s in segments_to_use])
         segments_to_use = [LyricSegmentModel(**s) for s, _ in windows]
+        from karaoke_timing import solo_windows
+        import soundfile as sf
+        for solo_start,solo_end in solo_windows([s.model_dump() for s in segments_to_use],sf.info(str(inst_path)).duration):
+            ass_lines.append(f"Dialogue: 0,{to_ass_time(solo_start)},{to_ass_time(solo_end)},BreakNotice,,0,0,0,,{{\\pos({x_center}, {y_active})}}Solo...")
 
         if segments_to_use and segments_to_use[0].start >= 1.5:
             first_seg = segments_to_use[0]

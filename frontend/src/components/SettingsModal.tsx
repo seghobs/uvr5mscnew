@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, Cpu, Sliders, CheckCircle2, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 import { Language, AccentColor, SeparationParams } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { getTranslation } from '@/lib/translations';
 import { api } from '@/lib/api';
+import { LyricsAISettings } from './LyricsAISettings';
 import { flushAllProjects, initializeProjects } from '@/lib/project-storage';
 
 interface SettingsModalProps {
@@ -34,6 +35,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const t = (key: string) => getTranslation(lang, key);
   const [isClearingKaraoke, setIsClearingKaraoke] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const aiSettings=useRef<{save:()=>Promise<boolean>}>(null);
 
   const handleClearKaraoke = async () => {
     if (!confirmClear) {
@@ -100,7 +102,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-      <div className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -116,6 +118,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Compute Device */}
+        <LyricsAISettings ref={aiSettings} />
         <div className="space-y-3">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block">
             {t('Compute Device')}
@@ -251,7 +254,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Save & Close Button */}
         <button
-          onClick={() => {
+          onClick={async () => {
+            if(aiSettings.current&&!await aiSettings.current.save())return;
             onClose();
             onNotify('success', 'Settings Saved');
           }}

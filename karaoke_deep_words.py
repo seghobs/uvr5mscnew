@@ -51,7 +51,7 @@ def rank_candidates(candidates):
     return sorted(candidates,key=lambda c:(c['agreement'],c['probability']),reverse=True)
 
 
-def deep_words(path,start,end,get_model,progress=lambda *args:None):
+def deep_words(path,start,end,get_model,progress=lambda *args:None,strict=False):
     import numpy as np
     import soundfile as sf
     import torch
@@ -64,6 +64,13 @@ def deep_words(path,start,end,get_model,progress=lambda *args:None):
     if not samples.size or not np.isfinite(samples).all():raise ValueError('Ses bölümü okunamadı.')
     if np.max(np.abs(samples))<1e-5:return {'candidates':[],'message':'Bu aralıkta duyulabilir ses yok.'}
     wave=AF.resample(torch.from_numpy(samples),rate,16000).numpy()
+    speech = None
+    if strict:
+        from faster_whisper.vad import get_speech_timestamps, VadOptions
+        speech = get_speech_timestamps(wave, VadOptions(threshold=.35,
+            min_speech_duration_ms=100, min_silence_duration_ms=500, speech_pad_ms=200))
+        if not speech:
+            return {'candidates': [], 'message': 'Vokal bulunmadı; söz eklenmedi.'}
     peak_rms=max(float(np.sqrt(np.mean(wave[i:i+1600]**2))) for i in range(0,len(wave),1600))
     candidates=[]
     for run,(key,chunked) in enumerate([('large-v3',False),('large-v3-turbo',False),('large-v3',True),('large-v3-turbo','onset')]):
@@ -76,18 +83,26 @@ def deep_words(path,start,end,get_model,progress=lambda *args:None):
             energy=np.array([np.sqrt(np.mean(wave[i:i+1600]**2)) for i in range(0,int(requested*16000),1600)])
             active=np.flatnonzero(energy>max(1e-5,float(energy.max())*.12))
             focus=max(0,float(active[0])*.1-2) if len(active) else 0
-            chunks=[(focus,min(length,focus+28),0,requested)]
+            chunks=[(max(focus,t-2),min(length,t+28),t,min(requested,t+20))
+                    for t in range(0,math.ceil(requested),20) if min(requested,t+20)>focus]
         words=[]; rejected=[]
         for a,b,owner_a,owner_b in chunks:
             decoded,_=model.transcribe(wave[int(a*16000):int(b*16000)],language='tr',beam_size=10,
-                temperature=0.,word_timestamps=True,vad_filter=False,condition_on_previous_text=False)
+                temperature=0.,word_timestamps=True,vad_filter=False,condition_on_previous_text=False,
+                hallucination_silence_threshold=2.0 if strict else None)
             for segment in decoded:
+                if strict and (segment.no_speech_prob>.6 or segment.avg_logprob < -1.0 or segment.compression_ratio>2.4):
+                    rejected.append(segment.text.strip());continue
                 # A subtitle-credit hallucination is retained as a rejected diagnostic.
                 if re.fullmatch(r'\s*(altyaz[ıi]\s*)?m\s*[.]?\s*k\s*[.]?\s*',segment.text,re.IGNORECASE):
                     rejected.append(segment.text.strip());continue
                 for w in segment.words or []:
                     s,e=a+w.start,a+w.end
                     if not owner_a<=(s+e)/2<owner_b or not 0<=s<e<=requested:continue
+                    if strict:
+                        overlap=sum(max(0,min(e*16000,v['end'])-max(s*16000,v['start'])) for v in speech)
+                        if w.probability<.6 or overlap < (e-s)*16000*.2:
+                            rejected.append(w.word.strip());continue
                     evidence=wave[int(s*16000):int(e*16000)]
                     if not evidence.size or float(np.sqrt(np.mean(evidence**2)))<max(1e-6,peak_rms*.01):
                         rejected.append(w.word.strip());continue
@@ -97,10 +112,10 @@ def deep_words(path,start,end,get_model,progress=lambda *args:None):
         words.sort(key=lambda w:w['start'])
         words, english_rejected = filter_english_adlibs(words)
         rejected.extend(english_rejected)
-        if words:
-            candidates.append({'label':['Geniş bağlam','İkinci model','Kısa bölümler','Vokal girişine odaklanma'][run],
+        if words or strict:
+            candidates.append({'run_id':run,'label':['Geniş bağlam','İkinci model','Kısa bölümler','Vokal girişine odaklanma'][run],
                 'text':' '.join(w['word'] for w in words),'words':words,'rejected':rejected,
-                'probability':sum(w['probability'] for w in words)/len(words)})
+                'probability':sum(w['probability'] for w in words)/max(1,len(words))})
         model=None
     message = ('4 deneme tamamlandı. Yaygın İngilizce ünlem ve kalıplar süzüldü. Alternatifleri dinleyerek karşılaştırın.'
                if candidates else 'Türkçe söz adayı bulunamadı. Yazdığın sözleri sesle hizalamayı deneyin; mevcut sözler korundu.')

@@ -18,6 +18,18 @@ def render_windows(segments):
     return result
 
 
+def solo_windows(segments, duration, minimum=3.0):
+    """Presentation-only breaks; never insert invented lyrics into saved rows."""
+    result=[]
+    cursor=0.0
+    for segment,end in render_windows(segments):
+        start=max(0.0,min(duration,segment['start']))
+        if start-cursor>=minimum:result.append((cursor,start))
+        cursor=max(cursor,min(duration,end))
+    if duration-cursor>=minimum:result.append((cursor,duration))
+    return result
+
+
 def repair_timing(segments):
     """Repair sub-sample overflow only; never guess acoustic word boundaries."""
     result = copy.deepcopy(segments)

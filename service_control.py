@@ -8,6 +8,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+from urllib.error import HTTPError
 import psutil
 
 ROOT=Path(__file__).resolve().parent
@@ -38,8 +39,8 @@ def management_lock():
 
 def revision():
     digest=hashlib.sha256()
-    for path in sorted(ROOT.glob('*.py')):
-        digest.update(path.name.encode());digest.update(path.read_bytes())
+    for path in sorted([*ROOT.glob('*.py'), *(ROOT/'lyric_sources').glob('*.py')]):
+        digest.update(path.relative_to(ROOT).as_posix().encode());digest.update(path.read_bytes())
     return digest.hexdigest()
 
 def service_info():
@@ -72,25 +73,37 @@ def terminate_tree(process):
         try:child.kill()
         except psutil.Error:pass
 
+class ServiceBusy(RuntimeError):
+    pass
+
+
 def prepare():
     info=service_info()
     if info and Path(info.get('root','')).resolve()==ROOT:
         request=urllib.request.Request('http://127.0.0.1:8000/api/service/prepare',data=b'{}',headers={'Content-Type':'application/json'},method='POST')
         try:
             with urllib.request.urlopen(request,timeout=5):pass
-        except Exception as exc:raise RuntimeError('Çalışan işlemler var. Önce tamamlayın veya iptal edin.') from exc
+        except HTTPError as exc:
+            if exc.code==409:raise ServiceBusy('Çalışan işlemler var. Önce tamamlayın veya iptal edin.') from exc
+            raise RuntimeError('Sunucunun yeniden başlatılmaya hazır olduğu doğrulanamadı.') from exc
+        except Exception as exc:raise RuntimeError('Sunucu durumuna ulaşılamadı; çalışan işlemler korunuyor.') from exc
 
 def stop(frontend=False):
     prepare()
     for process in psutil.process_iter():
         if process.pid!=os.getpid() and (owns_backend(process) or (frontend and owns_frontend(process))):terminate_tree(process)
 
-def start():
+def start(reuse_busy=False):
     current=service_info()
     if current and Path(current.get('root','')).resolve()!=ROOT:raise RuntimeError('8000 portunda başka bir proje çalışıyor.')
     if current and current.get('revision')==revision():return
     existing=[p for p in psutil.process_iter() if owns_backend(p)]
-    if existing:stop()
+    if existing:
+        try:stop()
+        except ServiceBusy:
+            if not reuse_busy or not current:raise
+            print('Çalışan işlem korunuyor; arayüz mevcut sunucuyla açılacak. Yeni değişiklikler için işlem bittikten sonra sunucuyu yeniden başlatın.')
+            return
     for connection in psutil.net_connections(kind='tcp'):
         if connection.status=='LISTEN' and connection.laddr.port==8000:raise RuntimeError('8000 portu başka bir işlem tarafından kullanılıyor.')
     logs=ROOT/'logs';logs.mkdir(exist_ok=True)
@@ -110,6 +123,7 @@ if __name__=='__main__':
             if action=='stop':stop(True)
             elif action=='restart':stop();start()
             elif action=='ensure':start()
+            elif action=='launch':start(reuse_busy=True)
             else:raise ValueError('Unknown service action')
         print('UVR5: '+action+' tamamlandı.')
     except Exception as exc:print(str(exc),file=sys.stderr);sys.exit(1)

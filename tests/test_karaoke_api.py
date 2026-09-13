@@ -23,6 +23,8 @@ from karaoke_timing import repair_timing, timing_issues
 
 class ApiTests(unittest.TestCase):
     def setUp(self):
+        ai = patch('lyrics_ai.correct_rows', side_effect=lambda path,rows,*args:(rows,None))
+        ai.start(); self.addCleanup(ai.stop)
         self.tmp = tempfile.TemporaryDirectory()
         root = Path(self.tmp.name)
         source = ast.parse(Path('api_modern.py').read_text(encoding='utf8'))
@@ -31,7 +33,8 @@ class ApiTests(unittest.TestCase):
                  'LyricsRequest', 'SaveLyricsRequest', 'save_lyrics_endpoint',
                  'KaraokeVideoRequest', 'generate_karaoke_video_endpoint',
                  'run_lyrics_alignment', 'transcribe_lyrics_endpoint', 'ReferenceApplyRequest',
-                 'reference_apply_endpoint', 'run_reference_alignment', 'get_output'}
+                 'reference_apply_endpoint', 'run_reference_alignment', 'get_output',
+                 'run_pasted_sync', 'paste_lyrics_endpoint'}
         nodes = [n for n in source.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and n.name in names]
         for n in nodes:
             n.decorator_list = []
@@ -115,6 +118,41 @@ class ApiTests(unittest.TestCase):
         asyncio.run(bg())
         self.assertEqual(self.tasks[job['task_id']]['status'], 'failed')
         self.assertEqual(self.ns['get_saved_lyrics']('sample.wav')['segments'][0]['words'][0]['start'], 1.4)
+
+    def test_bounded_paste_saves_after_four_unsuccessful_attempts(self):
+        from karaoke_anchored import anchor_transcript_rows
+        rows,report=anchor_transcript_rows('Bir\nİki',[])
+        report['attempts']=4
+        req=self.ns['LyricsRequest'](file_name='sample.wav',raw_lyrics_text='Bir\nİki')
+        bg=BackgroundTasks();job=self.ns['paste_lyrics_endpoint'](req,bg)
+        with patch('paste_sync.synchronize',return_value=(rows,report)):
+            asyncio.run(bg())
+        task=self.tasks[job['task_id']]
+        self.assertEqual(task['status'],'completed')
+        self.assertEqual(task['result']['paste_report']['attempts'],4)
+        self.assertEqual([s['text'] for s in self.ns['get_saved_lyrics']('sample.wav')['segments']],['Bir','İki'])
+
+    def test_pasted_missing_line_is_saved_as_pending_and_later_lines_continue(self):
+        self.ns['align_lyrics']=lambda *args:[self.seg]
+        req=self.ns['LyricsRequest'](file_name='sample.wav',force=True,raw_lyrics_text='Eksik\nBir iki',language='tr')
+        bg=BackgroundTasks();job=self.ns['transcribe_lyrics_endpoint'](req,bg)
+        asyncio.run(bg())
+        task=self.tasks[job['task_id']]
+        self.assertEqual(task['status'],'completed')
+        self.assertEqual(task['result']['paste_report']['pending'],[1])
+        saved=self.ns['get_saved_lyrics']('sample.wav')['segments']
+        self.assertEqual([s['text'] for s in saved],['Eksik','Bir iki'])
+        self.assertEqual(saved[1]['words'][0]['start'],1.2)
+        self.assertEqual(saved[0]['start'],saved[0]['end'])
+
+    def test_pasted_text_survives_recognizer_value_error(self):
+        req=self.ns['LyricsRequest'](file_name='sample.wav',force=True,raw_lyrics_text='Bir\nİki',language='tr')
+        bg=BackgroundTasks();job=self.ns['transcribe_lyrics_endpoint'](req,bg)
+        with patch('karaoke_anchored.recognize_anchored',side_effect=ValueError('No reliable anchors')):
+            asyncio.run(bg())
+        task=self.tasks[job['task_id']]
+        self.assertEqual(task['status'],'completed')
+        self.assertEqual(task['result']['paste_report']['pending'],[1,2])
 
     def test_character_alignment_result_is_saved_instead_of_coarse_times(self):
         self.ns['align_lyrics'] = lambda *a: [self.seg]

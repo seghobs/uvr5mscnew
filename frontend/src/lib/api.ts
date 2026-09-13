@@ -27,6 +27,34 @@ async function safeFetch(path: string, options?: RequestInit): Promise<Response>
 }
 
 export const api = {
+  async transcribeAudioAI(fileName:string,onProgress:(message:string)=>void):Promise<{segments:LyricSegment[];review_required:boolean}>{
+    const response=await safeFetch('/api/lyrics/ai-transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file_name:fileName})});
+    const job=await response.json();if(!response.ok)throw Error(job.detail||'Gemini başlatılamadı.');
+    for(let i=0;i<7200;i++){
+      await new Promise(resolve=>setTimeout(resolve,1000));
+      const response=await safeFetch(`/status/${encodeURIComponent(job.task_id)}`);
+      if(!response.ok)throw Error('Gemini işlemi sorgulanamadı.');
+      const data=await response.json();if(data.message)onProgress(data.message);
+      if(data.status==='completed')return data.result;
+      if(data.status==='failed')throw Error(data.error||'Gemini söz çıkaramadı.');
+    }
+    throw Error('İşlem sunucuda devam ediyor olabilir.');
+  },
+  async reviewLyricsAI(fileName:string,segments:LyricSegment[],onProgress:(message:string)=>void):Promise<LyricsResponse & {ai_report:{checked:number;changed:number;rejected:number}}>{
+    const response=await safeFetch('/api/lyrics/ai-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file_name:fileName,segments})});
+    const job=await response.json();
+    if(!response.ok)throw Error(job.detail||'AI incelemesi başlatılamadı.');
+    for(let i=0;i<7200;i++){
+      await new Promise(resolve=>setTimeout(resolve,1000));
+      const status=await safeFetch(`/status/${encodeURIComponent(job.task_id)}`);
+      if(!status.ok)throw Error('AI incelemesi sorgulanamadı.');
+      const data=await status.json();
+      if(data.message)onProgress(data.message);
+      if(data.status==='completed')return data.result;
+      if(data.status==='failed')throw Error(data.error||'AI incelemesi başarısız.');
+    }
+    throw Error('AI incelemesi sunucuda devam ediyor olabilir.');
+  },
   async referenceRequest(path: 'search' | 'compare' | 'apply', body: unknown): Promise<any> {
     const res = await safeFetch(`/api/lyrics/reference/${path}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
@@ -259,10 +287,14 @@ export const api = {
     language: string = 'auto',
     force: boolean = false,
     modelName: string = 'large-v3',
-    rawLyricsText?: string
+    rawLyricsText?: string,
+    onProgress?: (message:string)=>void
   ): Promise<LyricsResponse> {
-    const res = await safeFetch('/transcribe_lyrics', {
+    const isPaste=Boolean(rawLyricsText?.trim());
+    const signal=isPaste?AbortSignal.timeout(90000):undefined;
+    const res = await safeFetch(rawLyricsText?.trim()?'/api/lyrics/paste':'/transcribe_lyrics', {
       method: 'POST',
+      signal,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         file_name: fileName,
@@ -278,11 +310,12 @@ export const api = {
     }
     const data = await res.json();
     if (!data.task_id) return data;
-    for (let attempt = 0; attempt < 7200; attempt++) {
+    for (let attempt = 0; attempt < (isPaste?90:7200); attempt++) {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      const statusRes = await safeFetch(`/status/${encodeURIComponent(data.task_id)}`);
+      const statusRes = await safeFetch(`/status/${encodeURIComponent(data.task_id)}`,{signal});
       if (!statusRes.ok) throw new Error('Hizalama görevi sorgulanamadı.');
       const task = await statusRes.json();
+      if(task.message)onProgress?.(task.message);
       if (task.status === 'completed') return task.result;
       if (task.status === 'failed') throw new Error(task.error || 'Hizalama başarısız.');
     }

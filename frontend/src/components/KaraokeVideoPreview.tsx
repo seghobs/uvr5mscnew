@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {Play,Pause,RotateCcw,RotateCw,Volume2,VolumeX,Maximize,Minimize,Clapperboard} from 'lucide-react';
 import type {LyricSegment} from '@/lib/types';
-import {videoSegments,wordFillWithNeighbors} from '@/lib/karaoke-timing';
+import {videoSegments,wordFillWithNeighbors,soloWindows} from '@/lib/karaoke-timing';
 
 export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPlay}:{onPlay:()=>void;file:string;segments:LyricSegment[];theme:string;aspectRatio:string;header:string}) {
   const canvas=useRef<HTMLCanvasElement>(null),audio=useRef<HTMLAudioElement>(null);
@@ -34,6 +34,7 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
     const rows=videoSegments(segments).filter(s=>s.text.trim()).slice().sort((a,b)=>a.start-b.start);
     return rows.map((row,i)=>({row,end:Math.min(row.end+(i===rows.length-1?2:.35),rows[i+1]?.start??Infinity)})).filter(s=>s.end>s.row.start);
   },[segments]);
+  const solos=useMemo(()=>soloWindows(videoSegments(segments),duration),[segments,duration]);
   const analyser=useRef<AnalyserNode|null>(null),context=useRef<AudioContext|null>(null);
   const cleanupTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   useEffect(()=>{
@@ -105,10 +106,11 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
           words.forEach((word,i)=>{c.fillStyle='white';c.strokeText(pieces[i],x,y);c.fillText(pieces[i],x,y);const fraction=wordFillWithNeighbors(word,time,words[i-1],words[i+1]);if(fraction>0){c.save();c.beginPath();c.rect(x,y-size*1.5,c.measureText(word.word).width*fraction,size*2);c.clip();c.fillStyle=fill;c.fillText(pieces[i],x,y);c.restore();}x+=widths[i];});c.restore();
         }
       }
+      if(!active&&solos.some(([start,end])=>time>=start&&time<end))text('Solo...',y,44,'#d0c4ed',false);
       if(upcoming)text(upcoming.row.text,vertical?1260:750,vertical?34:30,'#95959c',false);
       frame=requestAnimationFrame(draw);
     };draw();return ()=>cancelAnimationFrame(frame);
-  },[schedule,theme,aspectRatio,header]);
+  },[schedule,solos,theme,aspectRatio,header]);
   const iconButton='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-300 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-30';
   return <section ref={shell} className="overflow-hidden rounded-3xl border border-white/10 bg-[#17141f] shadow-xl fullscreen:flex fullscreen:flex-col fullscreen:justify-center">
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-4 sm:px-6">
