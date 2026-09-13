@@ -172,6 +172,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const [rendering, setRendering] = useState(false);
   const [renderStatusMsg, setRenderStatusMsg] = useState('FFmpeg 1080p Render Ediliyor...');
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoFilename, setVideoFilename] = useState('karaoke_video_1080p.mp4');
 
   // SQLite Persistence State
   const [isSavingDb, setIsSavingDb] = useState(false);
@@ -1375,7 +1376,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         segments: videoSegments(finalizedSegments),
         title: title,
         artist: artist,
-        header_text: showHeader ? headerPrefix : '',
+        header_text: headerPrefix,
         show_header: showHeader,
         aspect_ratio: aspectRatio,
         theme: theme,
@@ -1385,6 +1386,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
       if (res.download_url) {
         setVideoUrl(res.download_url);
+        setVideoFilename(res.video_file || 'karaoke_video_1080p.mp4');
         setActiveTab('video');
         onNotify('success', '🎬 1080p Karaoke Videosu Hazır!', 'Videonuz başarıyla oluşturuldu.');
       }
@@ -2577,13 +2579,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1 font-bold">1. Ön Başlık / Kanal Adı</span>
+                      <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1 font-bold">1. Ön Başlık / Etiket</span>
                       <input
                         type="text"
                         value={headerPrefix}
                         onChange={(e) => setHeaderPrefix(e.target.value)}
                         className="w-full p-2.5 rounded-xl bg-[#262230] border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
-                        placeholder="Örn: KARAOKE STUDIO, @Kanalım..."
+                        placeholder="Örn: Orjinal Karaoke"
                       />
                     </div>
                     <div>
@@ -2631,7 +2633,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                   </div>
                   <a
                     href={videoUrl}
-                    download={videoUrl.split('/').pop() || 'karaoke_video_1080p.mp4'}
+                    download={videoFilename}
                     className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
                   >
                     <Download className="w-4 h-4" />

@@ -2114,6 +2114,7 @@ class KaraokeVideoRequest(BaseModel):
     theme: str = Field(default="gold", pattern="^(gold|neon|cyberpunk|emerald)$")
 
 def run_karaoke_video_task(task_id: str, req_data: dict):
+    reserved_video = None
     try:
         _update_task(task_id, status="processing", message="Karaoke ASS altyazıları oluşturuluyor...", progress=0.1)
         req = KaraokeVideoRequest(**req_data)
@@ -2258,7 +2259,13 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         ass_path = OUTPUT_DIR / ass_filename
         ass_path.write_text("\n".join(ass_lines), encoding="utf-8")
 
-        out_video_name = f"Karaoke_{Path(req.inst_file).stem}_{req.theme}_{timestamp_id}.mp4"
+        from video_filename import reserve_video_path
+        from urllib.parse import quote
+        reserved_video = reserve_video_path(
+            OUTPUT_DIR, artist=req.artist, title=req.title, label=req.header_text,
+            fallback=Path(req.inst_file).stem,
+        )
+        out_video_name = reserved_video.name
 
         from karaoke_design import studio_background
         backdrop = studio_background(OUTPUT_DIR, req.theme, is_vertical)
@@ -2313,9 +2320,14 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             progress=1.0, 
             message="1080p Karaoke Videosu Başarıyla Oluşturuldu!", 
             video_file=out_video_name,
-            download_url=f"/output/{out_video_name}"
+            download_url=f"/output/{quote(out_video_name, safe='')}"
         )
     except Exception as e:
+        if reserved_video is not None:
+            try:
+                reserved_video.unlink(missing_ok=True)
+            except OSError:
+                pass
         _update_task(task_id, status="failed", error=str(e), message=f"Render Hatası: {e}")
 
 @app.post("/generate_karaoke_video")
