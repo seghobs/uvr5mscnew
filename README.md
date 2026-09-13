@@ -25,7 +25,7 @@ UVR5 Next Studio; vokal ve enstrüman ayrıştırmayı, kelime düzeyinde karaok
 Proje **kişisel, yerel kullanım** için geliştirilmiştir. Tek Windows başlatıcısı `start.bat` dosyasıdır. Eski Gradio arayüzü, HTML şablonları ve alternatif başlatıcılar kaldırılmıştır.
 
 > [!IMPORTANT]
-> GitHub deposu kaynak kodu içerir. Python ortamı, npm bağımlılıkları, büyük modeller, indirilen sesler ve kişisel proje kayıtları depoya yüklenmez. İlk kurulum gerekir; hazır kurulu klasörünüz varsa doğrudan `start.bat` ile başlayabilirsiniz.
+> GitHub deposu kaynak kodu içerir. Python ortamı, npm bağımlılıkları, büyük modeller, indirilen sesler ve kişisel proje kayıtları depoya yüklenmez. İlk kurulum için `setup.bat` kullanılır; hazır kurulu klasörünüz varsa doğrudan `start.bat` ile başlayabilirsiniz.
 
 ## Hızlı başlangıç
 
@@ -65,74 +65,80 @@ Model kalitesi ve işlem süresi; kaydın yapısına, seçilen modele, işlem ay
 
 ## Kurulum
 
-### Gereksinimler
+### Tek dosyayla otomatik kurulum
 
-| Gereksinim | Açıklama |
-| :--- | :--- |
-| **İşletim sistemi** | Mevcut başlatma akışı Windows içindir. Linux/macOS için eşdeğer tek tık kurulum doğrulanmamıştır. |
-| **Node.js** | Next.js 16 paketi için en az **20.9.0**; npm komutunun terminalde erişilebilir olması gerekir. |
-| **Python** | Mevcut çalışma ortamı **Python 3.10** ile doğrulanmıştır. |
-| **FFmpeg / FFprobe** | Her iki komut da `PATH` üzerinden erişilebilir olmalıdır. |
-| **Git** | Depoyu klonlamak ve sürüm değişikliklerini yönetmek için. |
-| **GPU** | CUDA destekli NVIDIA GPU hızlandırma sağlar. Kullanılabilirlik seçilen işlem ve modele göre değişir. |
-| **Bellek ve disk** | Büyük modeller ve uzun sesler ek RAM, VRAM ve disk alanı kullanır; tek bir sabit gereksinim bütün işlemleri kapsamaz. |
-| **İnternet** | İlk bağımlılık/model indirmeleri, çevrim içi ses araması ve referans söz araması için. |
-
-### 1. Kaynak kodu alın
+1. Depoyu klonlayın veya GitHub'dan ZIP olarak indirip **tamamen bir klasöre çıkarın**.
+2. Uygulama açıksa arayüzdeki **Kapat** düğmesiyle kapatın.
+3. Proje kökündeki **`setup.bat`** dosyasına çift tıklayın.
+4. Kurulum ve model indirme adımlarının tamamlanmasını bekleyin.
+5. **“Kurulum tamamlandı”** mesajından sonra **`start.bat`** dosyasını açın.
 
 ```powershell
 git clone https://github.com/seghobs/uvr5mscnew.git
 cd uvr5mscnew
-```
-
-### 2. Python ortamını hazırlayın
-
-Başlatıcı Windows üzerinde **`env/python.exe`** yolunu kullanır. Bu dizilim için Miniconda/Conda ile proje içine ortam oluşturabilirsiniz. Aşağıdaki komutları Conda’nın erişilebilir olduğu terminalde, proje kökünde çalıştırın:
-
-```powershell
-conda create --prefix .\env python=3.10 -y
-.\env\python.exe -m pip install --upgrade pip
-.\env\python.exe -m pip install -r requirements.txt
-```
-
-> [!NOTE]
-> Hazır `env/` klasörünüz varsa ortamı yeniden oluşturmayın. Standart `python -m venv env` komutu Windows’ta `env/Scripts/python.exe` üretir; mevcut servis yöneticisinin beklediği yol farklıdır.
-
-GPU kullanımı için PyTorch, ONNX Runtime ve CUDA çalışma bileşenlerinin ekran kartınız ve sürücünüzle uyumlu olması gerekir. `requirements.txt` kurulumu tek başına her bilgisayarda GPU hızlandırmasını garanti etmez. Mevcut ortamın durumunu şöyle kontrol edebilirsiniz:
-
-```powershell
-.\env\python.exe -c "import torch; print('PyTorch:', torch.__version__); print('CUDA:', torch.cuda.is_available())"
-.\env\python.exe -c "import onnxruntime as ort; print(ort.get_available_providers())"
-```
-
-Bazı restorasyon özellikleri ek paket veya model indirir. Bu adımlar sırasında internet bağlantısı gerekebilir.
-
-### 3. Ön yüz bağımlılıklarını yükleyin
-
-```powershell
-cd frontend
-npm ci
-cd ..
-```
-
-`npm ci`, depodaki `package-lock.json` dosyasına göre kurulum yapar. Proje kökünde ikinci bir npm uygulaması bulunmaz; ön yüz komutları `frontend/` içindedir.
-
-### 4. Ses araçlarını kontrol edin
-
-```powershell
-ffmpeg -version
-ffprobe -version
-```
-
-Windows için kullanılan Rubber Band çalıştırılabilir dosyaları ve lisans belgeleri `tools/rubberband/` altında bulunur. FFmpeg ayrıca kurulmalıdır; yalnızca bir Python paketinin bulunması `ffmpeg` komutunun terminalde erişilebilir olduğu anlamına gelmez.
-
-### 5. Stüdyoyu açın
-
-```powershell
+.\setup.bat
+# Kurulum bittikten sonra:
 .\start.bat
 ```
 
-Model ağırlıkları GitHub deposuna dahil değildir. Arayüzdeki model yönetimi üzerinden gerekli modelleri indirin. Büyük model indirmeleri ve ilk yükleme, sonraki kullanımlardan daha uzun sürebilir.
+> [!IMPORTANT]
+> **`setup.bat` kurar; `start.bat` çalıştırır.** Kurulum betiği web uygulamasını başlatmaz. Kurulum başarısız olursa başarı mesajı vermez; hata adımını ve `logs/setup.log` dosyasını gösterir.
+
+### Otomatik olarak neler hazırlanır?
+
+| Adım | Yapılan işlem |
+| :--- | :--- |
+| **Ön kontrol** | Windows x64, proje dosyaları, boş alan, açık uygulama ve eşzamanlı kurulum kontrolü |
+| **Python** | Eksikse doğrulanmış Miniforge kurulumu üzerinden proje içinde Python 3.10 ortamı |
+| **Node.js / npm** | Uygun kurulum yoksa proje ortamına Node.js 22 ve npm |
+| **FFmpeg / FFprobe** | Araçlar eksikse SHA256 doğrulamalı taşınabilir Windows dağıtımı |
+| **Ses bağımlılıkları** | Birbiriyle eşleşen Torch/Torchaudio/Torchvision, ayırma, Whisper, Türkçe hizalama ve AudioSR paketleri |
+| **Web arayüzü** | `npm ci` ile kilit dosyasına uygun kurulum ve `npm run build` ile derleme |
+| **Başlangıç modelleri** | BS-Roformer-Viperx-1297, Whisper large-v3, large-v3-turbo ve Türkçe CTC hizalama modeli |
+| **Son kontrol** | Python paketleri, kısa bir ses üzerinde gerçek transpoze testi, Next.js/React/TypeScript ve FFmpeg/FFprobe |
+
+Diğer ayırma modelleri, çoklu model hazır ayarlarının ek modelleri ve bazı restorasyon ağırlıkları ihtiyaç duyulduğunda uygulama üzerinden indirilir. Kurulum bütün model kataloğunu indirmez.
+
+### Donanım ve bağlantı
+
+| Gereksinim | Açıklama |
+| :--- | :--- |
+| **Windows x64** | Otomatik betik Windows için hazırlanmıştır; ARM64 ve diğer işletim sistemleri bu kurulum akışının dışındadır. |
+| **İnternet** | Araçlar, Python/npm paketleri ve başlangıç modelleri için gereklidir. |
+| **Disk** | Betik en az 20 GB boş alan kontrolü yapar. Paket önbellekleri ve sonraki modeller için daha fazla alan gerekebilir. |
+| **Node.js** | Next.js'in alt sınırı 20.9.0'dır; otomatik kurulum 22 veya üstünü kabul eder, gerekirse 22 kurar. |
+| **Python** | Proje içinde Python 3.10 kullanılır. `env/python.exe` beklenir. |
+| **GPU** | Uygun NVIDIA sürücüsünde CUDA 12.8 paketleri seçilir; uygun sürücü bulunmazsa CPU paketleri kurulur. |
+
+GPU sürücüsü bu betik tarafından kurulmaz veya değiştirilmez. Donanımın seçilen modele uygunluğu, kullanılabilir RAM/VRAM ve işlem süresi bilgisayarınıza bağlıdır. CPU yolu bütün ağır modeller için aynı hız veya kapasiteyi sağlamaz.
+
+Kurulum araçları sistem `PATH` ayarını kalıcı olarak değiştirmez. `start.bat`, proje içindeki araçları kendi çalıştırma ortamına ekler. Windows yönetici izni gerektirmeyen proje içi kurulum tercih edilir; güvenlik yazılımı veya kurum politikası indirmeleri engelliyorsa bu engel ayrıca çözülmelidir.
+
+### Tekrar çalıştırma ve mevcut ortam
+
+- Mevcut `env/` ortamı, sesler ve proje kayıtları otomatik silinmez.
+- Mevcut Python sürümü uyumsuzsa ortamı silmek yerine kurulum durur ve hata bildirir.
+- `npm ci`, ön yüz bağımlılıklarını yeniden kurar; uygulama bu sırada kapalı olmalıdır.
+- Yarım kalan ağ adımları yeniden denenir. Sorun çözülünce `setup.bat` tekrar açılabilir.
+- Model indirmelerinde tamamlanmış dosyalar veya indirme önbelleği tekrar kullanılır.
+- Büyük model indirmeleri bağlantıya göre uzun sürebilir; sabit tamamlanma süresi verilmez.
+
+> [!NOTE]
+> AudioSR 0.0.7'nin eski NumPy, Librosa ve Transformers sınırları ayırma motoruyla çakışır. Kurulum yardımcısı yalnız bu üç eski sınırı ayırarak uygulamada kullanılan modern sürümleri kurar ve AudioSR'yi gerçekten içe aktararak kontrol eder. GPU ONNX ile CPU ONNX paketlerinin aynı DLL dosyalarını ezmesi de önlenir. Bu nedenle yalnız `pip install -r requirements.txt` komutu otomatik kurulumun bütün adımlarına eşdeğer değildir.
+
+### Yalnızca kurulum kontrolü
+
+Paket kurmadan veya modelleri indirmeden mevcut ortamı kontrol etmek için proje kökünde:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/setup.ps1 -VerifyOnly
+```
+
+Geliştiriciler model indirme aşamasını `-SkipModels` ile atlayabilir. Normal `setup.bat` kullanımı bu aşamayı atlamaz.
+
+Kurulum doğrulamasında Miniforge ve FFmpeg/FFprobe indirme-kurulum adımları, başlangıç modelleri, mevcut ortamda gerçek transpoze, temiz ortam bağımlılık çözümlemesi ve ön yüz derlemesi kontrol edildi. Baştan sona kurulum, ayrı bir temiz Windows sanal makinesinde henüz denenmedi.
+
+İndirilen Miniforge ve FFmpeg araçları `tools/setup-runtime/` altında tutulur; bu klasör Git'e gönderilmez. İndirme kaynağı ve SHA256 değerleri kurulum yardımcılarında sabittir. Kaynaklar: [Miniforge](https://github.com/conda-forge/miniforge), [FFmpeg Windows dağıtımı](https://www.gyan.dev/ffmpeg/builds/) ve [PyTorch sürüm tablosu](https://docs.pytorch.org/get-started/previous-versions/).
 
 ## Kullanım rehberi
 
@@ -254,7 +260,9 @@ flowchart LR
 
 ```text
 uvr5mscnew/
-├── start.bat                  # Tek Windows başlatıcısı
+├── setup.bat                  # Otomatik kurulum
+├── start.bat                  # Windows başlatıcısı
+├── scripts/                   # Kurulum ve doğrulama yardımcıları
 ├── api_modern.py              # FastAPI uç noktaları
 ├── service_control.py         # Projeye ait servislerin yönetimi
 ├── core.py                    # Ses ayırma ve restorasyon
@@ -320,7 +328,7 @@ Get-ChildItem tests -Filter *.cjs | ForEach-Object {
 }
 ```
 
-**13 Eylül 2026 doğrulaması:** 77 Python testi, 9 `.cjs` test dosyası ve TypeScript tür denetimi geçti. Bu sayı belirtilen çalıştırmaya aittir; bütün donanımlar ve bütün ses kayıtları için hatasızlık garantisi değildir. Lint ve üretim derlemesi bu test sonucuna dahil değildir.
+**13 Eylül 2026 doğrulaması:** 84 Python testi (7 kurulum testi dahil), 9 `.cjs` test dosyası ve TypeScript tür denetimi geçti. Bu sayı belirtilen çalıştırmaya aittir; bütün donanımlar ve bütün ses kayıtları için hatasızlık garantisi değildir. Ayrı bir geçici çalışma kopyasında Next.js üretim derlemesi de geçti. Lint bu test sonucuna dahil değildir.
 
 Test kapsamı; kelime bağlantıları, canlı senkron, kilitli satırlar, geri alma geçmişi, kayıt kesintileri, temizlik, ton/tempo bağımsızlığı ve önbellek davranışlarını içerir. Canlı GPU testleri model kurulumu gerektirebilir ve test çıktıları üretebilir.
 
@@ -329,7 +337,7 @@ Test kapsamı; kelime bağlantıları, canlı senkron, kilitli satırlar, geri a
 <details>
 <summary><strong>Başlatıcı “Python bulunamadı” diyor</strong></summary>
 
-`env/python.exe` dosyasının mevcut olduğunu kontrol edin. Ortam yalnızca `env/Scripts/python.exe` içeriyorsa klasör düzeni mevcut Windows servis yöneticisiyle eşleşmiyordur. Kurulum bölümündeki proje içi Conda ortamını kullanın.
+`env/python.exe` dosyasının mevcut olduğunu kontrol edin. Ortam yalnızca `env/Scripts/python.exe` içeriyorsa klasör düzeni mevcut Windows servis yöneticisiyle eşleşmiyordur. `setup.bat` ile proje içi ortamı hazırlayın; mevcut farklı yapıda ortamı değiştirmeden önce yedeğini alın.
 
 </details>
 
