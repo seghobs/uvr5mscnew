@@ -5,6 +5,31 @@ from karaoke_ctc import words_from_spans
 
 
 class SyllableTests(unittest.TestCase):
+    def test_standalone_punctuation_does_not_block_or_shift_alignment(self):
+        from unittest.mock import patch
+        import numpy as np
+        from karaoke_syllables import detect_syllables
+        def align(path,segments,language,**options):
+            self.assertEqual(segments[0]['text'],'OY EZO TUTMUYOR DİZİM EZO')
+            return [{'words':[{'word':w['word'],'start':i+1.,'end':i+1.5,'probability':.9,'timing_source':'ctc','syllables':[]}
+                             for i,w in enumerate(segments[0]['words'])]}]
+        with patch('soundfile.info',return_value=Span(duration=20,samplerate=16000)),patch('soundfile.read',return_value=(np.ones(32000)*.1,16000)),patch('karaoke_ctc.refine_turkish',side_effect=align):
+            result=detect_syllables('test.wav',{'start':0,'end':10,'text':'OY EZO ! TUTMUYOR , DİZİM EZO'})
+        self.assertEqual([w['index'] for w in result['word_times']],[0,1,3,5,6])
+        self.assertEqual(len(result['word_times']),5)
+
+    def test_selected_range_is_not_expanded_and_last_word_is_retained(self):
+        from unittest.mock import patch
+        import numpy as np
+        from karaoke_syllables import detect_syllables
+        def align(path,segments,language,**options):
+            self.assertEqual(options['context_padding'],0)
+            self.assertEqual((segments[0]['start'],segments[0]['end']),(141.72489,145.944546))
+            return [{'words':[{'word':'MASAL','start':144.,'end':145.8,'probability':.8,'timing_source':'ctc','syllables':[]}]}]
+        with patch('soundfile.info',return_value=Span(duration=200,samplerate=16000)),patch('soundfile.read',return_value=(np.ones(32000)*.1,16000)),patch('karaoke_ctc.refine_turkish',side_effect=align):
+            result=detect_syllables('test.wav',{'start':141.72489,'end':145.944546,'text':'MASAL'})
+        self.assertEqual(result['word_times'][0]['end'],145.8)
+
     def test_silence_and_invalid_ranges(self):
         import tempfile
         from pathlib import Path

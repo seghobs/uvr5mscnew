@@ -2351,13 +2351,13 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             if req.header_text and req.header_text.strip():
                 parts.append(req.header_text.strip())
             song_info = []
-            if req.title and req.title.strip():
-                song_info.append(req.title.strip())
             if req.artist and req.artist.strip():
                 song_info.append(req.artist.strip())
+            if req.title and req.title.strip():
+                song_info.append(req.title.strip())
             if song_info:
                 song_str = " - ".join(song_info)
-                title_text = f"{parts[0]} • {song_str}" if parts else song_str
+                title_text = f"{song_str} • {parts[0]}" if parts else song_str
             elif parts:
                 title_text = parts[0]
             else:

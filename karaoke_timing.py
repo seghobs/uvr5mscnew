@@ -33,6 +33,11 @@ def solo_windows(segments, duration, minimum=3.0):
 def repair_timing(segments):
     """Repair sub-sample overflow only; never guess acoustic word boundaries."""
     result = copy.deepcopy(segments)
+    for seg in result:
+        start,end=seg.get('start'),seg.get('end')
+        if (not seg.get('locked') and re.fullmatch(r'\s*solo[.\s…!]*',seg.get('text',''),re.IGNORECASE)
+                and all(isinstance(t,(int,float)) and math.isfinite(t) for t in (start,end)) and 0<=start<end):
+            seg['words']=[{'word':seg['text'].strip(),'start':start,'end':end,'timing_source':'manual','needs_review':False}]
     previous = None
     for seg in result:
         if seg.get("locked"):

@@ -52,13 +52,15 @@ import { Language, LyricSegment } from '@/lib/types';
 import { getTranslation } from '@/lib/translations';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { preserveWords, reconcileWords, uppercaseLyric, uppercaseLyrics, videoSegments, timingIssues, wordFillWithNeighbors, serializeProject, importProject, enqueueLyricsSave, rowPlaybackRange, repairTiming, TimedWord } from '@/lib/karaoke-timing';
+import { applyEditedWordTimes, instrumentalTiming, preserveWords, reconcileWords, uppercaseLyric, uppercaseLyrics, videoSegments, timingIssues, wordFillWithNeighbors, serializeProject, importProject, enqueueLyricsSave, rowPlaybackRange, repairTiming, TimedWord } from '@/lib/karaoke-timing';
 import LyricsReferenceModal from './LyricsReferenceModal';
 import LyricsCatalogSearch from './LyricsCatalogSearch';
 import { WordPlayer, checkWordInterval } from '@/lib/word-player';
 import { AudioPassageEditor } from './AudioPassageEditor';
+import { fitPassageRow } from '@/lib/audio-passages';
+import { fullyBound, isSpokenToken, smartBindRow } from '@/lib/smart-passage-binding';
 import {recordLiveRow, clearLiveTimings} from '@/lib/live-sync';
-import { preservePassages, bindDetectedWords, bindDetectedSyllables, bindAllRows, passagePool, poolKey, validRange } from '@/lib/audio-passages';
+import { preservePassages, poolKey, validRange } from '@/lib/audio-passages';
 
 interface KaraokeStudioModalProps {
   isOpen: boolean;
@@ -562,47 +564,60 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   const pendingSaveRef = useRef<{ file: string; segments: LyricSegment[]; language: string } | null>(null);
   const bindEveryRow = async () => {
-    if(bulkBindingAbort.current)return; const controller=new AbortController();bulkBindingAbort.current=controller;
-    setBulkBindingStatus('Hazırlanıyor…');
-    try {
-    const current=segmentsRef.current;
-    const pools=current.map((row,index)=>{
-      try {
-        const stored=JSON.parse(projectStorage.getItem(poolKey(vocalStem||instStem,index,row.start,row.id))||projectStorage.getItem(poolKey(vocalStem||instStem,index,row.start))||'null');
-        if(Array.isArray(stored))return stored.filter(p=>p&&typeof p.id==='string'&&typeof p.label==='string'&&validRange(p.start,p.end));
-      }catch {}
-      return passagePool(row);
-    });
-    const result=bindAllRows(current,pools);
+    if(bulkBindingAbort.current)return;
+    const controller=new AbortController();bulkBindingAbort.current=controller;
+    setBulkBindingStatus('Hazırlanıyor…');setBulkBindingProblems([]);
+    audioRef.current?.pause();stopWordPreview();liveCaptureRef.current=null;setIsLiveSyncMode(false);
+    let completed=0,skipped=0,partial=0;
     const issues:string[]=[];
-    for(let index=0;index<current.length;index++){
-      const row=current[index];
-      if(result.segments[index]!==row)continue;
-      if(/^\s*(solo|enstr[üu]mantal|instrumental)[.\s…!]*$/i.test(row.text))continue;
-      setBulkBindingStatus(`Sesten bağlanıyor: ${index+1}/${current.length}`);
-      try {
-        if(!validRange(row.start,row.end)||row.end-row.start>20)throw Error('Kelime analizi için 20 saniyeyi aşmayan geçerli bir satır süresi gerekli.');
-        const response=await fetch('/api/lyrics/syllables',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file_name:vocalStem||instStem,segment:row}),signal:controller.signal});
-        const data=await response.json();
-        if(response.status===409)throw Error('SUNUCU_MEŞGUL: Başka bir ses analizi çalışıyor. Tamamlandıktan sonra toplu bağlamayı tekrar başlatın.');
-        if(!response.ok)throw Error(data.detail||'Ses analizi tamamlanamadı.');
-        const updated=Array.isArray(data.word_times)?bindDetectedWords(row,data.word_times):bindDetectedSyllables(row,data.passages);
-        const missing=(updated.words||[]).filter(w=>!validRange(w.start,w.end));
-        if(missing.length===(updated.words||[]).length)throw Error('Bu satırda güvenilir kelime sınırı bulunamadı. Satır başlangıç/bitişini kontrol edin.');
-        result.segments[index]=updated;result.count++;
-        if(missing.length)issues.push(`Satır ${index+1}: Bulunan kelimeler bağlandı; kontrol bekleyen: ${missing.map(w=>w.word).join(', ')}`);
-      }catch(error){if(controller.signal.aborted||(error as Error).message.startsWith('SUNUCU_MEŞGUL'))throw error;issues.push(`Satır ${index+1}: ${(error as Error).message}`);}
-    }
-    if(controller.signal.aborted)return;
-    if(JSON.stringify(segmentsRef.current)!==JSON.stringify(current))throw Error('Analiz sırasında sözler değişti. Düzenlemelerin korundu; toplu bağlamayı tekrar başlat.');
-    result.problems=issues;
-    setBulkBindingProblems(issues);
-    if(result.count){
-      audioRef.current?.pause();stopWordPreview();liveCaptureRef.current=null;setIsLiveSyncMode(false);
-      segmentsRef.current=result.segments;setSegments(result.segments);triggerAutoSave(result.segments);
-    }
-    onNotify(result.problems.length?'warning':'success','Tüm satırlarda ses bağlama',`${result.count} satır bağlandı. ${result.problems.length} satır için kontrol gerekiyor. Sözler korundu.`);
-    }catch(error){if(!controller.signal.aborted)onNotify('warning','Toplu bağlama',(error as Error).message);}finally{bulkBindingAbort.current=null;setBulkBindingStatus('');}
+    try {
+      let expected=segmentsRef.current;
+      const result=[...expected];
+      const unchanged=()=>{
+        if(JSON.stringify(segmentsRef.current)!==JSON.stringify(expected))throw Error('DÜZENLEME: Sözler bu sırada değişti. Yeni düzenlemeler ve tamamlanan bağlantılar korundu.');
+      };
+      for(let index=0;index<result.length;index++){
+        controller.signal.throwIfAborted();unchanged();
+        const row=result[index];
+        if(row.locked||fullyBound(row)||/^\s*(solo|enstr[üu]mantal|instrumental)[.\s…!]*$/i.test(row.text)){skipped++;continue;}
+        try {
+          const outcome=await smartBindRow(result,index,duration,async target=>{
+            unchanged();
+            const response=await fetch('/api/lyrics/syllables',{method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({file_name:vocalStem||instStem,segment:target}),
+              signal:AbortSignal.any([controller.signal,AbortSignal.timeout(90000)])});
+            const data=await response.json();
+            if(response.status===409)throw Error('SUNUCU_MEŞGUL: Başka bir ses analizi çalışıyor. Tamamlanan bağlantılar korundu.');
+            if(!response.ok)throw Error(typeof data.detail==='string'?data.detail:'Ses analizi tamamlanamadı.');
+            return data;
+          },controller.signal,(attempt,range)=>setBulkBindingStatus(
+            `Satır ${index+1}/${result.length} · Deneme ${attempt}/4 · ${range.start.toFixed(3)}–${range.end.toFixed(3)} sn`));
+          unchanged();controller.signal.throwIfAborted();
+          if(outcome.segment!==row){
+            result[index]=outcome.segment;const next=[...result];expected=next;
+            segmentsRef.current=next;setSegments(next);triggerAutoSave(next);
+          }
+          if(outcome.complete)completed++;
+          else {
+            partial++;
+            const missing=outcome.segment.text.trim().split(/\s+/).filter((word,i)=>{
+              if(!isSpokenToken(word))return false;
+              const w=outcome.segment.words?.[i];return !w||!validRange(w.start,w.end)||w.word.toLocaleUpperCase('tr-TR')!==word.toLocaleUpperCase('tr-TR');
+            });
+            issues.push(`Satır ${index+1}: ${outcome.attempts} denemede tamamlanamadı. Eski ses aralığı korundu. Kontrol: ${missing.join(', ')||'kelime sırası'}.`);
+            setBulkBindingProblems([...issues]);
+          }
+        }catch(error){
+          const message=(error as Error).message;
+          if(controller.signal.aborted||message.startsWith('SUNUCU_MEŞGUL')||message.startsWith('DÜZENLEME'))throw error;
+          if((error as Error).name==='TimeoutError')throw Error('Bu satırın analizi uzun sürdü. Tamamlanan bağlantılar korundu; sunucudaki analiz bitince tekrar deneyin.');
+          partial++;issues.push(`Satır ${index+1}: ${message}`);setBulkBindingProblems([...issues]);
+        }
+      }
+      onNotify(issues.length?'warning':'success','Toplu ses bağlama',`${completed} satır tamamlandı, ${skipped} hazır/kilitli satır atlandı. ${partial} satır kontrol bekliyor.`);
+    }catch(error){
+      if(!controller.signal.aborted)onNotify('warning','Toplu bağlama',(error as Error).message);
+    }finally{bulkBindingAbort.current=null;setBulkBindingStatus('');}
   };
   const resumeLiveSyncFromRow = (index: number) => {
     const row = segmentsRef.current[index];
@@ -761,6 +776,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   // Helper to ensure word-level timestamps exist for a segment
   const getSegmentWords = (seg: LyricSegment): TimedWord[] => {
+    seg=instrumentalTiming(seg);
     const rawWords = (seg.text || '').trim().split(/\s+/).filter(Boolean);
     if (rawWords.length === 0) return [];
     if (seg.words && seg.words.length === rawWords.length) {
@@ -801,12 +817,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         words[wordIdx].start = Math.max(0, Number((words[wordIdx].end - 0.05).toFixed(3)));
       }
 
-      currentSeg.words = words;
-      if (words.length > 0) {
-        currentSeg.start = Math.min(currentSeg.start, words[0].start);
-        currentSeg.end = Math.max(currentSeg.end, words[words.length - 1].end);
-      }
-      next[segIdx] = currentSeg;
+      next[segIdx] = applyEditedWordTimes(currentSeg, words);
       triggerAutoSave(next, false);
       return next;
     });
@@ -847,12 +858,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
       words[wordIdx] = { ...words[wordIdx], [field]: cur, timing_source: "manual", needs_review: false };
 
-      currentSeg.words = words;
-      if (words.length > 0) {
-        currentSeg.start = Math.min(currentSeg.start, words[0].start);
-        currentSeg.end = Math.max(currentSeg.end, words[words.length - 1].end);
-      }
-      next[segIdx] = currentSeg;
+      next[segIdx] = applyEditedWordTimes(currentSeg, words);
       triggerAutoSave(next, false);
       return next;
     });
@@ -1502,6 +1508,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         </div>}
 
         {activeTab !== 'video' && bulkBindingProblems.length>0 && <details className="shrink-0 border-b border-amber-400/15 px-6 py-2 text-xs text-amber-200"><summary className="cursor-pointer">{bulkBindingProblems.length} satır bağlanamadı · Ayrıntıları göster</summary><ul className="mt-2 max-h-28 overflow-y-auto space-y-1">{bulkBindingProblems.map(problem=><li key={problem}>{problem}</li>)}</ul></details>}
+        {bulkBindingStatus&&<div role="status" className="shrink-0 flex items-center gap-3 border-b border-purple-400/20 bg-purple-400/10 px-6 py-3 text-sm text-purple-200">
+          <Loader2 className="h-4 w-4 animate-spin shrink-0"/><span className="flex-1">{bulkBindingStatus} · Tamamlanan satırlar kaydediliyor.</span>
+          <button className="rounded-lg border border-white/20 px-3 py-1.5" onClick={()=>bulkBindingAbort.current?.abort()}>Durdur</button>
+        </div>}
         {/* Secondary Action Toolbar (for Lyrics Tab) */}
         {activeTab !== 'video' && showAdvancedTools && (
           <div id="karaoke-tools" role="region" aria-label="Diğer karaoke araçları" className="shrink-0 max-h-[32dvh] overflow-y-auto custom-scrollbar border-b border-white/[0.07] bg-indigo-300/[0.025] px-4 py-4 sm:px-6 [&_button]:min-h-9">
@@ -2518,7 +2528,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         {/* Tab 2: Video Customization & Render */}
         {activeTab === 'video' && (
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 min-h-0 custom-scrollbar">
-            <KaraokeVideoPreview onPlay={()=>{audioRef.current?.pause();stopWordPreview();}} key={instStem} file={instStem} segments={segments} theme={theme} aspectRatio={aspectRatio} header={showHeader ? [headerPrefix.trim(),[title.trim(),artist.trim()].filter(Boolean).join(' - ')].filter(Boolean).join(' • ') : ''} />
+            <KaraokeVideoPreview onPlay={()=>{audioRef.current?.pause();stopWordPreview();}} key={instStem} file={instStem} segments={segments} theme={theme} aspectRatio={aspectRatio} header={showHeader ? [[artist.trim(),title.trim()].filter(Boolean).join(' - '),headerPrefix.trim()].filter(Boolean).join(' • ') : ''} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Aspect Ratio Picker */}
               <div className="p-4 rounded-2xl bg-[#14121c]/60 border border-white/10 space-y-3">
@@ -2617,13 +2627,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1 font-bold">1. Ön Başlık / Etiket</span>
+                      <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1 font-bold">1. Sanatçı Adı</span>
                       <input
                         type="text"
-                        value={headerPrefix}
-                        onChange={(e) => setHeaderPrefix(e.target.value)}
+                        value={artist}
+                        onChange={(e) => setArtist(e.target.value)}
                         className="w-full p-2.5 rounded-xl bg-[#262230] border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
-                        placeholder="Örn: Orjinal Karaoke"
+                        placeholder="Sanatçı..."
                       />
                     </div>
                     <div>
@@ -2637,13 +2647,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       />
                     </div>
                     <div>
-                      <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1 font-bold">3. Sanatçı Adı</span>
+                      <span className="text-[10px] font-mono text-zinc-400 uppercase block mb-1 font-bold">3. Etiket</span>
                       <input
                         type="text"
-                        value={artist}
-                        onChange={(e) => setArtist(e.target.value)}
+                        value={headerPrefix}
+                        onChange={(e) => setHeaderPrefix(e.target.value)}
                         className="w-full p-2.5 rounded-xl bg-[#262230] border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
-                        placeholder="Sanatçı..."
+                        placeholder="Örn: Orjinal Karaoke"
                       />
                     </div>
                   </div>
@@ -2652,9 +2662,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                   <div className="p-3 rounded-xl bg-black/50 border border-white/10 flex items-center justify-between gap-2">
                     <span className="text-[10px] font-mono uppercase text-zinc-400 font-bold shrink-0">Ekranda Gözükecek Başlık:</span>
                     <span className="text-xs font-bold font-mono text-amber-300 truncate">
-                      {headerPrefix.trim() ? `${headerPrefix.trim()} • ` : ''}
+                      {artist.trim() ? `${artist.trim()} - ` : ''}
                       {title.trim() || 'Şarkı Adı'}
-                      {artist.trim() ? ` - ${artist.trim()}` : ''}
+                      {headerPrefix.trim() ? ` • ${headerPrefix.trim()}` : ''}
                     </span>
                   </div>
                 </div>
@@ -2730,14 +2740,16 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       </div>
 
       {passageRow && <AudioPassageEditor key={`${vocalStem || instStem}:${passageRow.index}`} file={vocalStem || instStem} row={passageRow.index} segment={passageRow.original}
+        onFit={updated=>{
+          if(JSON.stringify(segments[passageRow.index])!==JSON.stringify(passageRow.original))throw Error('Satır bu sırada değişti. Düzenleyiciyi yeniden açın; son değişiklikler korundu.');
+          return fitPassageRow(segments,passageRow.index,updated,true).segment;
+        }}
         onClose={()=>setPassageRow(null)} onApply={updated=>{
           if (JSON.stringify(segments[passageRow.index]) !== JSON.stringify(passageRow.original)) throw Error('Satır bu sırada değişti. Düzenleyiciyi yeniden açın; son değişiklikler korundu.');
-          const linked=(updated.words || []).filter(w=>w.end>w.start);
-          const earlier=segments.slice(0,passageRow.index).flatMap(s=>s.words || []).filter(w=>w.end>w.start);
-          const later=segments.slice(passageRow.index+1).flatMap(s=>s.words || []).filter(w=>w.end>w.start);
-          if(linked.some(w=>earlier.some(p=>p.end>w.start+1e-7)||later.some(p=>p.start<w.end-1e-7))) throw Error('Bir ses bağlantısı başka satırın zamanına taşıyor. Sıralamayı korumak için bağlantıyı düzeltin.');
-          const next=segments.map((s,i)=>i===passageRow.index?updated:s);
+          const fitted=fitPassageRow(segments,passageRow.index,updated);
+          const next=segments.map((s,i)=>i===passageRow.index?fitted.segment:s);
           setSegments(next); triggerAutoSave(next,true); setPassageRow(null);
+          if(fitted.adjusted)onNotify('warning','Küçük sınır çakışması düzeltildi',`${fitted.adjusted} kelimenin en fazla 30 ms taşan sınırı düzeltildi. Komşu satırlar korundu; işaretli kelimeleri dinleyerek kontrol edin.`);
         }} />}
       {showReferenceModal && <LyricsReferenceModal key={vocalStem || instStem} sourceFile={vocalStem || instStem} duration={duration} segments={segments} onClose={() => setShowReferenceModal(false)} onApply={async (snapshot, edits) => {
         if (JSON.stringify(snapshot) !== JSON.stringify(segments)) throw new Error('Sözler değişti; pencereyi yeniden açıp karşılaştırın.');

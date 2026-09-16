@@ -21,6 +21,31 @@ export function uniquePassages(passages:Passage[]):Passage[] {
   return [...byId.values()];
 }
 export const validRange = (s:number,e:number) => Number.isFinite(s) && Number.isFinite(e) && s>=0 && e>s;
+// Correct only tiny recognition-boundary overlaps, never move neighbouring rows.
+export function fitPassageRow(segments:LyricSegment[],index:number,updated:LyricSegment,trimToNeighbours=false) {
+  const neighbours=segments.flatMap((s,row)=>row===index?[]:(s.words||[])
+    .filter(w=>validRange(w.start,w.end)).map(word=>({row,word})));
+  const previous=neighbours.filter(n=>n.row<index).sort((a,b)=>b.word.end-a.word.end)[0];
+  const next=neighbours.filter(n=>n.row>index).sort((a,b)=>a.word.start-b.word.start)[0];
+  let adjusted=0;
+  const words=(updated.words||[]).map(word=>{
+    if(!validRange(word.start,word.end))return {...word};
+    const start=Math.max(word.start,previous?.word.end??0);
+    const end=Math.min(word.end,next?.word.start??Infinity);
+    const overlap=Math.max(start-word.start,word.end-end);
+    if(overlap<=1e-7)return {...word};
+    if((!trimToNeighbours&&overlap>.0300001)||end-start<.02){
+      const conflict=start>word.start+1e-7?previous!:next!;
+      throw Error(end-start<.02?`“${word.word}” parçası komşu satırın içinde kalıyor. Bu kelime için başka bir ses parçası seçin; mevcut bağlantılar korundu.`:`“${word.word}” bağlantısı ${conflict.row+1}. satırdaki “${conflict.word.word}” ile ${Math.round(overlap*1000)} ms çakışıyor. “Taşan bağlantıları bu satıra sığdır” ile başlangıç/bitişi düzeltebilirsiniz. Diğer satır korundu.`);
+    }
+    adjusted++;
+    return {...word,start,end,needs_review:true};
+  });
+  const linked=words.filter(w=>validRange(w.start,w.end));
+  return {segment:{...updated,words,
+    start:linked.length?Math.min(...linked.map(w=>w.start)):updated.start,
+    end:linked.length?Math.max(...linked.map(w=>w.end)):updated.end},adjusted};
+}
 export function passagePool(segment:LyricSegment):Passage[] {
   return (segment.words || []).filter(w=>validRange(w.start,w.end)).map((w,i)=>({id:`${i}:${w.start}:${w.end}`,start:w.start,end:w.end,label:w.word,needs_review:w.needs_review,timing_source:w.timing_source}));
 }
@@ -64,6 +89,7 @@ export function bindAllRows(segments:LyricSegment[], pools:Passage[][]) {
   const problems:string[]=[];
   let count=0;
   const result=segments.map((segment,index)=>{
+    if(segment.locked)return segment;
     try {
       // Prefer the current assigned intervals over historical/alternative clips.
       const current=passagePool(segment);
@@ -95,13 +121,13 @@ export function bindDetectedSyllables(segment:LyricSegment, passages:Passage[]):
   return {...segment,words};
 }
 
-export function bindDetectedWords(segment:LyricSegment, times:Array<{index:number;start:number;end:number}>):LyricSegment {
+export function bindDetectedWords(segment:LyricSegment, times:Array<{index:number;start:number;end:number;score?:number}>):LyricSegment {
   const words=segment.text.trim().split(/\s+/).filter(Boolean).map((word,index)=>{
     const old=segment.words?.[index];
-    if(old?.word===word&&validRange(old.start,old.end)&&old.timing_source==='manual')return {...old};
+    if(old?.word.toLocaleUpperCase('tr-TR')===word.toLocaleUpperCase('tr-TR')&&validRange(old.start,old.end))return {...old};
     const time=times.find(t=>t.index===index);
-    if(time&&validRange(time.start,time.end)&&time.start>=segment.start&&time.end<=segment.end)
-      return {word,start:time.start,end:time.end,timing_source:'ctc' as const,needs_review:true};
+    if(time&&(time.score===undefined||(Number.isFinite(time.score)&&time.score>=.15))&&validRange(time.start,time.end)&&time.start>=segment.start&&time.end<=segment.end)
+      return {word,start:time.start,end:time.end,timing_source:'ctc' as const,needs_review:true,...(time.score===undefined?{}:{probability:time.score})};
     return {word,start:segment.start,end:segment.start,timing_source:'estimated' as const,needs_review:true};
   });
   let previousEnd=segment.start;

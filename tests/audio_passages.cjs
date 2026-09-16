@@ -3,6 +3,38 @@ const ts=require('../frontend/node_modules/typescript');
 function load(path,customRequire=require){const context={exports:{},require:customRequire};vm.createContext(context);vm.runInContext(ts.transpile(fs.readFileSync(path,'utf8'),{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}),context);return context.exports;}
 const timing=load('frontend/src/lib/karaoke-timing.ts');
 const lib=load('frontend/src/lib/audio-passages.ts',()=>timing);
+const lockedRow={locked:true,start:1,end:3,text:'KORU',words:[{word:'KORU',start:1,end:3,timing_source:'manual'}]};
+const lockedBulk=lib.bindAllRows([lockedRow],[[{id:'other',label:'YANLIŞ',start:5,end:8}]]);
+assert.equal(lockedBulk.count,0);assert.equal(lockedBulk.segments[0],lockedRow);
+const boundaryRows=[
+ {start:118.963224,end:122.623224,text:'ASLA',locked:true,words:[{word:'ASLA',start:122.143224,end:122.623224,timing_source:'manual'}]},
+ {start:122.604,end:126.792,text:'ELİMDE TERASTA',words:[{word:'ELİMDE',start:122.604,end:123.444},{word:'TERASTA',start:125.904,end:126.444}]},
+ {start:126.7,end:131,text:'KİMSE',words:[{word:'KİMSE',start:127.329,end:127.75}]}];
+const boundarySnapshot=JSON.stringify(boundaryRows);
+const fitted=lib.fitPassageRow(boundaryRows,1,boundaryRows[1]);
+assert.equal(fitted.adjusted,1);assert.equal(fitted.segment.words[0].start,122.623224);
+assert.equal(fitted.segment.words[0].end,123.444);assert.equal(fitted.segment.words[0].needs_review,true);
+assert.equal(JSON.stringify(boundaryRows),boundarySnapshot);
+const largeOverlap={...boundaryRows[1],words:[{word:'ELİMDE',start:122,end:123.444}]};
+assert.throws(()=>lib.fitPassageRow(boundaryRows,1,largeOverlap),/1\. satırdaki “ASLA” ile 623 ms/);
+assert.equal(JSON.stringify(boundaryRows),boundarySnapshot);
+const endOverlap={...boundaryRows[1],words:[{word:'TERASTA',start:126,end:127.35}]};
+assert.equal(lib.fitPassageRow(boundaryRows,1,endOverlap).segment.words[0].end,127.329);
+assert.throws(()=>lib.fitPassageRow(boundaryRows,1,{...endOverlap,words:[{word:'TERASTA',start:127.32,end:127.35}]}),/başka bir ses parçası/);
+const overlap96={...boundaryRows[1],words:[{word:'ELİMDE',start:122.527705,end:123.444},{word:'TERASTA',start:125.904,end:126.444}]};
+assert.throws(()=>lib.fitPassageRow(boundaryRows,1,overlap96),/96 ms/);
+const repaired96=lib.fitPassageRow(boundaryRows,1,overlap96,true);
+assert.equal(repaired96.segment.words[0].start,122.623224);
+assert.equal(repaired96.segment.words[0].end,123.444);
+assert.equal(repaired96.segment.words[1].start,125.904);
+assert.equal(lib.fitPassageRow(boundaryRows,1,repaired96.segment).adjusted,0);
+assert.equal(overlap96.words[0].start,122.527705);
+assert.equal(JSON.stringify(boundaryRows),boundarySnapshot);
+assert.throws(()=>lib.fitPassageRow(boundaryRows,1,{...overlap96,words:[{word:'ELİMDE',start:121,end:122}]},true),/başka bir ses parçası/);
+console.log('PASS: explicit 96ms repair saves without shifting other words or touching neighbouring rows');
+const clean={...boundaryRows[1],words:[{word:'ELİMDE',start:123,end:124}]};
+assert.equal(lib.fitPassageRow(boundaryRows,1,clean).adjusted,0);
+console.log('PASS: 19ms row overlap repaired locally; large overlaps rejected; locked neighbours unchanged');
 const joined={start:113.911,end:115.251,text:'FİKRİMDEN CAYABİLİRİM.',words:[
   {word:'FİKRİMDEN',start:113.911,end:114.711,timing_source:'manual'},
   {word:'CAYABİLİRİM.',start:114.711,end:115.251,timing_source:'manual',needs_review:true}]};

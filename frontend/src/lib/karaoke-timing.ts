@@ -2,8 +2,21 @@ import type { LyricSegment } from './types';
 
 export type TimedWord = NonNullable<LyricSegment['words']>[number];
 
+// An instrumental label deliberately fills its whole display interval.
+export function instrumentalTiming(segment:LyricSegment):LyricSegment {
+  if(!/^\s*solo[.\s…!]*$/i.test(segment.text)||![segment.start,segment.end].every(Number.isFinite)||segment.start<0||segment.end<=segment.start)return segment;
+  return {...segment,words:[{word:segment.text.trim(),start:segment.start,end:segment.end,timing_source:'manual',needs_review:false}]};
+}
+
+export function applyEditedWordTimes(segment:LyricSegment,words:TimedWord[]):LyricSegment {
+  if(!words.length)return {...segment,words};
+  const solo=instrumentalTiming(segment)!==segment;
+  return {...segment,words,start:solo?words[0].start:Math.min(segment.start,words[0].start),
+    end:solo?words[words.length-1].end:Math.max(segment.end,words[words.length-1].end)};
+}
+
 export function repairTiming(segments: LyricSegment[]): LyricSegment[] {
-  const result = segments.map(seg => ({...seg, ...(seg.words ? {words:seg.words.map(w => ({...w}))} : {})}));
+  const result = segments.map(original => {const seg=original.locked?original:instrumentalTiming(original);return {...seg, ...(seg.words ? {words:seg.words.map(w => ({...w}))} : {})};});
   let previous: TimedWord | undefined;
   for (const seg of result) {
     if(seg.locked){previous=undefined;continue;}
@@ -48,6 +61,7 @@ export function timingIssues(segments: LyricSegment[], includeReview = true, req
   const issues: string[] = [];
   let previousEnd = 0;
   segments.forEach((seg, i) => {
+    seg=instrumentalTiming(seg);
     const label = `Satır ${i + 1}`;
     if (![seg.start, seg.end].every(Number.isFinite) || seg.start < 0 || seg.end <= seg.start) {
       issues.push(`${label}: geçersiz satır süresi`);
@@ -68,7 +82,7 @@ export function timingIssues(segments: LyricSegment[], includeReview = true, req
 
 // Export unaligned lyrics at their measured row interval without inventing word times.
 export function videoSegments(segments: LyricSegment[]): LyricSegment[] {
-  return segments.map(seg => timingIssues([seg], false).length ? {...seg, words:[]} : seg);
+  return segments.map(instrumentalTiming).map(seg => timingIssues([seg], false).length ? {...seg, words:[]} : seg);
 }
 
 export function wordFill(word: TimedWord, time: number, previousEnd = 0, nextStart = Infinity): number {

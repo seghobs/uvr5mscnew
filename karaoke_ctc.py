@@ -47,7 +47,7 @@ def words_from_spans(words, normalized, spans, targets, scale, offset, include_s
     return result
 
 
-def refine_turkish(audio_path, segments, language, progress=None, include_syllables=False):
+def refine_turkish(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8):
     if language != 'tr':
         return segments
     import soundfile as sf
@@ -83,8 +83,8 @@ def refine_turkish(audio_path, segments, language, progress=None, include_syllab
             words = [w for segment in group for w in segment.get('words', [])]
             if not words:
                 continue
-            start = max(0, group[0]['start'] - .8)
-            end = min(info.duration, group[-1]['end'] + .8)
+            start = max(0, group[0]['start'] - context_padding)
+            end = min(info.duration, group[-1]['end'] + context_padding)
             if index:
                 start = max(start, boundaries[index - 1])
             if index < len(groups) - 1:

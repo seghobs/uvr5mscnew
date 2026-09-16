@@ -152,6 +152,7 @@ async function main() {
   collect(component);
   let rowPlayed, wordPlayed, editStopped = false, editPaused = false;
   const editContext = {
+    applyEditedWordTimes:timing.applyEditedWordTimes,
     editedPlaybackStartRef:{current:null},loopLineRef:{current:null},setLoopLineIndex:()=>{},
     activeTab:'lyrics', expandedWordRow:0, selectedWordIndex:1,
     segments:[{start:4.777,end:47,text:'SÖYLE YAĞMUR',words:[

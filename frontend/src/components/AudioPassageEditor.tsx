@@ -10,7 +10,7 @@ import {WordPlayer} from '@/lib/word-player';
 type WordCandidate={label:string;text:string;words:NonNullable<LyricSegment['words']>;agreement:number};
 import {bindAllPassages,bindDetectedWords,correctedCandidateWords,passagePool,poolKey,uniquePassages,validRange,editPassageText,bindPassage,splitPassage,splitAndBindPassage,mergePassages,type PassageDraft,type Passage} from '@/lib/audio-passages';
 
-export function AudioPassageEditor({file,row,segment,onClose,onApply}:{file:string;row:number;segment:LyricSegment;onClose:()=>void;onApply:(segment:LyricSegment)=>void}) {
+export function AudioPassageEditor({file,row,segment,onClose,onApply,onFit}:{file:string;row:number;segment:LyricSegment;onClose:()=>void;onApply:(segment:LyricSegment)=>void;onFit?:(segment:LyricSegment)=>LyricSegment}) {
   const [draft,setDraft]=useState<PassageDraft>(()=>{
     let passages=passagePool(segment);
     try {const stored=JSON.parse(projectStorage.getItem(poolKey(file,row,segment.start,segment.id)) || projectStorage.getItem(poolKey(file,row,segment.start)) || 'null');
@@ -65,10 +65,12 @@ export function AudioPassageEditor({file,row,segment,onClose,onApply}:{file:stri
     } catch(e){setError((e as Error).message);}
   };
   const detect=async(bindWords=false)=>{
+    if(!validRange(rangeStart,rangeEnd)||rangeEnd-rangeStart>20||(duration&&rangeEnd>duration)){setError('Hizalama için ses içinde en fazla 20 saniyelik bir aralık seçin.');return;}
+    const target={...draft.segment,start:rangeStart,end:rangeEnd};
     const controller=new AbortController();detection.current=controller;
     const version=revision.current;setDetecting(true);setError('');setNotice('');
     try {
-      const response=await fetch('/api/lyrics/syllables',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file_name:file,segment:draft.segment}),signal:controller.signal});
+      const response=await fetch('/api/lyrics/syllables',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file_name:file,segment:target}),signal:controller.signal});
       const data=await response.json();
       if(!response.ok)throw Error(typeof data.detail==='string'?data.detail:'Hece tespiti tamamlanamadı.');
       if(version!==revision.current)throw Error('İşlem sırasında düzenleme yapıldı. Yeni değişiklikler korundu; hece tespitini tekrar başlatın.');
@@ -78,14 +80,15 @@ export function AudioPassageEditor({file,row,segment,onClose,onApply}:{file:stri
         const times=data.word_times;
         if(!Array.isArray(times)||!times.some(t=>Number.isInteger(t.index)&&validRange(t.start,t.end)))
           throw Error('Yazdığın sözler için güvenilir kelime sınırı bulunamadı. Satırın ses aralığını kontrol et veya parçaları elle bağla; mevcut bağlantılar korundu.');
-        const updated=bindDetectedWords(draft.segment,times);
+        const updated=bindDetectedWords(target,times);
         const missing=(updated.words||[]).filter(w=>!validRange(w.start,w.end));
         if(missing.length===(updated.words||[]).length)throw Error('Bulunan süreler satır aralığına uymuyor; mevcut bağlantılar korundu.');
-        change(d=>({...d,segment:updated,passages:[...d.passages,...passagePool(updated).map(p=>({...p,id:'text-aligned:'+p.id}))]}));
+        change(d=>({...d,segment:updated,passages:[...d.passages,...passagePool(updated).filter(p=>!d.passages.some(q=>q.start===p.start&&q.end===p.end&&q.label===p.label)).map(p=>({...p,id:'text-aligned:'+p.id}))]}));
         setNotice(`Yazdığın sözler korundu. ${updated.words!.length-missing.length} kelimeye süre bağlandı. ${missing.length?`Ses bekleyen: ${missing.map(w=>w.word).join(', ')}. `:''}Dinleyerek kontrol et, ardından “Uygula ve kaydet”e bas.`);
         return;
       }
-      change(d=>({...d,passages:[...d.passages,...clips.filter(p=>!d.passages.some(q=>q.id===p.id))]}));
+      const wordClips=Array.isArray(data.word_times)?passagePool(bindDetectedWords(target,data.word_times)).map(p=>({...p,id:'text-aligned:'+p.id})):[];
+      change(d=>({...d,passages:[...d.passages,...clips.filter(p=>!d.passages.some(q=>q.id===p.id)),...wordClips.filter(p=>![...d.passages,...clips].some(q=>q.start===p.start&&q.end===p.end&&q.label===p.label))]}));
       setNotice(data.message+(data.skipped?.length?` ${data.skipped.length} bölüm için güvenli sınır bulunamadı.`:''));
     }catch(e){if(!controller.signal.aborted)setError((e as Error).message);}
     finally{if(!controller.signal.aborted)setDetecting(false);}
@@ -107,7 +110,9 @@ export function AudioPassageEditor({file,row,segment,onClose,onApply}:{file:stri
         if(task.status==='failed')throw Error(task.error || 'Çözümleme tamamlanamadı.');
         if(task.status==='completed'){
           if(version!==revision.current)throw Error('Bu sırada düzenleme yapıldı; yeni sözlerin korundu. Tekrar çözümle.');
-          candidateRevision.current=version;setCandidates(task.result.candidates);setNotice(task.result.message);break;
+          candidateRevision.current=version;setCandidates(task.result.candidates);setNotice(task.result.message);
+          if(!task.result.candidates?.length&&draft.segment.text.trim())await detect(true);
+          break;
         }
       }
     }catch(e){if(!controller.signal.aborted)setError((e as Error).message);}
@@ -183,10 +188,23 @@ export function AudioPassageEditor({file,row,segment,onClose,onApply}:{file:stri
           <button onClick={()=>change(d=>bindPassage(d,selected,i))} className="block font-bold">{w.word}</button>
           <span className="block text-xs text-slate-400">{validRange(w.start,w.end)?`${w.start.toFixed(3)}–${w.end.toFixed(3)}`:'Ses bekliyor'}</span>
           {validRange(w.start,w.end)&&<div className="flex gap-2 mt-2 text-xs"><button onClick={()=>void listen(w.start,w.end)}>Dinle</button><button onClick={()=>change(d=>({...d,segment:{...d.segment,words:d.segment.words?.map((x,j)=>j===i?{...x,end:x.start,timing_source:'estimated',needs_review:true}:x)}}))}>Bağlantıyı kaldır</button></div>}
+          {!validRange(w.start,w.end)&&<button className="mt-2 text-xs text-amber-200" disabled={finding||detecting} onClick={()=>change(d=>{
+            if(!validRange(rangeStart,rangeEnd)||(duration&&rangeEnd>duration))throw Error('Önce kelimenin başlangıç ve bitişini seçip aralığı dinleyin.');
+            const clip={id:crypto.randomUUID(),start:rangeStart,end:rangeEnd,label:w.word,needs_review:true};
+            return bindPassage({...d,passages:[...d.passages,clip]},clip.id,i);
+          })}>Seçili aralığı bu kelimeye bağla</button>}
         </div>)}
       </div></div>
       <p className="text-xs text-slate-400">Parçayı bölmek mevcut kelime bağlantısını değiştirmez. Yeni parçaları bağlamak için gerekirse eski bağlantıyı kaldır. Sessiz boşluklar birleştirilmez.</p>
       {error&&<p role="alert" className="text-sm text-rose-300">{error}</p>}
+      {error&&onFit&&<div className="space-y-2 rounded-xl border border-amber-400/25 p-3">
+        <button className={button} disabled={finding||detecting} onClick={()=>change(d=>{
+          const fitted=onFit(d.segment);
+          setNotice('Taşan ses bağlantıları komşu satır sınırından kesildi. Diğer satırlar değişmedi. İşaretli kelimeleri Dinle ile kontrol edip Uygula ve kaydet’e basın. Geri al kullanılabilir.');
+          return {...d,segment:fitted,passages:[...d.passages,...passagePool(fitted).map(p=>({...p,id:'boundary:'+p.id}))]};
+        })}>Taşan bağlantıları bu satıra sığdır</button>
+        <p className="text-xs text-slate-400">Yalnızca bu satırdaki kelimelerin taşan başlangıç/bitişleri kesilir; ses kaydırılmaz ve komşu satırların süreleri değişmez.</p>
+      </div>}
       {notice&&<p role="status" className="text-sm text-emerald-300">{notice}</p>}
       {candidates.length>0&&<div className="space-y-2 rounded-xl border border-white/15 p-3"><p className="text-sm">Seçilen ses aralığı için alternatifler. Birini seçmek bu satırın tamamını değiştirir; Geri al kullanılabilir.</p>{candidates.map((c,i)=><div key={i} className="rounded-lg bg-[#292433] p-3"><p className="text-xs text-slate-400">{c.label} · Diğer denemelerle metin benzerliği: %{Math.round(c.agreement*100)} (doğruluk oranı değildir)</p><label className="mt-3 block text-xs text-slate-300">Bulunan sözleri düzenle<textarea aria-label={`${i+1}. alternatifin sözlerini düzenle`} value={c.text} onChange={e=>setCandidates(list=>list.map((item,j)=>j===i?{...item,text:e.target.value.toLocaleUpperCase('tr-TR')}:item))} className="mt-2 block w-full min-h-24 rounded-xl border border-white/15 bg-[#14121c] p-3 text-sm text-white" /></label><p className="my-2 text-xs text-slate-400">Düzeltilen kelimeler ses aralıklarına sırayla bağlanır. Kelime ekleyip silersen eşleşme sırasını kontrol et; fazladan kelimeler ses bekler.</p><button className={button} onClick={()=>change(d=>{
         if(candidateRevision.current!==revision.current)throw Error('Bu sonuçtan sonra düzenleme yapıldı. Sözleri yeniden çözümleyin.');
