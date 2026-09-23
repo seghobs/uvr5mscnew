@@ -30,19 +30,19 @@ const c = {
 
 function printBanner() {
   console.clear();
+  // Keep this plain ASCII and bounded: Windows terminal fonts can render box
+  // glyphs and emoji at different widths, which used to tear the old logo.
+  const width = Math.max(56, Math.min(process.stdout.columns || 80, 78));
+  const innerWidth = width - 2;
+  const fit = (text) => text.length > innerWidth ? text.slice(0, innerWidth) : text.padEnd(innerWidth);
+  const line = '-'.repeat(innerWidth);
+  const title = fit(' UVR5 NEXT STUDIO ');
+  const subtitle = fit(' Ultra Vocal Remover 5 | Next.js Studio Pro ');
   console.log(`
-${c.brightPurple} ╔══════════════════════════════════════════════════════════════════════════════╗
- ║                                                                              ║
- ║   ${c.brightCyan}██╗   ██╗██╗   ██╗██████╗ ███████╗    ███╗   ██╗███████╗██╗  ██╗████████╗${c.brightPurple}  ║
- ║   ${c.brightCyan}██║   ██║██║   ██║██╔══██╗██╔════╝    ████╗  ██║██╔════╝╚██╗██╔╝╚══██╔══╝${c.brightPurple}  ║
- ║   ${c.brightCyan}██║   ██║██║   ██║██████╔╝███████╗    ██╔██╗ ██║█████╗   ╚███╔╝    ██║   ${c.brightPurple}  ║
- ║   ${c.brightCyan}██║   ██║╚██╗ ██╔╝██╔══██╗╚════██║    ██║╚██╗██║██╔══╝   ██╔██╗    ██║   ${c.brightPurple}  ║
- ║   ${c.brightCyan}╚██████╔╝ ╚████╔╝ ██║  ██║███████║    ██║ ╚████║███████╗██╔╝ ██╗   ██║   ${c.brightPurple}  ║
- ║    ${c.brightCyan}╚═════╝   ╚═══╝  ╚═╝  ╚═╝╚══════╝    ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝   ╚═╝   ${c.brightPurple}  ║
- ║                                                                              ║
- ║      ${c.gold}⚡ ULTRA VOCAL REMOVER 5 ${c.gray}•${c.brightYellow} NEXT.JS STUDIO PRO EDITION (v1.8.4) ${c.gold}⚡${c.brightPurple}        ║
- ║      ${c.white}✨ ${c.dim}BS-Roformer 1297 • MDX23C HQ • VR-Arch • Demucs • Whisper AI Studio${c.reset}${c.brightPurple}    ║
- ╚══════════════════════════════════════════════════════════════════════════════╝${c.reset}
+${c.brightPurple}+${line}+
+${c.brightPurple}|${c.brightCyan}${c.bold}${title}${c.brightPurple}|
+${c.brightPurple}|${c.gold}${subtitle}${c.brightPurple}|
+${c.brightPurple}+${line}+${c.reset}
 `);
 }
 
