@@ -44,7 +44,9 @@ export function revisePassage(draft:PassageDraft,id:string,start:number,end:numb
   let segment=draft.segment;
   if(links.length===1){
     if(words.map(w=>w.word.trim()).join(' ')!==draft.segment.text.trim().replace(/\s+/g,' '))throw Error('Satır metni ile bağlantılar uyuşmuyor. Önce kelime bağlantılarını kontrol edin.');
-    const index=links[0].i;
+    const index=links[0].i;
+    if(words.some((w,j)=>j!==index&&validRange(w.start,w.end)&&(j<index?w.end>start+1e-7:w.start<end-1e-7)))
+      throw Error('Yeni aralık komşu kelimeyle çakışıyor. Diğer bağlantılar korundu.');
     // Auto-resolve boundary overlaps with adjacent words in same row
     for (let j = 0; j < index; j++) {
       if (words[j] && validRange(words[j].start, words[j].end) && words[j].end > start) {
@@ -80,9 +82,41 @@ export function revisePassage(draft:PassageDraft,id:string,start:number,end:numb
   }
   return {segment,passages:draft.passages.map(p=>p.id===id?{...p,start,end,label,timing_source:'manual',needs_review:text===undefined?p.needs_review:false}:p)};
 }
-// Automatically resolve boundary collisions and overlap with neighbouring rows continuously without throwing errors.
-export function fitPassageRow(segments:LyricSegment[],index:number,updated:LyricSegment,trimToNeighbours=true):{segment:LyricSegment;adjusted:number;allSegments:LyricSegment[]} {
-  const allSegments = segments.map((s, i) => i === index ? structuredClone(updated) : structuredClone(s));
+// Automatically resolve boundary collisions and overlap with neighbouring rows continuously without throwing errors.
+export function fitPassageRow(segments:LyricSegment[],index:number,updated:LyricSegment,trimToNeighbours=false):{segment:LyricSegment;adjusted:number;allSegments:LyricSegment[]} {
+  // Never alter a neighbouring row while repairing this one. A clip with no
+  // usable space is unlinked for review instead of receiving invented timing.
+  const neighbours=segments.flatMap((segment,row)=>row===index?[]:(segment.words||[])
+    .filter(word=>validRange(word.start,word.end)).map(word=>({row,word})));
+  const previous=neighbours.filter(item=>item.row<index).sort((a,b)=>b.word.end-a.word.end)[0];
+  const next=neighbours.filter(item=>item.row>index).sort((a,b)=>a.word.start-b.word.start)[0];
+  let repaired=0;
+  const repairedWords=(updated.words||[]).map(word=>{
+    if(!validRange(word.start,word.end))return {...word};
+    const start=Math.max(word.start,previous?.word.end??0);
+    const end=Math.min(word.end,next?.word.start??Infinity);
+    const overlap=Math.max(start-word.start,word.end-end);
+    if(overlap<=1e-7)return {...word};
+    if(!trimToNeighbours&&overlap>.0300001){
+      const conflict=start>word.start+1e-7?previous!:next!;
+      throw Error(`“${word.word}” bağlantısı ${conflict.row+1}. satırdaki “${conflict.word.word}” ile ${Math.round(overlap*1000)} ms çakışıyor. “Taşan bağlantıları bu satıra sığdır” ile başlangıç/bitişi düzeltebilirsiniz. Diğer satır korundu.`);
+    }
+    repaired++;
+    if(end-start<.02){
+      if(!trimToNeighbours)throw Error(`“${word.word}” parçası komşu satırın içinde kalıyor. Bu kelime için başka bir ses parçası seçin; mevcut bağlantılar korundu.`);
+      return {...word,start:0,end:0,timing_source:'estimated' as const,needs_review:true};
+    }
+    return {...word,start,end,needs_review:true};
+  });
+  const linked=repairedWords.filter(word=>validRange(word.start,word.end));
+  const segment={...updated,words:repairedWords,
+    start:linked.length?Math.min(...linked.map(word=>word.start)):updated.start,
+    end:linked.length?Math.max(...linked.map(word=>word.end)):updated.end};
+  return {segment,adjusted:repaired,allSegments:segments.map((item,row)=>row===index?segment:item)};
+
+  /* Legacy boundary-repair implementation kept out of execution while this
+     migration is verified. It moved neighbouring rows and could invent time. 
+  const allSegments = segments.map((s, i) => i === index ? cloneSegment(updated) : cloneSegment(s));
   let adjusted = 0;
   const currentWords = (updated.words || []).filter(w => w && typeof w.word === 'string').map(w => ({ ...w }));
 
@@ -230,7 +264,10 @@ export function fitPassageRow(segments:LyricSegment[],index:number,updated:Lyric
 
   return { segment: fittedSegment, adjusted, allSegments };
 }
-export function passagePool(segment:LyricSegment):Passage[] {
+  */
+}
+
+export function passagePool(segment:LyricSegment):Passage[] {
   return (segment.words || []).filter(w=>validRange(w.start,w.end)).map((w,i)=>({id:`${i}:${w.start}:${w.end}`,start:w.start,end:w.end,label:w.word,needs_review:w.needs_review,timing_source:w.timing_source}));
 }
 export function poolKey(file:string,row:number,start:number,rowId?:string) { return rowId?`uvr-passages-v3:${file}:${rowId}`:`uvr-passages-v2:${file}:${row}:${start}`; }
@@ -259,10 +296,15 @@ export function editPassageText(draft:PassageDraft,text:string):PassageDraft {
 export function bindPassage(draft:PassageDraft,id:string,index:number):PassageDraft {
   const clip=draft.passages.find(p=>p.id===id);
   if (!clip || !validRange(clip.start,clip.end)) throw Error('Önce geçerli bir ses parçası seçin.');
-  const words=(draft.segment.words || []).map(w=>({...w}));
-  if (!words[index]) throw Error('Kelime bulunamadı.');
-
-  // Auto-resolve boundary overlaps with adjacent words in the line
+  const words=(draft.segment.words || []).map(w=>({...w}));
+  if (!words[index]) throw Error('Kelime bulunamadı.');
+
+  const before=words.slice(0,index).filter(w=>validRange(w.start,w.end));
+  const after=words.slice(index+1).filter(w=>validRange(w.start,w.end));
+  if(before.some(w=>w.end>clip.start+1e-7)||after.some(w=>w.start<clip.end-1e-7))
+    throw Error('Bu bağlantı kelime sırasını bozuyor veya başka kelimeyle çakışıyor. İlgili eski bağlantıyı kaldırın.');
+
+  // Auto-resolve boundary overlaps with adjacent words in the line
   for (let i = 0; i < index; i++) {
     if (words[i] && validRange(words[i].start, words[i].end) && words[i].end > clip.start) {
       words[i].end = Number(Math.max(words[i].start + 0.05, clip.start - 0.01).toFixed(3));
@@ -282,10 +324,12 @@ export function bindPassage(draft:PassageDraft,id:string,index:number):PassageDr
 }
 export function bindAllPassages(draft:PassageDraft):PassageDraft {
   const tokens=draft.segment.text.trim().split(/\s+/).filter(Boolean);
-  const clips=[...draft.passages].sort((a,b)=>a.start-b.start || a.end-b.end)
-    .filter((p,i,list)=>i===0 || p.start!==list[i-1].start || p.end!==list[i-1].end);
-  if(!tokens.length || !clips.length)throw Error('Bağlamak için söz ve ses parçaları gerekli.');
-  // Auto-resolve overlapping clips smoothly
+  const clips=[...draft.passages].sort((a,b)=>a.start-b.start || a.end-b.end)
+    .filter((p,i,list)=>i===0 || p.start!==list[i-1].start || p.end!==list[i-1].end);
+  if(!tokens.length || !clips.length)throw Error('Bağlamak için söz ve ses parçaları gerekli.');
+  if(clips.some((clip,i)=>!validRange(clip.start,clip.end)||(i>0&&clip.start<clips[i-1].end-1e-7)))
+    throw Error('Ses parçaları çakışıyor. Alternatif kayıtları tek tek kelimelere bağlayın.');
+  // Auto-resolve overlapping clips smoothly
   for (let i = 1; i < clips.length; i++) {
     if (clips[i].start < clips[i - 1].end) {
       const mid = Number(((clips[i - 1].end + clips[i].start) / 2).toFixed(3));
