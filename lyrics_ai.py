@@ -17,6 +17,9 @@ LOCK = threading.RLock()
 # This model is available to the configured local API key. Keep provider access
 # failures from blocking the otherwise local Whisper workflow.
 MODEL = 'gemma-4-26b-a4b-it'
+REQUEST_INTERVAL_SECONDS = 5.0
+REQUEST_LOCK = threading.Lock()
+_last_request_at = 0.0
 
 
 def settings():
@@ -44,6 +47,15 @@ def save_settings(api_key=None, enabled=False):
     return public_settings()
 
 
+def wait_for_request_slot():
+    """Serialize provider calls so this local key never receives bursts."""
+    global _last_request_at
+    with REQUEST_LOCK:
+        delay=REQUEST_INTERVAL_SECONDS-(time.monotonic()-_last_request_at)
+        if delay>0: time.sleep(delay)
+        _last_request_at=time.monotonic()
+
+
 def generate(prompt, api_key, audio=None):
     parts=[{'text':prompt}]
     if audio is not None:
@@ -55,6 +67,7 @@ def generate(prompt, api_key, audio=None):
         data=json.dumps(body).encode(),headers={'Content-Type':'application/json','x-goog-api-key':api_key})
     for attempt in range(2):
         try:
+            wait_for_request_slot()
             with urlopen(request,timeout=120) as response:
                 data=json.loads(response.read(2_000_001))
             break
@@ -78,8 +91,8 @@ def audio_clip(path,start,end):
     import soundfile as sf
     from scipy.signal import resample_poly
     info=sf.info(str(path))
-    if not 0<=start<end<=info.duration+.001 or end-start>90:
-        raise ValueError('Geçerli, en fazla 90 saniyelik bir ses bölümü gerekli.')
+    if not 0<=start<end<=info.duration+.001 or end-start>360:
+        raise ValueError('Geçerli, en fazla 360 saniyelik bir ses bölümü gerekli.')
     samples,rate=sf.read(str(path),start=round(start*info.samplerate),stop=round(end*info.samplerate),dtype='float32',always_2d=True)
     samples=samples.mean(axis=1)
     if not samples.size or not np.isfinite(samples).all():raise ValueError('Ses bölümü okunamadı.')
@@ -152,18 +165,16 @@ def correct_rows(path, rows, get_model, progress=lambda *args:None):
     import soundfile as sf
     result=copy.deepcopy(rows);changed=0;rejected=0
     duration=sf.info(str(path)).duration
-    # All rows are visited; bounded batches keep JSON responses complete.
-    offset=0
-    while offset<len(rows):
-        batch=[]
-        for row in rows[offset:offset+24]:
-            if row['end']-rows[offset]['start']>89:break
-            batch.append(row)
-        if not batch:raise ValueError('AI incelemesi için çok uzun satırı bölün.')
-        progress(.1+.8*offset/max(1,len(rows)),f'Gemini satırları dinliyor: {offset+1}–{offset+len(batch)} / {len(rows)}')
-        edits=proposals(batch,config['api_key'],audio_clip(path,max(0,batch[0]['start']),min(duration,batch[-1]['end'])))
-        for local,text in edits.items():
-            index=offset+local;old=rows[index]
+    if not rows:return rows, {'checked':0,'changed':0,'rejected':0,'model':MODEL}
+    # Whisper completes first. Gemini receives the complete lyric document once,
+    # never one request per row. A full mono review clip fits up to six minutes.
+    review_start=max(0,rows[0]['start'])
+    review_end=min(duration,rows[-1]['end'])
+    review_audio=audio_clip(path,review_start,review_end) if review_end-review_start<=360 else None
+    progress(.1,f'Gemini tüm {len(rows)} satırı tek istekte inceliyor...')
+    edits=proposals(rows,config['api_key'],review_audio)
+    for index,text in edits.items():
+            old=rows[index]
             if old.get('locked') or text==old['text']:continue
             before=old.get('words') or []
             if [normalize(w['word']) for w in before]==[normalize(w) for w in text.split()]:
@@ -177,7 +188,6 @@ def correct_rows(path, rows, get_model, progress=lambda *args:None):
                 try:updated=anchor_exact_text({**old,'text':text},[{'words':verified_candidates(candidates)}])
                 except ValueError:rejected+=1;continue
             result[index]=updated;changed+=1
-        offset+=len(batch)
     if timing_issues(result,require_words=False,include_review=False):
         raise ValueError('AI düzeltmesi zamanlamayla uyuşmadı; mevcut sözler korundu.')
     return result, {'checked':len(rows),'changed':changed,'rejected':rejected,'model':MODEL}

@@ -64,5 +64,15 @@ class LyricsAITests(unittest.TestCase):
         self.assertEqual(result[0]['text'],'Başka')
         self.assertEqual(result[0]['words'][0]['start'],1.1)
 
+    def test_complete_lyrics_are_sent_in_one_review_request(self):
+        rows=[{'start':float(i), 'end':float(i)+.8, 'text':f'Satır {i}', 'words':[]} for i in range(30)]
+        with patch.object(ai,'proposals',return_value={i:row['text'] for i,row in enumerate(rows)}) as proposals, \
+             patch('soundfile.info',return_value=SimpleNamespace(duration=31)):
+            result,report=ai.correct_rows('fake.wav',rows,None)
+        self.assertEqual(proposals.call_count,1)
+        self.assertEqual(proposals.call_args.args[0],rows)
+        self.assertEqual(report['checked'],30)
+        self.assertEqual(result,rows)
+
 
 if __name__=='__main__':unittest.main()

@@ -12,8 +12,9 @@ import lyrics_ai as ai
 class GeminiAudioTests(unittest.TestCase):
     def test_audio_sent_to_requested_model_without_paid_search(self):
         response=io.BytesIO(json.dumps({'candidates':[{'finishReason':'STOP','content':{'parts':[{'text':'[]'}]}}]}).encode())
-        with patch.object(ai,'urlopen',return_value=response) as network:
+        with patch.object(ai,'urlopen',return_value=response) as network,patch.object(ai,'wait_for_request_slot') as throttle:
             self.assertEqual(ai.generate('transcribe','test-key',b'wave'),'[]')
+        throttle.assert_called_once_with()
         request=network.call_args.args[0];body=json.loads(request.data)
         self.assertIn('/gemma-4-26b-a4b-it:generateContent',request.full_url)
         self.assertNotIn('test-key',request.full_url)
