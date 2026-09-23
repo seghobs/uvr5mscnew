@@ -15,7 +15,7 @@ class GeminiAudioTests(unittest.TestCase):
         with patch.object(ai,'urlopen',return_value=response) as network:
             self.assertEqual(ai.generate('transcribe','test-key',b'wave'),'[]')
         request=network.call_args.args[0];body=json.loads(request.data)
-        self.assertIn('/gemini-3.8-flash:generateContent',request.full_url)
+        self.assertIn('/gemma-4-26b-a4b-it:generateContent',request.full_url)
         self.assertNotIn('test-key',request.full_url)
         self.assertNotIn('tools',body)
         self.assertEqual(base64.b64decode(body['contents'][0]['parts'][1]['inlineData']['data']),b'wave')

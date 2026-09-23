@@ -14,7 +14,9 @@ from urllib.error import HTTPError, URLError
 
 SETTINGS = Path(__file__).resolve().parent/'.local-settings.json'
 LOCK = threading.RLock()
-MODEL = 'gemini-3.8-flash'
+# This model is available to the configured local API key. Keep provider access
+# failures from blocking the otherwise local Whisper workflow.
+MODEL = 'gemma-4-26b-a4b-it'
 
 
 def settings():
