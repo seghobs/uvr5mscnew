@@ -2143,8 +2143,15 @@ def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: st
             from lyrics_ai import correct_rows
             ai_report=None
             if not req.raw_lyrics_text:
-                segments,ai_report=correct_rows(audio_path,segments,get_precision_whisper_model,
-                    lambda p,m:_update_task(task_id,progress=.9+.08*p,message=m))
+                try:
+                    segments,ai_report=correct_rows(audio_path,segments,get_precision_whisper_model,
+                        lambda p,m:_update_task(task_id,progress=.9+.08*p,message=m))
+                except Exception as exc:
+                    # Lyrics must never disappear because the optional online review
+                    # service is unavailable. Keep Whisper timing and surface the
+                    # review failure as non-blocking status information.
+                    ai_report={'status':'unavailable','message':str(exc)}
+                    _update_task(task_id, message='Whisper sözleri hazır; AI düzeltmesi atlandı.', progress=.98)
             with _lyrics_data_lock:
                 if _lyrics_revision(req.file_name) != expected_revision:
                     raise ValueError("Hizalama sırasında sözler değiştirildi. Yeni düzenlemeler korundu; yeniden hizalayın.")

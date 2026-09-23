@@ -127,6 +127,17 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(word['timing_source'],'whisper')
         self.assertTrue(word['needs_review'])
 
+    def test_ai_review_failure_does_not_discard_whisper_lyrics(self):
+        req=self.ns['LyricsRequest'](file_name='sample.wav',force=True,language='tr')
+        bg=BackgroundTasks();job=self.ns['transcribe_lyrics_endpoint'](req,bg)
+        with patch('karaoke_anchored.recognize_anchored',return_value=[self.seg]), \
+             patch('lyrics_ai.correct_rows',side_effect=RuntimeError('Gemini HTTP 503')):
+            asyncio.run(bg())
+        task=self.tasks[job['task_id']]
+        self.assertEqual(task['status'],'completed')
+        self.assertEqual(task['result']['segments'][0]['text'],'Bir iki')
+        self.assertEqual(task['result']['ai_report']['status'],'unavailable')
+
     def test_late_alignment_cannot_overwrite_new_manual_edit(self):
         self.ns['save_lyrics_db']('sample.wav', 'tr', [self.seg])
         req = self.ns['LyricsRequest'](file_name='sample.wav', force=True, raw_lyrics_text='Bir iki', language='tr')
