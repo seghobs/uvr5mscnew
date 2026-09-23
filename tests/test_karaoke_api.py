@@ -108,6 +108,25 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(task['status'], 'completed')
         self.assertEqual(task['result']['segments'][0]['words'][0]['start'], 1.2)
 
+    def test_turkish_empty_four_pass_result_falls_back_to_direct_whisper(self):
+        class Word:
+            def __init__(self, word, start, end): self.word,self.start,self.end=word,start,end; self.probability=.42
+        class Decoded:
+            words=[Word('Merhaba',1.0,1.5),Word('dünya',1.6,2.2)]
+        class Model:
+            def transcribe(self, *args, **kwargs): return iter([Decoded()]), None
+        self.ns['get_whisper_model'] = lambda name: Model()
+        req=self.ns['LyricsRequest'](file_name='sample.wav',force=True,language='tr')
+        bg=BackgroundTasks();job=self.ns['transcribe_lyrics_endpoint'](req,bg)
+        with patch('karaoke_anchored.recognize_anchored',side_effect=ValueError('No reliable anchors')):
+            asyncio.run(bg())
+        task=self.tasks[job['task_id']]
+        self.assertEqual(task['status'],'completed')
+        word=task['result']['segments'][0]['words'][0]
+        self.assertEqual(word['word'],'Merhaba')
+        self.assertEqual(word['timing_source'],'whisper')
+        self.assertTrue(word['needs_review'])
+
     def test_late_alignment_cannot_overwrite_new_manual_edit(self):
         self.ns['save_lyrics_db']('sample.wav', 'tr', [self.seg])
         req = self.ns['LyricsRequest'](file_name='sample.wav', force=True, raw_lyrics_text='Bir iki', language='tr')

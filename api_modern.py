@@ -2081,13 +2081,31 @@ def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: st
                     transcript = "\n".join(seg.text.strip() for seg in decoded if seg.text.strip())
             if language == 'tr':
                 from karaoke_anchored import recognize_anchored, anchor_transcript, anchor_transcript_rows
-                model=None
                 try:
                     segments=recognize_anchored(audio_path,get_precision_whisper_model,
                         lambda fraction,message:_update_task(task_id,progress=.2+.7*fraction,message=message))
                 except ValueError:
-                    if not transcript:raise
-                    segments=[]
+                    if transcript:
+                        segments=[]
+                    else:
+                        # Four-pass anchoring is intentionally conservative.  It must not
+                        # turn a new Turkish song into an empty karaoke project: preserve
+                        # Whisper's direct result and mark every fallback word for review.
+                        _update_task(task_id, message="Whisper sözleri doğrudan çıkarıyor; kontrol gerekli...", progress=.75)
+                        decoded,_=model.transcribe(str(audio_path), language='tr', word_timestamps=True,
+                            vad_filter=False, condition_on_previous_text=False, beam_size=5, temperature=0.0)
+                        segments=[]
+                        for decoded_segment in decoded:
+                            words=[{'word':word.word.strip(),'start':word.start,'end':word.end,
+                                    'probability':getattr(word,'probability',None),
+                                    'timing_source':'whisper','needs_review':True}
+                                   for word in (decoded_segment.words or [])
+                                   if word.word.strip() and word.end>word.start]
+                            if words:
+                                segments.append({'start':words[0]['start'],'end':words[-1]['end'],
+                                                 'text':' '.join(word['word'] for word in words),'words':words})
+                        if not segments:
+                            raise ValueError("Whisper ses içinde söz bulamadı; mevcut kayıt korundu.")
                 if transcript:
                     try:
                         segments=anchor_transcript(transcript,segments)
