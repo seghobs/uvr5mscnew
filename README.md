@@ -28,6 +28,8 @@ UVR5 Next Studio, bir ses kaydını ayrılmış kanallara, düzenlenebilir sözl
 
 Vokali ve enstrümanı ayrı kanallara çıkar. Modelini seç, ensemble hazır ayarlarını kullan, sonucu dalga formunda dinle.
 
+**Yeni: [Atlas Studio](docs/atlas-studio.md)** — üç model, %87,5 örtüşme ve iki kanalın toplamını koruyan ayrım. WAV / FLAC çıktı; kalite kayda göre değişir.
+
 **Roformer · MDX · VR Arch · Demucs**
 
 </td>

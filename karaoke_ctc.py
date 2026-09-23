@@ -13,6 +13,22 @@ MODEL_REVISION = '708639f50559d7970f462e13ec64d3f059ca89f6'
 MODEL_DIR = Path(__file__).resolve().parent / 'models/alignment/turkish-ctc'
 
 
+def alignment_mono(audio, channel):
+    if channel not in ('mix', 'left', 'right'):
+        raise ValueError('Geçersiz ses kanalı')
+    if audio.ndim != 2:
+        return audio
+    return audio.mean(axis=1) if channel == 'mix' else audio[:, 0 if channel == 'left' else min(1, audio.shape[1]-1)]
+
+
+def clamp_sample_start(aligned, start, rate):
+    # Fix less than one sample of rounding, without importing outside audio.
+    for word in aligned:
+        for item in [word, *word.get('syllables', [])]:
+            if start - 1/rate <= item['start'] < start:
+                item['start'] = start
+
+
 def normalized_words(words, vocab):
     result = []
     for word in words:
@@ -47,7 +63,9 @@ def words_from_spans(words, normalized, spans, targets, scale, offset, include_s
     return result
 
 
-def refine_turkish(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8):
+def refine_turkish(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix'):
+    if channel not in ('mix', 'left', 'right'):
+        raise ValueError('Geçersiz ses kanalı')
     if language != 'tr':
         return segments
     import soundfile as sf
@@ -104,8 +122,7 @@ def refine_turkish(audio_path, segments, language, progress=None, include_syllab
             first_sample = int(start * info.samplerate)
             offset = first_sample / info.samplerate
             audio, rate = sf.read(audio_path, start=first_sample, stop=int(end * info.samplerate), dtype='float32')
-            if audio.ndim == 2:
-                audio = audio.mean(axis=1)
+            audio = alignment_mono(audio, channel)
             wave = AF.resample(torch.from_numpy(audio), rate, 16000)
             inputs = extractor(wave.numpy(), sampling_rate=16000, return_tensors='pt')
             with torch.inference_mode():
@@ -116,6 +133,9 @@ def refine_turkish(audio_path, segments, language, progress=None, include_syllab
                 spans = AF.merge_tokens(path[0], scores[0].exp(), blank=0)
                 aligned = words_from_spans(words, normalized, spans, target_ids,
                                            len(audio) / rate / emissions.shape[1], offset, include_syllables)
+                # Reading starts at floor(start * rate). Clamp only the sub-sample
+                # rounding residue, never a genuinely out-of-range occurrence.
+                clamp_sample_start(aligned, start, rate)
             except (ValueError, RuntimeError):
                 for word in words:
                     word['needs_review'] = True

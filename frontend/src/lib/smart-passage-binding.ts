@@ -44,7 +44,7 @@ export function bindingLimits(rows:LyricSegment[],index:number,duration:number) 
 }
 
 export async function smartBindRow(rows:LyricSegment[],index:number,duration:number,
-  analyze:(row:LyricSegment)=>Promise<{word_times?:Match[]}>,signal:AbortSignal,
+  analyze:(row:LyricSegment,attempt:number)=>Promise<{word_times?:Match[]}>,signal:AbortSignal,
   progress:(attempt:number,range:{start:number;end:number})=>void) {
   const original=rows[index],text=tokens(original);
   if(original.locked||fullyBound(original))return {segment:original,attempts:0,complete:fullyBound(original),expanded:false};
@@ -68,7 +68,7 @@ export async function smartBindRow(rows:LyricSegment[],index:number,duration:num
     if(!validRange(start,end))throw Error('Bu satırın ses aralığı komşu satırla çakışıyor. Önce satır sınırlarını kontrol edin.');
     attempts++;progress(attempts,{start,end});
     // Only the target transcript is sent. Provider-generated text is never imported.
-    const data=await analyze({...original,start,end});signal.throwIfAborted();
+    const data=await analyze({...original,start,end,words:best},attempts);signal.throwIfAborted();
     const candidates=(data.word_times||[]).filter(t=>Number.isInteger(t.index)&&t.index>=0&&t.index<text.length&&
       Number.isFinite(t.score)&&validRange(t.start,t.end)&&t.start>=start&&t.end<=end);
     const proposed=best.map(w=>({...w}));

@@ -839,6 +839,14 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str, profil
         if len(models) > 4:
             raise ValueError("Too many models (max 4)")
 
+        if profile == 'atlas_studio':
+            from atlas_studio import run_atlas_studio
+            files = run_atlas_studio(core, audio_path, models, out_format, OUTPUT_DIR,
+                lambda p,m: _update_task(task_id, progress=p, message=m))
+            _update_task(task_id, status='completed', progress=1.0,
+                         stems=[Path(f).name for f in files])
+            return
+
         if profile == 'studio_pro':
             from studio_pro import run_studio_pro
             files = run_studio_pro(core, audio_path, models, out_format, OUTPUT_DIR,
@@ -1123,12 +1131,20 @@ async def start_ensemble(request: dict, background_tasks: BackgroundTasks):
     if out_format not in core.output_format:
         raise HTTPException(status_code=400, detail="Invalid out_format")
     profile = (request.get('params') or {}).get('ensemble_profile')
-    if profile not in (None, 'studio_pro'):
+    if profile not in (None, 'studio_pro', 'atlas_studio'):
         raise HTTPException(status_code=400, detail='Unknown ensemble profile')
     if profile == 'studio_pro':
         from studio_pro import validate_models
         try:
             validate_models(models)
+        except ValueError as error:
+            raise HTTPException(status_code=400, detail=str(error))
+    if profile == 'atlas_studio':
+        from atlas_studio import validate_models
+        try:
+            validate_models(models)
+            if out_format not in ('wav', 'flac'):
+                raise ValueError('Atlas Studio için WAV veya FLAC seçin.')
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error))
     task_id = _create_task({"message": "Starting Ensemble...", "model_type": "ensemble"})
@@ -1878,6 +1894,7 @@ _lyrics_inference_lock = threading.RLock()
 class SyllablesRequest(BaseModel):
     file_name: str = Field(..., min_length=1, max_length=256)
     segment: LyricSegmentModel
+    channel: str = Field(default='mix', pattern='^(mix|left|right)$')
 
 
 class DeepWordsRequest(BaseModel):
@@ -1922,7 +1939,7 @@ def syllables_endpoint(req: SyllablesRequest):
     if not _lyrics_inference_lock.acquire(blocking=False):
         raise HTTPException(status_code=409, detail='Başka bir hizalama çalışıyor. Tamamlanınca tekrar deneyin.')
     try:
-        return detect_syllables(audio_path, req.segment.model_dump())
+        return detect_syllables(audio_path, req.segment.model_dump(), channel=req.channel)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
     except Exception:

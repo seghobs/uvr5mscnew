@@ -4,6 +4,27 @@ from karaoke_ctc import normalized_words, words_from_spans
 
 
 class CharacterAlignmentTests(unittest.TestCase):
+    def test_stereo_retries_preserve_channel_evidence_and_support_mono(self):
+        import numpy as np
+        from karaoke_ctc import alignment_mono
+        stereo=np.array([[.8,-.8],[.2,-.2]])
+        np.testing.assert_allclose(alignment_mono(stereo,'mix'),[0,0])
+        np.testing.assert_allclose(alignment_mono(stereo,'left'),[.8,.2])
+        np.testing.assert_allclose(alignment_mono(stereo,'right'),[-.8,-.2])
+        mono=np.array([.8,.2])
+        np.testing.assert_array_equal(alignment_mono(mono,'right'),mono)
+        with self.assertRaises(ValueError):alignment_mono(stereo,'unknown')
+
+    def test_sample_rounding_fix_does_not_shift_real_outside_words(self):
+        from karaoke_ctc import clamp_sample_start
+        words=[{'start':10.2412471655,'end':10.5,'syllables':[{'start':10.2412471655,'end':10.3}]},
+               {'start':10.1,'end':10.2}]
+        clamp_sample_start(words,10.241268,44100)
+        self.assertEqual(words[0]['start'],10.241268)
+        self.assertEqual(words[0]['syllables'][0]['start'],10.241268)
+        self.assertEqual(words[0]['end'],10.5)
+        self.assertEqual(words[1]['start'],10.1)
+
     def test_turkish_case_and_punctuation(self):
         self.assertEqual(normalized_words([{'word':'İYİ!'}, {'word':'IŞIK'}], {c:i for i,c in enumerate('iyışk')}), ['iyi','ışık'])
 

@@ -89,5 +89,12 @@ const run=(rows,analyze,signal=new AbortController().signal)=>smartBindRow(rows,
  assert.equal(punctResult.segment.words[3].start,3);
  await assert.rejects(run(make(),()=>assert.fail('aborted'),abort.signal));
  assert.equal(fullyBound({text:'İLK SON',start:1,end:3,words:[word('İLK',2,3),word('SON',1,2)]}),false);
+ const retryCalls=[];
+ await smartBindRow([{text:'İLK SON',start:1,end:4}],0,5,async(target,attempt)=>{
+   retryCalls.push(attempt);
+   if(attempt>1)assert.equal(target.words[0].start,1.2,'retry receives previously recovered links');
+   return {word_times:attempt===1?[match(0,1.2,1.6)]:[]};
+ },new AbortController().signal,()=>{});
+ assert.deepEqual(retryCalls,[1,2,3,4],'caller can use different channels on each attempt');
  console.log('PASS: skip complete/locked, four bounded attempts, preserve all existing links, restore failed expansion, no neighbouring text or audio imported');
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,6 +1,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),ts=require('../frontend/node_modules/typescript');
 function lib(file){const ctx={exports:{}};vm.createContext(ctx);vm.runInContext(ts.transpile(fs.readFileSync(file,'utf8'),{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}),ctx);return ctx.exports;}
-const {recordLiveRow,clearLiveTimings}=lib('frontend/src/lib/live-sync.ts');
+const {recordLiveRow,clearLiveTimings,clearRowTimings}=lib('frontend/src/lib/live-sync.ts');
 const {repairTiming,rowPlaybackRange}=lib('frontend/src/lib/karaoke-timing.ts');
 const tree=ts.createSourceFile('modal.tsx',fs.readFileSync('frontend/src/components/KaraokeStudioModal.tsx','utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 const bodies={};function visit(n){if(ts.isVariableDeclaration(n)&&['finishLiveRow','down','up','blur','seekTo','resumeLiveSyncFromRow','stepCurrentTime','undoAllLiveSync'].includes(n.name.getText(tree)))bodies[n.name.getText(tree)]=n.initializer.getText(tree);ts.forEachChild(n,visit);}visit(tree);
@@ -126,3 +126,16 @@ for(const gesture of ['tap','hold'])for(const source of ['manual','ctc','aligned
   assert.equal(saved,finishedSave);assert.equal(ctx.audioRef.current.paused,true);
 }
 console.log('PASS: protected rows survive; final row finishes sync and repeated Space cannot restart playback or move to an earlier row');
+// Single-row clear keeps the lyric text, zeroes row/word timings, leaves siblings and the original untouched.
+const soloRow={start:12.5,end:15,text:'BİR İKİ',words:[{word:'BİR',start:12.5,end:13.4,timing_source:'manual'},{word:'İKİ',start:13.4,end:15,timing_source:'manual'}]};
+const soloSnapshot=JSON.stringify(soloRow);
+const clearedRow=clearRowTimings(soloRow);
+assert.equal(clearedRow.text,'BİR İKİ');
+assert.equal(clearedRow.start,0);assert.equal(clearedRow.end,0);
+assert.equal(clearedRow.words.length,2);
+for(const w of clearedRow.words){assert.equal(w.start,0);assert.equal(w.end,0);assert.equal(w.timing_source,'estimated');assert.equal(w.needs_review,true);}
+assert.equal(JSON.stringify(soloRow),soloSnapshot);
+const sibling={start:20,end:22,text:'ÜÇ',words:[{word:'ÜÇ',start:20,end:22,timing_source:'manual'}]};
+const rows=[soloRow,sibling].map((s,i)=>i===0?clearRowTimings(s):s);
+assert.equal(rows[0].start,0);assert.equal(rows[1],sibling);
+console.log('PASS: single-row clear zeroes only that row, preserves text, marks words for review and leaves originals intact');

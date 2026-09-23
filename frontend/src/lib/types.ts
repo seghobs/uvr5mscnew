@@ -5,7 +5,7 @@ export type Language = 'tr' | 'en';
 export type AccentColor = 'indigo' | 'emerald' | 'rose' | 'amber' | 'violet';
 
 export interface SeparationParams {
-  ensemble_profile?: "studio_pro";
+  ensemble_profile?: "studio_pro" | "atlas_studio";
   // Roformer / MDX23C
   segment_size?: number;
   override_segment_size?: boolean;

@@ -39,6 +39,7 @@ import { getTranslation } from '@/lib/translations';
 import { useFavorites } from '@/hooks/useFavorites';
 import { api } from '@/lib/api';
 import studioPro from '@/lib/studio-pro-preset.json';
+import atlasStudio from '@/lib/atlas-studio-preset.json';
 
 interface ModelConfigurationProps {
   currentTab: TabId;
@@ -160,7 +161,23 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
     return 'roformer';
   };
 
-  const applyPreset = (presetType: 'studio_pro' | 'zero_loss_exchange' | 'master_studio' | 'strings' | 'vocal' | 'piano') => {
+  const applyPreset = (presetType: 'atlas_studio' | 'studio_pro' | 'zero_loss_exchange' | 'master_studio' | 'strings' | 'vocal' | 'piano') => {
+    if (presetType === 'atlas_studio') {
+      const slots = atlasStudio.models.map(({model_type,model_key}) => ({model_type,model_key}));
+      const missing = slots.filter(m => !availableModels[m.model_type]?.includes(m.model_key));
+      if (missing.length) {
+        onNotify('warning', 'Model listesi eksik', 'Model merkezini kontrol edin: ' + missing.map(m => m.model_key).join(', '));
+        return;
+      }
+      if (!ensembleMode) onToggleEnsembleMode();
+      onChangeEnsembleSlots(slots);
+      onChangeParams({...params, ensemble_profile:'atlas_studio', segment_size:256,
+        override_segment_size:false, overlap:8, batch_size:1, normalization_threshold:1,
+        amplification_threshold:0, single_stem:''});
+      onChangeOutputFormat('wav');
+      onNotify('success', 'Atlas Studio hazır', '3 model · %87,5 örtüşme · WAV. Sesin bütünlüğünü koruyan dengeli ayrım; sonuç kayda göre değişir.');
+      return;
+    }
     if (!ensembleMode) {
       onToggleEnsembleMode();
     }
@@ -468,6 +485,17 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
           </div>
         </button>
 
+        <button type="button" onClick={() => applyPreset('atlas_studio')}
+          className="w-full p-3.5 rounded-2xl border border-preset/40 bg-preset/15 hover:bg-preset/20 text-left transition-colors">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <Sparkles className="w-6 h-6 text-preset shrink-0" />
+              <div><div className="text-sm font-bold text-white">Atlas Studio <span className="text-[10px] text-preset">YENİ · 3 MODEL</span></div>
+              <p className="text-xs text-slate-300 mt-1">Vokal temizliği ve enstrüman bütünlüğü için dengeli ayrım</p>
+              <p className="text-[10px] text-slate-400 mt-1">WAV · %87,5 örtüşme · Uzun işlem · Sonuç kayda göre değişir</p></div>
+            </div><span className="text-xs font-bold text-preset">Uygula</span>
+          </div>
+        </button>
         <button type="button" onClick={() => applyPreset('studio_pro')}
           className="w-full p-3.5 rounded-2xl border border-preset/25 bg-preset/10 hover:bg-preset/15 text-left transition-colors">
           <div className="flex items-center justify-between gap-3">
@@ -754,9 +782,10 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
             <button
               key={fmt}
               type="button"
+              disabled={ensembleMode && params.ensemble_profile === 'atlas_studio' && !['wav', 'flac'].includes(fmt)}
               onClick={() => onChangeOutputFormat(fmt)}
               className={cn(
-                'py-3 rounded-2xl font-mono text-xs font-bold uppercase transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center gap-1.5',
+                'py-3 rounded-2xl font-mono text-xs font-bold uppercase transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center gap-1.5 disabled:opacity-35 disabled:cursor-not-allowed',
                 outputFormat === fmt
                   ? cn(
                       'text-white shadow-xl ring-1',
@@ -773,6 +802,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
             </button>
           ))}
         </div>
+        {ensembleMode && params.ensemble_profile === 'atlas_studio' && <p className="text-[10px] text-slate-400">Atlas Studio: WAV veya FLAC. WAV ses seviyesini korur; FLAC’ta taşma olursa iki kanalın seviyesi birlikte azaltılır.</p>}
       </div>
 
       {/* Expandable Advanced Stems / Audio Parameters */}

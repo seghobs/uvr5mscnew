@@ -9,6 +9,17 @@ export function clearLiveTimings(segments: LyricSegment[]): LyricSegment[] {
   }));
 }
 
+export function clearRowTimings(segment: LyricSegment): LyricSegment {
+  // Single-row variant of clearLiveTimings: keep the lyric text, drop the
+  // measured row envelope and every word interval back to the unaligned
+  // sentinel (0-0, estimated, needs_review). Never mutates the input.
+  return {...segment, start:0, end:0,
+    words:segment.text.trim().split(/\s+/).filter(Boolean).map(word => ({
+      word, start:0, end:0, timing_source:'estimated' as const, needs_review:true,
+    })),
+  };
+}
+
 export function recordLiveRow(segment:LyricSegment,start:number,end:number):LyricSegment {
   if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start)throw Error('Geçerli bir başlangıç ve bitiş kaydedilemedi.');
   // Even a partially linked row is protected. Only explicit unlink/reset actions

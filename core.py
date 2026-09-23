@@ -469,25 +469,62 @@ def clear_gpu_and_ram_cache(deep: bool = False):
         except Exception:
             pass
 
-def generic_separator(audio, model_filename, params, progress_callback=None):
+def generic_separator(audio, model_filename, params, progress_callback=None, work_dir=None, overlap_factor=None, float_output=False):
     separator = None
+    progress_hook = None
     try:
         separator = Separator(
             log_level=logging.WARNING,
             model_file_dir=models_dir,
-            output_dir=out_dir,
+            output_dir=work_dir or out_dir,
             use_autocast=use_autocast,
             **params
         )
         if progress_callback: progress_callback(0.2, "Loading model...")
         separator.load_model(model_filename=model_filename)
-        if progress_callback: progress_callback(0.7, "Separating audio...")
+        if overlap_factor is not None:
+            from atlas_studio import roformer_step_seconds
+            instance = separator.model_instance
+            if not getattr(instance, 'is_roformer', False):
+                raise ValueError('Bu kalite profili Roformer modeli gerektiriyor')
+            instance.overlap = roformer_step_seconds(instance.model_data_cfgdict, overlap_factor)
+        if float_output:
+            import numpy as np
+            import soundfile as sf
+            if params.get('output_format') != 'wav':
+                raise ValueError('Float çıktı için WAV gerekli')
+            instance = separator.model_instance
+            def write_float(stem_path, stem_source):
+                wave = np.asarray(stem_source)
+                if wave.ndim != 2 or wave.shape[1] != 2 or not np.isfinite(wave).all():
+                    raise ValueError('Model geçersiz stereo ses üretti')
+                sf.write(os.path.join(work_dir or out_dir, stem_path), wave,
+                         instance.sample_rate, subtype='FLOAT')
+            # Scoped to this separator instance, never a global writer patch.
+            instance.write_audio = write_float
+        if progress_callback and getattr(separator.model_instance, 'is_roformer', False):
+            import soundfile as sf
+            from separation_progress import attach_roformer_progress
+            # Atlas prepares a WAV on the model timebase. Other readable
+            # formats may need their sample count converted to that timebase.
+            try:
+                info = sf.info(audio)
+            except (RuntimeError, OSError):
+                info = None
+            if info is not None:
+                rate = separator.model_instance.model_data_cfgdict.audio.sample_rate
+                frames = round(info.frames * rate / info.samplerate)
+                progress_hook = attach_roformer_progress(separator.model_instance, frames, progress_callback)
+        if progress_callback: progress_callback(0.25, "Ses ayrıştırılıyor...")
         separation = separator.separate(audio)
-        stems = [os.path.join(out_dir, file_name) for file_name in separation]
+        stems = [os.path.join(work_dir or out_dir, file_name) for file_name in separation]
+        if progress_callback: progress_callback(1.0, "Model çıktıları hazır")
         return stems
     except Exception as e:
         raise RuntimeError(f"Separation failed: {e}") from e
     finally:
+        if progress_hook is not None:
+            progress_hook.remove()
         if separator is not None:
             try:
                 if hasattr(separator, 'model_instance') and separator.model_instance is not None:
@@ -498,7 +535,7 @@ def generic_separator(audio, model_filename, params, progress_callback=None):
             del separator
         clear_gpu_and_ram_cache()
 
-def roformer_separator(audio, model_key, out_format, segment_size, override_seg_size, overlap, batch_size, norm_thresh, amp_thresh, single_stem, progress_callback=None):
+def roformer_separator(audio, model_key, out_format, segment_size, override_seg_size, overlap, batch_size, norm_thresh, amp_thresh, single_stem, progress_callback=None, work_dir=None, overlap_factor=None, float_output=False):
     model_filename = roformer_models[model_key]
     params = {
         "output_format": out_format,
@@ -512,7 +549,8 @@ def roformer_separator(audio, model_key, out_format, segment_size, override_seg_
             "overlap": overlap,
         }
     }
-    return generic_separator(audio, model_filename, params, progress_callback)
+    return generic_separator(audio, model_filename, params, progress_callback, work_dir=work_dir,
+                             overlap_factor=overlap_factor, float_output=float_output)
 
 def mdxc_separator(audio, model, out_format, segment_size, override_seg_size, overlap, batch_size, norm_thresh, amp_thresh, single_stem, progress_callback=None):
     params = {

@@ -59,8 +59,8 @@ import { WordPlayer, checkWordInterval } from '@/lib/word-player';
 import { AudioPassageEditor } from './AudioPassageEditor';
 import { fitPassageRow } from '@/lib/audio-passages';
 import { fullyBound, isSpokenToken, smartBindRow } from '@/lib/smart-passage-binding';
-import {recordLiveRow, clearLiveTimings} from '@/lib/live-sync';
-import { preservePassages, poolKey, validRange } from '@/lib/audio-passages';
+import {recordLiveRow, clearLiveTimings, clearRowTimings} from '@/lib/live-sync';
+import { preservePassages, poolKey, validRange, clearRowPassages } from '@/lib/audio-passages';
 
 interface KaraokeStudioModalProps {
   isOpen: boolean;
@@ -581,10 +581,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         const row=result[index];
         if(row.locked||fullyBound(row)||/^\s*(solo|enstr[üu]mantal|instrumental)[.\s…!]*$/i.test(row.text)){skipped++;continue;}
         try {
-          const outcome=await smartBindRow(result,index,duration,async target=>{
+          const outcome=await smartBindRow(result,index,duration,async (target,attempt)=>{
             unchanged();
             const response=await fetch('/api/lyrics/syllables',{method:'POST',headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({file_name:vocalStem||instStem,segment:target}),
+              body:JSON.stringify({file_name:vocalStem||instStem,segment:target,channel:attempt===2?'left':attempt===3?'right':'mix'}),
               signal:AbortSignal.any([controller.signal,AbortSignal.timeout(90000)])});
             const data=await response.json();
             if(response.status===409)throw Error('SUNUCU_MEŞGUL: Başka bir ses analizi çalışıyor. Tamamlanan bağlantılar korundu.');
@@ -640,6 +640,32 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     segmentsRef.current = restored; setSegments(restored); triggerAutoSave(restored);
     setLiveSyncIndex(0); seekTo(0);
     onNotify('success', 'Zamanlamalar temizlendi', 'Sözler korundu. Tüm satır ve kelimeler yeniden zamanlanmayı bekliyor.');
+  };
+  const clearRowTiming = (index: number) => {
+    const row = segmentsRef.current[index];
+    if (!row) return;
+    if (row.locked) { onNotify('warning', 'Satır kilitli', 'Bu satırı temizlemek için önce kilidi açın.'); return; }
+    const file = vocalStem || instStem;
+    const cleared = clearRowTimings(row);
+    if (file) clearRowPassages(file, index, row);
+    liveCaptureRef.current = null; setIsSpacePressed(false); setSpacePressStartTime(null);
+    stopWordPreview(); wordPreviewEndRef.current = null; linePreviewEndRef.current = null;
+    const next = segmentsRef.current.map((s, i) => i === index ? cleared : s);
+    segmentsRef.current = next; setSegments(next); triggerAutoSave(next, true);
+    onNotify('success', `Satır ${index + 1} temizlendi`, 'Söz korundu; satır ve kelime süreleri ile ses parçaları silindi ve veritabanına kaydedildi.');
+  };
+  const clearAndResumeLiveSyncFromRow = (index: number) => {
+    const row = segmentsRef.current[index];
+    if (!row) return;
+    if (row.locked) { onNotify('warning', 'Satır kilitli', 'Bu satırdan devam etmek için önce kilidi açın.'); return; }
+    const file = vocalStem || instStem;
+    const cleared = clearRowTimings(row);
+    if (file) clearRowPassages(file, index, row);
+    const next = segmentsRef.current.map((s, i) => i === index ? cleared : s);
+    segmentsRef.current = next; setSegments(next); triggerAutoSave(next, true);
+    setActiveTab('lyrics'); setShowAdvancedTools(false);
+    startLiveSyncMode(index);
+    onNotify('info', `Satır ${index + 1} sıfırlandı`, 'Eski süreler silindi; bu satırdan canlı senkrona yeniden başlandı.');
   };
   const saveToDatabase = async (segmentsToSave: LyricSegment[], notifyUser = false, sourceFile = vocalStem || instStem, language = selectedLyricsLang) => {
     if (!sourceFile) return;
@@ -1500,7 +1526,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           </div>
         </div>}
         {activeTab === 'lyrics' && (renderErrors.length > 0 || syncIssues.length > 0) && <div role="status" className="flex items-center justify-between gap-3 border-b border-white/5 bg-amber-400/5 px-6 py-2 text-xs text-amber-200">
-          <span>{renderErrors.length ? `${renderErrors.length} zamanlama sorunu · ${renderErrors[0]}` : `${syncIssues.length} kelimenin zamanı doğrulanmamış. Eksik kelime süreleri olan satırlar videoda satır olarak gösterilir. Video oluşturabilirsin.`}</span>
+          <span>{renderErrors.length ? `${renderErrors.length} zamanlama sorunu · ${renderErrors[0]}` : `${syncIssues.length} zamanlama uyarısı var; bağlı olup dinleme kontrolü bekleyen kelimeler de bu sayıya dahildir. Eksik süreli satırlar videoda satır olarak gösterilir.`}</span>
           <button className="shrink-0 underline underline-offset-4" onClick={() => {
             const row = segments.findIndex(s => (s.words || []).some(w => w.needs_review || w.timing_source === 'estimated' || w.end <= w.start));
             if (row >= 0) {setExpandedWordRow(row); setSelectedWordIndex(Math.max(0, (segments[row].words || []).findIndex(w => w.needs_review || w.timing_source === 'estimated' || w.end <= w.start))); rowRefs.current[row]?.scrollIntoView({block: 'center', behavior: 'smooth'});}
@@ -1991,6 +2017,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
                       <button onClick={undoAllLiveSync} disabled={!segments.length} title="Sözleri koruyarak tüm satır ve kelime zamanlamalarını temizle" className="rounded-xl border border-rose-400/25 bg-rose-400/10 px-3 py-1 text-xs font-bold text-rose-200 hover:bg-rose-400/20 disabled:opacity-30">Tüm zamanlamaları temizle</button>
 
+                      <button onClick={() => clearAndResumeLiveSyncFromRow(liveSyncIndex)} disabled={!segments.length || segments[liveSyncIndex]?.locked} title="Bu satırın sürelerini ve ses parçalarını sil, bu satırdan canlı senkrona yeniden başla" className="rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-200 hover:bg-amber-400/20 disabled:opacity-30">Bu satırı sıfırla ve tekrar dene</button>
+
                       <button
                         onClick={handleLiveSyncNext}
                         disabled={liveSyncIndex >= segments.length - 1}
@@ -2133,6 +2161,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         <button type="button" className="rounded-lg border border-violet-300/25 px-3 py-1 text-violet-200" onClick={()=>toggleRowLock(idx)}>{seg.locked?'Kilitli · Kilidi aç':'Satırı kilitle'}</button>
                         <button type="button" className="font-mono text-left hover:text-indigo-200" onClick={() => isLiveSyncMode ? resumeLiveSyncFromRow(idx) : (setLiveSyncIndex(idx), seg.end > seg.start && playLine(idx))}>{String(idx + 1).padStart(2, '0')} <span className="ml-2">{seg.start === 0 && seg.end === 0 ? 'Zamanlama bekliyor' : formatPrecisionTime(seg.start)}</span></button>
                         <button type="button" onClick={() => resumeLiveSyncFromRow(idx)} disabled={loadingLyrics} className="ml-auto rounded-lg border border-pink-400/25 bg-pink-400/10 px-3 py-2 text-xs font-semibold text-pink-200 hover:bg-pink-400/20 disabled:opacity-40">Buradan canlı senkrona devam et</button>
+                        <button type="button" onClick={() => clearRowTiming(idx)} disabled={loadingLyrics || seg.locked} title="Bu satırın sürelerini ve ses parçalarını sil (söz korunur, veritabanına kaydedilir)" className="rounded-lg border border-rose-400/25 bg-rose-400/10 px-3 py-2 text-xs font-semibold text-rose-200 hover:bg-rose-400/20 disabled:opacity-40">Süreleri temizle</button>
+                        <button type="button" onClick={() => clearAndResumeLiveSyncFromRow(idx)} disabled={loadingLyrics || seg.locked} title="Bu satırı sıfırla ve bu satırdan canlı senkrona yeniden başla" className="rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-400/20 disabled:opacity-40">Sıfırla ve buradan devam et</button>
                         {activeTab === 'lyrics' && getSegmentWords(seg).some(w => w.needs_review || w.timing_source === 'estimated') && <button onClick={() => {setExpandedWordRow(idx); setSelectedWordIndex(Math.max(0,getSegmentWords(seg).findIndex(w => w.needs_review || w.timing_source === 'estimated')));}} className="rounded-full border border-amber-400/20 bg-amber-400/5 px-2 py-1 text-xs text-amber-200">Kontrol gerekli</button>}
                       </div>
                       {activeTab === 'lyrics' && <div className="relative z-10 flex flex-wrap gap-x-2.5 gap-y-2 mb-5" onClick={e => e.stopPropagation()}>
@@ -2740,16 +2770,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       </div>
 
       {passageRow && <AudioPassageEditor key={`${vocalStem || instStem}:${passageRow.index}`} file={vocalStem || instStem} row={passageRow.index} segment={passageRow.original}
-        onFit={updated=>{
-          if(JSON.stringify(segments[passageRow.index])!==JSON.stringify(passageRow.original))throw Error('Satır bu sırada değişti. Düzenleyiciyi yeniden açın; son değişiklikler korundu.');
-          return fitPassageRow(segments,passageRow.index,updated,true).segment;
-        }}
+        onFit={updated=>fitPassageRow(segments, passageRow.index, updated, true).segment}
         onClose={()=>setPassageRow(null)} onApply={updated=>{
-          if (JSON.stringify(segments[passageRow.index]) !== JSON.stringify(passageRow.original)) throw Error('Satır bu sırada değişti. Düzenleyiciyi yeniden açın; son değişiklikler korundu.');
-          const fitted=fitPassageRow(segments,passageRow.index,updated);
-          const next=segments.map((s,i)=>i===passageRow.index?fitted.segment:s);
+          const fitted=fitPassageRow(segments,passageRow.index,updated,true);
+          const next=fitted.allSegments || segments.map((s,i)=>i===passageRow.index?fitted.segment:s);
           setSegments(next); triggerAutoSave(next,true); setPassageRow(null);
-          if(fitted.adjusted)onNotify('warning','Küçük sınır çakışması düzeltildi',`${fitted.adjusted} kelimenin en fazla 30 ms taşan sınırı düzeltildi. Komşu satırlar korundu; işaretli kelimeleri dinleyerek kontrol edin.`);
+          if(fitted.adjusted)onNotify('success','Sınır Çakışması Otomatik Çözüldü ✨',`${fitted.adjusted} kelimenin sınırı komşu satırlarla uyumlu hale getirildi.`);
+          else onNotify('success','Ses Parçaları Kaydedildi','Satır sözleri ve süreleri başarıyla güncellendi.');
         }} />}
       {showReferenceModal && <LyricsReferenceModal key={vocalStem || instStem} sourceFile={vocalStem || instStem} duration={duration} segments={segments} onClose={() => setShowReferenceModal(false)} onApply={async (snapshot, edits) => {
         if (JSON.stringify(snapshot) !== JSON.stringify(segments)) throw new Error('Sözler değişti; pencereyi yeniden açıp karşılaştırın.');

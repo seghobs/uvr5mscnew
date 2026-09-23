@@ -12,9 +12,14 @@ def syllable_ranges(text):
     return list(zip(cuts, cuts[1:]))
 
 
-def detect_syllables(audio_path, segment):
+def detect_syllables(audio_path, segment, channel='mix'):
     import soundfile as sf
     from karaoke_ctc import refine_turkish
+    if channel not in ('mix', 'left', 'right'):
+        raise ValueError('Geçersiz ses kanalı')
+    if channel != 'mix':
+        from functools import partial
+        refine_turkish = partial(refine_turkish, channel=channel)
     start, end = segment['start'], segment['end']
     info = sf.info(audio_path)
     if not all(math.isfinite(x) for x in (start, end)) or start < 0 or end <= start or end > info.duration or end-start > 20:

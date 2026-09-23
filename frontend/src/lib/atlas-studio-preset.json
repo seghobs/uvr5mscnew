@@ -1,0 +1,9 @@
+{
+  "id": "atlas_studio",
+  "name": "Atlas Studio",
+  "models": [
+    {"model_type":"roformer","model_key":"BS-Roformer-Viperx-1297","estimate":"vocal","weight":0.5},
+    {"model_type":"roformer","model_key":"MelBand Roformer Kim | FT 2 Bleedless by unwa","estimate":"vocal","weight":0.25},
+    {"model_type":"roformer","model_key":"MelBand Roformer Kim | Inst V2 by Unwa","estimate":"inst","weight":0.25}
+  ]
+}
