@@ -115,7 +115,7 @@ export function fitPassageRow(segments:LyricSegment[],index:number,updated:Lyric
   return {segment,adjusted:repaired,allSegments:segments.map((item,row)=>row===index?segment:item)};
 
   /* Legacy boundary-repair implementation kept out of execution while this
-     migration is verified. It moved neighbouring rows and could invent time. 
+     migration is verified. It moved neighbouring rows and could invent time.
   const allSegments = segments.map((s, i) => i === index ? cloneSegment(updated) : cloneSegment(s));
   let adjusted = 0;
   const currentWords = (updated.words || []).filter(w => w && typeof w.word === 'string').map(w => ({ ...w }));
