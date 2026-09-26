@@ -1542,7 +1542,15 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           }}>İlk uyarıya git</button>
         </div>}
 
-        {activeTab !== 'video' && bulkBindingProblems.length>0 && <details className="shrink-0 border-b border-amber-400/15 px-6 py-2 text-xs text-amber-200"><summary className="cursor-pointer">{bulkBindingProblems.length} satır bağlanamadı · Ayrıntıları göster</summary><ul className="mt-2 max-h-28 overflow-y-auto space-y-1">{bulkBindingProblems.map(problem=><li key={problem}>{problem}</li>)}</ul></details>}
+        {activeTab !== 'video' && bulkBindingProblems.length>0 && <details className="shrink-0 border-b border-amber-400/15 px-6 py-2 text-xs text-amber-200"><summary className="cursor-pointer">{bulkBindingProblems.length} satır bağlanamadı · Ayrıntıları göster</summary><ul className="mt-2 max-h-28 overflow-y-auto space-y-1">{bulkBindingProblems.map(problem=>{
+          const rowNumber=Number(/^Satır\s+(\d+)\s*:/i.exec(problem)?.[1]);
+          const rowIndex=Number.isSafeInteger(rowNumber)&&rowNumber>0?rowNumber-1:-1;
+          return <li key={problem}><button type="button" disabled={rowIndex<0||!segments[rowIndex]} onClick={()=>{
+            if(rowIndex<0||!segments[rowIndex])return;
+            setLiveSyncIndex(rowIndex);setExpandedWordRow(rowIndex);
+            requestAnimationFrame(()=>rowRefs.current[rowIndex]?.scrollIntoView({block:'center',behavior:'smooth'}));
+          }} className="w-full rounded px-1 py-0.5 text-left hover:bg-amber-300/10 hover:text-amber-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-300 disabled:cursor-default disabled:hover:bg-transparent">{problem}</button></li>;
+        })}</ul></details>}
         {bulkBindingStatus&&<div role="status" className="shrink-0 flex items-center gap-3 border-b border-purple-400/20 bg-purple-400/10 px-6 py-3 text-sm text-purple-200">
           <Loader2 className="h-4 w-4 animate-spin shrink-0"/><span className="flex-1">{bulkBindingStatus} · Tamamlanan satırlar kaydediliyor.</span>
           <button className="rounded-lg border border-white/20 px-3 py-1.5" onClick={()=>bulkBindingAbort.current?.abort()}>Durdur</button>
