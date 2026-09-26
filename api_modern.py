@@ -28,6 +28,7 @@ import time
 import threading
 import html
 import hashlib
+import functools
 from contextlib import closing
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Request, WebSocket
@@ -39,6 +40,65 @@ from karaoke_timing import repair_timing, timing_issues, ass_time, ass_word_tags
 
 import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
+
+GPU_IDLE_SHUTDOWN_SECONDS = 20
+_gpu_activity_lock = threading.RLock()
+_gpu_active_operations = 0
+_gpu_idle_shutdown_timer = None
+
+
+def _cancel_gpu_idle_shutdown():
+    global _gpu_idle_shutdown_timer
+    if _gpu_idle_shutdown_timer is not None:
+        _gpu_idle_shutdown_timer.cancel()
+        _gpu_idle_shutdown_timer = None
+
+
+def _restart_backend_after_gpu_idle():
+    global _gpu_idle_shutdown_timer
+    with _gpu_activity_lock:
+        _gpu_idle_shutdown_timer = None
+        if _gpu_active_operations:
+            return
+    launch = globals().get('_launch_service_control')
+    if callable(launch):
+        launch('restart')
+
+
+def _schedule_gpu_idle_shutdown():
+    global _gpu_idle_shutdown_timer
+    _cancel_gpu_idle_shutdown()
+    timer = threading.Timer(GPU_IDLE_SHUTDOWN_SECONDS, _restart_backend_after_gpu_idle)
+    timer.daemon = True
+    _gpu_idle_shutdown_timer = timer
+    timer.start()
+
+
+def _release_all_gpu_resources():
+    """Drop every resident AI model after the last GPU operation finishes."""
+    unload = globals().get('unload_whisper_models')
+    if callable(unload):
+        unload()
+    core.clear_gpu_and_ram_cache(deep=True)
+
+
+def gpu_operation(func):
+    """Keep concurrent GPU work safe and fully release VRAM when all work is done."""
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        global _gpu_active_operations
+        with _gpu_activity_lock:
+            _cancel_gpu_idle_shutdown()
+            _gpu_active_operations += 1
+        try:
+            return func(*args, **kwargs)
+        finally:
+            with _gpu_activity_lock:
+                _gpu_active_operations = max(0, _gpu_active_operations - 1)
+                if _gpu_active_operations == 0:
+                    _release_all_gpu_resources()
+                    _schedule_gpu_idle_shutdown()
+    return wrapped
 
 # Suppress background popup cmd windows/tabs on Windows for ffmpeg/ffprobe/helpers/audio_separator
 SUBPROCESS_FLAGS = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
@@ -731,6 +791,7 @@ class TqdmProgressContext:
         finally:
             _progress_lock.release()
 
+@gpu_operation
 def run_separation_task(task_id, request: SeparationRequest):
     try:
         # Validate paths and model
@@ -827,6 +888,7 @@ def run_separation_task(task_id, request: SeparationRequest):
     finally:
         core.clear_gpu_and_ram_cache()
 
+@gpu_operation
 def run_ensemble_task(task_id, audio_path, models: list, out_format: str, profile=None):
     try:
         audio_path = _validate_audio_path(audio_path)
@@ -1440,6 +1502,7 @@ class BatchRequest(BaseModel):
     out_format: str = Field(default="flac")
     params: dict = Field(default_factory=dict)
 
+@gpu_operation
 def run_batch_task(task_id, req: BatchRequest):
     try:
         # Validate dirs
@@ -1632,6 +1695,7 @@ def reference_compare_endpoint(req: ReferenceCompareRequest):
         raise HTTPException(422, str(exc))
 
 
+@gpu_operation
 def run_reference_alignment(task_id, req, expected_revision):
     from karaoke_reference import align_changed_rows
     try:
@@ -1903,6 +1967,7 @@ class DeepWordsRequest(BaseModel):
     end: float = Field(..., gt=0, allow_inf_nan=False)
 
 
+@gpu_operation
 def run_deep_words(task_id, req):
     try:
         from karaoke_deep_words import deep_words
@@ -1933,6 +1998,7 @@ def deep_words_endpoint(req: DeepWordsRequest, background_tasks: BackgroundTasks
 
 
 @app.post('/api/lyrics/syllables')
+@gpu_operation
 def syllables_endpoint(req: SyllablesRequest):
     from karaoke_syllables import detect_syllables
     audio_path = _find_audio_file(req.file_name)
@@ -2023,6 +2089,7 @@ def ai_transcribe_endpoint(req: LyricsAITranscribe,background_tasks: BackgroundT
     return {'task_id':task_id}
 
 
+@gpu_operation
 def run_ai_review(task_id,req,expected_revision):
     try:
         from lyrics_ai import correct_rows
@@ -2050,6 +2117,7 @@ def ai_review_endpoint(req: LyricsAIReview,background_tasks: BackgroundTasks):
     return {'task_id':task_id}
 
 
+@gpu_operation
 def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: str):
     try:
         with _lyrics_inference_lock:
@@ -2177,6 +2245,7 @@ def transcribe_lyrics_endpoint(req: LyricsRequest, background_tasks: BackgroundT
     return {"task_id": task_id, "status": "processing"}
 
 
+@gpu_operation
 def run_pasted_sync(task_id,req,expected_revision):
     from paste_sync import synchronize
     from karaoke_anchored import anchor_transcript_rows
@@ -2618,6 +2687,7 @@ class RestoreAudioRequest(BaseModel):
     ddim_steps: int = Field(default=20, ge=5, le=100)
     guidance_scale: float = Field(default=3.5, ge=1.0, le=10.0)
 
+@gpu_operation
 def run_restoration_task(task_id: str, req_data: dict):
     try:
         _update_task(task_id, status="processing", message="AI Restorasyon motoru hazırlanıyor...", progress=0.02)
