@@ -1,4 +1,5 @@
 const { spawn, execSync } = require('child_process');
+const http = require('http');
 const path = require('path');
 const fs = require('fs');
 
@@ -98,6 +99,30 @@ function spawnBrowserWatcher() {
   watcher.unref();
 }
 
+function backendRouteReady(route) {
+  return new Promise((resolve) => {
+    const request = http.get({ host: '127.0.0.1', port: 8000, path: route, timeout: 1500 }, (response) => {
+      response.resume();
+      resolve(response.statusCode >= 200 && response.statusCode < 300);
+    });
+    request.once('timeout', () => request.destroy());
+    request.once('error', () => resolve(false));
+  });
+}
+
+async function waitForBackendRoutes() {
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    const [jobsReady, cacheReady] = await Promise.all([
+      backendRouteReady('/api/audio/jobs'),
+      backendRouteReady('/api/audio/cache'),
+    ]);
+    if (jobsReady && cacheReady) return;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error('Yerel servis zamanında hazır olmadı. start.bat dosyasını yeniden açın.');
+}
+
 async function main() {
   printBanner();
   const pythonExe = getPythonExe().replace(/pythonw(?=\.exe$)/i, 'python');
@@ -106,6 +131,7 @@ async function main() {
   const result = spawnSync(pythonExe, [path.join(rootDir,'service_control.py'),'launch'], {cwd:rootDir,stdio:'inherit',windowsHide:true});
   if(result.error)throw result.error;
   if(result.status!==0)throw new Error('Sunucu hazırlanamadı; yukarıdaki açıklamayı kontrol edin.');
+  await waitForBackendRoutes();
   spawnBrowserWatcher();
 }
 main().catch(error=>{console.error(error.message);process.exitCode=1;});
