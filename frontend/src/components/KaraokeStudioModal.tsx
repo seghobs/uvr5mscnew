@@ -306,6 +306,24 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     const rowNumber=index+1;
     setBulkBindingProblems(problems => problems.filter(problem => Number(/^Satır\s+(\d+)\s*:/i.exec(problem)?.[1]) !== rowNumber));
   };
+  const approveAllTimedWords = () => {
+    let approved=0;
+    let previousEnd=0;
+    const next=segmentsRef.current.map(segment => {
+      const segmentIsValid=Number.isFinite(segment.start)&&Number.isFinite(segment.end)&&segment.start>=0&&segment.end>segment.start;
+      const words=(segment.words||[]).map(word => {
+        const valid=segmentIsValid&&Number.isFinite(word.start)&&Number.isFinite(word.end)&&word.start>=segment.start-1e-7&&word.end<=segment.end+1e-7&&word.end>word.start&&word.start>=previousEnd-1e-7;
+        if(Number.isFinite(word.end))previousEnd=Math.max(previousEnd,word.end);
+        if(!valid||(!word.needs_review&&word.timing_source!=='estimated'))return word;
+        approved++;
+        return {...word,timing_source:'manual' as const,needs_review:false};
+      });
+      return {...segment,words};
+    });
+    if(!approved){onNotify('info','Onaylanacak süre bulunamadı','Eksik veya çakışan süreler otomatik onaylanmaz.');return;}
+    setSegments(next);
+    onNotify('success','Zamanlamalar onaylandı',`${approved} kelimenin zaman kontrol işareti kaldırıldı.`);
+  };
 
   // Stop audio on close
   useEffect(() => {
@@ -1541,10 +1559,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         </div>}
         {activeTab === 'lyrics' && (renderErrors.length > 0 || syncIssues.length > 0) && <div role="status" className="flex items-center justify-between gap-3 border-b border-white/5 bg-amber-400/5 px-6 py-2 text-xs text-amber-200">
           <span>{renderErrors.length ? `${renderErrors.length} zamanlama sorunu · ${renderErrors[0]}` : `${syncIssues.length} zamanlama uyarısı var; bağlı olup dinleme kontrolü bekleyen kelimeler de bu sayıya dahildir. Eksik süreli satırlar videoda satır olarak gösterilir.`}</span>
-          <button className="shrink-0 underline underline-offset-4" onClick={() => {
+          <div className="flex shrink-0 items-center gap-3"><button className="rounded border border-emerald-300/40 bg-emerald-400/10 px-2 py-1 font-semibold text-emerald-100 hover:bg-emerald-400/20" onClick={approveAllTimedWords}>Tümünü onayla</button><button className="underline underline-offset-4" onClick={() => {
             const row = segments.findIndex(s => (s.words || []).some(w => w.needs_review || w.timing_source === 'estimated' || w.end <= w.start));
             if (row >= 0) {setExpandedWordRow(row); setSelectedWordIndex(Math.max(0, (segments[row].words || []).findIndex(w => w.needs_review || w.timing_source === 'estimated' || w.end <= w.start))); rowRefs.current[row]?.scrollIntoView({block: 'center', behavior: 'smooth'});}
-          }}>İlk uyarıya git</button>
+          }}>İlk uyarıya git</button></div>
         </div>}
 
         {activeTab !== 'video' && bulkBindingProblems.length>0 && <details className="shrink-0 border-b border-amber-400/15 px-6 py-2 text-xs text-amber-200"><summary className="cursor-pointer">{bulkBindingProblems.length} satır bağlanamadı · Ayrıntıları göster</summary><ul className="mt-2 max-h-28 overflow-y-auto space-y-1">{bulkBindingProblems.map(problem=>{
