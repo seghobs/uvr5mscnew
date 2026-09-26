@@ -301,6 +301,11 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const [passageRow, setPassageRow] = useState<{index:number; original:LyricSegment} | null>(null);
   const [expandedWordRow, setExpandedWordRow] = useState<number | null>(null);
   const rowRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+  const clearResolvedBindingProblem = (index:number, row:LyricSegment) => {
+    if (!fullyBound(row)) return;
+    const rowNumber=index+1;
+    setBulkBindingProblems(problems => problems.filter(problem => Number(/^Satır\s+(\d+)\s*:/i.exec(problem)?.[1]) !== rowNumber));
+  };
 
   // Stop audio on close
   useEffect(() => {
@@ -2791,7 +2796,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         onClose={()=>setPassageRow(null)} onApply={updated=>{
           const fitted=fitPassageRow(segments,passageRow.index,updated,true);
           const next=fitted.allSegments || segments.map((s,i)=>i===passageRow.index?fitted.segment:s);
-          setSegments(next); triggerAutoSave(next,true); setPassageRow(null);
+          setSegments(next); triggerAutoSave(next,true); clearResolvedBindingProblem(passageRow.index,fitted.segment); setPassageRow(null);
           if(fitted.adjusted)onNotify('success','Sınır Çakışması Otomatik Çözüldü ✨',`${fitted.adjusted} kelimenin sınırı komşu satırlarla uyumlu hale getirildi.`);
           else onNotify('success','Ses Parçaları Kaydedildi','Satır sözleri ve süreleri başarıyla güncellendi.');
         }} />}
