@@ -287,7 +287,11 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const liveCaptureRef=useRef<{index:number;start:number}|null>(null);
   const [bulkBindingStatus,setBulkBindingStatus]=useState('');
   const bulkBindingAbort=useRef<AbortController|null>(null);
-  useEffect(()=>()=>{bulkBindingAbort.current?.abort();},[isOpen,vocalStem,instStem]);
+  useEffect(()=>()=>{
+    const active=bulkBindingAbort.current;
+    active?.abort();
+    if(bulkBindingAbort.current===active)bulkBindingAbort.current=null;
+  },[isOpen,vocalStem,instStem]);
   const [bulkBindingProblems,setBulkBindingProblems]=useState<string[]>([]);
   const liveSpaceHandledRef = useRef(false);
   const liveSyncFinishedRef = useRef(false);
@@ -564,7 +568,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   const pendingSaveRef = useRef<{ file: string; segments: LyricSegment[]; language: string } | null>(null);
   const bindEveryRow = async () => {
-    if(bulkBindingAbort.current)return;
+    const active=bulkBindingAbort.current;
+    if(active&&!active.signal.aborted)return;
+    if(active?.signal.aborted)bulkBindingAbort.current=null;
     const controller=new AbortController();bulkBindingAbort.current=controller;
     setBulkBindingStatus('Hazırlanıyor…');setBulkBindingProblems([]);
     audioRef.current?.pause();stopWordPreview();liveCaptureRef.current=null;setIsLiveSyncMode(false);
@@ -617,7 +623,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       onNotify(issues.length?'warning':'success','Toplu ses bağlama',`${completed} satır tamamlandı, ${skipped} hazır/kilitli satır atlandı. ${partial} satır kontrol bekliyor.`);
     }catch(error){
       if(!controller.signal.aborted)onNotify('warning','Toplu bağlama',(error as Error).message);
-    }finally{bulkBindingAbort.current=null;setBulkBindingStatus('');}
+    }finally{
+      if(bulkBindingAbort.current===controller)bulkBindingAbort.current=null;
+      setBulkBindingStatus('');
+    }
   };
   const resumeLiveSyncFromRow = (index: number) => {
     const row = segmentsRef.current[index];
