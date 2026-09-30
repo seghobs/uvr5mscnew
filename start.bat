@@ -14,12 +14,27 @@ if not exist "%~dp0frontend\node_modules\next\package.json" goto needs_setup
 where node >nul 2>nul
 if errorlevel 1 goto needs_setup
 cd /d "%~dp0frontend"
-call npm run dev
+echo Yerel servis hazirlaniyor...
+call node scripts\ensure-backend.js
+if errorlevel 1 goto launch_failed
+
+echo Uretim surumu derleniyor...
+call npm run build
+if errorlevel 1 goto launch_failed
+
+echo Uygulama uretim modunda aciliyor...
+call npm run start
 set "uvr_exit_code=%errorlevel%"
 echo.
 echo Uygulama durdu. Pencereyi kapatmak icin bir tusa basin.
 pause >nul
 exit /b %uvr_exit_code%
+
+:launch_failed
+echo.
+echo Uygulama baslatilamadi. Yukaridaki aciklamayi kontrol edin.
+pause >nul
+exit /b 1
 
 :needs_setup
 echo Kurulum eksik. Once setup.bat dosyasini calistirin.
