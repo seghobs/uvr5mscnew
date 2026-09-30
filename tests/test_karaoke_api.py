@@ -34,7 +34,7 @@ class ApiTests(unittest.TestCase):
                  'KaraokeVideoRequest', 'generate_karaoke_video_endpoint',
                  'run_lyrics_alignment', 'transcribe_lyrics_endpoint', 'ReferenceApplyRequest',
                  'reference_apply_endpoint', 'run_reference_alignment', 'get_output',
-                 'run_pasted_sync', 'paste_lyrics_endpoint'}
+                 'run_pasted_sync', 'paste_lyrics_endpoint', 'get_active_lyrics_tasks'}
         nodes = [n for n in source.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and n.name in names]
         for n in nodes:
             n.decorator_list = []
@@ -42,6 +42,7 @@ class ApiTests(unittest.TestCase):
         def create_task(extra=None):
             key = str(len(self.tasks)); self.tasks[key] = {'status': 'processing', **(extra or {})}; return key
         self.ns = dict(globals(), project_store=ProjectStore(root/'projects'), FAVORITES_DB_PATH=root/'lyrics.db', OUTPUT_DIR=root,
+                       tasks=self.tasks, tasks_lock=threading.Lock(),
                        _lyrics_data_lock=threading.RLock(), _lyrics_inference_lock=threading.RLock(),
                        _find_audio_file=lambda name: root/name, get_whisper_model=lambda name: object(),
                        get_precision_whisper_model=lambda name: object(),
@@ -108,6 +109,13 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(task['status'], 'completed')
         self.assertEqual(task['result']['segments'][0]['words'][0]['start'], 1.2)
 
+    def test_active_lyrics_tasks_can_be_reconnected_by_file(self):
+        own=self.ns['_create_task']({'queue_group':'lyrics_inference','file_name':'sample.wav','message':'Ses çözülüyor','progress':.42})
+        self.ns['_create_task']({'queue_group':'lyrics_inference','file_name':'other.wav','message':'Başka şarkı','progress':.2})
+        result=asyncio.run(self.ns['get_active_lyrics_tasks']('sample.wav'))
+        self.assertEqual([task['task_id'] for task in result['tasks']],[own])
+        self.assertEqual(result['tasks'][0]['progress'],.42)
+
     def test_turkish_empty_four_pass_result_falls_back_to_direct_whisper(self):
         class Word:
             def __init__(self, word, start, end): self.word,self.start,self.end=word,start,end; self.probability=.42
@@ -126,6 +134,20 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(word['word'],'Merhaba')
         self.assertEqual(word['timing_source'],'whisper')
         self.assertTrue(word['needs_review'])
+
+    def test_full_track_pass_replaces_incomplete_consensus(self):
+        class Word:
+            def __init__(self, word, start, end): self.word,self.start,self.end=word,start,end; self.probability=.8
+        class Decoded:
+            words=[Word('Bir',1.,1.3),Word('iki',1.4,1.7),Word('üç',1.8,2.1)]
+        class Model:
+            def transcribe(self,*args,**kwargs): return iter([Decoded()]),None
+        self.ns['get_whisper_model']=lambda name:Model()
+        req=self.ns['LyricsRequest'](file_name='sample.wav',force=True,language='tr')
+        bg=BackgroundTasks();job=self.ns['transcribe_lyrics_endpoint'](req,bg)
+        with patch('karaoke_anchored.recognize_anchored',return_value=[self.seg]):asyncio.run(bg())
+        words=self.tasks[job['task_id']]['result']['segments'][0]['words']
+        self.assertEqual([word['word'] for word in words],['Bir','iki','üç'])
 
     def test_ai_review_failure_does_not_discard_whisper_lyrics(self):
         req=self.ns['LyricsRequest'](file_name='sample.wav',force=True,language='tr')

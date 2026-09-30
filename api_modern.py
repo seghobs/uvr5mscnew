@@ -174,6 +174,12 @@ def init_favorites_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT, file_key TEXT NOT NULL,
                 segments_json TEXT NOT NULL, saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )""")
+            conn.execute("""CREATE TABLE IF NOT EXISTS lyrics_jobs (
+                task_id TEXT PRIMARY KEY, file_name TEXT NOT NULL,
+                request_json TEXT NOT NULL, expected_revision TEXT NOT NULL,
+                status TEXT NOT NULL, progress REAL DEFAULT 0,
+                message TEXT, error TEXT, created_at REAL, updated_at REAL
+            )""")
             conn.commit()
     except Exception as e:
         print(f"Error initializing SQLite DB: {e}")
@@ -438,6 +444,8 @@ def _create_task(extra: dict = None) -> str:
             "updated_at": time.time(),
             **(extra or {}),
         }
+        snapshot = dict(tasks[task_id])
+    _persist_lyrics_job(task_id, snapshot)
     return task_id
 
 def _update_task(task_id: str, **kwargs):
@@ -445,6 +453,30 @@ def _update_task(task_id: str, **kwargs):
         if task_id in tasks:
             tasks[task_id].update(kwargs)
             tasks[task_id]["updated_at"] = time.time()
+            snapshot = dict(tasks[task_id])
+        else:
+            snapshot = None
+    if snapshot is not None:
+        _persist_lyrics_job(task_id, snapshot)
+
+def _persist_lyrics_job(task_id: str, task: dict):
+    """Persist resumable Whisper work; completed lyrics remain in the lyrics table."""
+    if task.get('queue_group') != 'lyrics_inference' or not task.get('request_payload'):
+        return
+    try:
+        with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
+            conn.execute("""INSERT INTO lyrics_jobs
+                (task_id,file_name,request_json,expected_revision,status,progress,message,error,created_at,updated_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?)
+                ON CONFLICT(task_id) DO UPDATE SET status=excluded.status,
+                progress=excluded.progress,message=excluded.message,error=excluded.error,
+                updated_at=excluded.updated_at""",(
+                task_id,task['file_name'],json.dumps(task['request_payload'],ensure_ascii=False),
+                task.get('expected_revision',''),task.get('status','processing'),float(task.get('progress') or 0),
+                task.get('message'),task.get('error'),task.get('created_at',time.time()),task.get('updated_at',time.time())))
+            conn.commit()
+    except Exception as exc:
+        print(f'Lyrics job persistence error: {exc}')
 
 ALLOWED_EXTENSIONS = {e.lower() for e in core.extensions}
 ALLOWED_EXTENSIONS.update([".wav", ".mp4", ".lrc", ".srt", ".ass", ".json", ".uvrproj", ".m4a", ".opus", ".webm", ".mkv"])
@@ -1243,7 +1275,46 @@ async def get_status(task_id: str):
             raise HTTPException(status_code=404, detail="Task not found")
         # Return copy without internal timestamps? Keep them but not sensitive
         data = dict(tasks[task_id])
-    return data
+        queue_group = data.get('queue_group')
+        if queue_group and data.get('status') == 'processing':
+            queued = sorted(
+                ((tid, task) for tid, task in tasks.items()
+                 if task.get('status') == 'processing' and task.get('queue_group') == queue_group),
+                key=lambda item: item[1].get('created_at', 0),
+            )
+            ids = [tid for tid, _ in queued]
+            if task_id in ids:
+                position = ids.index(task_id)
+                data.update(queue_position=position + 1, queue_total=len(ids),
+                            queue_ahead=position, queue_remaining=len(ids) - position - 1)
+        return data
+
+@app.get("/api/lyrics/tasks/{file_name}")
+async def get_active_lyrics_tasks(file_name: str):
+    """Reconnect an opened song to lyric jobs that are already running or queued."""
+    with tasks_lock:
+        group_ids = [tid for tid, task in tasks.items()
+                     if task.get("status") == "processing"
+                     and task.get("queue_group") == "lyrics_inference"]
+        active = []
+        for tid in group_ids:
+            task = tasks[tid]
+            if task.get("file_name") != file_name:
+                continue
+            position = group_ids.index(tid)
+            raw_progress = float(task.get("progress") or 0)
+            active.append({
+                "task_id": tid,
+                "status": task.get("status", "processing"),
+                "message": task.get("message") or "Söz işlemi devam ediyor...",
+                "progress": raw_progress,
+                "queue_position": position + 1,
+                "queue_total": len(group_ids),
+                "queue_ahead": position,
+                "queue_remaining": len(group_ids) - position - 1,
+                "created_at": task.get("created_at", 0),
+            })
+    return {"file_name": file_name, "tasks": active}
 
 @app.get("/output/{filename}")
 async def get_output(filename: str):
@@ -2151,7 +2222,10 @@ def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: st
                 from karaoke_anchored import recognize_anchored, anchor_transcript, anchor_transcript_rows
                 try:
                     segments=recognize_anchored(audio_path,get_precision_whisper_model,
-                        lambda fraction,message:_update_task(task_id,progress=.2+.7*fraction,message=message))
+                        lambda fraction,message:_update_task(task_id,progress=.2+.7*fraction,message=message),
+                        lambda rows,covered,total:_update_task(task_id,partial_segments=rows,
+                            covered_seconds=covered,total_seconds=total,
+                            message=f'{len(rows)} söz satırı bulundu · {covered:.0f}/{total:.0f} sn tarandı'))
                 except ValueError:
                     if transcript:
                         segments=[]
@@ -2174,6 +2248,28 @@ def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: st
                                                  'text':' '.join(word['word'] for word in words),'words':words})
                         if not segments:
                             raise ValueError("Whisper ses içinde söz bulamadı; mevcut kayıt korundu.")
+                # Four-pass consensus improves confidence, but must not silently
+                # discard the rest of the song. Compare it with a complete pass and
+                # keep the fuller transcript, marking uncertain words for review.
+                if not transcript and hasattr(model, 'transcribe'):
+                    _update_task(task_id,message='Eksik söz kontrolü yapılıyor...',progress=.9)
+                    decoded,_=model.transcribe(str(audio_path),language='tr',word_timestamps=True,
+                        vad_filter=False,condition_on_previous_text=False,beam_size=5,temperature=0.)
+                    complete=[]
+                    for decoded_segment in decoded:
+                        words=[{'word':word.word.strip(),'start':word.start,'end':word.end,
+                                'probability':getattr(word,'probability',None),'timing_source':'whisper',
+                                'needs_review':getattr(word,'probability',0)<.75}
+                               for word in (decoded_segment.words or [])
+                               if word.word.strip() and word.end>word.start]
+                        if words:complete.append({'start':words[0]['start'],'end':words[-1]['end'],
+                                                  'text':' '.join(w['word'] for w in words),'words':words})
+                    anchored_count=sum(len(row.get('words',[])) for row in segments)
+                    complete_count=sum(len(row.get('words',[])) for row in complete)
+                    if complete_count>anchored_count:
+                        segments=complete
+                    if not segments:
+                        raise ValueError('Tam şarkı çözümlemesi söz bulamadı; eksik sonuç kaydedilmedi.')
                 if transcript:
                     try:
                         segments=anchor_transcript(transcript,segments)
@@ -2240,9 +2336,44 @@ def transcribe_lyrics_endpoint(req: LyricsRequest, background_tasks: BackgroundT
         if cached and cached.get("segments"):
             return cached
     _find_audio_file(req.file_name)
-    task_id = _create_task({"message": "Kelime hizalaması sıraya alındı..."})
-    background_tasks.add_task(run_lyrics_alignment, task_id, req, _lyrics_revision(req.file_name))
+    with tasks_lock:
+        existing = next((tid for tid, task in tasks.items()
+                         if task.get('status') == 'processing'
+                         and task.get('queue_group') == 'lyrics_inference'
+                         and task.get('file_name') == req.file_name), None)
+    if existing:
+        return {"task_id": existing, "status": "processing", "deduplicated": True}
+    revision = _lyrics_revision(req.file_name)
+    task_id = _create_task({"message": "Kelime hizalaması sıraya alındı...",
+                            "model_type": "lyrics_alignment",
+                            "queue_group": "lyrics_inference",
+                            "file_name": req.file_name,
+                            "request_payload": req.model_dump(),
+                            "expected_revision": revision})
+    background_tasks.add_task(run_lyrics_alignment, task_id, req, revision)
     return {"task_id": task_id, "status": "processing"}
+
+@app.on_event('startup')
+def resume_persisted_lyrics_jobs():
+    """Restore interrupted/queued Whisper jobs after a backend or computer restart."""
+    init_favorites_db()
+    with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
+        rows=conn.execute("""SELECT task_id,file_name,request_json,expected_revision,status,
+            progress,message,error,created_at,updated_at FROM lyrics_jobs
+            WHERE status IN ('processing','queued','interrupted') ORDER BY created_at""").fetchall()
+    for row in rows:
+        task_id,file_name,payload,revision,_,progress,_,error,created_at,updated_at=row
+        try:req=LyricsRequest(**json.loads(payload))
+        except Exception:
+            continue
+        task={'status':'processing','progress':float(progress or 0),
+              'message':'Sunucu yeniden başladı; görev bu şarkı için yeniden sıraya alındı...',
+              'error':error,'created_at':created_at or time.time(),'updated_at':updated_at or time.time(),
+              'model_type':'lyrics_alignment','queue_group':'lyrics_inference','file_name':file_name,
+              'request_payload':req.model_dump(),'expected_revision':revision}
+        with tasks_lock:tasks[task_id]=task
+        _persist_lyrics_job(task_id,task)
+        threading.Thread(target=run_lyrics_alignment,args=(task_id,req,revision),daemon=True).start()
 
 
 @gpu_operation
@@ -2666,6 +2797,25 @@ def restart_local_service(background_tasks: BackgroundTasks):
     prepare_service_stop()
     background_tasks.add_task(_launch_service_control,'restart')
     return {'status':'restarting','previous_pid':os.getpid()}
+
+@app.post('/api/tasks/cancel-all')
+def cancel_and_delete_all_tasks(background_tasks: BackgroundTasks):
+    """Emergency stop: erase every queue and kill active model work via a clean process restart."""
+    with tasks_lock:
+        legacy_count=len(tasks)
+        tasks.clear()
+    with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
+        persisted_count=conn.execute('SELECT COUNT(*) FROM lyrics_jobs').fetchone()[0]
+        conn.execute('DELETE FROM lyrics_jobs')
+        conn.commit()
+    audio_count=0
+    for job in audio_jobs.list():
+        if job.get('status') in ('queued','processing','cancelling'):
+            try:audio_jobs.cancel(job['id']);audio_count+=1
+            except Exception:pass
+    background_tasks.add_task(_launch_service_control,'force-restart')
+    return {'status':'cancelled','deleted_tasks':max(legacy_count,persisted_count)+audio_count,
+            'message':'Tüm görevler iptal edildi ve silindi. Servis temizleniyor.'}
 
 def _launch_service_control(action):
     time.sleep(.5)

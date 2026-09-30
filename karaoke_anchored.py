@@ -29,7 +29,7 @@ def bounded_refine(path, segments, language, refine):
     return result
 
 
-def recognize_anchored(path,get_model,progress=lambda *args:None):
+def recognize_anchored(path,get_model,progress=lambda *args:None,partial=lambda *args:None):
     import soundfile as sf
     from karaoke_ctc import refine_turkish
     duration=sf.info(path).duration
@@ -42,13 +42,55 @@ def recognize_anchored(path,get_model,progress=lambda *args:None):
             lambda p,m:progress(min(.98,(offset+p*40)/duration),m),strict=True)
         candidates=result['candidates']
         if not candidates:continue
-        words=verified_candidates(candidates)
+        verified=verified_candidates(candidates)
+        inclusive=inclusive_candidates(candidates)
+        # Never lose an audible occurrence merely because all four decoding
+        # passes spelled it differently. Keep the fullest chronological pass
+        # and mark non-consensus words for human/reference review.
+        words=inclusive if len(inclusive)>len(verified) else verified
         words=[w for w in words if offset<=(w['start']+w['end'])/2<min(duration,offset+40)]
         # Preserve each repeated occurrence; no text-based deduplication.
         for chunk in word_groups(words):
             rows.append({'start':chunk[0]['start'],'end':chunk[-1]['end'],'text':' '.join(w['word'] for w in chunk),'words':chunk})
+        partial(copy.deepcopy(rows),min(duration,offset+40),duration)
     if not rows:raise ValueError('Güvenli söz konumu bulunamadı; mevcut kayıt korundu.')
     return bounded_refine(path,rows,'tr',refine_turkish)
+
+
+def inclusive_candidates(candidates):
+    """Merge all decoding passes by acoustic occurrence without duplicating words."""
+    observations=[]
+    for candidate in candidates:
+        run_id=candidate.get('run_id')
+        for word in candidate.get('words',[]):
+            if not normalized(word.get('word','')) or word.get('probability',0)<.35 or word['end']<=word['start']:
+                continue
+            observations.append((run_id,copy.deepcopy(word)))
+    observations.sort(key=lambda item:(item[1]['start'],item[1]['end']))
+    clusters=[]
+    for run_id,word in observations:
+        midpoint=(word['start']+word['end'])/2
+        match=None
+        for cluster in reversed(clusters[-8:]):
+            center=sum((item[1]['start']+item[1]['end'])/2 for item in cluster)/len(cluster)
+            if abs(midpoint-center)<=.28 and run_id not in {item[0] for item in cluster}:
+                match=cluster;break
+        if match is None:
+            match=[]
+            clusters.append(match)
+        match.append((run_id,word))
+    result=[]
+    for cluster in clusters:
+        labels={}
+        for _,word in cluster:
+            labels[normalized(word['word'])]=labels.get(normalized(word['word']),0)+1
+        best=max(cluster,key=lambda item:(labels[normalized(item[1]['word'])],item[1].get('probability',0)))[1]
+        best['needs_review']=labels[normalized(best['word'])]<3 or best.get('probability',0)<.6
+        if result and best['start']<result[-1]['end']:
+            if best.get('probability',0)>result[-1].get('probability',0):result[-1]=best
+            continue
+        result.append(best)
+    return result
 
 
 def word_groups(words):

@@ -173,6 +173,11 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const toggleRowLock=(index:number)=>commitSegments(committedSegments.current.map((row,i)=>i===index?{...row,locked:!row.locked}:row),true);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
   const [lyricsProgress,setLyricsProgress] = useState('Vokal ve sözler kontrol ediliyor...');
+  const [lyricsProgressPercent,setLyricsProgressPercent] = useState(0);
+  const [lyricsQueue,setLyricsQueue] = useState({position:1,total:1,ahead:0,remaining:0});
+  const [liveLyricsSegments,setLiveLyricsSegments] = useState<LyricSegment[]>([]);
+  const [backgroundLyricsTasks,setBackgroundLyricsTasks] = useState<Array<{task_id:string;message:string;progress:number;queue_position:number;queue_total:number;queue_ahead:number;queue_remaining:number}>>([]);
+  const [cancellingAllTasks,setCancellingAllTasks] = useState(false);
   const [aiTranscriptDraft,setAITranscriptDraft]=useState<string|null>(null);
   const [rendering, setRendering] = useState(false);
   const [renderStatusMsg, setRenderStatusMsg] = useState('FFmpeg 1080p Render Ediliyor...');
@@ -453,16 +458,59 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     void wordPlayerRef.current.prepare(`/output/${encodeURIComponent(vocalStem || instStem)}`).catch(() => {});
   }, [isOpen, vocalStem, instStem]);
 
-  // Load lyrics on open
+  const lyricsRequestRef = useRef(0);
+
+  // Opening the studio must never start an AI/GPU transcription by itself.
+  // Restore only an existing draft or saved database record.
   useEffect(() => {
-    if (isOpen) {
-      setVideoUrl(null);
-      const sourceForLyrics = vocalStem || instStem;
-      if (sourceForLyrics) {
-        void fetchInitialLyrics(sourceForLyrics, false).catch(() => {});
+    if(!isOpen)return;
+    setVideoUrl(null);
+    const sourceFile=vocalStem||instStem;
+    if(!sourceFile)return;
+    const requestId=++lyricsRequestRef.current;
+    setLoadingLyrics(true);
+    setLyricsProgress('Kayıtlı sözler kontrol ediliyor...');
+    void (async()=>{
+      try{
+        let draft:{segments:LyricSegment[]}|null=null;
+        try{draft=JSON.parse(projectStorage.getItem('uvr-lyrics-draft:'+sourceFile)||'null');}catch{}
+        const res=draft?.segments?.length
+          ? {status:'success',cached:true,segments:draft.segments} as Awaited<ReturnType<typeof api.getSavedLyrics>>
+          : await api.getSavedLyrics(sourceFile);
+        if(requestId!==lyricsRequestRef.current)return;
+        const syncedSegments=uppercaseLyrics(res.segments||[]).map(seg=>({...seg,words:reconcileWords(seg.words||[],seg.text,seg.start)}));
+        loadSegments(syncedSegments);
+        if(draft?.segments?.length)onNotify('info','Bekleyen düzenlemeler geri yüklendi');
+        if(res.updated_at)setLastSavedTime(new Date(res.updated_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
+      }catch{
+        if(requestId===lyricsRequestRef.current){loadSegments([]);setLastSavedTime('');}
+      }finally{
+        if(requestId===lyricsRequestRef.current)setLoadingLyrics(false);
       }
-    }
+    })();
   }, [isOpen, instStem, vocalStem]);
+
+  // A reopened studio did not know task ids created during an earlier visit.
+  // Re-discover all active lyric jobs by song, so progress never becomes invisible.
+  useEffect(()=>{
+    if(!isOpen)return;
+    const sourceFile=vocalStem||instStem;
+    if(!sourceFile)return;
+    let stopped=false;
+    const refresh=async()=>{
+      try{
+        const data=await api.getActiveLyricsTasks(sourceFile);
+        if(stopped)return;
+        setBackgroundLyricsTasks(data.tasks.map(task=>({
+          ...task,
+          progress:Math.max(0,Math.min(100,(Number(task.progress)||0)<=1?(Number(task.progress)||0)*100:Number(task.progress)||0)),
+        })));
+      }catch{if(!stopped)setBackgroundLyricsTasks([]);}
+    };
+    void refresh();
+    const timer=window.setInterval(()=>void refresh(),1000);
+    return()=>{stopped=true;window.clearInterval(timer);setBackgroundLyricsTasks([]);};
+  },[isOpen,vocalStem,instStem]);
 
   // Use a ref for the gesture: React rerenders must not change its start/index.
   const finishLiveRow=(end:number)=>{
@@ -748,7 +796,6 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     window.addEventListener('keydown',handleHistoryKey,true);return()=>window.removeEventListener('keydown',handleHistoryKey,true);
   },[isOpen,isLiveSyncMode,passageRow]);
 
-  const lyricsRequestRef = useRef(0);
   useEffect(() => () => { lyricsRequestRef.current++; }, [isOpen, vocalStem, instStem]);
 
   const fetchInitialLyrics = async (
@@ -761,6 +808,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     const requestId = ++lyricsRequestRef.current;
     setLoadingLyrics(true);
     setLyricsProgress('Vokal ve sözler kontrol ediliyor...');
+    setLyricsProgressPercent(0);
+    setLiveLyricsSegments([]);
+    setLyricsQueue({position:1,total:1,ahead:0,remaining:0});
     stopWordPreview();
     audioRef.current?.pause();
     flushPendingSave();
@@ -770,7 +820,12 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       if(!force){try{pending=JSON.parse(projectStorage.getItem('uvr-lyrics-draft:'+sourceFile)||'null');}catch{}}
       const res = pending?.segments?.length
         ? {status:'success',cached:true,segments:pending.segments} as Awaited<ReturnType<typeof api.transcribeLyrics>>
-        : await api.transcribeLyrics(sourceFile, targetLang, force, targetModel, rawLyrics,setLyricsProgress);
+        : await api.transcribeLyrics(sourceFile,targetLang,force,targetModel,rawLyrics,status=>{
+            setLyricsProgress(status.message);
+            setLyricsProgressPercent(status.progress);
+            setLyricsQueue({position:status.queuePosition,total:status.queueTotal,ahead:status.queueAhead,remaining:status.queueRemaining});
+            if(status.segments?.length)setLiveLyricsSegments(uppercaseLyrics(status.segments));
+          });
       if(pending?.segments?.length)onNotify('info','Bekleyen düzenlemeler geri yüklendi');
       if (requestId !== lyricsRequestRef.current) return;
       if (res.segments && res.segments.length > 0) {
@@ -808,6 +863,18 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     } finally {
       if (requestId === lyricsRequestRef.current) setLoadingLyrics(false);
     }
+  };
+
+  const cancelAllTasks=async()=>{
+    if(!window.confirm('Çalışan ve bekleyen TÜM görevler iptal edilip kalıcı görev kayıtları silinsin mi? Bu işlem geri alınamaz.'))return;
+    setCancellingAllTasks(true);
+    try{
+      const result=await api.cancelAllTasks();
+      lyricsRequestRef.current++;
+      setLoadingLyrics(false);setBackgroundLyricsTasks([]);setLiveLyricsSegments([]);
+      onNotify('warning','Tüm görevler sonlandırıldı',`${result.deleted_tasks} görev iptal edilip silindi. GPU servisi temizleniyor.`);
+    }catch(error){onNotify('error','Görevler sonlandırılamadı',error instanceof Error?error.message:'Bilinmeyen hata');}
+    finally{setCancellingAllTasks(false);}
   };
 
   const handleSegmentChange = (index: number, field: keyof LyricSegment, val: string | number) => {
@@ -1552,6 +1619,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             <p className="sr-only">{activeTab === 'verify' ? 'Referans sözleri karşılaştır veya satırları doğrudan düzenle.' : 'Bir kelimeye dokun: dinle, renk dolmasını kontrol et ve gerekirse ayarla.'}</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button disabled={cancellingAllTasks} onClick={()=>void cancelAllTasks()} className="rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-200 hover:bg-rose-500/20 disabled:opacity-40">{cancellingAllTasks?'Sonlandırılıyor…':'Tüm görevleri sonlandır'}</button>
             <button disabled={loadingLyrics || !!bulkBindingStatus || !segments.length} onClick={()=>void bindEveryRow()} className="rounded-lg border border-pink-400/30 bg-pink-400/10 px-3 py-2 text-sm font-semibold text-pink-200 hover:bg-pink-400/20 disabled:opacity-40">{bulkBindingStatus || 'Tüm satırların ses parçalarını bağla'}</button>
             <button disabled={loadingLyrics || !segments.length} onClick={() => activeTab === 'verify' ? setShowReferenceModal(true) : void fetchInitialLyrics(vocalStem || instStem, true, whisperModel, segments.map(s => s.text).join('\n')).catch(() => {})} className="rounded-lg bg-amber-400 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-40">{loadingLyrics ? 'İşleniyor…' : activeTab === 'verify' ? 'Sözleri bul ve karşılaştır' : 'Otomatik hizala'}</button>
             <button aria-expanded={showAdvancedTools} aria-controls="karaoke-tools" onClick={() => setShowAdvancedTools(!showAdvancedTools)} className={cn("rounded-lg border px-3 py-2 text-sm transition-colors", showAdvancedTools ? "border-indigo-400/30 bg-indigo-400/10 text-indigo-200" : "border-white/10 text-zinc-200 hover:bg-white/5")}>Diğer araçlar <ChevronDown className={cn("ml-1 inline h-3 w-3 transition-transform", showAdvancedTools && "rotate-180")}/></button>
@@ -1615,7 +1683,6 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       onClick={() => {
                         setWhisperModel('large-v3');
                         setShowWhisperMenu(false);
-                        void fetchInitialLyrics(vocalStem || instStem, true, 'large-v3').catch(() => {});
                       }}
                       className={cn(
                         'w-full p-2.5 rounded-xl text-left transition-all flex items-start gap-2.5 cursor-pointer',
@@ -1642,7 +1709,6 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       onClick={() => {
                         setWhisperModel('large-v3-turbo');
                         setShowWhisperMenu(false);
-                        void fetchInitialLyrics(vocalStem || instStem, true, 'large-v3-turbo').catch(() => {});
                       }}
                       className={cn(
                         'w-full p-2.5 rounded-xl text-left transition-all flex items-start gap-2.5 cursor-pointer',
@@ -1723,13 +1789,6 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                               setSelectedLyricsLang(langItem.code);
                               setShowLangMenu(false);
                               setLangSearchQuery('');
-                              fetchInitialLyrics(
-                                vocalStem || instStem,
-                                true,
-                                whisperModel,
-                                undefined,
-                                langItem.code
-                              ).catch(() => {});
                             }}
                             className={cn(
                               'w-full px-3 py-2 rounded-xl text-left transition-all flex items-center justify-between text-xs cursor-pointer',
@@ -2127,11 +2186,40 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                   </div>
                 </div>
               )}
+              {!loadingLyrics&&backgroundLyricsTasks.length>0&&(
+                <div className="mx-6 mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Loader2 className="h-4 w-4 shrink-0 animate-spin text-amber-400" />
+                      <p className="truncate text-xs font-bold text-amber-100">Bu şarkının arka plan söz işlemleri devam ediyor</p>
+                    </div>
+                    <span className="shrink-0 text-sm font-black tabular-nums text-amber-300">%{Math.round(backgroundLyricsTasks[0].progress)}</span>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-300 transition-[width] duration-500" style={{width:`${backgroundLyricsTasks[0].progress}%`}} /></div>
+                  <p className="mt-2 text-xs text-zinc-300">{backgroundLyricsTasks[0].message} · Bu şarkı için {backgroundLyricsTasks.length} işlem kaldı{backgroundLyricsTasks[0].queue_ahead>0?` · Önünde ${backgroundLyricsTasks[0].queue_ahead} işlem var`:' · Şu anda çalışıyor'}</p>
+                </div>
+              )}
               {loadingLyrics ? (
-                <div className="h-64 flex flex-col items-center justify-center gap-3 text-zinc-400">
+                <div className="min-h-64 flex flex-col items-center justify-center gap-3 px-6 py-8 text-zinc-400">
                   <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
-                  <p className="text-sm font-bold">{lyricsProgress}</p>
-                  <p className="mt-2 text-xs text-zinc-400">Türkçe sözler dört çözümlemede karşılaştırılır. Doğrulanamayan kelimeler otomatik eklenmez.</p>
+                  <div className="text-3xl font-black tabular-nums text-amber-300">%{Math.round(lyricsProgressPercent)}</div>
+                  <p className="text-sm font-bold text-center">{lyricsProgress}</p>
+                  <div className="h-2 w-full max-w-md overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-300 transition-[width] duration-500" style={{width:`${lyricsProgressPercent}%`}} />
+                  </div>
+                  <p className="text-xs font-semibold text-purple-200">
+                    Kuyruk: {lyricsQueue.position}/{lyricsQueue.total}
+                    {lyricsQueue.ahead>0?` · Önünde ${lyricsQueue.ahead} işlem var`: ' · Şu anda çalışıyor'}
+                    {lyricsQueue.remaining>0?` · Arkasında ${lyricsQueue.remaining} işlem bekliyor`:''}
+                  </p>
+                  <p className="mt-2 text-xs text-zinc-400">Şarkı baştan sona taranır; dört çözümleme birleştirilir ve şüpheli kelimeler kontrol için işaretlenir.</p>
+                  {liveLyricsSegments.length>0&&<div className="mt-3 max-h-72 w-full max-w-4xl space-y-2 overflow-y-auto rounded-2xl border border-amber-400/20 bg-black/20 p-3">
+                    <p className="sticky top-0 bg-[#191722]/95 pb-2 text-xs font-bold text-amber-300">Anlık bulunan sözler · {liveLyricsSegments.length} satır</p>
+                    {liveLyricsSegments.map((row,index)=><div key={row.id||`${row.start}-${index}`} className="flex gap-3 rounded-xl border border-white/10 bg-white/[.03] px-3 py-2 text-left">
+                      <span className="shrink-0 font-mono text-[11px] text-amber-400">{Math.floor(row.start/60).toString().padStart(2,'0')}:{Math.floor(row.start%60).toString().padStart(2,'0')}</span>
+                      <span className="text-sm font-semibold text-zinc-100">{row.text}</span>
+                    </div>)}
+                  </div>}
                 </div>
               ) : segments.length === 0 ? (
                 <div className="h-64 flex flex-col items-center justify-center gap-3 text-zinc-400 text-center">
@@ -2826,7 +2914,21 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         try {
           flushPendingSave();
           await enqueueLyricsSave(() => Promise.resolve());
-          const result = await api.referenceRequest('apply', {file_name: vocalStem || instStem, segments: snapshot, edits, language: selectedLyricsLang, model_name: whisperModel});
+          // Saving normalizes word metadata/times, so the modal's visually identical
+          // snapshot can be byte-wise stale by the time Apply is clicked. Start the
+          // protected alignment from the authoritative just-saved DB snapshot.
+          const latest=await api.getSavedLyrics(vocalStem || instStem);
+          const latestSegments=latest.segments||[];
+          if(latestSegments.length!==snapshot.length)throw new Error('Satır sayısı değişti; sözleri yeniden karşılaştırın.');
+          const remappedEdits:Record<number,string>={};
+          for(const [rawIndex,text] of Object.entries(edits)){
+            const oldIndex=Number(rawIndex);
+            const rowId=snapshot[oldIndex]?.id;
+            const newIndex=rowId?latestSegments.findIndex(row=>row.id===rowId):oldIndex;
+            if(newIndex<0||newIndex>=latestSegments.length)throw new Error('Seçilen satır değişti; sözleri yeniden karşılaştırın.');
+            remappedEdits[newIndex]=text;
+          }
+          const result = await api.referenceRequest('apply', {file_name: vocalStem || instStem, segments: latestSegments, edits: remappedEdits, language: selectedLyricsLang, model_name: whisperModel});
           if (requestId !== lyricsRequestRef.current) return;
           setSegments(result.segments);
           setLastSavedTime(new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));

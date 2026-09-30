@@ -1,5 +1,5 @@
 import copy, unittest
-from karaoke_anchored import anchor_exact_text,bounded_refine,combine_candidates
+from karaoke_anchored import anchor_exact_text,bounded_refine,combine_candidates,inclusive_candidates
 from karaoke_timing import timing_issues,ass_word_tags
 
 class AnchorTests(unittest.TestCase):
@@ -21,6 +21,16 @@ class AnchorTests(unittest.TestCase):
         first={'word':'SEVDİĞİM','start':52,'end':53,'probability':.9}
         later={'word':'BİR','start':54,'end':55,'probability':.9}
         self.assertEqual([w['word'] for w in combine_candidates([{'words':[later]},{'words':[first,later]}])],['SEVDİĞİM','BİR'])
+    def test_inclusive_pass_keeps_word_heard_by_only_one_decode(self):
+        candidates=[
+            {'run_id':0,'words':[{'word':'BİR','start':1.,'end':1.3,'probability':.9}]},
+            {'run_id':1,'words':[{'word':'BİR','start':1.02,'end':1.31,'probability':.8},{'word':'GÜN','start':1.5,'end':1.8,'probability':.7}]},
+            {'run_id':2,'words':[{'word':'BİR','start':1.01,'end':1.32,'probability':.85}]},
+            {'run_id':3,'words':[{'word':'BİR','start':1.03,'end':1.33,'probability':.88}]},
+        ]
+        result=inclusive_candidates(candidates)
+        self.assertEqual([word['word'] for word in result],['BİR','GÜN'])
+        self.assertTrue(result[1]['needs_review'])
     def test_stale_envelope_replaced_without_changing_text(self):
         row={'start':23,'end':56,'text':'SEVDİĞİM BİR GÜN BANA'}
         words=[{'word':w,'start':52+i,'end':52.5+i} for i,w in enumerate(row['text'].split())]

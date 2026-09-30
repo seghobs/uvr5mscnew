@@ -27,6 +27,17 @@ async function safeFetch(path: string, options?: RequestInit): Promise<Response>
 }
 
 export const api = {
+  async cancelAllTasks():Promise<{status:string;deleted_tasks:number;message:string}>{
+    const res=await safeFetch('/api/tasks/cancel-all',{method:'POST'});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.detail||'Görevler sonlandırılamadı.');
+    return data;
+  },
+  async getActiveLyricsTasks(fileName:string):Promise<{tasks:Array<{task_id:string;status:string;message:string;progress:number;queue_position:number;queue_total:number;queue_ahead:number;queue_remaining:number}>}>{
+    const res=await safeFetch(`/api/lyrics/tasks/${encodeURIComponent(fileName)}`);
+    if(!res.ok)throw new Error('Arka plan söz görevleri alınamadı.');
+    return res.json();
+  },
   async transcribeAudioAI(fileName:string,onProgress:(message:string)=>void):Promise<{segments:LyricSegment[];review_required:boolean}>{
     const response=await safeFetch('/api/lyrics/ai-transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file_name:fileName})});
     const job=await response.json();if(!response.ok)throw Error(job.detail||'Gemini başlatılamadı.');
@@ -288,7 +299,7 @@ export const api = {
     force: boolean = false,
     modelName: string = 'large-v3',
     rawLyricsText?: string,
-    onProgress?: (message:string)=>void
+    onProgress?: (status:{message:string;progress:number;queuePosition:number;queueTotal:number;queueAhead:number;queueRemaining:number;segments?:LyricSegment[];coveredSeconds?:number;totalSeconds?:number})=>void
   ): Promise<LyricsResponse> {
     const isPaste=Boolean(rawLyricsText?.trim());
     const signal=isPaste?AbortSignal.timeout(90000):undefined;
@@ -315,7 +326,19 @@ export const api = {
       const statusRes = await safeFetch(`/status/${encodeURIComponent(data.task_id)}`,{signal});
       if (!statusRes.ok) throw new Error('Hizalama görevi sorgulanamadı.');
       const task = await statusRes.json();
-      if(task.message)onProgress?.(task.message);
+      const rawProgress=Number(task.progress)||0;
+      const progress=rawProgress<=1?rawProgress*100:rawProgress;
+      onProgress?.({
+        message:task.message||'İşleniyor...',
+        progress:Math.max(0,Math.min(100,progress)),
+        queuePosition:Number(task.queue_position)||1,
+        queueTotal:Number(task.queue_total)||1,
+        queueAhead:Number(task.queue_ahead)||0,
+        queueRemaining:Number(task.queue_remaining)||0,
+        segments:Array.isArray(task.partial_segments)?task.partial_segments:undefined,
+        coveredSeconds:Number(task.covered_seconds)||undefined,
+        totalSeconds:Number(task.total_seconds)||undefined,
+      });
       if (task.status === 'completed') return task.result;
       if (task.status === 'failed') throw new Error(task.error || 'Hizalama başarısız.');
     }
