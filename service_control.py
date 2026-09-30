@@ -93,10 +93,22 @@ def stop(frontend=False):
     for process in psutil.process_iter():
         if process.pid!=os.getpid() and (owns_backend(process) or (frontend and owns_frontend(process))):terminate_tree(process)
 
+def force_restart():
+    """Used only after the API has explicitly cancelled and deleted every job."""
+    for process in psutil.process_iter():
+        if process.pid!=os.getpid() and owns_backend(process):terminate_tree(process)
+    start()
+
 def start(reuse_busy=False):
     current=service_info()
     if current and Path(current.get('root','')).resolve()!=ROOT:raise RuntimeError('8000 portunda başka bir proje çalışıyor.')
     if current and current.get('revision')==revision():return
+    # Opening the UI must never briefly tear down an otherwise healthy backend.
+    # A source revision can change while the development frontend remains open;
+    # explicit restart actions still apply that revision when the user chooses.
+    if current and reuse_busy:
+        print('Çalışan yerel servis korunuyor; arayüz mevcut sunucuyla açılacak.')
+        return
     existing=[p for p in psutil.process_iter() if owns_backend(p)]
     if existing:
         try:stop()
@@ -122,6 +134,7 @@ if __name__=='__main__':
         with management_lock():
             if action=='stop':stop(True)
             elif action=='restart':stop();start()
+            elif action=='force-restart':force_restart()
             elif action=='ensure':start()
             elif action=='launch':start(reuse_busy=True)
             else:raise ValueError('Unknown service action')
