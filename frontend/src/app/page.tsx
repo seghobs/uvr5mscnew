@@ -2,7 +2,7 @@
 
 import { initializeProjects, projectStorage } from '@/lib/project-storage';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   TabId,
   Language,
@@ -111,6 +111,16 @@ export default function StudioPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [processingMessage, setProcessingMessage] = useState('');
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+  const etaSamples = useRef<Array<{time:number;progress:number}>>([]);
+  const etaDeadline = useRef<number | null>(null);
+  useEffect(() => {
+    if (!isProcessing) return;
+    const timer = setInterval(() => {
+      if (etaDeadline.current !== null) setRemainingSeconds(Math.max(1, Math.ceil((etaDeadline.current-Date.now())/1000)));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isProcessing]);
   const [separatedStems, setSeparatedStems] = useState<string[]>([]);
   const [activeProjectId,setActiveProjectId]=useState<number|null>(null);
 
@@ -186,6 +196,9 @@ export default function StudioPage() {
     }
 
     setIsProcessing(true);
+    etaSamples.current = [];
+    etaDeadline.current = null;
+    setRemainingSeconds(null);
     setProgress(10);
     setProcessingMessage('Initializing AI neural network models...');
     setSeparatedStems([]);
@@ -229,6 +242,18 @@ export default function StudioPage() {
           const statusRes = await api.getTaskStatus(taskId);
           const rawProg = statusRes.progress ?? 0.1;
           const pct = Math.round(rawProg <= 1.0 ? rawProg * 100 : rawProg);
+          const measuredPct = rawProg <= 1 ? rawProg * 100 : rawProg;
+          const samples = etaSamples.current;
+          if (!samples.length || measuredPct > samples[samples.length-1].progress) {
+            samples.push({time:Date.now(),progress:measuredPct});
+            if (samples.length > 30) samples.shift();
+            const first = samples[0], last = samples[samples.length-1];
+            if (last.time-first.time >= 10000 && last.progress > first.progress) {
+              const seconds = (100-last.progress)*(last.time-first.time)/(last.progress-first.progress)/1000;
+              etaDeadline.current = Date.now()+seconds*1000;
+              setRemainingSeconds(Math.max(1,Math.ceil(seconds)));
+            }
+          }
           setProgress(Math.max(5, Math.min(100, pct)));
           setProcessingMessage(statusRes.message || 'Processing audio with neural network...');
 
@@ -401,6 +426,9 @@ export default function StudioPage() {
                     <span className="text-sm font-mono font-bold text-indigo-400">{progress}%</span>
                   </div>
 
+                  <p className="text-xs text-indigo-200 tabular-nums" role="status">
+                    {remainingSeconds === null ? 'Kalan süre hesaplanıyor · İşlem hızı ölçülüyor' : `Tahmini kalan süre: ${Math.floor(remainingSeconds/60)} dk ${remainingSeconds%60} sn · İşlem hızına göre güncellenir`}
+                  </p>
                   <div className="w-full bg-slate-950/80 h-3 rounded-full overflow-hidden border border-white/10 p-0.5">
                     <div
                       className={cn(

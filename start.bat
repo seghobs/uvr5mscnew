@@ -23,6 +23,8 @@ call npm run build
 if errorlevel 1 goto launch_failed
 
 echo Uygulama uretim modunda aciliyor...
+call node scripts\ensure-backend.js
+if errorlevel 1 goto launch_failed
 call npm run start
 set "uvr_exit_code=%errorlevel%"
 echo.

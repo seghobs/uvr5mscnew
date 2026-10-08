@@ -8,12 +8,7 @@ import api_modern
 class GpuLifecycleTests(unittest.TestCase):
     def setUp(self):
         with api_modern._gpu_activity_lock:
-            api_modern._cancel_gpu_idle_shutdown()
             api_modern._gpu_active_operations = 0
-
-    def tearDown(self):
-        with api_modern._gpu_activity_lock:
-            api_modern._cancel_gpu_idle_shutdown()
 
     def test_cleanup_waits_for_the_last_concurrent_gpu_operation(self):
         first_started = threading.Event()
@@ -47,18 +42,18 @@ class GpuLifecycleTests(unittest.TestCase):
                 fail()
             cleanup.assert_called_once_with()
 
-    def test_idle_backend_restart_releases_the_cuda_process(self):
-        restarted = threading.Event()
-
+    def test_completed_gpu_work_keeps_http_server_running(self):
         @api_modern.gpu_operation
         def work():
             return 'done'
 
-        with patch.object(api_modern, 'GPU_IDLE_SHUTDOWN_SECONDS', .01), \
-             patch.object(api_modern, '_release_all_gpu_resources'), \
-             patch.object(api_modern, '_launch_service_control', side_effect=lambda action: restarted.set()):
+        with patch.object(api_modern, '_release_all_gpu_resources') as cleanup, \
+             patch.object(api_modern, '_launch_service_control') as launch, \
+             patch.object(api_modern.threading, 'Timer') as timer:
             self.assertEqual(work(), 'done')
-            self.assertTrue(restarted.wait(1))
+            cleanup.assert_called_once_with()
+            launch.assert_not_called()
+            timer.assert_not_called()
 
 
 if __name__ == '__main__':

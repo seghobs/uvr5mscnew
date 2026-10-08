@@ -2953,7 +2953,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             </div>
 
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Önce aradığınız şarkıyı belirtin. Sonuçlardan uygun sözleri seçin; bulamazsanız aşağıya elle yapıştırın. Sözleri kontrol ettikten sonra senkronlamayı başlatın.
+            Önce aradığınız şarkıyı belirtin. Sonuçlardan uygun sözleri seçin; bulamazsanız aşağıya elle yapıştırın. Metin satır satır eklenir; zamanlarını daha sonra elle ayarlayabilirsiniz.
             </p>
 
             <LyricsCatalogSearch initialTitle={title} initialArtist={artist} onSelect={setPastedLyricsText} onBusyChange={setCatalogBusy} disabled={isAligningPasted}/>
@@ -2980,20 +2980,15 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
               <button
                 type="button"
                 disabled={!pastedLyricsText.trim() || isAligningPasted || catalogBusy}
-                onClick={async () => {
-                  setIsAligningPasted(true);
-                  try {
-                    const result=await fetchInitialLyrics(vocalStem || instStem, true, whisperModel, pastedLyricsText);
+                onClick={() => {
+                    const rows: LyricSegment[] = pastedLyricsText.split(/\r?\n/).map(text=>text.trim()).filter(Boolean).map(text=>({
+                      id:crypto.randomUUID(), text, start:0, end:0,
+                      words:text.split(/\s+/).map(word=>({word,start:0,end:0,timing_source:'estimated' as const,needs_review:true})),
+                    }));
+                    setSegments(rows);
                     setShowPasteModal(false);
                     setPastedLyricsText('');
-                    const report=result?.paste_report;
-                    onNotify(report?.pending.length?'warning':'info',report?'Satır satır senkron tamamlandı':'Hizalama tamamlandı',
-                      report?`${report.total} satır eklendi, ${report.aligned} satır sesle eşleşti. ${report.pending.length} satır senkron bekliyor; bu satırların süresi otomatik uydurulmadı.`:'Kelime sınırları ses üzerinden çıkarıldı. İşaretlenen zamanları kontrol edin.');
-                  } catch (e: any) {
-                    onNotify('error', 'Hizalama Hatası', e.message);
-                  } finally {
-                    setIsAligningPasted(false);
-                  }
+                    onNotify('success','Sözler eklendi',`${rows.length} satır eklendi. Zamanlarını manuel senkronla ayarlayabilirsiniz.`);
                 }}
                 className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-purple-600/30 cursor-pointer disabled:opacity-50"
               >
@@ -3005,7 +3000,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    <span>Otomatik Senkronla & Başlat</span>
+                    <span>Sözleri Satır Satır Ekle</span>
                   </>
                 )}
               </button>

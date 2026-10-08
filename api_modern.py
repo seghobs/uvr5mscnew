@@ -41,37 +41,8 @@ from karaoke_timing import repair_timing, timing_issues, ass_time, ass_word_tags
 import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
 
-GPU_IDLE_SHUTDOWN_SECONDS = 20
 _gpu_activity_lock = threading.RLock()
 _gpu_active_operations = 0
-_gpu_idle_shutdown_timer = None
-
-
-def _cancel_gpu_idle_shutdown():
-    global _gpu_idle_shutdown_timer
-    if _gpu_idle_shutdown_timer is not None:
-        _gpu_idle_shutdown_timer.cancel()
-        _gpu_idle_shutdown_timer = None
-
-
-def _restart_backend_after_gpu_idle():
-    global _gpu_idle_shutdown_timer
-    with _gpu_activity_lock:
-        _gpu_idle_shutdown_timer = None
-        if _gpu_active_operations:
-            return
-    launch = globals().get('_launch_service_control')
-    if callable(launch):
-        launch('restart')
-
-
-def _schedule_gpu_idle_shutdown():
-    global _gpu_idle_shutdown_timer
-    _cancel_gpu_idle_shutdown()
-    timer = threading.Timer(GPU_IDLE_SHUTDOWN_SECONDS, _restart_backend_after_gpu_idle)
-    timer.daemon = True
-    _gpu_idle_shutdown_timer = timer
-    timer.start()
 
 
 def _release_all_gpu_resources():
@@ -88,7 +59,6 @@ def gpu_operation(func):
     def wrapped(*args, **kwargs):
         global _gpu_active_operations
         with _gpu_activity_lock:
-            _cancel_gpu_idle_shutdown()
             _gpu_active_operations += 1
         try:
             return func(*args, **kwargs)
@@ -97,7 +67,8 @@ def gpu_operation(func):
                 _gpu_active_operations = max(0, _gpu_active_operations - 1)
                 if _gpu_active_operations == 0:
                     _release_all_gpu_resources()
-                    _schedule_gpu_idle_shutdown()
+                    # Release resident models without restarting the HTTP server.
+                    # Restarting here interrupts polling and can kill a new job.
     return wrapped
 
 # Suppress background popup cmd windows/tabs on Windows for ffmpeg/ffprobe/helpers/audio_separator
