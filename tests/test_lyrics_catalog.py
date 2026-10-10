@@ -11,6 +11,43 @@ from lyric_sources import api, providers, translate
 
 
 class CatalogTests(unittest.TestCase):
+    def test_lowercase_artist_and_title_resolve_canonical_page(self):
+        from tests.test_musixmatch_web import page
+        calls=[]
+        def handler(r):
+            if r.url.host=='lrclib.net':
+                return httpx.Response(200,json=[{'id':7,'trackName':'Gözleri Fettan Güzel','artistName':'Müslüm Gürses'}])
+            if r.url.host=='www.musixmatch.com':
+                calls.append(str(r.url))
+                if 'M%C3%BCsl%C3%BCm-G%C3%BCrses' in str(r.url):return httpx.Response(200,text=page())
+            return httpx.Response(403)
+        result=self.call('search',handler,{'q':'gözleri fettan güzel','artist':'müslüm gürses'})
+        self.assertEqual(result.json()['sources']['musixmatch']['count'],1)
+        self.assertEqual(len(calls),2)
+
+    def test_title_only_resolves_artist_from_exact_match(self):
+        from tests.test_musixmatch_web import page
+        calls=[]
+        def handler(r):
+            if r.url.host=='lyrics.lyricfind.com':
+                return httpx.Response(200,json={'response':{'code':100},'tracks':[{'lfid':'002-1','title':'Gözleri Fettan Güzel','artist':{'name':'Müslüm Gürses'},'slug':'test','viewable':True}]})
+            if r.url.host=='www.musixmatch.com':
+                calls.append(str(r.url));return httpx.Response(200,text=page())
+            return httpx.Response(403)
+        result=self.call('search',handler,{'q':'gözleri fettan güzel'})
+        songs=result.json()['sources']['musixmatch']['results']
+        self.assertEqual(len(songs),1)
+        self.assertEqual(songs[0]['artist'],'Müslüm Gürses')
+        self.assertEqual(len(calls),1)
+
+    def test_title_only_does_not_borrow_artist_from_unrelated_song(self):
+        def handler(r):
+            self.assertNotEqual(r.url.host,'www.musixmatch.com')
+            if r.url.host=='lrclib.net':return httpx.Response(200,json=[{'id':7,'trackName':'Unrelated song','artistName':'Wrong artist'}])
+            return httpx.Response(403)
+        result=self.call('search',handler,{'q':'gözleri fettan güzel'})
+        self.assertEqual(result.json()['sources']['musixmatch']['results'],[])
+
     def test_lyricfind_viewable_search_does_not_promise_api_permission(self):
         def handler(r):
             if r.url.host=='lyrics.lyricfind.com':
@@ -41,7 +78,7 @@ class CatalogTests(unittest.TestCase):
         data=result.json();self.assertTrue(data['partial'])
         self.assertEqual(len(data['sources']),5)
         self.assertEqual(data['sources']['lrclib']['results'][0]['title'],'Nesrine')
-        self.assertEqual(data['sources']['musixmatch']['status'],'not_configured')
+        self.assertEqual(data['sources']['musixmatch']['status'],'access_denied')
 
     def test_blank_search_does_not_contact_providers(self):
         def fail(r):self.fail('Unexpected network request')

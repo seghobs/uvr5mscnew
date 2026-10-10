@@ -1,7 +1,7 @@
-"""Public provider endpoints and the official Musixmatch API."""
+"""Public lyric providers, including Musixmatch page JSON without API keys."""
 import asyncio
-import os
 import re
+import unicodedata
 from urllib.parse import quote, urlencode, urlsplit, urljoin
 
 import httpx
@@ -95,19 +95,6 @@ async def get_json(client, url, params=None):
         raise ProviderError("upstream_error", "Kaynak geçerli bir JSON yanıtı döndürmedi.") from None
 
 
-async def mx(client, method, params):
-    key = os.environ.get("MUSIXMATCH_API_KEY", "").strip()
-    if not key:
-        raise ProviderError("not_configured", "MUSIXMATCH_API_KEY yapılandırılmalı.")
-    d = await get_json(client, f"https://api.musixmatch.com/ws/1.1/{method}",
-                       {**params, "apikey": key, "format": "json"})
-    code = d["message"]["header"]["status_code"]
-    if code != 200:
-        status = {401: "access_denied", 402: "quota_exceeded", 403: "access_denied", 404: "not_found", 429: "rate_limited"}.get(code, "upstream_error")
-        raise ProviderError(status, f"Musixmatch API durum kodu: {code}.")
-    return d["message"]["body"], d["message"]["header"]
-
-
 def item(source, identifier, title, artist, source_url, **extra):
     return {"source": source, "id": str(identifier), "title": title, "artist": artist,
             "source_url": source_url,
@@ -116,6 +103,18 @@ def item(source, identifier, title, artist, source_url, **extra):
 
 async def search_one(request, source, q, artist, page, limit, territory):
     client = request.app.state.client
+    if source == 'musixmatch':
+        from .musixmatch_web import song_url,fetch_page
+        if not artist or not q:
+            raise ProviderError('query_required','Musixmatch sayfasını bulmak için sanatçı ve şarkı adını birlikte yazın.')
+        if page:return [],{'page':page,'has_next':False}
+        url=song_url(artist,q)
+        try:text,metadata=await fetch_page(client,url)
+        except ProviderError as exc:
+            if exc.status=='not_found':return [],{'page':page,'has_next':False}
+            raise
+        return [item(source,metadata['source_url'],metadata['title'],metadata['artist'],metadata['source_url'],
+                     has_lyrics=bool(text),instrumental=metadata['instrumental'],api_key_required=False)],{'page':0,'has_next':False,'pagination':'exact_song_page'}
     if source == 'genius':
         # The public multi-search endpoint accepts per_page only from 1 to 5.
         genius_limit = min(limit, 5)
@@ -172,15 +171,7 @@ async def search_one(request, source, q, artist, page, limit, territory):
                         viewable=t.get('viewable'), lyrics_access="authorization_required") for t in d.get('tracks', [])]
         total = d.get('totalresults')
         return results, {"page": page, "has_next": (page + 1) * limit < total if isinstance(total, int) else None, "total": total}
-    body, header = await mx(client, "track.search", {"q_track": q, "q_artist": artist,
-                                                    "f_has_lyrics": 1, "page": page + 1, "page_size": limit})
-    results = []
-    for row in body['track_list']:
-        t = row['track']
-        results.append(item(source, t['track_id'], t['track_name'], t['artist_name'], t.get('track_share_url'),
-                            album=t.get('album_name'), has_lyrics=bool(t.get('has_lyrics'))))
-    total = header.get('available')
-    return results, {"page": page, "has_next": (page + 1) * limit < total if isinstance(total, int) else None, "total": total}
+    raise ProviderError('upstream_error','Bilinmeyen söz kaynağı.')
 
 
 async def guarded_search(request, source, q, artist, page, limit, territory):
@@ -209,6 +200,30 @@ async def search_all(request: Request, q: str = Query(default="", max_length=128
     if not q and not artist:
         raise HTTPException(422, "Arama metni veya sanatçı belirtin.")
     groups = await asyncio.gather(*(guarded_search(request, s, q, artist, page, limit, territory) for s in NAMES))
+    if q and page==0 and not next(g for g in groups if g['source']=='musixmatch')['results']:
+        def normalized(text):
+            return ''.join(c for c in unicodedata.normalize('NFKD',text.casefold()) if c.isalnum())
+        # Resolve only exact song-title matches; never borrow an unrelated artist.
+        candidates=[]
+        for group in groups:
+            for song in group['results']:
+                candidate=song.get('artist') or ''
+                entry=(song.get('title') or q,candidate)
+                if (candidate and normalized(entry[0])==normalized(q)
+                        and (not artist or normalized(candidate)==normalized(artist)) and entry not in candidates):
+                    candidates.append(entry)
+        if candidates:
+            try:
+                alternatives=await asyncio.wait_for(asyncio.gather(*(guarded_search(request,'musixmatch',t,a,0,limit,territory) for t,a in candidates[:3])),7)
+                songs=[];seen=set()
+                for alternative in alternatives:
+                    for song in alternative['results']:
+                        if song['id'] not in seen:songs.append(song);seen.add(song['id'])
+                resolved=next((g for g in alternatives if g['status']=='ok'),alternatives[0])
+                resolved={**resolved,'results':songs,'count':len(songs),'artist_resolution':'exact_title_other_sources'}
+                groups=[resolved if g['source']=='musixmatch' else g for g in groups]
+            except asyncio.TimeoutError:
+                groups=[{**g,'status':'timeout','error':'Sanatçı bulundu ancak Musixmatch zamanında yanıt vermedi.'} if g['source']=='musixmatch' else g for g in groups]
     return {"query": q, "artist": artist, "partial": any(g['status'] != 'ok' for g in groups),
             "sources": {g['source']: g for g in groups}}
 
@@ -222,19 +237,22 @@ async def provider_status():
          "note": "Halka açık web uç noktası ve HTML; kaynak erişimi sonradan engelleyebilir."},
         {"source": "lyricfind", "search": "available", "lyrics": "authorization_required",
          "note": "Halka açık söz API'si canlı denemede 401 verdi; lisanslı entegrasyon belgesi/erişimi gerekiyor."},
-        {"source": "musixmatch", "search": "configured" if os.environ.get('MUSIXMATCH_API_KEY', '').strip() else "not_configured",
-         "lyrics": "plan_dependent", "note": "Anahtar tanımlı olması erişimin doğrulandığı anlamına gelmez."}
+        {"source": "musixmatch", "search": "available", "lyrics": "available", "api_key_required":False,
+         "note": "Sanatçı ve şarkı adından halka açık sayfa bulunur; sözler sayfanın JSON verisinden okunur."}
     ]}
 
 
 async def read_lyrics(request, source, identifier, territory):
     client = request.app.state.client
+    if source == 'musixmatch':
+        from .musixmatch_web import fetch_page
+        return await fetch_page(client,identifier)
     if source == 'genius':
         return await genius_lyrics(client, identifier)
     if source == 'lyricstranslate':
         text = await request.app.state.lt_lyrics(client, identifier)
         return text, {"source_url": identifier, "completeness": "unknown"}
-    if source in ('lrclib', 'musixmatch') and not re.fullmatch(r'[1-9][0-9]{0,18}', identifier):
+    if source == 'lrclib' and not re.fullmatch(r'[1-9][0-9]{0,18}', identifier):
         raise HTTPException(422, "Pozitif sayısal kayıt kimliği gerekli.")
     if source == 'lrclib':
         d = await get_json(client, f"https://lrclib.net/api/get/{identifier}")
@@ -250,13 +268,7 @@ async def read_lyrics(request, source, identifier, territory):
             raise ProviderError("access_denied", "LyricFind söz gösterme yetkisi vermedi.")
         t = d['track']
         return t.get('lyrics'), {"title": t.get('title'), "copyright": t.get('copyright'), "completeness": "unknown"}
-    body, _ = await mx(client, 'track.lyrics.get', {"track_id": identifier})
-    t = body['lyrics']
-    if t.get('restricted'):
-        raise ProviderError("restricted", "Bu sözlerin gösterimi kaynak tarafından kısıtlanmış.")
-    return t.get('lyrics_body'), {"copyright": t.get('lyrics_copyright'),
-        "completeness": "unknown", "note": "Dönen metin API planına göre kısmi olabilir.",
-        "tracking": {k: t.get(k) for k in ('backlink_url', 'pixel_tracking_url', 'script_tracking_url') if t.get(k)}}
+    raise ProviderError('upstream_error','Bilinmeyen söz kaynağı.')
 
 
 @router.get("/providers/{source}/lyrics")
