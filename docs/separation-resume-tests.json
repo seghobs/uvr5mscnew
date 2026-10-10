@@ -1,0 +1,183 @@
+{
+  "backend_crash_recovery": {
+    "passed": true,
+    "task_id": "fc0741fa-1f4d-4ddc-8f84-27d47845a73c",
+    "crashed_backend_pid": 7812,
+    "new_backend_pid": 20236,
+    "preserved_chunks": 1,
+    "total_completed_chunks": 16,
+    "saved_chunks_reused_without_rewrite": true,
+    "stems": [
+      "input_(Instrumental)_model_bs_roformer_ep_317_sdr_12.wav",
+      "input_(Vocals)_model_bs_roformer_ep_317_sdr_12.wav"
+    ],
+    "frames": 132300,
+    "rate": 44100,
+    "real_gpu_inference": true
+  },
+  "atlas_six_model_live_export": {
+    "passed": true,
+    "task_id": "4382d58d-5f65-4000-80b4-bf4ce7e47757",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Vocals by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Vocals by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa"
+      }
+    ],
+    "frames": 132300,
+    "rate": 44100,
+    "sum_max_abs_error": 3.725290298461914e-08,
+    "output_files": [
+      "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\outputs\\AtlasStudioV2_Vocals_9ad3b7f2d436.wav",
+      "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\outputs\\AtlasStudioV2_Instrumental_9ad3b7f2d436.wav"
+    ],
+    "events": [
+      {
+        "status": "processing",
+        "progress": 0,
+        "message": "Starting Ensemble..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.0440625,
+        "message": "Atlas Studio V2 1/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.0703125,
+        "message": "Atlas Studio V2 1/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 5/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.09656250000000001,
+        "message": "Atlas Studio V2 1/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 9/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.129375,
+        "message": "Atlas Studio V2 1/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 14/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.1875,
+        "message": "Atlas Studio V2 2/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.21613636363636363,
+        "message": "Atlas Studio V2 2/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 3/11 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.2543181818181818,
+        "message": "Atlas Studio V2 2/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 7/11 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.28295454545454546,
+        "message": "Atlas Studio V2 2/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 10/11 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.33,
+        "message": "Atlas Studio V2 3/6 Â· Loading model..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.3834375,
+        "message": "Atlas Studio V2 3/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 7/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.45,
+        "message": "Atlas Studio V2 3/6 Â· Model Ã§Ä±ktÄ±larÄ± hazÄ±r"
+      },
+      {
+        "status": "processing",
+        "progress": 0.48,
+        "message": "Atlas Studio V2 4/6 Â· Loading model..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.505,
+        "message": "Atlas Studio V2 4/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 2/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.53125,
+        "message": "Atlas Studio V2 4/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 5/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.5575,
+        "message": "Atlas Studio V2 4/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 8/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.5925,
+        "message": "Atlas Studio V2 4/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 12/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.6506250000000001,
+        "message": "Atlas Studio V2 5/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.69,
+        "message": "Atlas Studio V2 5/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 4/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.729375,
+        "message": "Atlas Studio V2 5/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 7/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.7991666666666667,
+        "message": "Atlas Studio V2 6/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/9 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.8225,
+        "message": "Atlas Studio V2 6/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 3/9 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.8575,
+        "message": "Atlas Studio V2 6/6 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 6/9 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.9,
+        "message": "Atlas Studio V2 6/6 Â· Model Ã§Ä±ktÄ±larÄ± hazÄ±r"
+      },
+      {
+        "status": "completed",
+        "progress": 1.0,
+        "message": "Atlas Studio V2 tamamlandÄ±"
+      }
+    ],
+    "quality_benchmark": false
+  }
+}

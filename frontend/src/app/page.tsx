@@ -238,9 +238,11 @@ export default function StudioPage() {
       }
 
       // Poll task status
+      let reconnectFailures = 0;
       const pollInterval = setInterval(async () => {
         try {
           const statusRes = await api.getTaskStatus(taskId);
+          reconnectFailures = 0;
           const rawProg = statusRes.progress ?? 0.1;
           const pct = Math.round(rawProg <= 1.0 ? rawProg * 100 : rawProg);
           const measuredPct = rawProg <= 1 ? rawProg * 100 : rawProg;
@@ -305,9 +307,13 @@ export default function StudioPage() {
             addToast('error', 'Separation Failed', statusRes.error || statusRes.message);
           }
         } catch (err: any) {
-          clearInterval(pollInterval);
-          setIsProcessing(false);
-          addToast('error', 'Network Error', err.message);
+          reconnectFailures += 1;
+          setProcessingMessage('Sunucu bağlantısı bekleniyor; kayıtlı parçalar korunuyor...');
+          if (reconnectFailures >= 150) {
+            clearInterval(pollInterval);
+            setIsProcessing(false);
+            addToast('error', 'Bağlantı kesildi', 'Sunucuyu yeniden açın. Ayrıştırma kayıtlı parçalarından devam edecek.');
+          }
         }
       }, 1200);
     } catch (e: any) {

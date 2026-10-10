@@ -11,6 +11,16 @@ from lyric_sources import api, providers, translate
 
 
 class CatalogTests(unittest.TestCase):
+    def test_lyricfind_viewable_search_does_not_promise_api_permission(self):
+        def handler(r):
+            if r.url.host=='lyrics.lyricfind.com':
+                return httpx.Response(200,json={'response':{'code':100},'tracks':[{'lfid':'002-1','title':'Gözleri Fettan Güzel','artist':{'name':'Müslüm Gürses'},'slug':'test','viewable':True}]})
+            return httpx.Response(403)
+        result=self.call('search',handler,{'q':'Gözleri Fettan Güzel'})
+        song=result.json()['sources']['lyricfind']['results'][0]
+        self.assertTrue(song['viewable'])
+        self.assertEqual(song['lyrics_access'],'authorization_required')
+
     def call(self,path,handler,params=None):
         @asynccontextmanager
         async def fake_request():

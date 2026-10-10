@@ -7,7 +7,7 @@ UVR'nin mevcut sunucusu `/api/lyrics/catalog/search` ve `/api/lyrics/catalog/lyr
 - LyricsTranslate: orijinal söz bölümü; çeviriler alınmaz.
 - LRCLIB: düz metin sözler. Kaynak zamanları farklı kayda ait olabileceği için otomatik uygulanmaz.
 - Genius: halka açık arama ve söz bölümü.
-- LyricFind: arama sonuçları; söz erişiminin yetki gerektirdiği gösterilir.
+- LyricFind: arama sonuçları; söz API erişimi kısıtlıysa sonuç tıklanarak aynı şarkı ve sanatçı diğer kaynaklarda aranır. `viewable` alanı söz API'si izni anlamına gelmez.
 - Musixmatch: `MUSIXMATCH_API_KEY` ortam değişkeni varsa resmi API kullanılır. Erişim ve dönen sözlerin kapsamı hesaba bağlıdır.
 
 Her arama kaynağı en fazla 22 saniye beklenir, söz getirme toplam 25 saniyeyle sınırlıdır. Hatalar kaynak bazında gösterilir; kullanıcı her zaman elle söz yapıştırabilir. Dış kaynakların HTML veya erişim kurallarındaki değişiklikler ayrıştırıcı güncellemesi gerektirebilir. Anahtarlar yanıtlara eklenmez. Sözlerdeki satırlar ve kıta boşlukları korunur.

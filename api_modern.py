@@ -407,6 +407,16 @@ def _cleanup_tasks():
             for tid, _ in sorted_ids[: len(tasks) - TASK_MAX_COUNT]:
                 tasks.pop(tid, None)
 
+from separation_checkpoint import SeparationTasks
+separation_tasks=SeparationTasks(Path(__file__).resolve().parent/'cache/separation_tasks.json')
+_separation_run_lock=threading.RLock()
+
+def serialized_separation(function):
+    @functools.wraps(function)
+    def run(*args,**kwargs):
+        with _separation_run_lock:return function(*args,**kwargs)
+    return run
+
 def _create_task(extra: dict = None) -> str:
     _cleanup_tasks()
     task_id = str(uuid.uuid4())
@@ -421,6 +431,7 @@ def _create_task(extra: dict = None) -> str:
         }
         snapshot = dict(tasks[task_id])
     _persist_lyrics_job(task_id, snapshot)
+    separation_tasks.update(task_id,snapshot)
     return task_id
 
 def _update_task(task_id: str, **kwargs):
@@ -433,6 +444,7 @@ def _update_task(task_id: str, **kwargs):
             snapshot = None
     if snapshot is not None:
         _persist_lyrics_job(task_id, snapshot)
+        separation_tasks.update(task_id,snapshot)
 
 def _persist_lyrics_job(task_id: str, task: dict):
     """Persist resumable Whisper work; completed lyrics remain in the lyrics table."""
@@ -799,6 +811,7 @@ class TqdmProgressContext:
             _progress_lock.release()
 
 @gpu_operation
+@serialized_separation
 def run_separation_task(task_id, request: SeparationRequest):
     try:
         # Validate paths and model
@@ -896,6 +909,7 @@ def run_separation_task(task_id, request: SeparationRequest):
         core.clear_gpu_and_ram_cache()
 
 @gpu_operation
+@serialized_separation
 def run_ensemble_task(task_id, audio_path, models: list, out_format: str, profile=None):
     try:
         audio_path = _validate_audio_path(audio_path)
@@ -1217,7 +1231,8 @@ async def start_ensemble(request: dict, background_tasks: BackgroundTasks):
                 raise ValueError('Atlas Studio için WAV veya FLAC seçin.')
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error))
-    task_id = _create_task({"message": "Starting Ensemble...", "model_type": "ensemble"})
+    task_id = _create_task({"message": "Starting Ensemble...", "model_type": "ensemble",
+        'separation_request':{'kind':'ensemble','audio_path':audio_path,'models':models,'out_format':out_format,'profile':profile}})
     background_tasks.add_task(
         run_ensemble_task, 
         task_id, 
@@ -1235,7 +1250,8 @@ async def start_separation(request: SeparationRequest, background_tasks: Backgro
     if not os.path.exists(Path(request.audio_path).resolve()):
         # Allow if file will be validated inside task, but warn
         pass
-    task_id = _create_task({"message": "Starting...", "model_type": request.model_type})
+    task_id = _create_task({"message": "Starting...", "model_type": request.model_type,
+        'separation_request':{'kind':'single','request':request.model_dump()}})
     background_tasks.add_task(run_separation_task, task_id, request)
     return {"task_id": task_id}
 
@@ -2352,6 +2368,21 @@ def resume_persisted_lyrics_jobs():
         threading.Thread(target=run_lyrics_alignment,args=(task_id,req,revision),daemon=True).start()
 
 
+@app.on_event('startup')
+def resume_separation_jobs():
+    for identifier,task in separation_tasks.pending():
+        task.update(message='Ayrıştırma kayıtlı ses parçalarından devam ediyor...',updated_at=time.time())
+        with tasks_lock:tasks[identifier]=task
+        payload=task['separation_request']
+        if payload['kind']=='ensemble':
+            target=run_ensemble_task
+            args=(identifier,payload['audio_path'],payload['models'],payload['out_format'],payload.get('profile'))
+        else:
+            target=run_separation_task
+            args=(identifier,SeparationRequest(**payload['request']))
+        threading.Thread(target=target,args=args,daemon=True).start()
+
+
 @gpu_operation
 def run_pasted_sync(task_id,req,expected_revision):
     from paste_sync import synchronize
@@ -2777,6 +2808,7 @@ def restart_local_service(background_tasks: BackgroundTasks):
 @app.post('/api/tasks/cancel-all')
 def cancel_and_delete_all_tasks(background_tasks: BackgroundTasks):
     """Emergency stop: erase every queue and kill active model work via a clean process restart."""
+    separation_tasks.cancel_all()
     with tasks_lock:
         legacy_count=len(tasks)
         tasks.clear()

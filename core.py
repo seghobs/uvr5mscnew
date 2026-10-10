@@ -524,6 +524,7 @@ def clear_gpu_and_ram_cache(deep: bool = False):
 def generic_separator(audio, model_filename, params, progress_callback=None, work_dir=None, overlap_factor=None, float_output=False):
     separator = None
     progress_hook = None
+    checkpoint_restore = None
     try:
         separator = Separator(
             log_level=logging.WARNING,
@@ -556,6 +557,11 @@ def generic_separator(audio, model_filename, params, progress_callback=None, wor
                          instance.sample_rate, subtype='FLOAT')
             # Scoped to this separator instance, never a global writer patch.
             instance.write_audio = write_float
+        if getattr(separator.model_instance, 'is_roformer', False):
+            from pathlib import Path
+            from separation_checkpoint import attach_checkpoint
+            checkpoint_restore=attach_checkpoint(separator.model_instance,audio,params,
+                Path(__file__).resolve().parent/'cache/separation_chunks')
         if progress_callback and getattr(separator.model_instance, 'is_roformer', False):
             import soundfile as sf
             from separation_progress import attach_roformer_progress
@@ -578,6 +584,7 @@ def generic_separator(audio, model_filename, params, progress_callback=None, wor
     except Exception as e:
         raise RuntimeError(f"Separation failed: {e}") from e
     finally:
+        if checkpoint_restore is not None:checkpoint_restore()
         if progress_hook is not None:
             progress_hook.remove()
         if separator is not None:
