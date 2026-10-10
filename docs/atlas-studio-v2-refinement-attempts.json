@@ -1,0 +1,511 @@
+{
+  "experiments": [
+    {
+      "id": "atlas_refinement",
+      "accepted": false,
+      "development_count": 32,
+      "evaluation_count": 8,
+      "comparisons": {
+        "v1": {
+          "mean_sdr_delta_db": -0.006732860954508091,
+          "improved": 6,
+          "bootstrap_95pct": [
+            -0.35018048529478113,
+            0.21358829381188582
+          ]
+        },
+        "current": {
+          "mean_sdr_delta_db": -0.00422394672069526,
+          "improved": 6,
+          "bootstrap_95pct": [
+            -0.27926255776599074,
+            0.17844470103725335
+          ]
+        }
+      },
+      "summary": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 12.77172109195402,
+            "si_sdr_db": 12.536352067321848,
+            "spectral_deficit": 0.032053250767601085,
+            "spectral_excess": 0.004903739490530051
+          },
+          "instrumental": {
+            "sdr_db": 17.42017173669829,
+            "si_sdr_db": 17.33355926739808,
+            "spectral_deficit": 0.007110244577774552,
+            "spectral_excess": 0.0028043434973383337
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 12.769212177720206,
+            "si_sdr_db": 12.537418361651582,
+            "spectral_deficit": 0.03207449597841204,
+            "spectral_excess": 0.004811452560910309
+          },
+          "instrumental": {
+            "sdr_db": 17.41766282246448,
+            "si_sdr_db": 17.331095112538556,
+            "spectral_deficit": 0.0071172229515820236,
+            "spectral_excess": 0.002793684879679068
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 12.764988230999512,
+            "si_sdr_db": 12.5289104694197,
+            "spectral_deficit": 0.03152310137424149,
+            "spectral_excess": 0.0047801729165071
+          },
+          "instrumental": {
+            "sdr_db": 17.413438875743783,
+            "si_sdr_db": 17.327999288238786,
+            "spectral_deficit": 0.007167166858056956,
+            "spectral_excess": 0.00287129547036148
+          }
+        }
+      },
+      "limitations": [
+        "Fresh held-out from parameter fitting only; model training overlap unknown",
+        "Short non-Turkish reference excerpts; full Turkish mixes do not establish true stem loss",
+        "Mean acceptance is not superiority on every song or zero loss"
+      ],
+      "models": [
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Viperx-1297",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Vocals by pcunwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+          "estimate": "inst"
+        }
+      ],
+      "report_sha256": "897c487123a9ab42a44f46e5dad0c72894d1e3d82f47e9304c24f842d9b1647e"
+    },
+    {
+      "id": "atlas_refinement_2",
+      "accepted": false,
+      "development_count": 40,
+      "evaluation_count": 8,
+      "comparisons": {
+        "v1": {
+          "mean_sdr_delta_db": 0.1207132678151156,
+          "improved": 7,
+          "bootstrap_95pct": [
+            0.021210375678809346,
+            0.21785215584657328
+          ]
+        },
+        "current": {
+          "mean_sdr_delta_db": 0.08343564747840104,
+          "improved": 7,
+          "bootstrap_95pct": [
+            0.020411670304760765,
+            0.14351328615290834
+          ]
+        }
+      },
+      "summary": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 11.11550416567997,
+            "si_sdr_db": 10.774369265281408,
+            "spectral_deficit": 0.05003346346905028,
+            "spectral_excess": 0.006102618527154625
+          },
+          "instrumental": {
+            "sdr_db": 14.195964603618501,
+            "si_sdr_db": 13.99348351119146,
+            "spectral_deficit": 0.015068437668251673,
+            "spectral_excess": 0.007523134419942465
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 11.152781786016686,
+            "si_sdr_db": 10.821658233220472,
+            "spectral_deficit": 0.049509065256513655,
+            "spectral_excess": 0.005977134306151182
+          },
+          "instrumental": {
+            "sdr_db": 14.233242223955216,
+            "si_sdr_db": 14.031827421938472,
+            "spectral_deficit": 0.014946916190584397,
+            "spectral_excess": 0.007483774679456999
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 11.236217433495085,
+            "si_sdr_db": 10.908267450148951,
+            "spectral_deficit": 0.04763902435449925,
+            "spectral_excess": 0.00602872178717997
+          },
+          "instrumental": {
+            "sdr_db": 14.316677871433615,
+            "si_sdr_db": 14.1174845485438,
+            "spectral_deficit": 0.01488150549439374,
+            "spectral_excess": 0.007329222795197277
+          }
+        }
+      },
+      "limitations": [
+        "Fresh held-out from parameter fitting only; model training overlap unknown",
+        "Short non-Turkish reference excerpts; full Turkish mixes do not establish true stem loss",
+        "Mean acceptance is not superiority on every song or zero loss"
+      ],
+      "models": [
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Viperx-1297",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Vocals by pcunwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+          "estimate": "inst"
+        }
+      ],
+      "report_sha256": "c03d8940f847c3d833a1ac604d548be31573d17dc5bd5047d27029379a4edb1c"
+    },
+    {
+      "id": "atlas_refinement_conservative",
+      "accepted": false,
+      "development_count": 48,
+      "evaluation_count": 8,
+      "comparisons": {
+        "v1": {
+          "mean_sdr_delta_db": 0.044751262783732086,
+          "improved": 5,
+          "bootstrap_95pct": [
+            -0.05833671140456687,
+            0.18826184723986117
+          ]
+        },
+        "current": {
+          "mean_sdr_delta_db": 0.022674642843073523,
+          "improved": 4,
+          "bootstrap_95pct": [
+            -0.044815118829254846,
+            0.11903723899387778
+          ]
+        }
+      },
+      "summary": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 9.985121960062507,
+            "si_sdr_db": 4.322837872153563,
+            "spectral_deficit": 0.23897409735287398,
+            "spectral_excess": 0.005417676935521653
+          },
+          "instrumental": {
+            "sdr_db": 17.630541813312632,
+            "si_sdr_db": 17.55749077137292,
+            "spectral_deficit": 0.007207319403001745,
+            "spectral_excess": 0.007186239608810641
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 10.007198580003166,
+            "si_sdr_db": 4.381165302363531,
+            "spectral_deficit": 0.2401180844175738,
+            "spectral_excess": 0.005476058515303633
+          },
+          "instrumental": {
+            "sdr_db": 17.65261843325329,
+            "si_sdr_db": 17.579785291974723,
+            "spectral_deficit": 0.007255052091158408,
+            "spectral_excess": 0.0071422309035424885
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 10.029873222846238,
+            "si_sdr_db": 4.4053884006691675,
+            "spectral_deficit": 0.24260597036145812,
+            "spectral_excess": 0.005091939122596048
+          },
+          "instrumental": {
+            "sdr_db": 17.675293076096366,
+            "si_sdr_db": 17.602291664218455,
+            "spectral_deficit": 0.007359502258240126,
+            "spectral_excess": 0.007154390894781752
+          }
+        }
+      },
+      "limitations": [
+        "Fresh held-out from parameter fitting only; model training overlap unknown",
+        "Short non-Turkish reference excerpts; full Turkish mixes do not establish true stem loss",
+        "Mean acceptance is not superiority on every song or zero loss"
+      ],
+      "models": [
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Viperx-1297",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Vocals by pcunwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+          "estimate": "inst"
+        }
+      ],
+      "report_sha256": "aefc7275baa511926b950ef73947379d694f5329a742c0e069fab19e6d357669"
+    },
+    {
+      "id": "atlas_resurrection_six_warm",
+      "accepted": true,
+      "development_count": 56,
+      "evaluation_count": 8,
+      "comparisons": {
+        "v1": {
+          "mean_sdr_delta_db": 0.45195165772868895,
+          "improved": 8,
+          "bootstrap_95pct": [
+            0.2615732492267696,
+            0.6681633811765437
+          ]
+        },
+        "current": {
+          "mean_sdr_delta_db": 0.38895133264025694,
+          "improved": 8,
+          "bootstrap_95pct": [
+            0.2268303580214306,
+            0.5775029716640787
+          ]
+        }
+      },
+      "summary": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 11.5774470594292,
+            "si_sdr_db": 11.227042217656905,
+            "spectral_deficit": 0.05086909345639372,
+            "spectral_excess": 0.006219000693075377
+          },
+          "instrumental": {
+            "sdr_db": 15.445216562027582,
+            "si_sdr_db": 15.271546636735449,
+            "spectral_deficit": 0.012049864423527474,
+            "spectral_excess": 0.007188806792438956
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 11.640447384517632,
+            "si_sdr_db": 11.297023475219428,
+            "spectral_deficit": 0.05056061384471584,
+            "spectral_excess": 0.006058501831943746
+          },
+          "instrumental": {
+            "sdr_db": 15.508216887116014,
+            "si_sdr_db": 15.335987887697431,
+            "spectral_deficit": 0.011997746332700166,
+            "spectral_excess": 0.00702035146361409
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 12.02939871715789,
+            "si_sdr_db": 11.694455994226898,
+            "spectral_deficit": 0.04624108435508281,
+            "spectral_excess": 0.005791654887752336
+          },
+          "instrumental": {
+            "sdr_db": 15.89716821975627,
+            "si_sdr_db": 15.736904966194786,
+            "spectral_deficit": 0.011174578023861301,
+            "spectral_excess": 0.006306436242368028
+          }
+        }
+      },
+      "limitations": [
+        "Fresh held-out from parameter fitting only; model training overlap unknown",
+        "Short non-Turkish reference excerpts; full Turkish mixes do not establish true stem loss",
+        "Mean acceptance is not superiority on every song or zero loss"
+      ],
+      "models": [
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Viperx-1297",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Vocals by pcunwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+          "estimate": "inst"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+          "estimate": "inst"
+        }
+      ],
+      "report_sha256": "5a61694e22c9ca1050c1972d7bd1886caa2cfcd0334e394ecd1a0374b20cb852"
+    },
+    {
+      "id": "atlas_confirmation",
+      "accepted": true,
+      "development_count": 56,
+      "evaluation_count": 10,
+      "comparisons": {
+        "v1": {
+          "mean_sdr_delta_db": 0.5317242214795245,
+          "improved": 10,
+          "bootstrap_95pct": [
+            0.28554598957941696,
+            0.8861634814502132
+          ]
+        },
+        "current": {
+          "mean_sdr_delta_db": 0.4434890084058501,
+          "improved": 10,
+          "bootstrap_95pct": [
+            0.2440257818324798,
+            0.7268394407399499
+          ]
+        }
+      },
+      "summary": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 11.417936398941299,
+            "si_sdr_db": 10.989004561830498,
+            "spectral_deficit": 0.0684248618457581,
+            "spectral_excess": 0.005042433386880443
+          },
+          "instrumental": {
+            "sdr_db": 18.2273453603305,
+            "si_sdr_db": 18.11907918252008,
+            "spectral_deficit": 0.008486552166292525,
+            "spectral_excess": 0.009019578650076637
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 11.506171612014974,
+            "si_sdr_db": 11.100406889886056,
+            "spectral_deficit": 0.06668142817808405,
+            "spectral_excess": 0.004871218938148876
+          },
+          "instrumental": {
+            "sdr_db": 18.315580573404173,
+            "si_sdr_db": 18.20742019432799,
+            "spectral_deficit": 0.008480198408872977,
+            "spectral_excess": 0.008116364878447278
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 11.949660620420824,
+            "si_sdr_db": 11.600841573022844,
+            "spectral_deficit": 0.057697024304561986,
+            "spectral_excess": 0.004615790421035097
+          },
+          "instrumental": {
+            "sdr_db": 18.75906958181002,
+            "si_sdr_db": 18.653884008765765,
+            "spectral_deficit": 0.008084628754801992,
+            "spectral_excess": 0.005283035495381096
+          }
+        }
+      },
+      "limitations": [
+        "Fresh held-out from parameter fitting only; model training overlap unknown",
+        "Short non-Turkish reference excerpts; full Turkish mixes do not establish true stem loss",
+        "Mean acceptance is not superiority on every song or zero loss"
+      ],
+      "models": [
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Viperx-1297",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Vocals by pcunwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+          "estimate": "inst"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+          "estimate": "vocal"
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+          "estimate": "inst"
+        }
+      ],
+      "report_sha256": "c4c6817f70c5495b96babb1837406fb1c3a986c15c0719777af8fefd5302e56a"
+    }
+  ],
+  "final_confirmation_opened": true,
+  "cancelled_optimizer_runs": [
+    "atlas_refinement_3",
+    "atlas_refinement_relative",
+    "atlas_resurrection"
+  ],
+  "note": "Stopped optimizers are not successful or failed audio evaluations. Previously inspected recordings become DEVELOPMENT in later experiments. No zero-loss claim."
+}

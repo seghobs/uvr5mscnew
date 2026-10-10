@@ -374,7 +374,11 @@ def _validate_audio_path(path_str: str) -> str:
     """Validate that audio_path points inside allowed dirs (uploads/outputs/ytdl)."""
     if not path_str:
         raise HTTPException(status_code=400, detail="audio_path required")
-    p = Path(path_str).resolve()
+    from audio_source_path import resolve_legacy_source
+    try:
+        p = resolve_legacy_source(path_str, [UPLOAD_DIR, YTL_DIR], core.extensions)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     allowed_roots = [UPLOAD_DIR, OUTPUT_DIR, YTL_DIR, Path.cwd().resolve()]
     # Also allow temp? For now allow allowed_roots plus any existing file if within cwd
     # Check containment in allowed dirs OR is existing file under cwd
@@ -901,16 +905,17 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str, profil
             raise ValueError(f"Invalid out_format: {out_format}")
         if not models or len(models) == 0:
             raise ValueError("No models provided for ensemble")
-        if len(models) > 4:
-            raise ValueError("Too many models (max 4)")
-
-        if profile == 'atlas_studio':
-            from atlas_studio import run_atlas_studio
+        if profile in ('atlas_studio', 'atlas_studio_v2'):
+            from atlas_studio import run_atlas_studio, PRESET, PRESET_V2
             files = run_atlas_studio(core, audio_path, models, out_format, OUTPUT_DIR,
-                lambda p,m: _update_task(task_id, progress=p, message=m))
+                lambda p,m: _update_task(task_id, progress=p, message=m),
+                preset=PRESET_V2 if profile == 'atlas_studio_v2' else PRESET)
             _update_task(task_id, status='completed', progress=1.0,
                          stems=[Path(f).name for f in files])
             return
+
+        if len(models) > 4:
+            raise ValueError("Too many models (max 4)")
 
         if profile == 'studio_pro':
             from studio_pro import run_studio_pro
@@ -1196,7 +1201,7 @@ async def start_ensemble(request: dict, background_tasks: BackgroundTasks):
     if out_format not in core.output_format:
         raise HTTPException(status_code=400, detail="Invalid out_format")
     profile = (request.get('params') or {}).get('ensemble_profile')
-    if profile not in (None, 'studio_pro', 'atlas_studio'):
+    if profile not in (None, 'studio_pro', 'atlas_studio', 'atlas_studio_v2'):
         raise HTTPException(status_code=400, detail='Unknown ensemble profile')
     if profile == 'studio_pro':
         from studio_pro import validate_models
@@ -1204,10 +1209,10 @@ async def start_ensemble(request: dict, background_tasks: BackgroundTasks):
             validate_models(models)
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error))
-    if profile == 'atlas_studio':
-        from atlas_studio import validate_models
+    if profile in ('atlas_studio', 'atlas_studio_v2'):
+        from atlas_studio import validate_models, PRESET, PRESET_V2
         try:
-            validate_models(models)
+            validate_models(models, PRESET_V2 if profile == 'atlas_studio_v2' else PRESET)
             if out_format not in ('wav', 'flac'):
                 raise ValueError('Atlas Studio için WAV veya FLAC seçin.')
         except ValueError as error:
@@ -2790,7 +2795,9 @@ def cancel_and_delete_all_tasks(background_tasks: BackgroundTasks):
 
 def _launch_service_control(action):
     time.sleep(.5)
-    subprocess.Popen([sys.executable,str(Path(__file__).parent/'service_control.py'),action],cwd=Path(__file__).parent,
+    arguments=[sys.executable,str(Path(__file__).parent/'service_control.py'),action]
+    if action=='stop':arguments.append(str(os.getpid()))
+    subprocess.Popen(arguments,cwd=Path(__file__).parent,
         stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,
         creationflags=(subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.CREATE_NEW_PROCESS_GROUP) if os.name=='nt' else 0,
         start_new_session=os.name!='nt')

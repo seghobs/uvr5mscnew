@@ -39,7 +39,10 @@ def management_lock():
 
 def revision():
     digest=hashlib.sha256()
-    for path in sorted([*ROOT.glob('*.py'), *(ROOT/'lyric_sources').glob('*.py')]):
+    model_registry=ROOT/'assets/models.json'
+    configurations=[*(ROOT/'frontend/src/lib').glob('*preset.json')]
+    if model_registry.exists():configurations.append(model_registry)
+    for path in sorted([*ROOT.glob('*.py'), *(ROOT/'lyric_sources').glob('*.py'), *configurations]):
         digest.update(path.relative_to(ROOT).as_posix().encode());digest.update(path.read_bytes())
     return digest.hexdigest()
 
@@ -59,6 +62,32 @@ def owns_frontend(process):
         command=' '.join(process.cmdline()).lower().replace('\\','/')
         return Path(process.cwd()).resolve()==ROOT/'frontend' and ('/next/dist/' in command or 'node_modules/next/' in command) and Path(process.exe()).name.lower() in ('node.exe','node')
     except (psutil.Error,OSError):return False
+
+def frontend_running():
+    """Reuse this checkout's listener; never stop an unrelated port owner."""
+    listeners=[c for c in psutil.net_connections(kind='tcp') if c.status=='LISTEN' and c.laddr.port==3000]
+    if not listeners:return False
+    for connection in listeners:
+        try:owned=connection.pid is not None and owns_frontend(psutil.Process(connection.pid))
+        except psutil.Error:owned=False
+        if not owned:raise RuntimeError('3000 portunda başka bir uygulama çalışıyor. UVR5 ikinci bir sunucu açmadı.')
+    return True
+
+def focus_frontend_console():
+    if os.name!='nt' or not frontend_running():return
+    import ctypes
+    kernel=ctypes.windll.kernel32;user=ctypes.windll.user32
+    kernel.GetConsoleWindow.restype=ctypes.c_void_p
+    for connection in psutil.net_connections(kind='tcp'):
+        if connection.status=='LISTEN' and connection.laddr.port==3000 and connection.pid:
+            kernel.FreeConsole()
+            if kernel.AttachConsole(connection.pid):
+                window=kernel.GetConsoleWindow()
+                if window and user.IsWindowVisible(ctypes.c_void_p(window)):
+                    user.ShowWindow(ctypes.c_void_p(window),9)
+                    user.SetForegroundWindow(ctypes.c_void_p(window))
+                kernel.FreeConsole()
+            return
 
 def terminate_tree(process):
     # A management helper spawned by the backend must survive its parent's shutdown.
@@ -90,8 +119,17 @@ def prepare():
 
 def stop(frontend=False):
     prepare()
+    # Stop callers before their API, so the UI cannot keep polling a dead backend.
+    if frontend:
+        for process in psutil.process_iter():
+            if process.pid!=os.getpid() and owns_frontend(process):terminate_tree(process)
     for process in psutil.process_iter():
-        if process.pid!=os.getpid() and (owns_backend(process) or (frontend and owns_frontend(process))):terminate_tree(process)
+        if process.pid!=os.getpid() and owns_backend(process):terminate_tree(process)
+
+def stop_generation(expected_pid):
+    current=service_info()
+    if not current or current.get('pid')!=expected_pid:return
+    stop(True)
 
 def force_restart():
     """Used only after the API has explicitly cancelled and deleted every job."""
@@ -132,7 +170,14 @@ if __name__=='__main__':
     try:
         action=sys.argv[1] if len(sys.argv)>1 else 'ensure'
         with management_lock():
-            if action=='stop':stop(True)
+            if action=='frontend-check':
+                if frontend_running():
+                    print('UVR5 zaten çalışıyor: http://localhost:3000')
+                    sys.exit(10)
+            elif action=='frontend-focus':focus_frontend_console()
+            elif action=='stop':
+                if len(sys.argv)>2:stop_generation(int(sys.argv[2]))
+                else:stop(True)
             elif action=='restart':stop();start()
             elif action=='force-restart':force_restart()
             elif action=='ensure':start()

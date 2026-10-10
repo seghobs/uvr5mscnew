@@ -1,0 +1,1332 @@
+{
+  "fit": {
+    "objective": "equal-track mean normalized waveform MSE for both stems + 0.5 summed normalized STFT magnitude errors",
+    "constraints": "Nonnegative simplex, four models; mean development deficit/excess for BOTH stems <= V1 on fixed sparse STFT grid",
+    "development_spectral_baseline": [
+      0.039745672397903116,
+      0.006148939082698903,
+      0.01374831119246603,
+      0.0058148961066354045
+    ],
+    "waveform_only_trials": [
+      {
+        "indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "weights": [
+          0.5848204544145584,
+          0.2668982253086349,
+          0.14828132027680682,
+          2.9171814703438104e-18,
+          0.0
+        ],
+        "loss": 0.049174880644756724
+      },
+      {
+        "indices": [
+          0,
+          1,
+          2,
+          4
+        ],
+        "weights": [
+          0.5842440768393988,
+          0.26646701974867565,
+          0.14113762474281674,
+          0.0,
+          0.008151278669108706
+        ],
+        "loss": 0.04917388241494347
+      },
+      {
+        "indices": [
+          0,
+          1,
+          3,
+          4
+        ],
+        "weights": [
+          0.6129092874698202,
+          0.31048758304295565,
+          0.0,
+          0.0,
+          0.07660312948722416
+        ],
+        "loss": 0.049339287964579426
+      },
+      {
+        "indices": [
+          0,
+          2,
+          3,
+          4
+        ],
+        "weights": [
+          0.7110921781716522,
+          0.0,
+          0.2688390610509528,
+          4.174178364069192e-18,
+          0.020068760777395007
+        ],
+        "loss": 0.05007992942458972
+      },
+      {
+        "indices": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "weights": [
+          0.0,
+          0.5943064867057535,
+          0.35607547021260844,
+          2.5153490401663703e-17,
+          0.04961804308163802
+        ],
+        "loss": 0.054308015635377904
+      }
+    ],
+    "weights": [
+      0.4736964441851915,
+      0.06874969751320373,
+      0.19796380035913153,
+      0.0,
+      0.2595900579424732
+    ],
+    "indices": [
+      0,
+      1,
+      2,
+      4
+    ],
+    "trials": [
+      {
+        "indices": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "weights": [
+          0.5841430356063337,
+          0.03228664458548135,
+          0.3835703198162292,
+          2.56455395117614e-14,
+          0.0
+        ],
+        "loss": 0.08132967897576567,
+        "success": false,
+        "message": "Positive directional derivative for linesearch",
+        "development_spectral_errors": [
+          0.03508048777096526,
+          0.007798811756790076,
+          0.013956940649363064,
+          0.005531060629021123
+        ]
+      },
+      {
+        "indices": [
+          0,
+          1,
+          2,
+          4
+        ],
+        "weights": [
+          0.4736964441851915,
+          0.06874969751320373,
+          0.19796380035913153,
+          0.0,
+          0.2595900579424732
+        ],
+        "loss": 0.08392360233365712,
+        "success": true,
+        "message": "Optimization terminated successfully",
+        "development_spectral_errors": [
+          0.03974568239783991,
+          0.006148949083600678,
+          0.013748321192655746,
+          0.005720690310479687
+        ]
+      },
+      {
+        "indices": [
+          0,
+          1,
+          3,
+          4
+        ],
+        "weights": [
+          0.5447487803283901,
+          0.10945079642217478,
+          0.0,
+          0.014701046254532299,
+          0.33109937699667835
+        ],
+        "loss": 0.08416071323823092,
+        "success": false,
+        "message": "Positive directional derivative for linesearch",
+        "development_spectral_errors": [
+          0.039758575561776845,
+          0.006461140110008261,
+          0.013702019302926374,
+          0.0057620183548746946
+        ]
+      },
+      {
+        "indices": [
+          0,
+          2,
+          3,
+          4
+        ],
+        "weights": [
+          0.49999589309923753,
+          0.0,
+          0.2500136093886039,
+          5.947693302052286e-19,
+          0.24999049751215852
+        ],
+        "loss": 0.08434663312061019,
+        "success": true,
+        "message": "Optimization terminated successfully",
+        "development_spectral_errors": [
+          0.0397455954483266,
+          0.006148949082699341,
+          0.013748321192466217,
+          0.005814885203778294
+        ]
+      },
+      {
+        "indices": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "weights": [
+          0.0,
+          0.5541660485020994,
+          0.4241564622590093,
+          3.0208844065356976e-18,
+          0.02167748925198958
+        ],
+        "loss": 0.08877218196677296,
+        "success": false,
+        "message": "Positive directional derivative for linesearch",
+        "development_spectral_errors": [
+          0.04011532752351091,
+          0.008244897797642032,
+          0.014784654292276175,
+          0.005695672472221009
+        ]
+      }
+    ],
+    "v1_development_loss": 0.08434669334760025,
+    "original_v2_development_loss": 0.09285257872708312,
+    "selected_development_loss": 0.08392360233365712,
+    "test_used_for_fitting": false
+  },
+  "summary": {
+    "train": {
+      "v1": {
+        "vocal": {
+          "sdr_db": 12.676217035714142,
+          "si_sdr_db": 12.362191798322637,
+          "spectral_deficit": 0.03906144745088701,
+          "spectral_excess": 0.007136484072622986
+        },
+        "instrumental": {
+          "sdr_db": 17.243817954425904,
+          "si_sdr_db": 17.122583896201697,
+          "spectral_deficit": 0.010070352320284151,
+          "spectral_excess": 0.0040715778207209685
+        }
+      },
+      "v2_initial": {
+        "vocal": {
+          "sdr_db": 12.494920385903365,
+          "si_sdr_db": 12.205350324161646,
+          "spectral_deficit": 0.04670211213381194,
+          "spectral_excess": 0.007062879342737569
+        },
+        "instrumental": {
+          "sdr_db": 17.062521304615128,
+          "si_sdr_db": 16.934872047983642,
+          "spectral_deficit": 0.010431287769724342,
+          "spectral_excess": 0.004867442261542118
+        }
+      },
+      "v2_fitted": {
+        "vocal": {
+          "sdr_db": 12.72215808883755,
+          "si_sdr_db": 12.414194562911202,
+          "spectral_deficit": 0.03896235415410176,
+          "spectral_excess": 0.007081334283118841
+        },
+        "instrumental": {
+          "sdr_db": 17.289759007549314,
+          "si_sdr_db": 17.169287572959846,
+          "spectral_deficit": 0.010057347689420697,
+          "spectral_excess": 0.004002825769980431
+        }
+      }
+    },
+    "test": {
+      "v1": {
+        "vocal": {
+          "sdr_db": 12.697310097946147,
+          "si_sdr_db": 12.410441652750258,
+          "spectral_deficit": 0.036924743229969886,
+          "spectral_excess": 0.005017488289906906
+        },
+        "instrumental": {
+          "sdr_db": 18.274963625858888,
+          "si_sdr_db": 18.201444407616783,
+          "spectral_deficit": 0.006060697118280757,
+          "spectral_excess": 0.0026171536210659457
+        }
+      },
+      "v2_initial": {
+        "vocal": {
+          "sdr_db": 12.617651101930528,
+          "si_sdr_db": 12.353602674884407,
+          "spectral_deficit": 0.03625631220584481,
+          "spectral_excess": 0.00460513314529296
+        },
+        "instrumental": {
+          "sdr_db": 18.195304629843267,
+          "si_sdr_db": 18.121981156287063,
+          "spectral_deficit": 0.00637592993791883,
+          "spectral_excess": 0.0023404520387929183
+        }
+      },
+      "v2_fitted": {
+        "vocal": {
+          "sdr_db": 12.741967185470084,
+          "si_sdr_db": 12.46158411548695,
+          "spectral_deficit": 0.03672995689519781,
+          "spectral_excess": 0.004885799311303459
+        },
+        "instrumental": {
+          "sdr_db": 18.319620713382825,
+          "si_sdr_db": 18.246909777121022,
+          "spectral_deficit": 0.006040223131878067,
+          "spectral_excess": 0.002548206241891873
+        }
+      }
+    }
+  },
+  "rows": [
+    {
+      "name": "Night Panther - Fire",
+      "split": "train",
+      "file": "dataset/train/Night Panther - Fire.stem.mp4",
+      "id": "fc9f42fdeb43",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 11.622019290436594,
+            "si_sdr_db": 11.325994001578293,
+            "spectral_deficit": 0.03228602505744674,
+            "spectral_excess": 0.0072410103733367755
+          },
+          "instrumental": {
+            "sdr_db": 12.891761703977792,
+            "si_sdr_db": 12.664115494232925,
+            "spectral_deficit": 0.018903032043325402,
+            "spectral_excess": 0.007212878098321378
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 11.605964039844272,
+            "si_sdr_db": 11.34704477573942,
+            "spectral_deficit": 0.03386995759813431,
+            "spectral_excess": 0.0063332602549291
+          },
+          "instrumental": {
+            "sdr_db": 12.875706453385469,
+            "si_sdr_db": 12.646360405137916,
+            "spectral_deficit": 0.019569483709860218,
+            "spectral_excess": 0.0065709158525438455
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 11.660863127378644,
+            "si_sdr_db": 11.369268814729223,
+            "spectral_deficit": 0.032187586215000834,
+            "spectral_excess": 0.007063350483796073
+          },
+          "instrumental": {
+            "sdr_db": 12.930605540919844,
+            "si_sdr_db": 12.704757793611064,
+            "spectral_deficit": 0.018875591518869878,
+            "spectral_excess": 0.0070249923832120574
+          }
+        }
+      }
+    },
+    {
+      "name": "Auctioneer - Our Future Faces",
+      "split": "train",
+      "file": "dataset/train/Auctioneer - Our Future Faces.stem.mp4",
+      "id": "3c1b6f88b282",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 8.984487690460666,
+            "si_sdr_db": 8.402407920152,
+            "spectral_deficit": 0.060036923484959454,
+            "spectral_excess": 0.01306345417092732
+          },
+          "instrumental": {
+            "sdr_db": 12.158444012736753,
+            "si_sdr_db": 11.886997680515098,
+            "spectral_deficit": 0.024482787296930045,
+            "spectral_excess": 0.007413421172040016
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 9.031825815505885,
+            "si_sdr_db": 8.46691875557179,
+            "spectral_deficit": 0.06315813476003113,
+            "spectral_excess": 0.011544617282024711
+          },
+          "instrumental": {
+            "sdr_db": 12.205782137781974,
+            "si_sdr_db": 11.937082341380005,
+            "spectral_deficit": 0.02419087383765169,
+            "spectral_excess": 0.007495239676731318
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 9.02227220935166,
+            "si_sdr_db": 8.446995384651704,
+            "spectral_deficit": 0.06005949255178015,
+            "spectral_excess": 0.01267572547746168
+          },
+          "instrumental": {
+            "sdr_db": 12.19622853162775,
+            "si_sdr_db": 11.927043720640052,
+            "spectral_deficit": 0.024296660641588908,
+            "spectral_excess": 0.007330763920828047
+          }
+        }
+      }
+    },
+    {
+      "name": "Clara Berry And Wooldog - Waltz For My Victims",
+      "split": "train",
+      "file": "dataset/train/Clara Berry And Wooldog - Waltz For My Victims.stem.mp4",
+      "id": "2063584c7f74",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 16.86574948369809,
+            "si_sdr_db": 16.779644902706956,
+            "spectral_deficit": 0.008053623639670743,
+            "spectral_excess": 0.0034846179596646457
+          },
+          "instrumental": {
+            "sdr_db": 21.43628574807542,
+            "si_sdr_db": 21.405098562391423,
+            "spectral_deficit": 0.002426278186457265,
+            "spectral_excess": 0.0013200274894774738
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 16.87472265160646,
+            "si_sdr_db": 16.78852492757577,
+            "spectral_deficit": 0.007947446968143321,
+            "spectral_excess": 0.0033763711518119298
+          },
+          "instrumental": {
+            "sdr_db": 21.4452589159838,
+            "si_sdr_db": 21.41407393405819,
+            "spectral_deficit": 0.0023498656074848355,
+            "spectral_excess": 0.0013341039630532124
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 16.919849645354454,
+            "si_sdr_db": 16.83481278698538,
+            "spectral_deficit": 0.007992034080436387,
+            "spectral_excess": 0.0034557038320184143
+          },
+          "instrumental": {
+            "sdr_db": 21.49038590973179,
+            "si_sdr_db": 21.459533627008412,
+            "spectral_deficit": 0.0024022468698017105,
+            "spectral_excess": 0.0012990481552230106
+          }
+        }
+      }
+    },
+    {
+      "name": "Alexander Ross - Velvet Curtain",
+      "split": "train",
+      "file": "dataset/train/Alexander Ross - Velvet Curtain.stem.mp4",
+      "id": "7446f71a03b7",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 7.2196215516928595,
+            "si_sdr_db": 6.374452814786737,
+            "spectral_deficit": 0.10845206368740157,
+            "spectral_excess": 0.016253960273815513
+          },
+          "instrumental": {
+            "sdr_db": 13.800142684296137,
+            "si_sdr_db": 13.617935848611264,
+            "spectral_deficit": 0.01332665101057062,
+            "spectral_excess": 0.007854352513747099
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 6.034533433770687,
+            "si_sdr_db": 4.936720739317126,
+            "spectral_deficit": 0.16121393679179274,
+            "spectral_excess": 0.02013611304890683
+          },
+          "instrumental": {
+            "sdr_db": 12.615054566373963,
+            "si_sdr_db": 12.387238403241206,
+            "spectral_deficit": 0.013758183369593757,
+            "spectral_excess": 0.015223714606358232
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 7.230427382278846,
+            "si_sdr_db": 6.395071686201329,
+            "spectral_deficit": 0.1083978146904405,
+            "spectral_excess": 0.016789560403703403
+          },
+          "instrumental": {
+            "sdr_db": 13.810948514882122,
+            "si_sdr_db": 13.628201890521828,
+            "spectral_deficit": 0.013416496305159262,
+            "spectral_excess": 0.0077927034453078685
+          }
+        }
+      }
+    },
+    {
+      "name": "Johnny Lokke - Whisper To A Scream",
+      "split": "train",
+      "file": "dataset/train/Johnny Lokke - Whisper To A Scream.stem.mp4",
+      "id": "465889e42b6a",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 10.335588412873577,
+            "si_sdr_db": 9.968135868968613,
+            "spectral_deficit": 0.053286057369779205,
+            "spectral_excess": 0.00500701149405374
+          },
+          "instrumental": {
+            "sdr_db": 16.56069425045487,
+            "si_sdr_db": 16.465893004635372,
+            "spectral_deficit": 0.006796324451300163,
+            "spectral_excess": 0.003840981354202032
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 10.260468188108899,
+            "si_sdr_db": 9.950773696629408,
+            "spectral_deficit": 0.05454041863554673,
+            "spectral_excess": 0.004625981769315097
+          },
+          "instrumental": {
+            "sdr_db": 16.48557402569019,
+            "si_sdr_db": 16.387142693835777,
+            "spectral_deficit": 0.00732960117872608,
+            "spectral_excess": 0.0034894520942703334
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 10.369589690459806,
+            "si_sdr_db": 10.009272097762626,
+            "spectral_deficit": 0.052968380148660676,
+            "spectral_excess": 0.004926568641639274
+          },
+          "instrumental": {
+            "sdr_db": 16.5946955280411,
+            "si_sdr_db": 16.500188715545022,
+            "spectral_deficit": 0.0068191443775407826,
+            "spectral_excess": 0.0037434320693318156
+          }
+        }
+      }
+    },
+    {
+      "name": "Aimee Norwich - Child",
+      "split": "train",
+      "file": "dataset/train/Aimee Norwich - Child.stem.mp4",
+      "id": "2778930b9b61",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 13.647138095539527,
+            "si_sdr_db": 13.456325876905987,
+            "spectral_deficit": 0.018021197868114926,
+            "spectral_excess": 0.006489114181879229
+          },
+          "instrumental": {
+            "sdr_db": 23.893245321659357,
+            "si_sdr_db": 23.87662676412781,
+            "spectral_deficit": 0.0016775742989393486,
+            "spectral_excess": 0.00039689322190532235
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 13.674947591702164,
+            "si_sdr_db": 13.50163268663721,
+            "spectral_deficit": 0.018748577763704685,
+            "spectral_excess": 0.005458428701100984
+          },
+          "instrumental": {
+            "sdr_db": 23.921054817821993,
+            "si_sdr_db": 23.904909337925343,
+            "spectral_deficit": 0.0016930945737150414,
+            "spectral_excess": 0.00041384597963918925
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 13.690687417638582,
+            "si_sdr_db": 13.501930220359712,
+            "spectral_deficit": 0.017888399735096795,
+            "spectral_excess": 0.006379525034623442
+          },
+          "instrumental": {
+            "sdr_db": 23.93679464375841,
+            "si_sdr_db": 23.92042890745209,
+            "spectral_deficit": 0.0016728750671552405,
+            "spectral_excess": 0.00039042373899999443
+          }
+        }
+      }
+    },
+    {
+      "name": "The Long Wait - Back Home To Blue",
+      "split": "train",
+      "file": "dataset/train/The Long Wait - Back Home To Blue.stem.mp4",
+      "id": "5bc229213e9f",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 12.68942936742719,
+            "si_sdr_db": 12.536293887367343,
+            "spectral_deficit": 0.028120262310688204,
+            "spectral_excess": 0.0041581365678916285
+          },
+          "instrumental": {
+            "sdr_db": 15.756424297049382,
+            "si_sdr_db": 15.641582826098508,
+            "spectral_deficit": 0.010725433603350782,
+            "spectral_excess": 0.003417127715809063
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 12.459057455617025,
+            "si_sdr_db": 12.312034639349342,
+            "spectral_deficit": 0.028986869765132723,
+            "spectral_excess": 0.004225787767555956
+          },
+          "instrumental": {
+            "sdr_db": 15.526052385239215,
+            "si_sdr_db": 15.405979445174294,
+            "spectral_deficit": 0.01215239871769137,
+            "spectral_excess": 0.0033517202835642596
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 12.721333500264096,
+            "si_sdr_db": 12.57430808110335,
+            "spectral_deficit": 0.02802038869209399,
+            "spectral_excess": 0.00406728721921686
+          },
+          "instrumental": {
+            "sdr_db": 15.788328429886286,
+            "si_sdr_db": 15.674243488292475,
+            "spectral_deficit": 0.010766481096794917,
+            "spectral_excess": 0.003377608476177659
+          }
+        }
+      }
+    },
+    {
+      "name": "James May - If You Say",
+      "split": "train",
+      "file": "dataset/train/James May - If You Say.stem.mp4",
+      "id": "60a9cec090f0",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 20.04570239358464,
+            "si_sdr_db": 20.054279114115182,
+            "spectral_deficit": 0.004235426189035211,
+            "spectral_excess": 0.0013945675594150405
+          },
+          "instrumental": {
+            "sdr_db": 21.45354561715753,
+            "si_sdr_db": 21.42242098900116,
+            "spectral_deficit": 0.002224737671399576,
+            "spectral_excess": 0.0011169410002653632
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 20.017843911071527,
+            "si_sdr_db": 20.339152372473098,
+            "spectral_deficit": 0.00515155478800984,
+            "spectral_excess": 0.000802474766255933
+          },
+          "instrumental": {
+            "sdr_db": 21.42568713464442,
+            "si_sdr_db": 21.396189823116423,
+            "spectral_deficit": 0.0024068011630717476,
+            "spectral_excess": 0.0010605456361765567
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 20.162241737974295,
+            "si_sdr_db": 20.181897431496285,
+            "spectral_deficit": 0.004184737119304693,
+            "spectral_excess": 0.0012929531724915867
+          },
+          "instrumental": {
+            "sdr_db": 21.570084961547188,
+            "si_sdr_db": 21.539902440607822,
+            "spectral_deficit": 0.0022092856384548806,
+            "spectral_excess": 0.0010636339707629937
+          }
+        }
+      }
+    },
+    {
+      "name": "Bobby Nobody - Stitch Up",
+      "split": "test",
+      "file": "dataset/test/Bobby Nobody - Stitch Up.stem.mp4",
+      "id": "d9dd17e0b02a",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 13.019992124134951,
+            "si_sdr_db": 12.819850584342294,
+            "spectral_deficit": 0.02359379347317741,
+            "spectral_excess": 0.004353068744885038
+          },
+          "instrumental": {
+            "sdr_db": 18.59916205047093,
+            "si_sdr_db": 18.538888478315567,
+            "spectral_deficit": 0.00487701473112786,
+            "spectral_excess": 0.0019083550119777916
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 12.668775562527838,
+            "si_sdr_db": 12.470024377357182,
+            "spectral_deficit": 0.027955337704874884,
+            "spectral_excess": 0.0038300054922895607
+          },
+          "instrumental": {
+            "sdr_db": 18.24794548886382,
+            "si_sdr_db": 18.18324031741821,
+            "spectral_deficit": 0.005430749034357701,
+            "spectral_excess": 0.0019166767987190128
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 13.041107525494247,
+            "si_sdr_db": 12.845563399719424,
+            "spectral_deficit": 0.023739630749187234,
+            "spectral_excess": 0.004212870583161065
+          },
+          "instrumental": {
+            "sdr_db": 18.620277451830226,
+            "si_sdr_db": 18.56038235512162,
+            "spectral_deficit": 0.004892865416021886,
+            "spectral_excess": 0.0018745320727983968
+          }
+        }
+      }
+    },
+    {
+      "name": "Arise - Run Run Run",
+      "split": "test",
+      "file": "dataset/test/Arise - Run Run Run.stem.mp4",
+      "id": "dc7a6304b83d",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 15.704531995744318,
+            "si_sdr_db": 15.591049474398346,
+            "spectral_deficit": 0.011448531367873114,
+            "spectral_excess": 0.0033090295372645447
+          },
+          "instrumental": {
+            "sdr_db": 24.124683807906315,
+            "si_sdr_db": 24.108851284894513,
+            "spectral_deficit": 0.0013127805383938904,
+            "spectral_excess": 0.0006117266684367893
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 15.449133297976033,
+            "si_sdr_db": 15.331248651522424,
+            "spectral_deficit": 0.012292129799876548,
+            "spectral_excess": 0.002781034057825898
+          },
+          "instrumental": {
+            "sdr_db": 23.86928511013803,
+            "si_sdr_db": 23.860749673493608,
+            "spectral_deficit": 0.0015158220620497753,
+            "spectral_excess": 0.0006172086855122067
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 15.765310636753675,
+            "si_sdr_db": 15.655707685835791,
+            "spectral_deficit": 0.011580116386408726,
+            "spectral_excess": 0.0031246664714874783
+          },
+          "instrumental": {
+            "sdr_db": 24.185462448915672,
+            "si_sdr_db": 24.170444315761735,
+            "spectral_deficit": 0.0013130425838658096,
+            "spectral_excess": 0.0005965551355615915
+          }
+        }
+      }
+    },
+    {
+      "name": "Moosmusic - Big Dummy Shake",
+      "split": "test",
+      "file": "dataset/test/Moosmusic - Big Dummy Shake.stem.mp4",
+      "id": "f8e29bf5adf9",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 16.380372808652357,
+            "si_sdr_db": 16.29019707473121,
+            "spectral_deficit": 0.011726132861401608,
+            "spectral_excess": 0.0021959317644236584
+          },
+          "instrumental": {
+            "sdr_db": 19.421519477596178,
+            "si_sdr_db": 19.371737843981542,
+            "spectral_deficit": 0.00378475317546966,
+            "spectral_excess": 0.0020712061058978273
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 16.339239709213246,
+            "si_sdr_db": 16.274703804506522,
+            "spectral_deficit": 0.01221473154846916,
+            "spectral_excess": 0.001789777686290251
+          },
+          "instrumental": {
+            "sdr_db": 19.38038637815707,
+            "si_sdr_db": 19.330064924520688,
+            "spectral_deficit": 0.003916099008296098,
+            "spectral_excess": 0.002020059201009645
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 16.405654709457554,
+            "si_sdr_db": 16.31711317106963,
+            "spectral_deficit": 0.011732529755044593,
+            "spectral_excess": 0.002145169455007226
+          },
+          "instrumental": {
+            "sdr_db": 19.44680137840138,
+            "si_sdr_db": 19.39726413760005,
+            "spectral_deficit": 0.0037892391980664753,
+            "spectral_excess": 0.002046332515702023
+          }
+        }
+      }
+    },
+    {
+      "name": "Ben Carrigan - We'll Talk About It All Tonight",
+      "split": "test",
+      "file": "dataset/test/Ben Carrigan - We'll Talk About It All Tonight.stem.mp4",
+      "id": "e23c4f5842d0",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 9.35884235332028,
+            "si_sdr_db": 8.980261998189308,
+            "spectral_deficit": 0.06729487620619402,
+            "spectral_excess": 0.004908912387078266
+          },
+          "instrumental": {
+            "sdr_db": 16.154901270787107,
+            "si_sdr_db": 16.051317089181055,
+            "spectral_deficit": 0.007640154086112832,
+            "spectral_excess": 0.004611824569184495
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 9.62156496266386,
+            "si_sdr_db": 9.345732551004431,
+            "spectral_deficit": 0.06070145924585969,
+            "spectral_excess": 0.004372563096377933
+          },
+          "instrumental": {
+            "sdr_db": 16.417623880130687,
+            "si_sdr_db": 16.3173784852126,
+            "spectral_deficit": 0.008260405340800369,
+            "spectral_excess": 0.0032688334601140377
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 9.450990069656772,
+            "si_sdr_db": 9.094438575250349,
+            "spectral_deficit": 0.0660932923141471,
+            "spectral_excess": 0.00472494972971472
+          },
+          "instrumental": {
+            "sdr_db": 16.2470489871236,
+            "si_sdr_db": 16.145044307580076,
+            "spectral_deficit": 0.007581770684363909,
+            "spectral_excess": 0.004411607464780375
+          }
+        }
+      }
+    },
+    {
+      "name": "The Long Wait - Dark Horses",
+      "split": "test",
+      "file": "dataset/test/The Long Wait - Dark Horses.stem.mp4",
+      "id": "bc848a47154c",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 12.322405266707488,
+            "si_sdr_db": 12.077246360618725,
+            "spectral_deficit": 0.023022651072237138,
+            "spectral_excess": 0.00610927908879931
+          },
+          "instrumental": {
+            "sdr_db": 16.090723113539745,
+            "si_sdr_db": 15.983493967565485,
+            "spectral_deficit": 0.01031411859951687,
+            "spectral_excess": 0.002797571631594914
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 12.13812033944387,
+            "si_sdr_db": 11.894540041102736,
+            "spectral_deficit": 0.025232025304677348,
+            "spectral_excess": 0.006034541258547354
+          },
+          "instrumental": {
+            "sdr_db": 15.906438186276127,
+            "si_sdr_db": 15.796220450161025,
+            "spectral_deficit": 0.010535651265669911,
+            "spectral_excess": 0.0028149025078011785
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 12.3869832495778,
+            "si_sdr_db": 12.147855302639165,
+            "spectral_deficit": 0.022805860846485206,
+            "spectral_excess": 0.005973379626036725
+          },
+          "instrumental": {
+            "sdr_db": 16.155301096410057,
+            "si_sdr_db": 16.049982123858708,
+            "spectral_deficit": 0.010200370957167795,
+            "spectral_excess": 0.002712825531142444
+          }
+        }
+      }
+    },
+    {
+      "name": "Timboz - Pony",
+      "split": "test",
+      "file": "dataset/test/Timboz - Pony.stem.mp4",
+      "id": "4a04f1fb5a27",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 6.961878450179798,
+            "si_sdr_db": 6.0393186274762725,
+            "spectral_deficit": 0.11403388523599578,
+            "spectral_excess": 0.012503078341613363
+          },
+          "instrumental": {
+            "sdr_db": 15.81904922051265,
+            "si_sdr_db": 15.708246624411712,
+            "spectral_deficit": 0.009305075788495607,
+            "spectral_excess": 0.0037045753168322257
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 7.1348336734693625,
+            "si_sdr_db": 6.263450580828474,
+            "spectral_deficit": 0.10652230090184019,
+            "spectral_excess": 0.01125037439222382
+          },
+          "instrumental": {
+            "sdr_db": 15.992004443802212,
+            "si_sdr_db": 15.882699680306425,
+            "spectral_deficit": 0.009110986048035525,
+            "spectral_excess": 0.0031327485963606556
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 6.982885998042654,
+            "si_sdr_db": 6.0687305927656485,
+            "spectral_deficit": 0.11372860544627302,
+            "spectral_excess": 0.01228305607421909
+          },
+          "instrumental": {
+            "sdr_db": 15.840056768375504,
+            "si_sdr_db": 15.729564009451893,
+            "spectral_deficit": 0.009271482663567067,
+            "spectral_excess": 0.003643122590184472
+          }
+        }
+      }
+    },
+    {
+      "name": "Louis Cressy Band - Good Time",
+      "split": "test",
+      "file": "dataset/test/Louis Cressy Band - Good Time.stem.mp4",
+      "id": "34fdc94158e1",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 12.743449203474777,
+            "si_sdr_db": 12.51945463743782,
+            "spectral_deficit": 0.029023975514057,
+            "spectral_excess": 0.0038285300923347593
+          },
+          "instrumental": {
+            "sdr_db": 18.754448528831116,
+            "si_sdr_db": 18.696657010561207,
+            "spectral_deficit": 0.0042448230587643285,
+            "spectral_excess": 0.002244629432172542
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 12.577962398530175,
+            "si_sdr_db": 12.345198227645318,
+            "spectral_deficit": 0.029554092031624412,
+            "spectral_excess": 0.00399356622483352
+          },
+          "instrumental": {
+            "sdr_db": 18.588961723886513,
+            "si_sdr_db": 18.528523462285882,
+            "spectral_deficit": 0.004763383522522956,
+            "spectral_excess": 0.0021741858839989694
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 12.765239050280936,
+            "si_sdr_db": 12.54326819146209,
+            "spectral_deficit": 0.02901860975401212,
+            "spectral_excess": 0.0037760628026705027
+          },
+          "instrumental": {
+            "sdr_db": 18.776238375637277,
+            "si_sdr_db": 18.718578244165737,
+            "spectral_deficit": 0.004273083984602506,
+            "spectral_excess": 0.002208710947747813
+          }
+        }
+      }
+    },
+    {
+      "name": "Angels In Amplifiers - I'm Alright",
+      "split": "test",
+      "file": "dataset/test/Angels In Amplifiers - I'm Alright.stem.mp4",
+      "id": "0ff5de8403b2",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 15.087008581355207,
+            "si_sdr_db": 14.9661544648081,
+            "spectral_deficit": 0.015254100108823025,
+            "spectral_excess": 0.0029320763628563067
+          },
+          "instrumental": {
+            "sdr_db": 17.235221537227044,
+            "si_sdr_db": 17.152362962023197,
+            "spectral_deficit": 0.007006856968365004,
+            "spectral_excess": 0.0029873402324309788
+          }
+        },
+        "v2_initial": {
+          "vocal": {
+            "sdr_db": 15.01157887161985,
+            "si_sdr_db": 14.903923165108168,
+            "spectral_deficit": 0.015578421109536302,
+            "spectral_excess": 0.0027892029539553402
+          },
+          "instrumental": {
+            "sdr_db": 17.15979182749169,
+            "si_sdr_db": 17.07697225689808,
+            "spectral_deficit": 0.007474343221618307,
+            "spectral_excess": 0.002779001176827641
+          }
+        },
+        "v2_fitted": {
+          "vocal": {
+            "sdr_db": 15.137566244497044,
+            "si_sdr_db": 15.019996005153502,
+            "spectral_deficit": 0.015141009910024494,
+            "spectral_excess": 0.0028462397481308706
+          },
+          "instrumental": {
+            "sdr_db": 17.285779200368886,
+            "si_sdr_db": 17.20401872342836,
+            "spectral_deficit": 0.006999929567369084,
+            "spectral_excess": 0.0028919636772178708
+          }
+        }
+      }
+    }
+  ],
+  "test_vocal_sdr_delta_db": 0.044657087523938266,
+  "test_sdr_delta_bootstrap_95pct": [
+    0.02769308591451458,
+    0.06317197607093927
+  ],
+  "test_tracks_improved": 8,
+  "test_tracks_regressed": 0,
+  "limitations": [
+    "7-second AAC excerpts, not full songs",
+    "Model training data overlap is unknown; held-out only from weight fitting",
+    "SDR here is raw reference/error energy ratio, not filtered BSS Eval v4 or MVSEP leaderboard SDR",
+    "Small 8/8 pilot; no Turkish or arabesk guarantee",
+    "Magnitude deficit/excess are proxies, not true leakage or MVSEP metrics"
+  ],
+  "pilot_acceptance_passed": true,
+  "manifest": {
+    "dataset_url": "https://github.com/sigsep/sigsep-mus-db/releases/download/v0.4.0/MUSDB18-7-STEMS.zip",
+    "selection": "sha256(atlas-pilot-v1:filename), first 8 per official split",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297",
+        "estimate": "vocal",
+        "weight": 0.5
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Vocals by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.55
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "estimate": "vocal",
+        "weight": 0.15
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer | Vocals by becruily",
+        "estimate": "vocal",
+        "weight": 0.1
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "estimate": "inst",
+        "weight": 0.2
+      }
+    ],
+    "overlap_factor": 8,
+    "tracks": [
+      {
+        "name": "Night Panther - Fire",
+        "split": "train",
+        "file": "dataset/train/Night Panther - Fire.stem.mp4",
+        "id": "fc9f42fdeb43"
+      },
+      {
+        "name": "Auctioneer - Our Future Faces",
+        "split": "train",
+        "file": "dataset/train/Auctioneer - Our Future Faces.stem.mp4",
+        "id": "3c1b6f88b282"
+      },
+      {
+        "name": "Clara Berry And Wooldog - Waltz For My Victims",
+        "split": "train",
+        "file": "dataset/train/Clara Berry And Wooldog - Waltz For My Victims.stem.mp4",
+        "id": "2063584c7f74"
+      },
+      {
+        "name": "Alexander Ross - Velvet Curtain",
+        "split": "train",
+        "file": "dataset/train/Alexander Ross - Velvet Curtain.stem.mp4",
+        "id": "7446f71a03b7"
+      },
+      {
+        "name": "Johnny Lokke - Whisper To A Scream",
+        "split": "train",
+        "file": "dataset/train/Johnny Lokke - Whisper To A Scream.stem.mp4",
+        "id": "465889e42b6a"
+      },
+      {
+        "name": "Aimee Norwich - Child",
+        "split": "train",
+        "file": "dataset/train/Aimee Norwich - Child.stem.mp4",
+        "id": "2778930b9b61"
+      },
+      {
+        "name": "The Long Wait - Back Home To Blue",
+        "split": "train",
+        "file": "dataset/train/The Long Wait - Back Home To Blue.stem.mp4",
+        "id": "5bc229213e9f"
+      },
+      {
+        "name": "James May - If You Say",
+        "split": "train",
+        "file": "dataset/train/James May - If You Say.stem.mp4",
+        "id": "60a9cec090f0"
+      },
+      {
+        "name": "Bobby Nobody - Stitch Up",
+        "split": "test",
+        "file": "dataset/test/Bobby Nobody - Stitch Up.stem.mp4",
+        "id": "d9dd17e0b02a"
+      },
+      {
+        "name": "Arise - Run Run Run",
+        "split": "test",
+        "file": "dataset/test/Arise - Run Run Run.stem.mp4",
+        "id": "dc7a6304b83d"
+      },
+      {
+        "name": "Moosmusic - Big Dummy Shake",
+        "split": "test",
+        "file": "dataset/test/Moosmusic - Big Dummy Shake.stem.mp4",
+        "id": "f8e29bf5adf9"
+      },
+      {
+        "name": "Ben Carrigan - We'll Talk About It All Tonight",
+        "split": "test",
+        "file": "dataset/test/Ben Carrigan - We'll Talk About It All Tonight.stem.mp4",
+        "id": "e23c4f5842d0"
+      },
+      {
+        "name": "The Long Wait - Dark Horses",
+        "split": "test",
+        "file": "dataset/test/The Long Wait - Dark Horses.stem.mp4",
+        "id": "bc848a47154c"
+      },
+      {
+        "name": "Timboz - Pony",
+        "split": "test",
+        "file": "dataset/test/Timboz - Pony.stem.mp4",
+        "id": "4a04f1fb5a27"
+      },
+      {
+        "name": "Louis Cressy Band - Good Time",
+        "split": "test",
+        "file": "dataset/test/Louis Cressy Band - Good Time.stem.mp4",
+        "id": "34fdc94158e1"
+      },
+      {
+        "name": "Angels In Amplifiers - I'm Alright",
+        "split": "test",
+        "file": "dataset/test/Angels In Amplifiers - I'm Alright.stem.mp4",
+        "id": "0ff5de8403b2"
+      }
+    ]
+  },
+  "provenance": {
+    "python": "3.10.12",
+    "gpu": "NVIDIA GeForce RTX 5060",
+    "torch": "2.7.0+cu128",
+    "use_autocast": true,
+    "core_sha256": "9c61d202d582d33356c8c0029ed432d59a4d563e8d0d005b7f6f68a21adb3e50",
+    "packages": {
+      "audio-separator": "0.32.0",
+      "numpy": "2.2.6",
+      "scipy": "1.15.3",
+      "soundfile": "0.13.1"
+    },
+    "archive_sha256": "365f66acffc57282e474a4c24b32afec3678258c50b8d45646ac849b0a287df3",
+    "model_files": [
+      {
+        "model_key": "BS-Roformer-Viperx-1297",
+        "file": "models/model_bs_roformer_ep_317_sdr_12.9755.ckpt",
+        "sha256": "5b84f37e8d444c8cb30c79d77f613a41c05868ff9c9ac6c7049c00aefae115aa",
+        "bytes": 639331213,
+        "config": "models/model_bs_roformer_ep_317_sdr_12.9755.yaml",
+        "config_sha256": "2bfdd16c656bd9519aba757cc4f8834b7ede675eb1e00ec4772d74ae1c41af7f"
+      },
+      {
+        "model_key": "BS Roformer Leap Vocals by pcunwa",
+        "file": "models/roformer_custom_64dfa22ed641/bs_roformer_leap_voc.ckpt",
+        "sha256": "8c0e4bfff6be150a12582a7c236379aa42102b7f43831900df5b2addf924da7c",
+        "bytes": 238220459,
+        "config": "models/roformer_custom_64dfa22ed641/config_bs_roformer.yaml",
+        "config_sha256": "07b3a73af585534097c52572f41d75008e325fe5717e74961436f65010ac2333"
+      },
+      {
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "file": "models/mel_band_roformer_kim_ft2_bleedless_unwa.ckpt",
+        "sha256": "3c450bd66a98b49dd03231fc5ebb84121eef8418236b179423c2b171d62b04d9",
+        "bytes": 913101368,
+        "config": "models/config_mel_band_roformer_kim_ft_unwa.yaml",
+        "config_sha256": "c910a0b1493fd3f9cee7a576a7498e44e660510dcaaf5d0d50d5363dde1d0010"
+      },
+      {
+        "model_key": "MelBand Roformer | Vocals by becruily",
+        "file": "models/mel_band_roformer_vocals_becruily.ckpt",
+        "sha256": "a05961310cc55fbb901290c2e8be02682942f73522b6ac76bf2ec11e347ed95a",
+        "bytes": 913107578,
+        "config": "models/config_mel_band_roformer_vocals_becruily.yaml",
+        "config_sha256": "186792a36db251fc5834a883c519b609ca80abbd2bfc4668eea43ee3a4223985"
+      },
+      {
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "file": "models/melband_roformer_inst_v2.ckpt",
+        "sha256": "bd19766620f7d6f58fdf7aaada7e89907fe41bc64490ce3faa9a6dab15d6e1f2",
+        "bytes": 1574477088,
+        "config": "models/config_melbandroformer_inst_v2.yaml",
+        "config_sha256": "4b902a7360a930c178edb4846b30e4e326aa1219d1b2daf660d46a311e0cd50b"
+      }
+    ],
+    "benchmark_script_sha256": "f93bbf672c7324dda2720a8941496d9a4003f333b48665fe19112099df7cfd90"
+  }
+}

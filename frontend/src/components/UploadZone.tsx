@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   UploadCloud,
   Link as LinkIcon,
@@ -65,6 +66,16 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
   const [searchLimit, setSearchLimit] = useState(15);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [lastSelectedUrl, setLastSelectedUrl] = useState<string | null>(null);
+  const [pendingSelection, setPendingSelection] = useState<SearchResult | null>(null);
+  const selectionDialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (!pendingSelection) return;
+    const dialog = selectionDialogRef.current;
+    dialog?.showModal();
+    return () => { dialog?.close(); };
+  }, [pendingSelection]);
+  const downloadInFlight = useRef(false);
 
   // YouTube Audio Preview Player State
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
@@ -245,29 +256,22 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
   const closeAndClearSearch = () => {
     stopPreview();
     setShowSearchDropdown(false);
-    setSearchResults([]);
     setIsSearching(false);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
   };
 
-  // Close dropdown on click outside or ESC and stop preview & clear results
+  // Only an explicit close or Escape hides results. Preset controls may be
+  // used while browsing; keep the result list mounted to retain scroll.
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        closeAndClearSearch();
-      }
-    };
-
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (selectionDialogRef.current?.open) return;
         closeAndClearSearch();
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleGlobalKeyDown);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleGlobalKeyDown);
       stopPreview();
     };
@@ -438,15 +442,24 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
 
   const handleClearInput = () => {
     closeAndClearSearch();
+    setSearchResults([]);
+    setLastSelectedUrl(null);
     setInputVal('');
     lastQueryRef.current = '';
   };
 
   const selectSearchResult = async (result: SearchResult) => {
-    stopPreview();
+    if (downloadInFlight.current || isDownloadingUrl) return;
+    setPendingSelection(result);
+  };
+
+  const confirmSearchResult = async (result: SearchResult) => {
+    if (downloadInFlight.current || isDownloadingUrl) return;
+    downloadInFlight.current = true;
+    setPendingSelection(null);
     setShowSearchDropdown(false);
-    setSearchResults([]);
-    setInputVal(result.title);
+    setLastSelectedUrl(result.url);
+    stopPreview();
     setIsDownloadingUrl(true);
     try {
       const res = await api.downloadFromUrl(result.url);
@@ -457,18 +470,37 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
           path: res.path,
         },
       ]);
-      setInputVal('');
-      setSearchResults([]);
       onNotify('success', 'Download Complete', result.title);
     } catch (e: any) {
       onNotify('error', 'Download Failed', e.message || 'Could not fetch YouTube video');
     } finally {
+      downloadInFlight.current = false;
       setIsDownloadingUrl(false);
     }
   };
 
   return (
     <div className="space-y-5">
+      {pendingSelection && createPortal(
+        <dialog
+          ref={selectionDialogRef}
+          aria-labelledby="song-selection-title"
+          aria-describedby="song-selection-description"
+          onCancel={() => setPendingSelection(null)}
+          className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-md rounded-3xl border border-indigo-400/25 bg-[#211d2e] p-6 text-white shadow-2xl backdrop:bg-black/65 backdrop:backdrop-blur-sm"
+        >
+          <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-2xl border border-indigo-400/30 bg-indigo-500/15 p-3 text-indigo-300"><Music className="h-5 w-5" /></div>
+            <h3 id="song-selection-title" className="text-lg font-bold">Şarkıyı seç</h3>
+          </div>
+          <p className="mb-3 break-words text-sm font-semibold text-indigo-200">{pendingSelection.title}</p>
+          <p id="song-selection-description" className="text-sm text-slate-300">Bu şarkıyı seçip indirmek istediğinize emin misiniz?</p>
+          <div className="mt-6 flex justify-end gap-3">
+            <button autoFocus type="button" onClick={() => setPendingSelection(null)} className="rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold hover:bg-white/20">Vazgeç</button>
+            <button type="button" onClick={() => confirmSearchResult(pendingSelection)} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-bold hover:from-purple-500 hover:to-indigo-500"><Download className="h-4 w-4" />Seç ve indir</button>
+          </div>
+        </dialog>, document.body
+      )}
       {/* Immersive Studio Drag & Drop Deck */}
       <div
         onDragOver={(e) => {
@@ -599,8 +631,9 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
         <div id="yt-hidden-preview-player" className="absolute -left-[9999px] -top-[9999px] w-1 h-1 opacity-0 pointer-events-none" />
 
         {/* Full-Width Search Dropdown Modal */}
-        {showSearchDropdown && searchResults.length > 0 && !isUrl(inputVal) && (
+        {searchResults.length > 0 && !isUrl(inputVal) && (
           <div
+            hidden={!showSearchDropdown}
             onScroll={(e) => {
               const el = e.currentTarget;
               if (el.scrollHeight - el.scrollTop - el.clientHeight < 30) {
@@ -639,6 +672,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
                   onClick={() => selectSearchResult(res)}
                   className={cn(
                     "p-3 rounded-2xl cursor-pointer transition-all text-left group border",
+                    lastSelectedUrl === res.url && "ring-2 ring-indigo-400/50",
                     isThisPlaying
                       ? "bg-slate-800/90 border-emerald-500/40 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500/20"
                       : "hover:bg-white/[0.08] border-transparent hover:border-white/10"
@@ -712,6 +746,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
                           isThisPlaying ? "text-emerald-300" : "text-slate-200 group-hover:text-white"
                         )}>
                           {res.title}
+                          {lastSelectedUrl === res.url && <span className="ml-2 text-indigo-300">· Son seçilen</span>}
                         </div>
                         {res.channel && (
                           <div className="text-[10px] text-slate-400 truncate mt-0.5 font-medium">
@@ -730,6 +765,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
                       )}
                       <button
                         type="button"
+                        disabled={isDownloadingUrl}
                         onClick={(e) => {
                           e.stopPropagation();
                           selectSearchResult(res);

@@ -14,6 +14,7 @@ import {
 } from '@/lib/types';
 import { getTranslation } from '@/lib/translations';
 import { api } from '@/lib/api';
+import atlasStudioV2 from '@/lib/atlas-studio-v2-preset.json';
 import { LocalStudioPanel } from '@/components/LocalStudioPanel';
 import { Header } from '@/components/Header';
 import { NavigationTabs } from '@/components/NavigationTabs';
@@ -287,6 +288,7 @@ export default function StudioPage() {
               const newEntry: LibraryItem = {
                 id: Date.now(),
                 filename: currentItem.name,
+                source_path: currentItem.path,
                 stems,
                 timestamp: new Date().toLocaleTimeString(),
                 settings:{params,model:selectedModel,tab:currentTab,ensembleMode,ensembleSlots,format:outputFormat},
@@ -321,7 +323,7 @@ export default function StudioPage() {
     const loadedItem: UploadedItem = {
       id: `${project.id || Date.now()}`,
       name: project.filename,
-      path: project.filename,
+      path: project.source_path || project.filename,
       size: 0,
     };
     setQueue([loadedItem]);
@@ -331,7 +333,14 @@ export default function StudioPage() {
 
     // 3. Switch back to studio workspace tab
     setCurrentTab(project.settings?.tab||'roformer');
-    if(project.settings){setParams(project.settings.params);setSelectedModel(project.settings.model);setEnsembleMode(project.settings.ensembleMode);setEnsembleSlots(project.settings.ensembleSlots);setOutputFormat(project.settings.format);}
+    if(project.settings){
+      const settings=project.settings;
+      const slots=settings.params.ensemble_profile==='atlas_studio_v2'
+        ? atlasStudioV2.models.map(({model_type,model_key})=>({model_type,model_key}))
+        : settings.ensembleSlots;
+      setParams(settings.params);setSelectedModel(settings.model);setEnsembleMode(settings.ensembleMode);
+      setEnsembleSlots(slots);setOutputFormat(settings.format);
+    }
 
     // 4. Toast notification
     addToast(

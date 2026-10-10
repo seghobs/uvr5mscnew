@@ -124,7 +124,7 @@ async function waitForBackendRoutes() {
 }
 
 async function main() {
-  printBanner();
+  if (!process.argv.includes('--quiet')) printBanner();
   const pythonExe = getPythonExe().replace(/pythonw(?=\.exe$)/i, 'python');
   console.log('Yerel servis ve sürüm kontrol ediliyor…');
   const { spawnSync } = require('child_process');
@@ -132,6 +132,6 @@ async function main() {
   if(result.error)throw result.error;
   if(result.status!==0)throw new Error('Sunucu hazırlanamadı; yukarıdaki açıklamayı kontrol edin.');
   await waitForBackendRoutes();
-  spawnBrowserWatcher();
+  if (!process.argv.includes('--no-browser')) spawnBrowserWatcher();
 }
 main().catch(error=>{console.error(error.message);process.exitCode=1;});

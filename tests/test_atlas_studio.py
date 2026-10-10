@@ -2,14 +2,37 @@ import ast
 import asyncio
 import tempfile
 import unittest
+import os
+from unittest.mock import Mock, patch
 from pathlib import Path
 from types import SimpleNamespace
 import numpy as np
 import soundfile as sf
-from atlas_studio import PRESET, combine, run_atlas_studio, validate_models, roformer_step_seconds
+from atlas_studio import PRESET, PRESET_V2, combine, run_atlas_studio, validate_models, roformer_step_seconds
 
 
 class AtlasStudioTests(unittest.TestCase):
+    def test_validated_atlas_profile_can_run_six_experts_but_manual_ensemble_still_caps_four(self):
+        tree=ast.parse(Path('api_modern.py').read_text(encoding='utf8'))
+        node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='run_ensemble_task')
+        node.decorator_list=[]
+        updates=Mock();cleanup=Mock()
+        ns={'os':os,'Path':Path,'OUTPUT_DIR':Path('outputs'),'_validate_audio_path':lambda p:p,
+            '_update_task':updates,'core':SimpleNamespace(output_format=['wav'],clear_gpu_and_ram_cache=cleanup)}
+        exec(compile(ast.Module(body=[node],type_ignores=[]),'<ensemble worker>','exec'),ns)
+        models=[{'model_type':'roformer','model_key':f'expert-{i}'} for i in range(6)]
+        fixture={**PRESET_V2,'models':models}
+        with patch.object(os.path,'exists',return_value=True),patch('atlas_studio.PRESET_V2',fixture),patch('atlas_studio.run_atlas_studio',return_value=['outputs/v.wav','outputs/i.wav']) as run:
+            ns['run_ensemble_task']('test','input.wav',models,'wav','atlas_studio_v2')
+            run.assert_called_once()
+            self.assertEqual(run.call_args.kwargs['preset'],fixture)
+            self.assertEqual(updates.call_args.kwargs['status'],'completed')
+            run.reset_mock();updates.reset_mock()
+            ns['run_ensemble_task']('test','input.wav',models,'wav',None)
+            run.assert_not_called()
+            self.assertEqual(updates.call_args.kwargs['status'],'failed')
+            self.assertIn('max 4',updates.call_args.kwargs['error'])
+
     def test_overlap_uses_eighth_of_each_models_native_window(self):
         for hop, dim in [(441, 801), (441, 1101), (512, 1025)]:
             config = SimpleNamespace(audio=SimpleNamespace(hop_length=hop, sample_rate=44100),
@@ -84,6 +107,12 @@ class AtlasStudioTests(unittest.TestCase):
         bg = BackgroundTasks()
         asyncio.run(ns['start_ensemble'](payload, bg))
         self.assertEqual(bg.tasks[0].args[-1], 'atlas_studio')
+        v2 = {**payload, 'models':PRESET_V2['models'], 'params':{'ensemble_profile':'atlas_studio_v2'}}
+        v2_bg = BackgroundTasks()
+        asyncio.run(ns['start_ensemble'](v2, v2_bg))
+        self.assertEqual(v2_bg.tasks[0].args[-1], 'atlas_studio_v2')
+        with self.assertRaises(HTTPException):
+            asyncio.run(ns['start_ensemble']({**v2,'models':PRESET['models']}, BackgroundTasks()))
         payload['out_format'] = 'mp3'
         with self.assertRaises(HTTPException): asyncio.run(ns['start_ensemble'](payload, BackgroundTasks()))
 

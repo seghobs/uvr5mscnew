@@ -1,7 +1,7 @@
 """Complementary ensemble: preserve the mixture, never gate a vocal region.
 
-Weights are conservative design choices, not fitted benchmark scores. Mixture
-consistency does not prove the content was assigned to the correct stem.
+V1 uses design weights; V2 uses a reference-calibrated expert mixture.
+Mixture consistency does not prove correct assignment or unseen-song superiority.
 """
 import json
 import os
@@ -15,6 +15,7 @@ import soundfile as sf
 from studio_pro import classify_stem
 
 PRESET = json.loads((Path(__file__).parent / 'frontend/src/lib/atlas-studio-preset.json').read_text(encoding='utf8'))
+PRESET_V2 = json.loads((Path(__file__).parent / 'frontend/src/lib/atlas-studio-v2-preset.json').read_text(encoding='utf8'))
 
 
 def roformer_step_seconds(config, factor):
@@ -28,29 +29,43 @@ def roformer_step_seconds(config, factor):
     return max(1, frames // factor) / rate
 
 
-def validate_models(models):
-    expected = [(m['model_type'], m['model_key']) for m in PRESET['models']]
+def validate_models(models, preset=PRESET):
+    expected = [(m['model_type'], m['model_key']) for m in preset['models']]
     if not all(isinstance(m, dict) for m in models) or [(m.get('model_type'), m.get('model_key')) for m in models] != expected:
         raise ValueError('Atlas Studio model listesi değişmiş. Preseti yeniden uygulayın.')
+    if preset.get('frequency_weights') is not None:
+        from atlas_band_ensemble import validate_frequency_weights
+        validate_frequency_weights(preset['frequency_weights'],len(preset['models']))
 
 
-def combine(source, estimates):
+def combine(source, estimates, preset=PRESET):
     """All estimates have the same timebase and gain as source (frames, channels)."""
-    if len(estimates) != len(PRESET['models']):
-        raise ValueError('Atlas Studio için üç model çıktısı gerekli')
+    if len(estimates) != len(preset['models']):
+        raise ValueError(f"{preset['name']} için {len(preset['models'])} model çıktısı gerekli")
     if not np.isfinite(source).all():
         raise ValueError('Kaynak ses geçersiz örnekler içeriyor')
-    vocal = np.zeros_like(source, dtype=np.float64)
-    for estimate, model in zip(estimates, PRESET['models']):
+    frequency_spec=preset.get('frequency_weights')
+    vocal = np.zeros_like(source, dtype=np.float64) if frequency_spec is None else None
+    weights = [m['weight'] for m in preset['models']]
+    if any(not np.isfinite(w) or w < 0 for w in weights) or not np.isclose(sum(weights), 1):
+        raise ValueError('Model ağırlıkları geçersiz')
+    candidates=[]
+    for estimate, model in zip(estimates, preset['models']):
         if estimate.shape != source.shape or not np.isfinite(estimate).all():
             raise ValueError('Model çıktısı kaynakla uyuşmuyor')
         candidate = source - estimate if model['estimate'] == 'inst' else estimate
-        vocal += model['weight'] * candidate
+        candidates.append(candidate)
+        if frequency_spec is None:vocal += model['weight'] * candidate
+    if frequency_spec is not None:
+        from atlas_band_ensemble import combine_frequency
+        return combine_frequency(source,candidates,frequency_spec)
     return vocal, source - vocal
 
 
-def run_atlas_studio(core, source, models, out_format, output_dir, progress):
-    validate_models(models)
+def run_atlas_studio(core, source, models, out_format, output_dir, progress, preset=PRESET):
+    validate_models(models, preset)
+    name = preset['name']
+    count = len(preset['models'])
     if out_format not in ('wav', 'flac'):
         raise ValueError('Atlas Studio için WAV veya FLAC seçin.')
     output_dir = Path(output_dir)
@@ -79,13 +94,13 @@ def run_atlas_studio(core, source, models, out_format, output_dir, progress):
         sf.write(prepared, np.pad(source_wave * headroom,
             ((0, processing_frames - frames), (0, 0))), rate, subtype='FLOAT')
         estimates = []
-        for index, model in enumerate(PRESET['models']):
-            progress(index / 3 * .9, f"Atlas Studio {index + 1}/3: {model['model_key']}")
+        for index, model in enumerate(preset['models']):
+            progress(index / count * .9, f"{name} {index + 1}/{count}: {model['model_key']}")
             try:
                 files = core.roformer_separator(str(prepared), model['model_key'], 'wav',
                     256, False, 8, 1, 1.0, 0.0, '', work_dir=str(work),
                     overlap_factor=8, float_output=True,
-                    progress_callback=lambda p, m, i=index: progress((i + p) / 3 * .9, f'Atlas Studio {i + 1}/3 · {m}'))
+                    progress_callback=lambda p, m, i=index: progress((i + p) / count * .9, f'{name} {i + 1}/{count} · {m}'))
                 pair = {}
                 for file in files:
                     kind = classify_stem(file)
@@ -103,15 +118,17 @@ def run_atlas_studio(core, source, models, out_format, output_dir, progress):
                 estimates.append(estimate[:frames] / headroom)
             finally:
                 core.clear_gpu_and_ram_cache()
-        progress(.94, 'Atlas Studio: iki kanalın toplamı kaynakla korunuyor')
-        vocal, instrumental = combine(source_wave, estimates)
+        progress(.94, f'{name}: '+('frekanslara göre ses kanalları birleştiriliyor' if preset.get('frequency_weights') is not None
+            else 'iki kanalın toplamı kaynakla korunuyor'))
+        vocal, instrumental = combine(source_wave, estimates, preset)
         gain = 1.0
         if out_format == 'flac':
             # One common gain only: no clipping, independent limiting or gates.
             peak = max(float(np.max(np.abs(vocal))), float(np.max(np.abs(instrumental))))
             gain = min(1.0, .999 / max(peak, .999))
         for label, wave in [('Vocals', vocal), ('Instrumental', instrumental)]:
-            filename = f'AtlasStudio_{label}_{token}.{out_format}'
+            prefix = 'AtlasStudioV2' if preset['id'] == 'atlas_studio_v2' else 'AtlasStudio'
+            filename = f'{prefix}_{label}_{token}.{out_format}'
             sf.write(work / filename, wave * gain, rate,
                 subtype='FLOAT' if out_format == 'wav' else 'PCM_24')
             outputs.append(output_dir / filename)
@@ -122,6 +139,6 @@ def run_atlas_studio(core, source, models, out_format, output_dir, progress):
             for target in outputs:
                 target.unlink(missing_ok=True)
             raise
-        progress(1.0, 'Atlas Studio tamamlandı' +
+        progress(1.0, f'{name} tamamlandı' +
             (f' · Taşmayı önlemek için iki kanal birlikte {20 * np.log10(gain):.2f} dB azaltıldı' if gain < 1 else ''))
     return [str(path) for path in outputs]

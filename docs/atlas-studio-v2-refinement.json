@@ -1,0 +1,2039 @@
+{
+  "manifest": {
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297",
+        "estimate": "vocal"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Vocals by pcunwa",
+        "estimate": "vocal"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "estimate": "vocal"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "estimate": "inst"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+        "estimate": "vocal"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+        "estimate": "inst"
+      }
+    ],
+    "development": [
+      {
+        "name": "Night Panther - Fire",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Night Panther - Fire.stem.mp4",
+        "id": "fc9f42fdeb43"
+      },
+      {
+        "name": "Auctioneer - Our Future Faces",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Auctioneer - Our Future Faces.stem.mp4",
+        "id": "3c1b6f88b282"
+      },
+      {
+        "name": "Clara Berry And Wooldog - Waltz For My Victims",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Clara Berry And Wooldog - Waltz For My Victims.stem.mp4",
+        "id": "2063584c7f74"
+      },
+      {
+        "name": "Alexander Ross - Velvet Curtain",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Alexander Ross - Velvet Curtain.stem.mp4",
+        "id": "7446f71a03b7"
+      },
+      {
+        "name": "Johnny Lokke - Whisper To A Scream",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Johnny Lokke - Whisper To A Scream.stem.mp4",
+        "id": "465889e42b6a"
+      },
+      {
+        "name": "Aimee Norwich - Child",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Aimee Norwich - Child.stem.mp4",
+        "id": "2778930b9b61"
+      },
+      {
+        "name": "The Long Wait - Back Home To Blue",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\The Long Wait - Back Home To Blue.stem.mp4",
+        "id": "5bc229213e9f"
+      },
+      {
+        "name": "James May - If You Say",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\James May - If You Say.stem.mp4",
+        "id": "60a9cec090f0"
+      },
+      {
+        "name": "Bobby Nobody - Stitch Up",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\dataset\\test\\Bobby Nobody - Stitch Up.stem.mp4",
+        "id": "d9dd17e0b02a"
+      },
+      {
+        "name": "Arise - Run Run Run",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\dataset\\test\\Arise - Run Run Run.stem.mp4",
+        "id": "dc7a6304b83d"
+      },
+      {
+        "name": "Moosmusic - Big Dummy Shake",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\dataset\\test\\Moosmusic - Big Dummy Shake.stem.mp4",
+        "id": "f8e29bf5adf9"
+      },
+      {
+        "name": "Ben Carrigan - We'll Talk About It All Tonight",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\dataset\\test\\Ben Carrigan - We'll Talk About It All Tonight.stem.mp4",
+        "id": "e23c4f5842d0"
+      },
+      {
+        "name": "The Long Wait - Dark Horses",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\dataset\\test\\The Long Wait - Dark Horses.stem.mp4",
+        "id": "bc848a47154c"
+      },
+      {
+        "name": "Timboz - Pony",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\dataset\\test\\Timboz - Pony.stem.mp4",
+        "id": "4a04f1fb5a27"
+      },
+      {
+        "name": "Louis Cressy Band - Good Time",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\dataset\\test\\Louis Cressy Band - Good Time.stem.mp4",
+        "id": "34fdc94158e1"
+      },
+      {
+        "name": "Angels In Amplifiers - I'm Alright",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\dataset\\test\\Angels In Amplifiers - I'm Alright.stem.mp4",
+        "id": "0ff5de8403b2"
+      },
+      {
+        "name": "Giselle - Moss",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Giselle - Moss.stem.mp4",
+        "id": "029475bd3abf"
+      },
+      {
+        "name": "Phre The Eon - Everybody's Falling Apart",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Phre The Eon - Everybody's Falling Apart.stem.mp4",
+        "id": "92b5bb609c7f"
+      },
+      {
+        "name": "Angela Thomas Wade - Milk Cow Blues",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Angela Thomas Wade - Milk Cow Blues.stem.mp4",
+        "id": "58a133160381"
+      },
+      {
+        "name": "The Districts - Vermont",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\The Districts - Vermont.stem.mp4",
+        "id": "83abcfc2eb92"
+      },
+      {
+        "name": "James May - On The Line",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\James May - On The Line.stem.mp4",
+        "id": "1e2751a88e96"
+      },
+      {
+        "name": "Port St Willow - Stay Even",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Port St Willow - Stay Even.stem.mp4",
+        "id": "39d39a736072"
+      },
+      {
+        "name": "Music Delta - Beatles",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - Beatles.stem.mp4",
+        "id": "41a20279125c"
+      },
+      {
+        "name": "Music Delta - Grunge",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - Grunge.stem.mp4",
+        "id": "2d20430d6881"
+      },
+      {
+        "name": "Sambasevam Shanmugam - Kaathaadi",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Sambasevam Shanmugam - Kaathaadi.stem.mp4",
+        "id": "8ddb30f4c81c"
+      },
+      {
+        "name": "Enda Reilly - Cur An Long Ag Seol",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Enda Reilly - Cur An Long Ag Seol.stem.mp4",
+        "id": "4f0b911f3c98"
+      },
+      {
+        "name": "The Easton Ellises - Falcon 69",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\The Easton Ellises - Falcon 69.stem.mp4",
+        "id": "9c4ea9843c3c"
+      },
+      {
+        "name": "Speak Softly - Like Horses",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Speak Softly - Like Horses.stem.mp4",
+        "id": "a1b93e598b8d"
+      },
+      {
+        "name": "Mu - Too Bright",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Mu - Too Bright.stem.mp4",
+        "id": "6b54473d9026"
+      },
+      {
+        "name": "The Easton Ellises (Baumi) - SDRNR",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\The Easton Ellises (Baumi) - SDRNR.stem.mp4",
+        "id": "2e0c862529a3"
+      },
+      {
+        "name": "Skelpolu - Resurrection",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Skelpolu - Resurrection.stem.mp4",
+        "id": "d0d80f137c3e"
+      },
+      {
+        "name": "Detsky Sad - Walkie Talkie",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Detsky Sad - Walkie Talkie.stem.mp4",
+        "id": "8c03fb4002a1"
+      },
+      {
+        "name": "The Mountaineering Club - Mallory",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\The Mountaineering Club - Mallory.stem.mp4",
+        "split": "development",
+        "id": "ca6e0e1698d8"
+      },
+      {
+        "name": "Juliet's Rescue - Heartbeats",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Juliet's Rescue - Heartbeats.stem.mp4",
+        "split": "development",
+        "id": "56e3a55b23af"
+      },
+      {
+        "name": "The Doppler Shift - Atrophy",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\The Doppler Shift - Atrophy.stem.mp4",
+        "split": "development",
+        "id": "879a04d0a5bc"
+      },
+      {
+        "name": "Forkupines - Semantics",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Forkupines - Semantics.stem.mp4",
+        "split": "development",
+        "id": "da5c6df0cc87"
+      },
+      {
+        "name": "Lyndsey Ollard - Catching Up",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Lyndsey Ollard - Catching Up.stem.mp4",
+        "split": "development",
+        "id": "a1d21f6631fe"
+      },
+      {
+        "name": "AM Contra - Heart Peripheral",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\AM Contra - Heart Peripheral.stem.mp4",
+        "split": "development",
+        "id": "780905864a55"
+      },
+      {
+        "name": "BKS - Too Much",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\BKS - Too Much.stem.mp4",
+        "split": "development",
+        "id": "c53c1848c62d"
+      },
+      {
+        "name": "We Fell From The Sky - Not You",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\We Fell From The Sky - Not You.stem.mp4",
+        "split": "development",
+        "id": "cda0ad33fc4a"
+      },
+      {
+        "name": "Carlos Gonzalez - A Place For Us",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Carlos Gonzalez - A Place For Us.stem.mp4",
+        "split": "development",
+        "id": "82940e79facd"
+      },
+      {
+        "name": "Nerve 9 - Pray For The Rain",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Nerve 9 - Pray For The Rain.stem.mp4",
+        "split": "development",
+        "id": "e70972284238"
+      },
+      {
+        "name": "Georgia Wonder - Siren",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Georgia Wonder - Siren.stem.mp4",
+        "split": "development",
+        "id": "2b95215f06b1"
+      },
+      {
+        "name": "The Sunshine Garcia Band - For I Am The Moon",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\The Sunshine Garcia Band - For I Am The Moon.stem.mp4",
+        "split": "development",
+        "id": "38b23cce6d4a"
+      },
+      {
+        "name": "Raft Monk - Tiring",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Raft Monk - Tiring.stem.mp4",
+        "split": "development",
+        "id": "145ffbe21b0e"
+      },
+      {
+        "name": "Al James - Schoolboy Facination",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Al James - Schoolboy Facination.stem.mp4",
+        "split": "development",
+        "id": "4b494b7ae728"
+      },
+      {
+        "name": "Buitraker - Revo X",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Buitraker - Revo X.stem.mp4",
+        "split": "development",
+        "id": "bfafba00a163"
+      },
+      {
+        "name": "Zeno - Signs",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Zeno - Signs.stem.mp4",
+        "split": "development",
+        "id": "758a6bb16872"
+      },
+      {
+        "name": "PR - Happy Daze",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\PR - Happy Daze.stem.mp4",
+        "split": "development",
+        "id": "97634b8da379"
+      },
+      {
+        "name": "Motor Tapes - Shore",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Motor Tapes - Shore.stem.mp4",
+        "split": "development",
+        "id": "2eee8a64cd6f"
+      },
+      {
+        "name": "Little Chicago's Finest - My Own",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Little Chicago's Finest - My Own.stem.mp4",
+        "split": "development",
+        "id": "4a4d384bd4ba"
+      },
+      {
+        "name": "Hollow Ground - Ill Fate",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Hollow Ground - Ill Fate.stem.mp4",
+        "split": "development",
+        "id": "b22076e77c1c"
+      },
+      {
+        "name": "Secretariat - Over The Top",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Secretariat - Over The Top.stem.mp4",
+        "split": "development",
+        "id": "468989e02932"
+      },
+      {
+        "name": "Signe Jakobsen - What Have You Done To Me",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Signe Jakobsen - What Have You Done To Me.stem.mp4",
+        "split": "development",
+        "id": "28bf476a7089"
+      },
+      {
+        "name": "Triviul feat. The Fiend - Widow",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Triviul feat. The Fiend - Widow.stem.mp4",
+        "split": "development",
+        "id": "8beade0915aa"
+      },
+      {
+        "name": "Punkdisco - Oral Hygiene",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Punkdisco - Oral Hygiene.stem.mp4",
+        "split": "development",
+        "id": "cd0ffcfe3b4b"
+      }
+    ],
+    "evaluation": [
+      {
+        "name": "Cristina Vane - So Easy",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Cristina Vane - So Easy.stem.mp4",
+        "split": "evaluation",
+        "id": "427a5286453d"
+      },
+      {
+        "name": "Side Effects Project - Sing With Me",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Side Effects Project - Sing With Me.stem.mp4",
+        "split": "evaluation",
+        "id": "cf4e9727e8d4"
+      },
+      {
+        "name": "Girls Under Glass - We Feel Alright",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Girls Under Glass - We Feel Alright.stem.mp4",
+        "split": "evaluation",
+        "id": "f261ba288dbb"
+      },
+      {
+        "name": "Secretariat - Borderline",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Secretariat - Borderline.stem.mp4",
+        "split": "evaluation",
+        "id": "099e0fde5ba0"
+      },
+      {
+        "name": "BKS - Bulldozer",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\BKS - Bulldozer.stem.mp4",
+        "split": "evaluation",
+        "id": "92cc41c7e36d"
+      },
+      {
+        "name": "M.E.R.C. Music - Knockout",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\M.E.R.C. Music - Knockout.stem.mp4",
+        "split": "evaluation",
+        "id": "37d55b5f2d1f"
+      },
+      {
+        "name": "Speak Softly - Broken Man",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Speak Softly - Broken Man.stem.mp4",
+        "split": "evaluation",
+        "id": "9d9296080018"
+      },
+      {
+        "name": "Tom McKenzie - Directions",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Tom McKenzie - Directions.stem.mp4",
+        "split": "evaluation",
+        "id": "0c245c22a3f6"
+      },
+      {
+        "name": "PR - Oh No",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\PR - Oh No.stem.mp4",
+        "split": "evaluation",
+        "id": "cec13ea9ab11"
+      },
+      {
+        "name": "James Elder & Mark M Thompson - The English Actor",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\James Elder & Mark M Thompson - The English Actor.stem.mp4",
+        "split": "evaluation",
+        "id": "4e65c768ff1d"
+      }
+    ],
+    "method": "Frozen six-expert recipe selected on 56 DEVELOPMENT excerpts, passed discovery train[16:24]; final fixed test[40:50] evaluated once, never fitted.",
+    "acceptance": "Frozen BEFORE validation and final confirmation: positive mean SDR and positive paired bootstrap lower bounds against BOTH V1 and deployed V2; both mean SI-SDR and all four mean content proxies no worse than BOTH. 0.2 dB remains a separately reported aspirational target, not a replacement for content/uncertainty checks.",
+    "content_margin": [
+      0,
+      0.01,
+      0,
+      0
+    ],
+    "objective_mode": "relative_error",
+    "max_development_regression_db": 0.05,
+    "candidate_indices": [
+      0,
+      1,
+      2,
+      4,
+      7,
+      8
+    ],
+    "initial_weights": [
+      0.4736964441851915,
+      0.06874969751320373,
+      0.19796380035913153,
+      0.2595900579424732,
+      0.0,
+      0.0
+    ],
+    "initialization_note": "Existing V2 exactly, so new experts enter only when development gradients and constraints support them.",
+    "anchor_grids": [
+      [
+        0,
+        125,
+        250,
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000,
+        22050
+      ]
+    ],
+    "regularizations": [
+      0.001
+    ],
+    "max_iterations": 300,
+    "optimizer_initial_frequency_weights": {
+      "anchors_hz": [
+        0,
+        125,
+        250,
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000,
+        22050
+      ],
+      "weights": [
+        [
+          0.4681375998038114,
+          0.4320782152190427,
+          0.4366122522866759,
+          0.5105127811238394,
+          0.46642702812596853,
+          0.29932777545105,
+          0.30055376933954675,
+          0.296403532013541,
+          0.32192864822202505,
+          0.33712906685517385
+        ],
+        [
+          0.34969946188758655,
+          0.17630457254277393,
+          0.15065335851658324,
+          0.07059990815383317,
+          0.16438946160539733,
+          0.1357742732111763,
+          0.07643398929256998,
+          0.08085070144814067,
+          0.07684115726357445,
+          0.07525346128044991
+        ],
+        [
+          0.07500466001668878,
+          0.11203719095349934,
+          0.011357388787115117,
+          0.0,
+          0.028620515609916,
+          0.12961733091066835,
+          0.29976326266665665,
+          0.353912926238116,
+          0.34451038903253384,
+          0.33269268184857237
+        ],
+        [
+          8.516069251694736e-18,
+          0.046850900806566856,
+          0.17204741939198803,
+          0.17789056768493253,
+          0.06536070360482475,
+          0.21367554998620408,
+          0.13085756914117286,
+          0.05667046872641801,
+          0.05015829314965618,
+          0.06646414904545188
+        ],
+        [
+          0.09214901256365284,
+          0.16606195821923658,
+          0.19456509618275478,
+          0.12923018345569323,
+          0.0915444999520896,
+          0.0,
+          0.0,
+          0.0,
+          0.0076324565407504,
+          0.0075867932552589985
+        ],
+        [
+          0.015009265728260382,
+          0.06666716225888063,
+          0.03476448483488308,
+          0.11176655958170192,
+          0.18365779110180389,
+          0.22160507044090128,
+          0.19239140956005377,
+          0.21216237157378448,
+          0.1989290557914601,
+          0.18087384771509307
+        ]
+      ]
+    },
+    "discovery_report": "cache/atlas_resurrection_six_warm/evaluation.json"
+  },
+  "fit": {
+    "best": {
+      "anchors_hz": [
+        0,
+        125,
+        250,
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000,
+        22050
+      ],
+      "weights": [
+        [
+          0.4084982456994538,
+          0.42443580559379646,
+          0.41383984922926864,
+          0.5330400720304551,
+          0.47588228294832374,
+          0.25985698837851967,
+          0.30048836924416017,
+          0.13819231069906285,
+          0.15497096168695576,
+          0.1920431508849422
+        ],
+        [
+          0.47345484874578303,
+          0.07506000261281433,
+          0.18432343786624591,
+          0.0339855329720586,
+          0.18240393441440675,
+          0.16836407707311027,
+          0.021130632015431937,
+          0.05535563638008939,
+          0.02638201292288238,
+          0.028326104130638956
+        ],
+        [
+          0.09271090431525342,
+          0.1910628556714645,
+          5.451927565002304e-18,
+          0.0,
+          0.009940049302787775,
+          0.08908794758409168,
+          0.42301836712769814,
+          0.5174330301568099,
+          0.5053021599275335,
+          0.4846412794353511
+        ],
+        [
+          0.0,
+          1.399965467310067e-17,
+          0.1706092465190038,
+          0.18136044105807686,
+          0.05074877591474763,
+          0.25144102109022487,
+          0.07921543073181991,
+          1.0688708761402016e-17,
+          0.0,
+          0.016631765583411715
+        ],
+        [
+          0.007875577831976692,
+          0.21206272576102195,
+          0.20988481144628426,
+          0.13307303266961404,
+          0.10497879622845283,
+          0.0,
+          0.0,
+          0.0,
+          3.7269449679189215e-20,
+          0.0037364911834046072
+        ],
+        [
+          0.017460423407533184,
+          0.0973786103609028,
+          0.021342654939197393,
+          0.11854092126979547,
+          0.17604616119128141,
+          0.23124996587405355,
+          0.17614720088088984,
+          0.28901902276403796,
+          0.31334486546262846,
+          0.27462120878225144
+        ]
+      ],
+      "regularization": 0.001,
+      "loss": 0.9301678324366556,
+      "proxy": [
+        0.07757015851863479,
+        0.006203809569058309,
+        0.010168033251410044,
+        0.008264793734494043
+      ],
+      "limit": [
+        0.08517582967906599,
+        0.0062038095669295764,
+        0.010409974334926263,
+        0.010008949563503471
+      ],
+      "worst_development_error_slack": -2.5754176569137144e-11,
+      "safe": true
+    },
+    "trials": [
+      {
+        "anchors_hz": [
+          0,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          16000,
+          22050
+        ],
+        "weights": [
+          [
+            0.4084982456994538,
+            0.42443580559379646,
+            0.41383984922926864,
+            0.5330400720304551,
+            0.47588228294832374,
+            0.25985698837851967,
+            0.30048836924416017,
+            0.13819231069906285,
+            0.15497096168695576,
+            0.1920431508849422
+          ],
+          [
+            0.47345484874578303,
+            0.07506000261281433,
+            0.18432343786624591,
+            0.0339855329720586,
+            0.18240393441440675,
+            0.16836407707311027,
+            0.021130632015431937,
+            0.05535563638008939,
+            0.02638201292288238,
+            0.028326104130638956
+          ],
+          [
+            0.09271090431525342,
+            0.1910628556714645,
+            5.451927565002304e-18,
+            0.0,
+            0.009940049302787775,
+            0.08908794758409168,
+            0.42301836712769814,
+            0.5174330301568099,
+            0.5053021599275335,
+            0.4846412794353511
+          ],
+          [
+            0.0,
+            1.399965467310067e-17,
+            0.1706092465190038,
+            0.18136044105807686,
+            0.05074877591474763,
+            0.25144102109022487,
+            0.07921543073181991,
+            1.0688708761402016e-17,
+            0.0,
+            0.016631765583411715
+          ],
+          [
+            0.007875577831976692,
+            0.21206272576102195,
+            0.20988481144628426,
+            0.13307303266961404,
+            0.10497879622845283,
+            0.0,
+            0.0,
+            0.0,
+            3.7269449679189215e-20,
+            0.0037364911834046072
+          ],
+          [
+            0.017460423407533184,
+            0.0973786103609028,
+            0.021342654939197393,
+            0.11854092126979547,
+            0.17604616119128141,
+            0.23124996587405355,
+            0.17614720088088984,
+            0.28901902276403796,
+            0.31334486546262846,
+            0.27462120878225144
+          ]
+        ],
+        "regularization": 0.001,
+        "loss": 0.9301678324366556,
+        "proxy": [
+          0.07757015851863479,
+          0.006203809569058309,
+          0.010168033251410044,
+          0.008264793734494043
+        ],
+        "limit": [
+          0.08517582967906599,
+          0.0062038095669295764,
+          0.010409974334926263,
+          0.010008949563503471
+        ],
+        "worst_development_error_slack": -2.5754176569137144e-11,
+        "safe": true
+      }
+    ],
+    "indices": [
+      0,
+      1,
+      2,
+      4,
+      7,
+      8
+    ],
+    "baseline_indices": [
+      0,
+      1,
+      2,
+      4
+    ],
+    "development_ids": [
+      "fc9f42fdeb43",
+      "3c1b6f88b282",
+      "2063584c7f74",
+      "7446f71a03b7",
+      "465889e42b6a",
+      "2778930b9b61",
+      "5bc229213e9f",
+      "60a9cec090f0",
+      "d9dd17e0b02a",
+      "dc7a6304b83d",
+      "f8e29bf5adf9",
+      "e23c4f5842d0",
+      "bc848a47154c",
+      "4a04f1fb5a27",
+      "34fdc94158e1",
+      "0ff5de8403b2",
+      "029475bd3abf",
+      "92b5bb609c7f",
+      "58a133160381",
+      "83abcfc2eb92",
+      "1e2751a88e96",
+      "39d39a736072",
+      "41a20279125c",
+      "2d20430d6881",
+      "8ddb30f4c81c",
+      "4f0b911f3c98",
+      "9c4ea9843c3c",
+      "a1b93e598b8d",
+      "6b54473d9026",
+      "2e0c862529a3",
+      "d0d80f137c3e",
+      "8c03fb4002a1",
+      "ca6e0e1698d8",
+      "56e3a55b23af",
+      "879a04d0a5bc",
+      "da5c6df0cc87",
+      "a1d21f6631fe",
+      "780905864a55",
+      "c53c1848c62d",
+      "cda0ad33fc4a",
+      "82940e79facd",
+      "e70972284238",
+      "2b95215f06b1",
+      "38b23cce6d4a",
+      "145ffbe21b0e",
+      "4b494b7ae728",
+      "bfafba00a163",
+      "758a6bb16872",
+      "97634b8da379",
+      "2eee8a64cd6f",
+      "4a4d384bd4ba",
+      "b22076e77c1c",
+      "468989e02932",
+      "28bf476a7089",
+      "8beade0915aa",
+      "cd0ffcfe3b4b"
+    ],
+    "evaluation_used_for_fitting": false,
+    "objective_mode": "relative_error",
+    "max_development_regression_db": 0.05,
+    "method": "Exact production waveform error; per-recording development error cap; mean content constraints against both baselines",
+    "development_selection": {
+      "trial": 0,
+      "summary": {
+        "vocal": {
+          "sdr_db": 12.450921092142197,
+          "si_sdr_db": 11.61277140531823,
+          "spectral_deficit": 0.0754327570508523,
+          "spectral_excess": 0.006204214035415461
+        },
+        "instrumental": {
+          "sdr_db": 17.136694623290218,
+          "si_sdr_db": 17.03100167627268,
+          "spectral_deficit": 0.008976171461229105,
+          "spectral_excess": 0.006144364394615747
+        }
+      },
+      "evaluation_used": false
+    }
+  },
+  "spec": {
+    "anchors_hz": [
+      0,
+      125,
+      250,
+      500,
+      1000,
+      2000,
+      4000,
+      8000,
+      16000,
+      22050
+    ],
+    "weights": [
+      [
+        0.4084982456994538,
+        0.42443580559379646,
+        0.41383984922926864,
+        0.5330400720304551,
+        0.47588228294832374,
+        0.25985698837851967,
+        0.30048836924416017,
+        0.13819231069906285,
+        0.15497096168695576,
+        0.1920431508849422
+      ],
+      [
+        0.47345484874578303,
+        0.07506000261281433,
+        0.18432343786624591,
+        0.0339855329720586,
+        0.18240393441440675,
+        0.16836407707311027,
+        0.021130632015431937,
+        0.05535563638008939,
+        0.02638201292288238,
+        0.028326104130638956
+      ],
+      [
+        0.09271090431525342,
+        0.1910628556714645,
+        5.451927565002304e-18,
+        0.0,
+        0.009940049302787775,
+        0.08908794758409168,
+        0.42301836712769814,
+        0.5174330301568099,
+        0.5053021599275335,
+        0.4846412794353511
+      ],
+      [
+        0.0,
+        1.399965467310067e-17,
+        0.1706092465190038,
+        0.18136044105807686,
+        0.05074877591474763,
+        0.25144102109022487,
+        0.07921543073181991,
+        1.0688708761402016e-17,
+        0.0,
+        0.016631765583411715
+      ],
+      [
+        0.007875577831976692,
+        0.21206272576102195,
+        0.20988481144628426,
+        0.13307303266961404,
+        0.10497879622845283,
+        0.0,
+        0.0,
+        0.0,
+        3.7269449679189215e-20,
+        0.0037364911834046072
+      ],
+      [
+        0.017460423407533184,
+        0.0973786103609028,
+        0.021342654939197393,
+        0.11854092126979547,
+        0.17604616119128141,
+        0.23124996587405355,
+        0.17614720088088984,
+        0.28901902276403796,
+        0.31334486546262846,
+        0.27462120878225144
+      ]
+    ]
+  },
+  "summary": {
+    "v1": {
+      "vocal": {
+        "sdr_db": 11.417936398941299,
+        "si_sdr_db": 10.989004561830498,
+        "spectral_deficit": 0.0684248618457581,
+        "spectral_excess": 0.005042433386880443
+      },
+      "instrumental": {
+        "sdr_db": 18.2273453603305,
+        "si_sdr_db": 18.11907918252008,
+        "spectral_deficit": 0.008486552166292525,
+        "spectral_excess": 0.009019578650076637
+      }
+    },
+    "current": {
+      "vocal": {
+        "sdr_db": 11.506171612014974,
+        "si_sdr_db": 11.100406889886056,
+        "spectral_deficit": 0.06668142817808405,
+        "spectral_excess": 0.004871218938148876
+      },
+      "instrumental": {
+        "sdr_db": 18.315580573404173,
+        "si_sdr_db": 18.20742019432799,
+        "spectral_deficit": 0.008480198408872977,
+        "spectral_excess": 0.008116364878447278
+      }
+    },
+    "refined": {
+      "vocal": {
+        "sdr_db": 11.949660620420824,
+        "si_sdr_db": 11.600841573022844,
+        "spectral_deficit": 0.057697024304561986,
+        "spectral_excess": 0.004615790421035097
+      },
+      "instrumental": {
+        "sdr_db": 18.75906958181002,
+        "si_sdr_db": 18.653884008765765,
+        "spectral_deficit": 0.008084628754801992,
+        "spectral_excess": 0.005283035495381096
+      }
+    }
+  },
+  "comparisons": {
+    "v1": {
+      "mean_sdr_delta_db": 0.5317242214795245,
+      "improved": 10,
+      "bootstrap_95pct": [
+        0.28554598957941696,
+        0.8861634814502132
+      ]
+    },
+    "current": {
+      "mean_sdr_delta_db": 0.4434890084058501,
+      "improved": 10,
+      "bootstrap_95pct": [
+        0.2440257818324798,
+        0.7268394407399499
+      ]
+    }
+  },
+  "rows": [
+    {
+      "name": "Cristina Vane - So Easy",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Cristina Vane - So Easy.stem.mp4",
+      "split": "evaluation",
+      "id": "427a5286453d",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 19.475431953905403,
+            "si_sdr_db": 19.437550345599316,
+            "spectral_deficit": 0.0045377786157152,
+            "spectral_excess": 0.00143258182798095
+          },
+          "instrumental": {
+            "sdr_db": 24.471902734530925,
+            "si_sdr_db": 24.456472781740555,
+            "spectral_deficit": 0.0012411281778513042,
+            "spectral_excess": 0.00039421623786337084
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 19.506899966232012,
+            "si_sdr_db": 19.470525735126778,
+            "spectral_deficit": 0.0045351664086014706,
+            "spectral_excess": 0.0014207284248920742
+          },
+          "instrumental": {
+            "sdr_db": 24.503370746857538,
+            "si_sdr_db": 24.488112302685185,
+            "spectral_deficit": 0.00124284182546608,
+            "spectral_excess": 0.00038487889347516057
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 19.71714420602787,
+            "si_sdr_db": 19.672410148934166,
+            "spectral_deficit": 0.004163273738710995,
+            "spectral_excess": 0.0014239109284058756
+          },
+          "instrumental": {
+            "sdr_db": 24.713614986653397,
+            "si_sdr_db": 24.699015121962606,
+            "spectral_deficit": 0.0011919939029802677,
+            "spectral_excess": 0.000356513456731382
+          }
+        }
+      }
+    },
+    {
+      "name": "Side Effects Project - Sing With Me",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Side Effects Project - Sing With Me.stem.mp4",
+      "split": "evaluation",
+      "id": "cf4e9727e8d4",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 17.511829728461375,
+            "si_sdr_db": 17.49228042932516,
+            "spectral_deficit": 0.009776196998600533,
+            "spectral_excess": 0.0017820956090073541
+          },
+          "instrumental": {
+            "sdr_db": 19.93482516592981,
+            "si_sdr_db": 19.89456869251566,
+            "spectral_deficit": 0.00375719859536623,
+            "spectral_excess": 0.001605930094989949
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 17.586284928773114,
+            "si_sdr_db": 17.571127140345745,
+            "spectral_deficit": 0.009505812283297978,
+            "spectral_excess": 0.0016968951848734194
+          },
+          "instrumental": {
+            "sdr_db": 20.009280366241548,
+            "si_sdr_db": 19.969753354493363,
+            "spectral_deficit": 0.0037132365085195333,
+            "spectral_excess": 0.001464370809488873
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 18.1276424598339,
+            "si_sdr_db": 18.106144131379633,
+            "spectral_deficit": 0.008118438869399272,
+            "spectral_excess": 0.0013400734102911563
+          },
+          "instrumental": {
+            "sdr_db": 20.550637897302334,
+            "si_sdr_db": 20.51766733236128,
+            "spectral_deficit": 0.0032498034587517192,
+            "spectral_excess": 0.0010389926587750019
+          }
+        }
+      }
+    },
+    {
+      "name": "Girls Under Glass - We Feel Alright",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Girls Under Glass - We Feel Alright.stem.mp4",
+      "split": "evaluation",
+      "id": "f261ba288dbb",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 7.601361168450904,
+            "si_sdr_db": 6.78855854417372,
+            "spectral_deficit": 0.08564456945270785,
+            "spectral_excess": 0.013085545880233926
+          },
+          "instrumental": {
+            "sdr_db": 12.137890070203433,
+            "si_sdr_db": 11.862825679078838,
+            "spectral_deficit": 0.022805610154295098,
+            "spectral_excess": 0.0068994402046232825
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 7.624372866045962,
+            "si_sdr_db": 6.817865791119729,
+            "spectral_deficit": 0.08550319292867066,
+            "spectral_excess": 0.012784017508958998
+          },
+          "instrumental": {
+            "sdr_db": 12.160901767798489,
+            "si_sdr_db": 11.887375752255153,
+            "spectral_deficit": 0.02280588060557682,
+            "spectral_excess": 0.00676815133774658
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 7.700834832651708,
+            "si_sdr_db": 6.913302331143894,
+            "spectral_deficit": 0.08638509400497796,
+            "spectral_excess": 0.011644516571338368
+          },
+          "instrumental": {
+            "sdr_db": 12.237363734404237,
+            "si_sdr_db": 11.968766914630365,
+            "spectral_deficit": 0.02163283690984377,
+            "spectral_excess": 0.0069280895475855725
+          }
+        }
+      }
+    },
+    {
+      "name": "Secretariat - Borderline",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Secretariat - Borderline.stem.mp4",
+      "split": "evaluation",
+      "id": "099e0fde5ba0",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 11.397217628514372,
+            "si_sdr_db": 11.081815196902184,
+            "spectral_deficit": 0.031797044187913175,
+            "spectral_excess": 0.006660688769495479
+          },
+          "instrumental": {
+            "sdr_db": 13.925119697537829,
+            "si_sdr_db": 13.74671611760447,
+            "spectral_deficit": 0.016255553772610558,
+            "spectral_excess": 0.005141592506194944
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 11.440224590359016,
+            "si_sdr_db": 11.129922381393225,
+            "spectral_deficit": 0.03180321338816917,
+            "spectral_excess": 0.006478808269926838
+          },
+          "instrumental": {
+            "sdr_db": 13.968126659382472,
+            "si_sdr_db": 13.791706050029973,
+            "spectral_deficit": 0.016137928963557396,
+            "spectral_excess": 0.0050628590934079535
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 11.741075669090197,
+            "si_sdr_db": 11.451293795017964,
+            "spectral_deficit": 0.028946567339364026,
+            "spectral_excess": 0.006337631529422512
+          },
+          "instrumental": {
+            "sdr_db": 14.268977738113653,
+            "si_sdr_db": 14.103965434979383,
+            "spectral_deficit": 0.014642316067025433,
+            "spectral_excess": 0.004847120909597449
+          }
+        }
+      }
+    },
+    {
+      "name": "BKS - Bulldozer",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\BKS - Bulldozer.stem.mp4",
+      "split": "evaluation",
+      "id": "92cc41c7e36d",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 8.56984017368481,
+            "si_sdr_db": 7.928387853285297,
+            "spectral_deficit": 0.09034746773832031,
+            "spectral_excess": 0.006303760383753436
+          },
+          "instrumental": {
+            "sdr_db": 14.613352062855016,
+            "si_sdr_db": 14.484983430310265,
+            "spectral_deficit": 0.009132251913146905,
+            "spectral_excess": 0.00796128355774553
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 8.630216586172113,
+            "si_sdr_db": 7.999528364514063,
+            "spectral_deficit": 0.08959712970267152,
+            "spectral_excess": 0.006125387330804983
+          },
+          "instrumental": {
+            "sdr_db": 14.67372847534232,
+            "si_sdr_db": 14.545704326564014,
+            "spectral_deficit": 0.00910767472053465,
+            "spectral_excess": 0.007762086957775071
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 9.011605619447542,
+            "si_sdr_db": 8.434964931857662,
+            "spectral_deficit": 0.07883077705885468,
+            "spectral_excess": 0.0064921883018121225
+          },
+          "instrumental": {
+            "sdr_db": 15.055117508617748,
+            "si_sdr_db": 14.932300791603708,
+            "spectral_deficit": 0.008841263060357228,
+            "spectral_excess": 0.006467531368384672
+          }
+        }
+      }
+    },
+    {
+      "name": "M.E.R.C. Music - Knockout",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\M.E.R.C. Music - Knockout.stem.mp4",
+      "split": "evaluation",
+      "id": "37d55b5f2d1f",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 11.943554160568029,
+            "si_sdr_db": 11.729887851088005,
+            "spectral_deficit": 0.03257667731407231,
+            "spectral_excess": 0.004896012617768316
+          },
+          "instrumental": {
+            "sdr_db": 14.6384072888751,
+            "si_sdr_db": 14.487227939450701,
+            "spectral_deficit": 0.011579823366873746,
+            "spectral_excess": 0.0044750656405878
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 11.990463086113124,
+            "si_sdr_db": 11.784765809575543,
+            "spectral_deficit": 0.032533596802126974,
+            "spectral_excess": 0.004728033261124119
+          },
+          "instrumental": {
+            "sdr_db": 14.685316214420197,
+            "si_sdr_db": 14.535509322408354,
+            "spectral_deficit": 0.011512329528960313,
+            "spectral_excess": 0.004386128880660408
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 12.317030802261309,
+            "si_sdr_db": 12.122137357857712,
+            "spectral_deficit": 0.030006156844915886,
+            "spectral_excess": 0.0044530535738226806
+          },
+          "instrumental": {
+            "sdr_db": 15.01188393056838,
+            "si_sdr_db": 14.872593364834142,
+            "spectral_deficit": 0.010717532857732453,
+            "spectral_excess": 0.003965953157662174
+          }
+        }
+      }
+    },
+    {
+      "name": "Speak Softly - Broken Man",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Speak Softly - Broken Man.stem.mp4",
+      "split": "evaluation",
+      "id": "9d9296080018",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 13.258668182133086,
+            "si_sdr_db": 13.13806022421389,
+            "spectral_deficit": 0.024312980407843732,
+            "spectral_excess": 0.0035869655136859103
+          },
+          "instrumental": {
+            "sdr_db": 22.92111989081792,
+            "si_sdr_db": 22.906506880698217,
+            "spectral_deficit": 0.0018641568957201773,
+            "spectral_excess": 0.0006953291012919048
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 13.298638065648946,
+            "si_sdr_db": 13.187689059942318,
+            "spectral_deficit": 0.024331880538230658,
+            "spectral_excess": 0.0034628706821105285
+          },
+          "instrumental": {
+            "sdr_db": 22.96108977433378,
+            "si_sdr_db": 22.946476043809287,
+            "spectral_deficit": 0.0018538646526369588,
+            "spectral_excess": 0.0006838804994229664
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 13.635282901932385,
+            "si_sdr_db": 13.523267169873916,
+            "spectral_deficit": 0.022080419060234526,
+            "spectral_excess": 0.0033307260623851326
+          },
+          "instrumental": {
+            "sdr_db": 23.297734610617216,
+            "si_sdr_db": 23.28277685734395,
+            "spectral_deficit": 0.0016412891730660367,
+            "spectral_excess": 0.0006442218947678076
+          }
+        }
+      }
+    },
+    {
+      "name": "Tom McKenzie - Directions",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\Tom McKenzie - Directions.stem.mp4",
+      "split": "evaluation",
+      "id": "0c245c22a3f6",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 11.384838541727227,
+            "si_sdr_db": 11.099345107959627,
+            "spectral_deficit": 0.06129146625769473,
+            "spectral_excess": 0.0038508252080246296
+          },
+          "instrumental": {
+            "sdr_db": 20.29102407822463,
+            "si_sdr_db": 20.271015627681827,
+            "spectral_deficit": 0.0031132261394538493,
+            "spectral_excess": 0.004189689877991881
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 11.531459506144724,
+            "si_sdr_db": 11.26420255070418,
+            "spectral_deficit": 0.05815165885251134,
+            "spectral_excess": 0.003784969647372364
+          },
+          "instrumental": {
+            "sdr_db": 20.437645042642124,
+            "si_sdr_db": 20.419703429726844,
+            "spectral_deficit": 0.0030967670432324136,
+            "spectral_excess": 0.003867074952859839
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 12.12332396063684,
+            "si_sdr_db": 11.883534665374256,
+            "spectral_deficit": 0.04777629035365613,
+            "spectral_excess": 0.0036847699703427047
+          },
+          "instrumental": {
+            "sdr_db": 21.029509497134242,
+            "si_sdr_db": 21.013343610576012,
+            "spectral_deficit": 0.0027189936729540677,
+            "spectral_excess": 0.0032375863399385354
+          }
+        }
+      }
+    },
+    {
+      "name": "PR - Oh No",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\PR - Oh No.stem.mp4",
+      "split": "evaluation",
+      "id": "cec13ea9ab11",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 6.884494880113133,
+            "si_sdr_db": 6.207635734852467,
+            "spectral_deficit": 0.1639950855986398,
+            "spectral_excess": 0.0029346821464480374
+          },
+          "instrumental": {
+            "sdr_db": 30.79050245371406,
+            "si_sdr_db": 30.787042240427724,
+            "spectral_deficit": 0.00024622438983839173,
+            "spectral_excess": 0.00012913835883069736
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 6.9284142620046305,
+            "si_sdr_db": 6.279636296663305,
+            "spectral_deficit": 0.16282573959930655,
+            "spectral_excess": 0.0026554334204678767
+          },
+          "instrumental": {
+            "sdr_db": 30.83442183560556,
+            "si_sdr_db": 30.831048737184886,
+            "spectral_deficit": 0.000248853126469239,
+            "spectral_excess": 0.00012526628136132198
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 7.03712961623053,
+            "si_sdr_db": 6.415160184009641,
+            "spectral_deficit": 0.15991671241123873,
+            "spectral_excess": 0.0019944153005103287
+          },
+          "instrumental": {
+            "sdr_db": 30.943137189831454,
+            "si_sdr_db": 30.94001379894149,
+            "spectral_deficit": 0.0002555081384475305,
+            "spectral_excess": 0.00011682316942198826
+          }
+        }
+      }
+    },
+    {
+      "name": "James Elder & Mark M Thompson - The English Actor",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\test\\James Elder & Mark M Thompson - The English Actor.stem.mp4",
+      "split": "evaluation",
+      "id": "4e65c768ff1d",
+      "systems": {
+        "v1": {
+          "vocal": {
+            "sdr_db": 6.152127571854656,
+            "si_sdr_db": 4.986524330905326,
+            "spectral_deficit": 0.17996935188607335,
+            "spectral_excess": 0.005891175912406399
+          },
+          "instrumental": {
+            "sdr_db": 8.549310160616265,
+            "si_sdr_db": 8.293432435692552,
+            "spectral_deficit": 0.014870348257768996,
+            "spectral_excess": 0.05870410092064702
+          }
+        },
+        "current": {
+          "vocal": {
+            "sdr_db": 6.524742262656097,
+            "si_sdr_db": 5.498805769475671,
+            "spectral_deficit": 0.16802689127725406,
+            "spectral_excess": 0.0055750456509575655
+          },
+          "instrumental": {
+            "sdr_db": 8.921924851417707,
+            "si_sdr_db": 8.658812624122858,
+            "spectral_deficit": 0.015082607113776368,
+            "spectral_excess": 0.05065895107827461
+          }
+        },
+        "refined": {
+          "vocal": {
+            "sdr_db": 8.085536136095957,
+            "si_sdr_db": 7.486201014779592,
+            "spectral_deficit": 0.11074651336426766,
+            "spectral_excess": 0.005456618562020084
+          },
+          "instrumental": {
+            "sdr_db": 10.482718724857566,
+            "si_sdr_db": 10.208396860424694,
+            "spectral_deficit": 0.0159547503068614,
+            "spectral_excess": 0.02522752245094638
+          }
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Fresh held-out from parameter fitting only; model training overlap unknown",
+    "Short non-Turkish reference excerpts; full Turkish mixes do not establish true stem loss",
+    "Mean acceptance is not superiority on every song or zero loss"
+  ],
+  "accepted": true,
+  "target_gain_0_2db_reached": true,
+  "provenance": {
+    "python": "3.10.12",
+    "gpu": "NVIDIA GeForce RTX 5060",
+    "torch": "2.7.0+cu128",
+    "use_autocast": true,
+    "core_sha256": "0484873ce23433dc154ab88338007668527c3c28a28f18e3b3bac66e2190083b",
+    "packages": {
+      "audio-separator": "0.32.0",
+      "numpy": "2.2.6",
+      "scipy": "1.15.3",
+      "soundfile": "0.13.1"
+    },
+    "archive_sha256": "365f66acffc57282e474a4c24b32afec3678258c50b8d45646ac849b0a287df3",
+    "model_files": [
+      {
+        "model_key": "BS-Roformer-Viperx-1297",
+        "file": "models/model_bs_roformer_ep_317_sdr_12.9755.ckpt",
+        "sha256": "5b84f37e8d444c8cb30c79d77f613a41c05868ff9c9ac6c7049c00aefae115aa",
+        "bytes": 639331213,
+        "config": "models/model_bs_roformer_ep_317_sdr_12.9755.yaml",
+        "config_sha256": "2bfdd16c656bd9519aba757cc4f8834b7ede675eb1e00ec4772d74ae1c41af7f"
+      },
+      {
+        "model_key": "BS Roformer Leap Vocals by pcunwa",
+        "file": "models/roformer_custom_64dfa22ed641/bs_roformer_leap_voc.ckpt",
+        "sha256": "8c0e4bfff6be150a12582a7c236379aa42102b7f43831900df5b2addf924da7c",
+        "bytes": 238220459,
+        "config": "models/roformer_custom_64dfa22ed641/config_bs_roformer.yaml",
+        "config_sha256": "07b3a73af585534097c52572f41d75008e325fe5717e74961436f65010ac2333"
+      },
+      {
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "file": "models/mel_band_roformer_kim_ft2_bleedless_unwa.ckpt",
+        "sha256": "3c450bd66a98b49dd03231fc5ebb84121eef8418236b179423c2b171d62b04d9",
+        "bytes": 913101368,
+        "config": "models/config_mel_band_roformer_kim_ft_unwa.yaml",
+        "config_sha256": "c910a0b1493fd3f9cee7a576a7498e44e660510dcaaf5d0d50d5363dde1d0010"
+      },
+      {
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "file": "models/melband_roformer_inst_v2.ckpt",
+        "sha256": "bd19766620f7d6f58fdf7aaada7e89907fe41bc64490ce3faa9a6dab15d6e1f2",
+        "bytes": 1574477088,
+        "config": "models/config_melbandroformer_inst_v2.yaml",
+        "config_sha256": "4b902a7360a930c178edb4846b30e4e326aa1219d1b2daf660d46a311e0cd50b"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+        "estimate": "vocal",
+        "file": "models/roformer_custom_f66fa04c1010/BS-Roformer-Resurrection.ckpt",
+        "bytes": 204510749,
+        "sha256": "9dbfe5cb572e4ed32a15ec727d7bd06c8d7aba97509e6fda5bc008bb1e0b2dd5",
+        "config": "models/roformer_custom_f66fa04c1010/config_bs_roformer.yaml",
+        "config_sha256": "dd3745dc1c19438e4d08cf74f3348bd0b8b8ba6251bb45726fe1c0f57945f19f",
+        "repository_revision": "8fc1a62f765e3e738db8394d7e87e379acc4c675"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+        "estimate": "inst",
+        "file": "models/roformer_custom_30d7947258e6/BS-Roformer-Resurrection-Inst.ckpt",
+        "bytes": 204483033,
+        "sha256": "16311025a5133ae6411760ccfe9e3e66b31a01d9d8bec0a03fa7ec4bedac7a15",
+        "config": "models/roformer_custom_30d7947258e6/config_bs_roformer.yaml",
+        "config_sha256": "b99e080bcb420e4fdf0297cef395482c97c81886583e22905e9770890b0df945",
+        "repository_revision": "8fc1a62f765e3e738db8394d7e87e379acc4c675"
+      }
+    ],
+    "benchmark_script_sha256": "f93bbf672c7324dda2720a8941496d9a4003f333b48665fe19112099df7cfd90",
+    "export_script_sha256": "4d66ae240c50a9f33eba5d1f90eb98b15a63be1990a183bf28db6ab77f2bf965",
+    "combiner_sha256": "d591b96c17772da5ca82ce0c213f6f4b55437849558d796a23c17f4aa0fc778d",
+    "production_combiner_sha256": "0146f25a6b53ae86fa47579a5124b6991702bc5aa77c1a51ba16a5ee1e73ff9a",
+    "prior_pilot_core_sha256": "9c61d202d582d33356c8c0029ed432d59a4d563e8d0d005b7f6f68a21adb3e50",
+    "confirmation_inference_core_sha256": "0484873ce23433dc154ab88338007668527c3c28a28f18e3b3bac66e2190083b",
+    "development_cache_note": "Original experts reuse prior pilot/extended outputs where available; final confirmation outputs were generated with the current core. Adapters leave full-window original expert inputs unchanged.",
+    "short_input_adapter_sha256": "a9e33ca71d15adb7f9185952853efa7a60d74d30fe60ef362979fa7bb7b157b5",
+    "model_config_adapter_sha256": "31dea9f2b49c39f3c5dcfd06273e2be4a3fe0cf31f8e47b2fdf40aae3defee82",
+    "fit_invocation": {
+      "fit_code_sha256": "c71dd57f4ca23a6354fe4623217c495f1fed95c949ba7cdc1ea3a36e1c9be05c",
+      "validation_opened": false
+    }
+  },
+  "discovery": {
+    "accepted": true,
+    "comparisons": {
+      "v1": {
+        "mean_sdr_delta_db": 0.45195165772868895,
+        "improved": 8,
+        "bootstrap_95pct": [
+          0.2615732492267696,
+          0.6681633811765437
+        ]
+      },
+      "current": {
+        "mean_sdr_delta_db": 0.38895133264025694,
+        "improved": 8,
+        "bootstrap_95pct": [
+          0.2268303580214306,
+          0.5775029716640787
+        ]
+      }
+    },
+    "summary": {
+      "v1": {
+        "vocal": {
+          "sdr_db": 11.5774470594292,
+          "si_sdr_db": 11.227042217656905,
+          "spectral_deficit": 0.05086909345639372,
+          "spectral_excess": 0.006219000693075377
+        },
+        "instrumental": {
+          "sdr_db": 15.445216562027582,
+          "si_sdr_db": 15.271546636735449,
+          "spectral_deficit": 0.012049864423527474,
+          "spectral_excess": 0.007188806792438956
+        }
+      },
+      "current": {
+        "vocal": {
+          "sdr_db": 11.640447384517632,
+          "si_sdr_db": 11.297023475219428,
+          "spectral_deficit": 0.05056061384471584,
+          "spectral_excess": 0.006058501831943746
+        },
+        "instrumental": {
+          "sdr_db": 15.508216887116014,
+          "si_sdr_db": 15.335987887697431,
+          "spectral_deficit": 0.011997746332700166,
+          "spectral_excess": 0.00702035146361409
+        }
+      },
+      "refined": {
+        "vocal": {
+          "sdr_db": 12.02939871715789,
+          "si_sdr_db": 11.694455994226898,
+          "spectral_deficit": 0.04624108435508281,
+          "spectral_excess": 0.005791654887752336
+        },
+        "instrumental": {
+          "sdr_db": 15.89716821975627,
+          "si_sdr_db": 15.736904966194786,
+          "spectral_deficit": 0.011174578023861301,
+          "spectral_excess": 0.006306436242368028
+        }
+      }
+    },
+    "ids": [
+      "07a7c07979c1",
+      "cf8ddce3d5df",
+      "8c77611c0c37",
+      "935fc130d021",
+      "f2f71d6fc5ae",
+      "b2181d0a5254",
+      "13d9209ce462",
+      "68dae12fc9fd"
+    ],
+    "source_report_sha256": "5a61694e22c9ca1050c1972d7bd1886caa2cfcd0334e394ecd1a0374b20cb852"
+  },
+  "turkish": {
+    "tracks": [
+      {
+        "name": "Bilal SONSES - Nefret (Official Video)",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\ytdl\\Bilal SONSES - Nefret (Official Video).wav",
+        "id": "e471d064a086",
+        "seconds": 128.08126984126983,
+        "ground_truth": false,
+        "frames": 5648384,
+        "sum_max_abs_error": 5.960464477539063e-08,
+        "output_directory": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_confirmation\\turkish\\e471d064a086",
+        "reference_stems_available": false,
+        "quality_measured": false,
+        "source_sha256": "bd5db95ab37e0b80f984f7b1133f19fc8ce9c8bf3eb20aa412779b70a006f3f5"
+      },
+      {
+        "name": "Ezhel - Başa Bela (Official Audio)",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\ytdl\\Ezhel - Başa Bela (Official Audio).wav",
+        "id": "ba43b6021990",
+        "seconds": 154.01795918367347,
+        "ground_truth": false,
+        "frames": 6792192,
+        "sum_max_abs_error": 5.960464477539063e-08,
+        "output_directory": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_confirmation\\turkish\\ba43b6021990",
+        "reference_stems_available": false,
+        "quality_measured": false,
+        "source_sha256": "5f0f4b2f0765370b5f9016d9c4a0e5b515128c4004d8afb05b286530545b4afa"
+      },
+      {
+        "name": "Gözleri Fettan Güzel (Müslüm Gürses) Official Audio #gözlerifettangüzel #müslümgürses - Esen Müzik",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\ytdl\\Gözleri Fettan Güzel (Müslüm Gürses) Official Audio #gözlerifettangüzel #müslümgürses - Esen Müzik.wav",
+        "id": "17c0a200589b",
+        "seconds": 212.0214058956916,
+        "ground_truth": false,
+        "frames": 9350144,
+        "sum_max_abs_error": 5.960464477539063e-08,
+        "output_directory": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_confirmation\\turkish\\17c0a200589b",
+        "reference_stems_available": false,
+        "quality_measured": false,
+        "source_sha256": "d0b7c69f9bd89840e2a9f53243c23430189d99a0a11e4fc195d4d3cc255e6362"
+      }
+    ],
+    "complete": true,
+    "quality_measured": false
+  },
+  "live_check": {
+    "passed": true,
+    "task_id": "7f4f9a82-94ed-4752-9285-143fa51d1a20",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Vocals by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Vocals by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa"
+      }
+    ],
+    "frames": 132300,
+    "rate": 44100,
+    "sum_max_abs_error": 3.725290298461914e-08,
+    "output_files": [
+      "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\outputs\\AtlasStudioV2_Vocals_cc334f54f738.wav",
+      "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\outputs\\AtlasStudioV2_Instrumental_cc334f54f738.wav"
+    ],
+    "events": [
+      {
+        "status": "processing",
+        "progress": 0,
+        "message": "Starting Ensemble..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.03,
+        "message": "Atlas Studio V2 1/6 · Loading model..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.0375,
+        "message": "Atlas Studio V2 1/6 · Ses ayrıştırılıyor..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.057187499999999995,
+        "message": "Atlas Studio V2 1/6 · Ses ayrıştırılıyor · 3/16 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.0834375,
+        "message": "Atlas Studio V2 1/6 · Ses ayrıştırılıyor · 7/16 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.1096875,
+        "message": "Atlas Studio V2 1/6 · Ses ayrıştırılıyor · 11/16 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.1425,
+        "message": "Atlas Studio V2 1/6 · Ses ayrıştırılıyor · 16/16 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.20659090909090908,
+        "message": "Atlas Studio V2 2/6 · Ses ayrıştırılıyor · 2/11 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.23522727272727273,
+        "message": "Atlas Studio V2 2/6 · Ses ayrıştırılıyor · 5/11 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.2734090909090909,
+        "message": "Atlas Studio V2 2/6 · Ses ayrıştırılıyor · 9/11 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.33,
+        "message": "Atlas Studio V2 3/6 · Loading model..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.376875,
+        "message": "Atlas Studio V2 3/6 · Ses ayrıştırılıyor · 6/16 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.43593750000000003,
+        "message": "Atlas Studio V2 3/6 · Ses ayrıştırılıyor · 15/16 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.4875,
+        "message": "Atlas Studio V2 4/6 · Ses ayrıştırılıyor..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.51375,
+        "message": "Atlas Studio V2 4/6 · Ses ayrıştırılıyor · 3/12 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.54,
+        "message": "Atlas Studio V2 4/6 · Ses ayrıştırılıyor · 6/12 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.56625,
+        "message": "Atlas Studio V2 4/6 · Ses ayrıştırılıyor · 9/12 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.6375000000000001,
+        "message": "Atlas Studio V2 5/6 · Ses ayrıştırılıyor..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.66375,
+        "message": "Atlas Studio V2 5/6 · Ses ayrıştırılıyor · 2/8 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.71625,
+        "message": "Atlas Studio V2 5/6 · Ses ayrıştırılıyor · 6/8 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.7875,
+        "message": "Atlas Studio V2 6/6 · Ses ayrıştırılıyor..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.8108333333333334,
+        "message": "Atlas Studio V2 6/6 · Ses ayrıştırılıyor · 2/9 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.8458333333333334,
+        "message": "Atlas Studio V2 6/6 · Ses ayrıştırılıyor · 5/9 parça"
+      },
+      {
+        "status": "processing",
+        "progress": 0.8808333333333332,
+        "message": "Atlas Studio V2 6/6 · Ses ayrıştırılıyor · 8/9 parça"
+      },
+      {
+        "status": "completed",
+        "progress": 1.0,
+        "message": "Atlas Studio V2 tamamlandı"
+      }
+    ],
+    "quality_benchmark": false
+  },
+  "recipe": {
+    "id": "atlas_studio_v2",
+    "name": "Atlas Studio V2",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297",
+        "estimate": "vocal",
+        "weight": 0.33012480363949387
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Vocals by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.12487862191334616
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "estimate": "vocal",
+        "weight": 0.23131965935209897
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "estimate": "inst",
+        "weight": 0.07500066808972848
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.06716114351207544
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+        "estimate": "inst",
+        "weight": 0.17151510349325716
+      }
+    ],
+    "frequency_weights": {
+      "anchors_hz": [
+        0,
+        125,
+        250,
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000,
+        22050
+      ],
+      "weights": [
+        [
+          0.4084982456994538,
+          0.42443580559379646,
+          0.41383984922926864,
+          0.5330400720304551,
+          0.47588228294832374,
+          0.25985698837851967,
+          0.30048836924416017,
+          0.13819231069906285,
+          0.15497096168695576,
+          0.1920431508849422
+        ],
+        [
+          0.47345484874578303,
+          0.07506000261281433,
+          0.18432343786624591,
+          0.0339855329720586,
+          0.18240393441440675,
+          0.16836407707311027,
+          0.021130632015431937,
+          0.05535563638008939,
+          0.02638201292288238,
+          0.028326104130638956
+        ],
+        [
+          0.09271090431525342,
+          0.1910628556714645,
+          5.451927565002304e-18,
+          0.0,
+          0.009940049302787775,
+          0.08908794758409168,
+          0.42301836712769814,
+          0.5174330301568099,
+          0.5053021599275335,
+          0.4846412794353511
+        ],
+        [
+          0.0,
+          1.399965467310067e-17,
+          0.1706092465190038,
+          0.18136044105807686,
+          0.05074877591474763,
+          0.25144102109022487,
+          0.07921543073181991,
+          1.0688708761402016e-17,
+          0.0,
+          0.016631765583411715
+        ],
+        [
+          0.007875577831976692,
+          0.21206272576102195,
+          0.20988481144628426,
+          0.13307303266961404,
+          0.10497879622845283,
+          0.0,
+          0.0,
+          0.0,
+          3.7269449679189215e-20,
+          0.0037364911834046072
+        ],
+        [
+          0.017460423407533184,
+          0.0973786103609028,
+          0.021342654939197393,
+          0.11854092126979547,
+          0.17604616119128141,
+          0.23124996587405355,
+          0.17614720088088984,
+          0.28901902276403796,
+          0.31334486546262846,
+          0.27462120878225144
+        ]
+      ]
+    },
+    "calibration": {
+      "report": "docs/atlas-studio-v2-refinement.json",
+      "accepted": true,
+      "scope": "Mean metrics on frozen held-out reference excerpts; no zero-loss guarantee"
+    }
+  }
+}

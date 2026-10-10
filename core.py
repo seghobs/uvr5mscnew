@@ -31,6 +31,13 @@ try:
     _orig_download = Separator.download_model_files
     _orig_list = Separator.list_supported_model_files
     _new_models = {
+        "BS Roformer Leap Vocals by pcunwa": {
+            "filename": "bs_roformer_leap_voc.ckpt",
+            "download_files": [
+                "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/main/bs_roformer_leap_voc.ckpt",
+                "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/main/bs_leap_voc_conf.yaml"
+            ]
+        },
         "BS Roformer 124 bands (ver. 2026.07)": {
             "filename": "model.safetensors",
             "download_files": [
@@ -50,6 +57,20 @@ try:
             "download_files": [
                 "https://huggingface.co/pcunwa/BS-Roformer-Revive/resolve/main/bs_roformer_revive3e.ckpt",
                 "https://huggingface.co/pcunwa/BS-Roformer-Revive/resolve/main/config.yaml"
+            ]
+        },
+        "BS-Roformer-Resurrection Vocals by pcunwa": {
+            "filename": "BS-Roformer-Resurrection.ckpt",
+            "download_files": [
+                "https://huggingface.co/pcunwa/BS-Roformer-Resurrection/resolve/8fc1a62f765e3e738db8394d7e87e379acc4c675/BS-Roformer-Resurrection.ckpt",
+                "https://huggingface.co/pcunwa/BS-Roformer-Resurrection/resolve/8fc1a62f765e3e738db8394d7e87e379acc4c675/BS-Roformer-Resurrection-Config.yaml"
+            ]
+        },
+        "BS-Roformer-Resurrection Instrumental by pcunwa": {
+            "filename": "BS-Roformer-Resurrection-Inst.ckpt",
+            "download_files": [
+                "https://huggingface.co/pcunwa/BS-Roformer-Resurrection/resolve/8fc1a62f765e3e738db8394d7e87e379acc4c675/BS-Roformer-Resurrection-Inst.ckpt",
+                "https://huggingface.co/pcunwa/BS-Roformer-Resurrection/resolve/8fc1a62f765e3e738db8394d7e87e379acc4c675/BS-Roformer-Resurrection-Inst-Config.yaml"
             ]
         }
     }
@@ -76,7 +97,10 @@ try:
         for name, info in _new_models.items():
             if info["filename"] == model_filename or model_filename == name:
                 # Return as MDXC type with the correct friendly name
-                model_path = os.path.join(self.model_file_dir, info["filename"])
+                import hashlib
+                isolated_dir = os.path.join(self.model_file_dir, 'roformer_custom_' + hashlib.sha256(name.encode()).hexdigest()[:12])
+                os.makedirs(isolated_dir, exist_ok=True)
+                model_path = os.path.join(isolated_dir, info["filename"])
                 # Download files if needed
                 for url_or_file in info["download_files"]:
                     if url_or_file.startswith("http"):
@@ -86,11 +110,11 @@ try:
                         # Use the filename from URL's last part, but ensure it matches expected
                         if "model.safetensors" in url_or_file and "124" in info["filename"]:
                             # Save as the expected ckpt name but actually it's safetensors
-                            download_path = os.path.join(self.model_file_dir, info["filename"])
+                            download_path = os.path.join(isolated_dir, info["filename"])
                             # Download the safetensors and also ensure yaml
                             self.download_file_if_not_exists(url_or_file, download_path)
                         else:
-                            download_path = os.path.join(self.model_file_dir, fname)
+                            download_path = os.path.join(isolated_dir, fname)
                             # For revive, the config.yaml should be saved with a name that matches the model?
                             # The Separator expects yaml to be named like the model or generic
                             self.download_file_if_not_exists(url_or_file, download_path)
@@ -99,16 +123,41 @@ try:
                                 # For revive, the downloaded ckpt is already the model_path, so no need
                                 pass
                     else:
-                        download_path = os.path.join(self.model_file_dir, url_or_file)
+                        download_path = os.path.join(isolated_dir, url_or_file)
                         self.download_file_if_not_exists(f"https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/{url_or_file}", download_path)
                 # Determine yaml
                 yaml_candidate = None
                 for f in info["download_files"]:
                     if f.endswith(".yaml") or f.endswith(".yml"):
-                        yaml_candidate = os.path.join(self.model_file_dir, f.split("/")[-1].split("?")[0])
+                        yaml_candidate = os.path.join(isolated_dir, f.split("/")[-1].split("?")[0])
                         break
                 # For 124-band, the yaml is config.yaml, but we need to ensure it exists
-                return info["filename"], "MDXC", name, model_path, yaml_candidate
+                # The stock separator detects Roformer from its config filename.
+                if yaml_candidate:
+                    import shutil
+                    named_config = os.path.join(isolated_dir, 'config_bs_roformer.yaml')
+                    shutil.copyfile(yaml_candidate, named_config)
+                    yaml_candidate = named_config
+                    if name == 'BS Roformer Leap Vocals by pcunwa' or name.startswith('BS-Roformer-Resurrection '):
+                        # These published defaults are equivalent to the stock
+                        # implementation, whose constructor lacks the keywords.
+                        import yaml
+                        with open(named_config, encoding='utf8') as config_file:
+                            config = yaml.load(config_file, Loader=yaml.FullLoader)
+                        from roformer_config import compatible_single_target_config
+                        config = compatible_single_target_config(config)
+                        with open(named_config, 'w', encoding='utf8') as config_file:
+                            yaml.dump(config, config_file)
+                if model_path.endswith('.safetensors'):
+                    # Portable with the stock dependency, which uses torch.load.
+                    converted = os.path.join(isolated_dir, 'bs_roformer_leap.ckpt')
+                    if not os.path.exists(converted):
+                        from safetensors.torch import load_file
+                        temporary = converted + '.tmp'
+                        torch.save(load_file(model_path), temporary)
+                        os.replace(temporary, converted)
+                    model_path = converted
+                return os.path.basename(model_path), "MDXC", name, model_path, yaml_candidate
         return _orig_download(self, model_filename, *args, **kwargs)
     Separator.download_model_files = _patched_download
     logging.info("Patched Separator to support 2026 models: 124 bands + Revive")
@@ -234,8 +283,11 @@ roformer_models = {
     'MelBand Roformer | Denoise-Debleed by Gabox' : 'mel_band_roformer_denoise_debleed_gabox.ckpt',
     # 2026 Models
     'BS Roformer 124 bands (ver. 2026.07)' : 'model.safetensors',
+    'BS Roformer Leap Vocals by pcunwa' : 'bs_roformer_leap_voc.ckpt',
     'BS-Roformer-Revive 2 (Bleedless) by pcunwa' : 'bs_roformer_revive2.ckpt',
-    'BS-Roformer-Revive 3e (Fullness) by pcunwa' : 'bs_roformer_revive3e.ckpt'
+    'BS-Roformer-Revive 3e (Fullness) by pcunwa' : 'bs_roformer_revive3e.ckpt',
+    'BS-Roformer-Resurrection Vocals by pcunwa' : 'BS-Roformer-Resurrection.ckpt',
+    'BS-Roformer-Resurrection Instrumental by pcunwa' : 'BS-Roformer-Resurrection-Inst.ckpt'
 }
 
 mdx23c_models = [
@@ -482,6 +534,8 @@ def generic_separator(audio, model_filename, params, progress_callback=None, wor
         )
         if progress_callback: progress_callback(0.2, "Loading model...")
         separator.load_model(model_filename=model_filename)
+        from roformer_input import attach_minimum_window
+        minimum_window=attach_minimum_window(separator.model_instance)
         if overlap_factor is not None:
             from atlas_studio import roformer_step_seconds
             instance = separator.model_instance
@@ -514,6 +568,7 @@ def generic_separator(audio, model_filename, params, progress_callback=None, wor
             if info is not None:
                 rate = separator.model_instance.model_data_cfgdict.audio.sample_rate
                 frames = round(info.frames * rate / info.samplerate)
+                frames=max(frames,minimum_window or 0)
                 progress_hook = attach_roformer_progress(separator.model_instance, frames, progress_callback)
         if progress_callback: progress_callback(0.25, "Ses ayrıştırılıyor...")
         separation = separator.separate(audio)

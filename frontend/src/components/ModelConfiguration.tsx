@@ -40,6 +40,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { api } from '@/lib/api';
 import studioPro from '@/lib/studio-pro-preset.json';
 import atlasStudio from '@/lib/atlas-studio-preset.json';
+import atlasStudioV2 from '@/lib/atlas-studio-v2-preset.json';
 
 interface ModelConfigurationProps {
   currentTab: TabId;
@@ -161,9 +162,10 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
     return 'roformer';
   };
 
-  const applyPreset = (presetType: 'atlas_studio' | 'studio_pro' | 'zero_loss_exchange' | 'master_studio' | 'strings' | 'vocal' | 'piano') => {
-    if (presetType === 'atlas_studio') {
-      const slots = atlasStudio.models.map(({model_type,model_key}) => ({model_type,model_key}));
+  const applyPreset = (presetType: 'atlas_studio_v2' | 'atlas_studio' | 'studio_pro' | 'zero_loss_exchange' | 'master_studio' | 'strings' | 'vocal' | 'piano') => {
+    if (presetType === 'atlas_studio' || presetType === 'atlas_studio_v2') {
+      const preset = presetType === 'atlas_studio_v2' ? atlasStudioV2 : atlasStudio;
+      const slots = preset.models.map(({model_type,model_key}) => ({model_type,model_key}));
       const missing = slots.filter(m => !availableModels[m.model_type]?.includes(m.model_key));
       if (missing.length) {
         onNotify('warning', 'Model listesi eksik', 'Model merkezini kontrol edin: ' + missing.map(m => m.model_key).join(', '));
@@ -171,11 +173,11 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
       }
       if (!ensembleMode) onToggleEnsembleMode();
       onChangeEnsembleSlots(slots);
-      onChangeParams({...params, ensemble_profile:'atlas_studio', segment_size:256,
+      onChangeParams({...params, ensemble_profile:presetType, segment_size:256,
         override_segment_size:false, overlap:8, batch_size:1, normalization_threshold:1,
         amplification_threshold:0, single_stem:''});
       onChangeOutputFormat('wav');
-      onNotify('success', 'Atlas Studio hazır', '3 model · %87,5 örtüşme · WAV. Sesin bütünlüğünü koruyan dengeli ayrım; sonuç kayda göre değişir.');
+      onNotify('success', `${preset.name} hazır`, `${slots.length} model · %87,5 örtüşme · WAV. Kaynak toplamı korunur; ayrım kalitesi kayda göre değişir.`);
       return;
     }
     if (!ensembleMode) {
@@ -413,100 +415,43 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
           </span>
         </div>
 
-        {/* Hero 1: Zero-Loss Cross Residual Bleed Exchange */}
-        <button
-          type="button"
-          onClick={() => applyPreset('zero_loss_exchange')}
-          className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-preset/15 via-slate-900/90 to-preset/5 border border-preset/25 hover:border-preset text-left transition-all active:scale-[0.99] shadow-lg shadow-preset/10 group relative overflow-hidden cursor-pointer"
-        >
-          {/* Subtle Ambient Glow */}
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-preset/15 rounded-full blur-2xl pointer-events-none group-hover:bg-preset/25 transition-colors" />
-
-          <div className="relative z-10 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-preset/20 to-preset/30 border border-preset/25 flex items-center justify-center text-preset shadow-md shadow-preset/20 shrink-0 group-hover:scale-105 group-hover:border-preset transition-all">
-                <ArrowLeftRight className="w-5 h-5 text-preset" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black font-outfit text-white tracking-tight group-hover:text-preset transition-colors truncate">
-                    4X S-Tier Ultra-Clean Studio
-                  </span>
-                  <span className="text-[9px] font-mono font-black text-preset bg-preset/15 px-1.5 py-0.5 rounded border border-preset/30 shrink-0">
-                    4X AI
-                  </span>
+        {([
+          { key: 'zero_loss_exchange', title: '4X S-Tier Ultra-Clean Studio', badge: '4X AI', icon: ArrowLeftRight,
+            description: 'Roformer 1297 + MDX23C HQ + 1143 + Kim • Sıfır Sızıntı & Saf Müzik', detail: '4 model · Sonuç kayda göre değişir' },
+          { key: 'master_studio', title: 'Master Ultra-HD Studio Gold', badge: '4X AI', icon: Crown,
+            description: 'Kristal Vokal & Saf Enstrümantal • Sıfır Sızıntı', detail: '4 model · Sonuç kayda göre değişir' },
+          { key: 'atlas_studio', title: 'Atlas Studio', badge: 'YENİ · 3 MODEL', icon: Sparkles,
+            description: 'Vokal temizliği ve enstrüman bütünlüğü için dengeli ayrım', detail: 'WAV · %87,5 örtüşme · Uzun işlem · Sonuç kayda göre değişir' },
+          { key: 'atlas_studio_v2', title: 'Atlas Studio V2', badge: `${atlasStudioV2.models.length} MODEL`, icon: Sparkles,
+            description: 'frequency_weights' in atlasStudioV2
+              ? 'Vokal ve müzik uzmanları; frekanslara göre ayarlanmış karışım'
+              : 'Viper + Leap + iki MelBand uzmanı; referans kayıtlarla ayarlanmış karışım', detail: 'Float WAV · %87,5 örtüşme · Sonuç kayda göre değişir · Uzun işlem' },
+          { key: 'studio_pro', title: 'Master Studio Pro', badge: 'YENİ · 4 MODEL', icon: ShieldCheck,
+            description: 'Doğal vokal ve temiz enstrüman için uzman karışımı', detail: 'FLAC · Daha uzun işlem · Sonuç şarkıya göre değişir' },
+        ] as const).map(({key, title, badge, icon: Icon, description, detail}) => (
+          <button key={key} type="button" onClick={() => applyPreset(key)}
+            className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-preset/15 via-slate-900/90 to-preset/5 border border-preset/25 hover:border-preset text-left transition-all active:scale-[0.99] shadow-lg shadow-preset/10 group relative overflow-hidden cursor-pointer">
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-preset/15 rounded-full blur-2xl pointer-events-none group-hover:bg-preset/25 transition-colors" />
+            <div className="relative z-10 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-preset/20 to-preset/30 border border-preset/25 flex items-center justify-center text-preset shadow-md shadow-preset/20 shrink-0 group-hover:scale-105 group-hover:border-preset transition-all">
+                  <Icon className="w-5 h-5 text-preset" />
                 </div>
-                <p className="text-[10px] text-slate-300 mt-0.5 truncate group-hover:text-white transition-colors">
-                  Roformer 1297 + MDX23C HQ + 1143 + Kim • Sıfır Sızıntı & Saf Müzik
-                </p>
-              </div>
-            </div>
-
-            <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-preset/20 border border-preset/25 group-hover:bg-preset group-hover:text-slate-950 text-preset text-[11px] font-bold transition-all shadow-sm">
-              <Zap className="w-3 h-3 fill-current" />
-              <span>Aktif Et</span>
-            </div>
-          </div>
-        </button>
-
-        {/* Hero 2: Master Ultra-HD Gold Preset */}
-        <button
-          type="button"
-          onClick={() => applyPreset('master_studio')}
-          className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-preset/10 via-slate-900/90 to-preset/5 border border-preset/30 hover:border-preset text-left transition-all active:scale-[0.99] shadow-lg shadow-preset/5 group relative overflow-hidden cursor-pointer"
-        >
-          {/* Subtle Ambient Light */}
-          <div className="absolute -right-8 -top-8 w-28 h-28 bg-preset/10 rounded-full blur-2xl pointer-events-none group-hover:bg-preset/20 transition-colors" />
-
-          <div className="relative z-10 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-preset/20 to-preset/30 border border-preset/30 flex items-center justify-center text-preset shadow-md shadow-preset/20 shrink-0 group-hover:scale-105 group-hover:border-preset transition-all">
-                <Crown className="w-5 h-5 text-preset fill-preset/20" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black font-outfit text-white tracking-tight group-hover:text-preset transition-colors truncate">
-                    Master Ultra-HD Studio Gold
-                  </span>
-                  <span className="text-[9px] font-mono font-black text-preset bg-preset/15 px-1.5 py-0.5 rounded border border-preset/30 shrink-0">
-                    4X AI
-                  </span>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-black font-outfit text-white tracking-tight group-hover:text-preset transition-colors">{title}</span>
+                    <span className="text-[9px] font-mono font-black text-preset bg-preset/15 px-1.5 py-0.5 rounded border border-preset/30 shrink-0">{badge}</span>
+                  </div>
+                  <p className="text-[10px] text-slate-300 mt-0.5 leading-relaxed group-hover:text-white transition-colors">{description}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">{detail}</p>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-0.5 truncate group-hover:text-slate-300 transition-colors">
-                  Kristal Vokal & Saf Enstrümantal • Sıfır Sızıntı
-                </p>
+              </div>
+              <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-preset/20 border border-preset/25 group-hover:bg-preset group-hover:text-slate-950 text-preset text-[11px] font-bold transition-all shadow-sm">
+                <Zap className="w-3 h-3 fill-current" /><span>Uygula</span>
               </div>
             </div>
-
-            <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-preset/15 border border-preset/30 group-hover:bg-preset group-hover:text-slate-950 text-preset text-[11px] font-bold transition-all shadow-sm">
-              <Zap className="w-3 h-3 fill-current" />
-              <span>Uygula</span>
-            </div>
-          </div>
-        </button>
-
-        <button type="button" onClick={() => applyPreset('atlas_studio')}
-          className="w-full p-3.5 rounded-2xl border border-preset/40 bg-preset/15 hover:bg-preset/20 text-left transition-colors">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <Sparkles className="w-6 h-6 text-preset shrink-0" />
-              <div><div className="text-sm font-bold text-white">Atlas Studio <span className="text-[10px] text-preset">YENİ · 3 MODEL</span></div>
-              <p className="text-xs text-slate-300 mt-1">Vokal temizliği ve enstrüman bütünlüğü için dengeli ayrım</p>
-              <p className="text-[10px] text-slate-400 mt-1">WAV · %87,5 örtüşme · Uzun işlem · Sonuç kayda göre değişir</p></div>
-            </div><span className="text-xs font-bold text-preset">Uygula</span>
-          </div>
-        </button>
-        <button type="button" onClick={() => applyPreset('studio_pro')}
-          className="w-full p-3.5 rounded-2xl border border-preset/25 bg-preset/10 hover:bg-preset/15 text-left transition-colors">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <ShieldCheck className="w-6 h-6 text-preset shrink-0" />
-              <div><div className="text-sm font-bold text-white">Master Studio Pro <span className="text-[10px] text-preset">YENİ · 4 MODEL</span></div>
-              <p className="text-xs text-slate-300 mt-1">Doğal vokal ve temiz enstrüman için uzman karışımı</p>
-              <p className="text-[10px] text-slate-400 mt-1">FLAC · Daha uzun işlem · Sonuç şarkıya göre değişir</p></div>
-            </div><span className="text-xs font-bold text-preset">Uygula</span>
-          </div>
-        </button>
+          </button>
+        ))}
         {/* 3 Specialized Mini Presets Grid */}
         <div className="grid grid-cols-3 gap-2">
           <button
@@ -706,7 +651,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
         /* Ensemble Multi-Slot Pickers */
         <div className="space-y-3 p-4 rounded-2xl glass-panel border border-white/10 bg-slate-900/40">
           <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">
-            {t('Ensemble Models (2-4 Slots)')}
+            {ensembleSlots.length>4 ? `Ensemble Models (${ensembleSlots.length} Slots)` : t('Ensemble Models (2-4 Slots)')}
           </label>
           {ensembleSlots.map((slot, idx) => (
             <div key={idx} className="space-y-1">
@@ -782,7 +727,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
             <button
               key={fmt}
               type="button"
-              disabled={ensembleMode && params.ensemble_profile === 'atlas_studio' && !['wav', 'flac'].includes(fmt)}
+              disabled={ensembleMode && ['atlas_studio','atlas_studio_v2'].includes(params.ensemble_profile || '') && !['wav', 'flac'].includes(fmt)}
               onClick={() => onChangeOutputFormat(fmt)}
               className={cn(
                 'py-3 rounded-2xl font-mono text-xs font-bold uppercase transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center gap-1.5 disabled:opacity-35 disabled:cursor-not-allowed',

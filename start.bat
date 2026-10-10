@@ -14,23 +14,35 @@ if not exist "%~dp0frontend\node_modules\next\package.json" goto needs_setup
 where node >nul 2>nul
 if errorlevel 1 goto needs_setup
 cd /d "%~dp0frontend"
+call "%~dp0env\python.exe" "%~dp0service_control.py" frontend-check
+if errorlevel 11 goto launch_failed
+if errorlevel 10 goto already_running
+if errorlevel 1 goto launch_failed
+
 echo Yerel servis hazirlaniyor...
-call node scripts\ensure-backend.js
+call node scripts\ensure-backend.js --no-browser --quiet
 if errorlevel 1 goto launch_failed
 
 echo Uretim surumu derleniyor...
 call npm run build
 if errorlevel 1 goto launch_failed
 
+cls
 echo Uygulama uretim modunda aciliyor...
-call node scripts\ensure-backend.js
-if errorlevel 1 goto launch_failed
 call npm run start
 set "uvr_exit_code=%errorlevel%"
 echo.
 echo Uygulama durdu. Pencereyi kapatmak icin bir tusa basin.
 pause >nul
 exit /b %uvr_exit_code%
+
+:already_running
+call node scripts\ensure-backend.js --no-browser --quiet
+if errorlevel 1 goto launch_failed
+echo Uygulama zaten acik. Mevcut pencere tarayicida aciliyor...
+call "%~dp0env\python.exe" "%~dp0service_control.py" frontend-focus
+start "" "http://localhost:3000"
+exit /b 0
 
 :launch_failed
 echo.
