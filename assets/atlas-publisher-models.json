@@ -1,0 +1,50 @@
+{
+  "BS Roformer HyperACE V2 Vocals by pcunwa": {
+    "filename": "bs_roformer_voc_hyperacev2.ckpt",
+    "checkpoint_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_voc/bs_roformer_voc_hyperacev2.ckpt",
+    "config_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_voc/config.yaml",
+    "source_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_voc/bs_roformer.py",
+    "repo": "BS-Roformer-HyperACE",
+    "revision": "5b1f8283125d5e4a3614d0e3635a636e09c84059",
+    "checkpoint_sha256": "54cf516f621f2f460bf660ed137e244b8931bf7a2ce85ddceecff816dbc4d668",
+    "source_sha256": "48571e20d70ea8f245cffc6afbfa279f62042e7ba16fbaa3fe43dd2cbc25e1db",
+    "publisher_config_sha256": "033e57abee226a480ef410e0631b9fe00e8b7bc9a3bb5fe55659d0b43a238701",
+    "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+  },
+  "BS Roformer HyperACE V2 Instrumental by pcunwa": {
+    "filename": "bs_roformer_inst_hyperacev2.ckpt",
+    "checkpoint_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_inst/bs_roformer_inst_hyperacev2.ckpt",
+    "config_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_inst/config.yaml",
+    "source_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_inst/bs_roformer.py",
+    "repo": "BS-Roformer-HyperACE",
+    "revision": "5b1f8283125d5e4a3614d0e3635a636e09c84059",
+    "checkpoint_sha256": "4d61178ef966d2b4e9ad456ffbbc6fd5b2828df07a7af32931142c1a5ff1fe6f",
+    "source_sha256": "48571e20d70ea8f245cffc6afbfa279f62042e7ba16fbaa3fe43dd2cbc25e1db",
+    "publisher_config_sha256": "85d10906007df21ee48dbb86faa09205609274eb38ea224dce767e2844d0a934",
+    "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+  },
+  "BS Roformer Large Inst V2 by pcunwa": {
+    "filename": "bs_large_v2_inst.ckpt",
+    "checkpoint_url": "https://huggingface.co/pcunwa/BS-Roformer-Large-Inst/resolve/94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d/bs_large_v2_inst.ckpt",
+    "config_url": "https://huggingface.co/pcunwa/BS-Roformer-Large-Inst/resolve/94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d/config.yaml",
+    "source_url": "https://huggingface.co/pcunwa/BS-Roformer-Large-Inst/resolve/94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d/bs_roformer.py",
+    "repo": "BS-Roformer-Large-Inst",
+    "revision": "94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d",
+    "checkpoint_sha256": "09251ab8b5bb892414a6ab8aa80a1be30c17852d5e7f4e76943610de049e4bc4",
+    "source_sha256": "fc4a907999e151bc8272b62e7829757ac4384bfccd4aae7dff6ff961a9d1af57",
+    "publisher_config_sha256": "85d10906007df21ee48dbb86faa09205609274eb38ea224dce767e2844d0a934",
+    "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+  },
+  "BS Roformer Siamese by pcunwa": {
+    "filename": "bs_exp_siameseroformer.ckpt",
+    "checkpoint_url": "https://huggingface.co/pcunwa/BS-EXP-SiameseRoformer/resolve/2042531f6f98ff5070124fec89dffbdd185877f9/bs_exp_siameseroformer.ckpt",
+    "config_url": "https://huggingface.co/pcunwa/BS-EXP-SiameseRoformer/resolve/2042531f6f98ff5070124fec89dffbdd185877f9/config.yaml",
+    "source_url": "https://huggingface.co/pcunwa/BS-EXP-SiameseRoformer/resolve/2042531f6f98ff5070124fec89dffbdd185877f9/bs_roformer.py",
+    "repo": "BS-EXP-SiameseRoformer",
+    "revision": "2042531f6f98ff5070124fec89dffbdd185877f9",
+    "checkpoint_sha256": "cf5456f703931bdc5415c167453b4d88630c3adb1f2d4de462423faa52b30b79",
+    "source_sha256": "2cd39f56b1e37b23a1e35db66139c607db3b2281f2dc6037d9df8e860c4cb8e2",
+    "publisher_config_sha256": "1d881ed6a68cae81717fe078b9a427cb206457e06eb3a4cbdf2ebbe659ac2f88",
+    "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+  }
+}

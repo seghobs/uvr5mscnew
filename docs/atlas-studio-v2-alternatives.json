@@ -1,0 +1,2501 @@
+{
+  "date": "2026-10-10",
+  "development_screening": {
+    "development_only": true,
+    "tracks": [
+      {
+        "name": "Night Panther - Fire",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Night Panther - Fire.stem.mp4",
+        "id": "fc9f42fdeb43"
+      },
+      {
+        "name": "Auctioneer - Our Future Faces",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Auctioneer - Our Future Faces.stem.mp4",
+        "id": "3c1b6f88b282"
+      },
+      {
+        "name": "Clara Berry And Wooldog - Waltz For My Victims",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Clara Berry And Wooldog - Waltz For My Victims.stem.mp4",
+        "id": "2063584c7f74"
+      },
+      {
+        "name": "Alexander Ross - Velvet Curtain",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Alexander Ross - Velvet Curtain.stem.mp4",
+        "id": "7446f71a03b7"
+      },
+      {
+        "name": "Johnny Lokke - Whisper To A Scream",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Johnny Lokke - Whisper To A Scream.stem.mp4",
+        "id": "465889e42b6a"
+      },
+      {
+        "name": "Aimee Norwich - Child",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Aimee Norwich - Child.stem.mp4",
+        "id": "2778930b9b61"
+      },
+      {
+        "name": "The Long Wait - Back Home To Blue",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\The Long Wait - Back Home To Blue.stem.mp4",
+        "id": "5bc229213e9f"
+      },
+      {
+        "name": "James May - If You Say",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\James May - If You Say.stem.mp4",
+        "id": "60a9cec090f0"
+      }
+    ],
+    "baseline": {
+      "vocal": {
+        "sdr_db": 12.997090321411298,
+        "si_sdr_db": 12.696731638618623,
+        "spectral_deficit": 0.03493354956563117,
+        "spectral_excess": 0.007850888754944961
+      },
+      "instrumental": {
+        "sdr_db": 17.56469124012306,
+        "si_sdr_db": 17.450721005134977,
+        "spectral_deficit": 0.009709521601678407,
+        "spectral_excess": 0.003589905068565756
+      }
+    },
+    "trials": [
+      {
+        "method": "xe_vocal_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.17518198556456,
+            "si_sdr_db": 12.890354543818098,
+            "spectral_deficit": 0.03279112891243594,
+            "spectral_excess": 0.006947370694969118
+          },
+          "instrumental": {
+            "sdr_db": 17.74278290427632,
+            "si_sdr_db": 17.63303716971015,
+            "spectral_deficit": 0.009452872868405203,
+            "spectral_excess": 0.0034137104977786424
+          }
+        },
+        "gain_db": 0.17809166415326239,
+        "content_safe": true
+      },
+      {
+        "method": "xe_vocal_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.135930821695343,
+            "si_sdr_db": 12.848781215267902,
+            "spectral_deficit": 0.03380081146197129,
+            "spectral_excess": 0.007222375024802509
+          },
+          "instrumental": {
+            "sdr_db": 17.703531740407108,
+            "si_sdr_db": 17.592798901419123,
+            "spectral_deficit": 0.009540519766310245,
+            "spectral_excess": 0.0034329091020665983
+          }
+        },
+        "gain_db": 0.13884050028404538,
+        "content_safe": true
+      },
+      {
+        "method": "deux_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.133599408318549,
+            "si_sdr_db": 12.83100786313822,
+            "spectral_deficit": 0.03046522216084363,
+            "spectral_excess": 0.007796924847715531
+          },
+          "instrumental": {
+            "sdr_db": 17.701200327030314,
+            "si_sdr_db": 17.594106007236547,
+            "spectral_deficit": 0.010392678945047692,
+            "spectral_excess": 0.0029102287774164536
+          }
+        },
+        "gain_db": 0.1365090869072514,
+        "content_safe": false
+      },
+      {
+        "method": "deux_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.131777439888907,
+            "si_sdr_db": 12.835956652500528,
+            "spectral_deficit": 0.03247118263109272,
+            "spectral_excess": 0.007565997316303844
+          },
+          "instrumental": {
+            "sdr_db": 17.69937835860067,
+            "si_sdr_db": 17.589489700141666,
+            "spectral_deficit": 0.009977736212274477,
+            "spectral_excess": 0.0031524146925072
+          }
+        },
+        "gain_db": 0.1346871184776095,
+        "content_safe": false
+      },
+      {
+        "method": "xe_pair_consistency_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.10230429770451,
+            "si_sdr_db": 12.820171717617116,
+            "spectral_deficit": 0.03352844730439132,
+            "spectral_excess": 0.0068634291880651215
+          },
+          "instrumental": {
+            "sdr_db": 17.669905216416275,
+            "si_sdr_db": 17.56001355448755,
+            "spectral_deficit": 0.009380977849962828,
+            "spectral_excess": 0.003326483639626159
+          }
+        },
+        "gain_db": 0.1052139762932125,
+        "content_safe": true
+      },
+      {
+        "method": "xe_pair_consistency_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.101908101278399,
+            "si_sdr_db": 12.815256947850138,
+            "spectral_deficit": 0.03415396377252231,
+            "spectral_excess": 0.007195375138790444
+          },
+          "instrumental": {
+            "sdr_db": 17.669509019990162,
+            "si_sdr_db": 17.558533453786808,
+            "spectral_deficit": 0.009510391945665822,
+            "spectral_excess": 0.003398860663308125
+          }
+        },
+        "gain_db": 0.10481777986710128,
+        "content_safe": true
+      },
+      {
+        "method": "deux_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.066218872731492,
+            "si_sdr_db": 12.769288945003263,
+            "spectral_deficit": 0.03389891602890889,
+            "spectral_excess": 0.007679088482831562
+          },
+          "instrumental": {
+            "sdr_db": 17.63381979144326,
+            "si_sdr_db": 17.52150806549932,
+            "spectral_deficit": 0.009799806919436145,
+            "spectral_excess": 0.003389807231883038
+          }
+        },
+        "gain_db": 0.06912855132019402,
+        "content_safe": false
+      },
+      {
+        "method": "xe_vocal_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.064026591288194,
+            "si_sdr_db": 12.770214119008935,
+            "spectral_deficit": 0.03446461910298204,
+            "spectral_excess": 0.0075576886224633264
+          },
+          "instrumental": {
+            "sdr_db": 17.63162750999996,
+            "si_sdr_db": 17.519202537580853,
+            "spectral_deficit": 0.009632642826947861,
+            "spectral_excess": 0.003510167870608265
+          }
+        },
+        "gain_db": 0.06693626987689605,
+        "content_safe": true
+      },
+      {
+        "method": "xe_pair_consistency_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.05121615243665,
+            "si_sdr_db": 12.75733610916036,
+            "spectral_deficit": 0.03460645571837586,
+            "spectral_excess": 0.007550208097730147
+          },
+          "instrumental": {
+            "sdr_db": 17.618817071148413,
+            "si_sdr_db": 17.50623433292264,
+            "spectral_deficit": 0.009622376226242306,
+            "spectral_excess": 0.0034988506356414904
+          }
+        },
+        "gain_db": 0.05412583102535251,
+        "content_safe": true
+      },
+      {
+        "method": "xe_instrumental_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.03254501089219,
+            "si_sdr_db": 12.73818208802708,
+            "spectral_deficit": 0.03475660707573701,
+            "spectral_excess": 0.007556633988825279
+          },
+          "instrumental": {
+            "sdr_db": 17.600145929603954,
+            "si_sdr_db": 17.4873213214445,
+            "spectral_deficit": 0.009615597849492123,
+            "spectral_excess": 0.0034929080240214514
+          }
+        },
+        "gain_db": 0.03545468948089159,
+        "content_safe": true
+      },
+      {
+        "method": "xe_instrumental_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.031457676531351,
+            "si_sdr_db": 12.742524681660823,
+            "spectral_deficit": 0.03457705741807142,
+            "spectral_excess": 0.0072580285280871735
+          },
+          "instrumental": {
+            "sdr_db": 17.599058595243115,
+            "si_sdr_db": 17.487257162019926,
+            "spectral_deficit": 0.009504126219330392,
+            "spectral_excess": 0.0033974962129442207
+          }
+        },
+        "gain_db": 0.034367355120053844,
+        "content_safe": true
+      },
+      {
+        "method": "magnitude_median_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.010028166922172,
+            "si_sdr_db": 12.710334938515427,
+            "spectral_deficit": 0.03569698434805153,
+            "spectral_excess": 0.0073156423469542126
+          },
+          "instrumental": {
+            "sdr_db": 17.577629085633937,
+            "si_sdr_db": 17.463941698662936,
+            "spectral_deficit": 0.009647695368448927,
+            "spectral_excess": 0.0036454405154899058
+          }
+        },
+        "gain_db": 0.012937845510874624,
+        "content_safe": false
+      },
+      {
+        "method": "adaptive_2_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.009530440074851,
+            "si_sdr_db": 12.708545984020237,
+            "spectral_deficit": 0.035614840576306594,
+            "spectral_excess": 0.007555308108438663
+          },
+          "instrumental": {
+            "sdr_db": 17.577131358786612,
+            "si_sdr_db": 17.46326812787615,
+            "spectral_deficit": 0.009730591078836576,
+            "spectral_excess": 0.003602829215194189
+          }
+        },
+        "gain_db": 0.012440118663553434,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.008839201872313,
+            "si_sdr_db": 12.70945993977044,
+            "spectral_deficit": 0.03526887602460485,
+            "spectral_excess": 0.007547952216643592
+          },
+          "instrumental": {
+            "sdr_db": 17.576440120584078,
+            "si_sdr_db": 17.462722606519712,
+            "spectral_deficit": 0.00967170661933317,
+            "spectral_excess": 0.0036087459445574193
+          }
+        },
+        "gain_db": 0.011748880461015077,
+        "content_safe": false
+      },
+      {
+        "method": "adaptive_2_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.00661993716317,
+            "si_sdr_db": 12.70633804611592,
+            "spectral_deficit": 0.03526426664733903,
+            "spectral_excess": 0.007687910766613109
+          },
+          "instrumental": {
+            "sdr_db": 17.574220855874934,
+            "si_sdr_db": 17.4603754577629,
+            "spectral_deficit": 0.00971693786008317,
+            "spectral_excess": 0.003591991389752172
+          }
+        },
+        "gain_db": 0.009529615751873166,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.003051591992744,
+            "si_sdr_db": 12.70323458563454,
+            "spectral_deficit": 0.035056683466387004,
+            "spectral_excess": 0.007721082727159207
+          },
+          "instrumental": {
+            "sdr_db": 17.570652510704505,
+            "si_sdr_db": 17.45681119025694,
+            "spectral_deficit": 0.009692729667480263,
+            "spectral_excess": 0.0035953079820672685
+          }
+        },
+        "gain_db": 0.005961270581446243,
+        "content_safe": false
+      },
+      {
+        "method": "adaptive_2_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.001691619549561,
+            "si_sdr_db": 12.701456452029252,
+            "spectral_deficit": 0.035063107206648375,
+            "spectral_excess": 0.007782010269634583
+          },
+          "instrumental": {
+            "sdr_db": 17.569292538261323,
+            "si_sdr_db": 17.455389557685347,
+            "spectral_deficit": 0.00971172480068433,
+            "spectral_excess": 0.003589685573735819
+          }
+        },
+        "gain_db": 0.004601298138263488,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.00068328666585,
+            "si_sdr_db": 12.701137096815007,
+            "spectral_deficit": 0.0352371641174224,
+            "spectral_excess": 0.007680582833580743
+          },
+          "instrumental": {
+            "sdr_db": 17.568284205377612,
+            "si_sdr_db": 17.45437395173691,
+            "spectral_deficit": 0.009704438240782522,
+            "spectral_excess": 0.0035967163483329014
+          }
+        },
+        "gain_db": 0.0035929652545529933,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.00022150942311,
+            "si_sdr_db": 12.701247589818898,
+            "spectral_deficit": 0.03571766180532905,
+            "spectral_excess": 0.007454925831112203
+          },
+          "instrumental": {
+            "sdr_db": 17.56782242813487,
+            "si_sdr_db": 17.453875586283544,
+            "spectral_deficit": 0.009703084776568328,
+            "spectral_excess": 0.0036153030337239787
+          }
+        },
+        "gain_db": 0.003131188011812114,
+        "content_safe": false
+      },
+      {
+        "method": "wave_median_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.999738187238702,
+            "si_sdr_db": 12.700420313059364,
+            "spectral_deficit": 0.03520358773978275,
+            "spectral_excess": 0.007688463858953901
+          },
+          "instrumental": {
+            "sdr_db": 17.567339105950467,
+            "si_sdr_db": 17.45338338793309,
+            "spectral_deficit": 0.009707806033932294,
+            "spectral_excess": 0.003591492046912574
+          }
+        },
+        "gain_db": 0.002647865827404061,
+        "content_safe": false
+      },
+      {
+        "method": "complex_trimmed_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.999003610285548,
+            "si_sdr_db": 12.699730597013236,
+            "spectral_deficit": 0.03526328766387577,
+            "spectral_excess": 0.0076692097565195525
+          },
+          "instrumental": {
+            "sdr_db": 17.56660452899731,
+            "si_sdr_db": 17.452653097968685,
+            "spectral_deficit": 0.009702217961746792,
+            "spectral_excess": 0.003597204513208675
+          }
+        },
+        "gain_db": 0.0019132888742507959,
+        "content_safe": false
+      },
+      {
+        "method": "adaptive_1_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.998434428831823,
+            "si_sdr_db": 12.698857777516835,
+            "spectral_deficit": 0.035152575752188525,
+            "spectral_excess": 0.007738189159184085
+          },
+          "instrumental": {
+            "sdr_db": 17.566035347543586,
+            "si_sdr_db": 17.45207018909144,
+            "spectral_deficit": 0.009710461124325658,
+            "spectral_excess": 0.003592379082272331
+          }
+        },
+        "gain_db": 0.0013441074205253756,
+        "content_safe": false
+      },
+      {
+        "method": "adaptive_1_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.997880901517433,
+            "si_sdr_db": 12.699251346324022,
+            "spectral_deficit": 0.03548978394707845,
+            "spectral_excess": 0.007580735494011617
+          },
+          "instrumental": {
+            "sdr_db": 17.565481820229195,
+            "si_sdr_db": 17.451468804911897,
+            "spectral_deficit": 0.00971420275391703,
+            "spectral_excess": 0.003599498401369929
+          }
+        },
+        "gain_db": 0.000790580106135863,
+        "content_safe": false
+      },
+      {
+        "method": "wave_median_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.99737147001423,
+            "si_sdr_db": 12.69899670053342,
+            "spectral_deficit": 0.035612023653228075,
+            "spectral_excess": 0.007470899350570525
+          },
+          "instrumental": {
+            "sdr_db": 17.564972388725995,
+            "si_sdr_db": 17.450901728722947,
+            "spectral_deficit": 0.009710365648418082,
+            "spectral_excess": 0.003602558360825801
+          }
+        },
+        "gain_db": 0.00028114860293193544,
+        "content_safe": false
+      },
+      {
+        "method": "complex_trimmed_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.995968383818749,
+            "si_sdr_db": 12.697772325224287,
+            "spectral_deficit": 0.035779129024162165,
+            "spectral_excess": 0.007424296050779355
+          },
+          "instrumental": {
+            "sdr_db": 17.56356930253051,
+            "si_sdr_db": 17.449522994480336,
+            "spectral_deficit": 0.00969683667750399,
+            "spectral_excess": 0.003616180993306037
+          }
+        },
+        "gain_db": -0.0011219375925488606,
+        "content_safe": false
+      },
+      {
+        "method": "adaptive_2_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.995320944497816,
+            "si_sdr_db": 12.690582302843692,
+            "spectral_deficit": 0.03636292391898886,
+            "spectral_excess": 0.0073776703444889645
+          },
+          "instrumental": {
+            "sdr_db": 17.56292186320958,
+            "si_sdr_db": 17.44861213211053,
+            "spectral_deficit": 0.009775140985041429,
+            "spectral_excess": 0.0036505167303597973
+          }
+        },
+        "gain_db": -0.0017693769134812243,
+        "content_safe": false
+      },
+      {
+        "method": "adaptive_1_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.990091663398626,
+            "si_sdr_db": 12.692385353887001,
+            "spectral_deficit": 0.036071256402981866,
+            "spectral_excess": 0.007348624614632301
+          },
+          "instrumental": {
+            "sdr_db": 17.55769258211039,
+            "si_sdr_db": 17.4434535318682,
+            "spectral_deficit": 0.009726545537829,
+            "spectral_excess": 0.0036204278167703795
+          }
+        },
+        "gain_db": -0.006998658012671299,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.983811415701679,
+            "si_sdr_db": 12.683942452953218,
+            "spectral_deficit": 0.03657720385282831,
+            "spectral_excess": 0.007155499732514087
+          },
+          "instrumental": {
+            "sdr_db": 17.551412334413442,
+            "si_sdr_db": 17.437082677797605,
+            "spectral_deficit": 0.009716903131296459,
+            "spectral_excess": 0.0036686483618078307
+          }
+        },
+        "gain_db": -0.013278905709618982,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.980741743937731,
+            "si_sdr_db": 12.676314960367318,
+            "spectral_deficit": 0.036832453754368694,
+            "spectral_excess": 0.00705301768317343
+          },
+          "instrumental": {
+            "sdr_db": 17.548342662649496,
+            "si_sdr_db": 17.43412925558284,
+            "spectral_deficit": 0.00963998446945296,
+            "spectral_excess": 0.003773112136274374
+          }
+        },
+        "gain_db": -0.01634857747356655,
+        "content_safe": false
+      },
+      {
+        "method": "wave_median_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.97652627052494,
+            "si_sdr_db": 12.677905846826151,
+            "spectral_deficit": 0.03631382413144762,
+            "spectral_excess": 0.0071773614681033444
+          },
+          "instrumental": {
+            "sdr_db": 17.5441271892367,
+            "si_sdr_db": 17.429504556825858,
+            "spectral_deficit": 0.009728245129194289,
+            "spectral_excess": 0.003644168683743723
+          }
+        },
+        "gain_db": -0.020564050886358487,
+        "content_safe": false
+      },
+      {
+        "method": "complex_trimmed_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.975171992609187,
+            "si_sdr_db": 12.677123728301959,
+            "spectral_deficit": 0.03668113740406586,
+            "spectral_excess": 0.007087236487636804
+          },
+          "instrumental": {
+            "sdr_db": 17.54277291132095,
+            "si_sdr_db": 17.42825327756908,
+            "spectral_deficit": 0.009702354999220937,
+            "spectral_excess": 0.0036692305866974006
+          }
+        },
+        "gain_db": -0.02191832880211031,
+        "content_safe": false
+      },
+      {
+        "method": "xe_vocal_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.95038453600543,
+            "si_sdr_db": 12.640906843441584,
+            "spectral_deficit": 0.031643036863592613,
+            "spectral_excess": 0.007542156155799298
+          },
+          "instrumental": {
+            "sdr_db": 17.517985454717195,
+            "si_sdr_db": 17.403394600050042,
+            "spectral_deficit": 0.009541213349926005,
+            "spectral_excess": 0.0037759464857200576
+          }
+        },
+        "gain_db": -0.04670578540586767,
+        "content_safe": false
+      },
+      {
+        "method": "adaptive_1_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.948887640554391,
+            "si_sdr_db": 12.650254663875671,
+            "spectral_deficit": 0.037300283708163726,
+            "spectral_excess": 0.0069930114539440875
+          },
+          "instrumental": {
+            "sdr_db": 17.516488559266158,
+            "si_sdr_db": 17.401267617370713,
+            "spectral_deficit": 0.009772778421222567,
+            "spectral_excess": 0.0036961312574063025
+          }
+        },
+        "gain_db": -0.04820268085690671,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.893238824928384,
+            "si_sdr_db": 12.584117937083136,
+            "spectral_deficit": 0.03848440562315803,
+            "spectral_excess": 0.006822794547291976
+          },
+          "instrumental": {
+            "sdr_db": 17.460839743640147,
+            "si_sdr_db": 17.344678322184702,
+            "spectral_deficit": 0.009802202736025164,
+            "spectral_excess": 0.003860301917058597
+          }
+        },
+        "gain_db": -0.10385149648291403,
+        "content_safe": false
+      },
+      {
+        "method": "xe_instrumental_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.890507518554989,
+            "si_sdr_db": 12.599342790439476,
+            "spectral_deficit": 0.03455283382706814,
+            "spectral_excess": 0.0071454625552718
+          },
+          "instrumental": {
+            "sdr_db": 17.458108437266752,
+            "si_sdr_db": 17.34550495547317,
+            "spectral_deficit": 0.00941334252599655,
+            "spectral_excess": 0.003367545867886377
+          }
+        },
+        "gain_db": -0.10658280285630894,
+        "content_safe": false
+      },
+      {
+        "method": "complex_trimmed_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.875805155025919,
+            "si_sdr_db": 12.570951855386388,
+            "spectral_deficit": 0.03853674196035464,
+            "spectral_excess": 0.0066594394657562145
+          },
+          "instrumental": {
+            "sdr_db": 17.44340607373768,
+            "si_sdr_db": 17.326879700504577,
+            "spectral_deficit": 0.009764465394126426,
+            "spectral_excess": 0.0038565065231437193
+          }
+        },
+        "gain_db": -0.12128516638537867,
+        "content_safe": false
+      },
+      {
+        "method": "wave_median_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.872817187037299,
+            "si_sdr_db": 12.566056775306226,
+            "spectral_deficit": 0.03780450652369841,
+            "spectral_excess": 0.006846994487034667
+          },
+          "instrumental": {
+            "sdr_db": 17.440418105749064,
+            "si_sdr_db": 17.323413468402638,
+            "spectral_deficit": 0.009812235542391903,
+            "spectral_excess": 0.0038150400119966394
+          }
+        },
+        "gain_db": -0.12427313437399867,
+        "content_safe": false
+      },
+      {
+        "method": "wiener_2_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.85592622265817,
+            "si_sdr_db": 12.562139501641663,
+            "spectral_deficit": 0.036953648227607,
+            "spectral_excess": 0.007449388611711567
+          },
+          "instrumental": {
+            "sdr_db": 17.42352714136993,
+            "si_sdr_db": 17.311462993722472,
+            "spectral_deficit": 0.010424387224693627,
+            "spectral_excess": 0.0034493619037044626
+          }
+        },
+        "gain_db": -0.1411640987531282,
+        "content_safe": false
+      },
+      {
+        "method": "wiener_1_0.1",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.829276394655455,
+            "si_sdr_db": 12.566226571430613,
+            "spectral_deficit": 0.03723571462996395,
+            "spectral_excess": 0.0071484346888436995
+          },
+          "instrumental": {
+            "sdr_db": 17.396877313367217,
+            "si_sdr_db": 17.287250531094976,
+            "spectral_deficit": 0.010522201725279557,
+            "spectral_excess": 0.0033330407735666623
+          }
+        },
+        "gain_db": -0.1678139267558425,
+        "content_safe": false
+      },
+      {
+        "method": "xe_pair_consistency_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.801933178134819,
+            "si_sdr_db": 12.499793803192166,
+            "spectral_deficit": 0.033004787270087814,
+            "spectral_excess": 0.007209111211264413
+          },
+          "instrumental": {
+            "sdr_db": 17.369534096846582,
+            "si_sdr_db": 17.254629102353757,
+            "spectral_deficit": 0.009378880782200285,
+            "spectral_excess": 0.0035245183543993943
+          }
+        },
+        "gain_db": -0.1951571432764787,
+        "content_safe": false
+      },
+      {
+        "method": "deux_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.745118657036844,
+            "si_sdr_db": 12.417109420816384,
+            "spectral_deficit": 0.027837875679196634,
+            "spectral_excess": 0.010126049449679712
+          },
+          "instrumental": {
+            "sdr_db": 17.31271957574861,
+            "si_sdr_db": 17.200551096238343,
+            "spectral_deficit": 0.011652018224714992,
+            "spectral_excess": 0.002931172995300774
+          }
+        },
+        "gain_db": -0.2519716643744534,
+        "content_safe": false
+      },
+      {
+        "method": "wiener_2_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.411439774914605,
+            "si_sdr_db": 12.11494554139631,
+            "spectral_deficit": 0.04076355789902472,
+            "spectral_excess": 0.007189363630534533
+          },
+          "instrumental": {
+            "sdr_db": 16.979040693626366,
+            "si_sdr_db": 16.86976494316322,
+            "spectral_deficit": 0.011850256779755694,
+            "spectral_excess": 0.0033914364405123465
+          }
+        },
+        "gain_db": -0.5856505464966926,
+        "content_safe": false
+      },
+      {
+        "method": "wiener_1_0.25",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.304521574024509,
+            "si_sdr_db": 12.106590198805588,
+            "spectral_deficit": 0.04156896357692341,
+            "spectral_excess": 0.006476114675723249
+          },
+          "instrumental": {
+            "sdr_db": 16.87212249273627,
+            "si_sdr_db": 16.773040797914074,
+            "spectral_deficit": 0.012105035827021517,
+            "spectral_excess": 0.0031037902687151148
+          }
+        },
+        "gain_db": -0.6925687473867885,
+        "content_safe": false
+      },
+      {
+        "method": "xe_instrumental_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.198105886675346,
+            "si_sdr_db": 11.860952109516628,
+            "spectral_deficit": 0.03548598007950692,
+            "spectral_excess": 0.008426937229149261
+          },
+          "instrumental": {
+            "sdr_db": 16.76570680538711,
+            "si_sdr_db": 16.640744101236436,
+            "spectral_deficit": 0.009634515843488994,
+            "spectral_excess": 0.0038015927104063665
+          }
+        },
+        "gain_db": -0.7989844347359512,
+        "content_safe": false
+      },
+      {
+        "method": "wiener_2_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 11.390727203541708,
+            "si_sdr_db": 11.037512877241465,
+            "spectral_deficit": 0.04914136404092938,
+            "spectral_excess": 0.0074103016590405
+          },
+          "instrumental": {
+            "sdr_db": 15.958328122253473,
+            "si_sdr_db": 15.832347357019579,
+            "spectral_deficit": 0.015162498640192913,
+            "spectral_excess": 0.003552861487797841
+          }
+        },
+        "gain_db": -1.6063631178695896,
+        "content_safe": false
+      },
+      {
+        "method": "wiener_1_0.5",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 11.145312001031698,
+            "si_sdr_db": 10.957106244658238,
+            "spectral_deficit": 0.05091705316015649,
+            "spectral_excess": 0.005984090496121126
+          },
+          "instrumental": {
+            "sdr_db": 15.712912919743463,
+            "si_sdr_db": 15.601846433847522,
+            "spectral_deficit": 0.015554629740731792,
+            "spectral_excess": 0.002956547234298372
+          }
+        },
+        "gain_db": -1.8517783203795997,
+        "content_safe": false
+      },
+      {
+        "method": "wiener_2_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 9.260361022720922,
+            "si_sdr_db": 8.67148125731589,
+            "spectral_deficit": 0.06845330707346507,
+            "spectral_excess": 0.009855146050562874
+          },
+          "instrumental": {
+            "sdr_db": 13.827961941432683,
+            "si_sdr_db": 13.615747881363053,
+            "spectral_deficit": 0.022909999321121147,
+            "spectral_excess": 0.00455608916924034
+          }
+        },
+        "gain_db": -3.736729298690376,
+        "content_safe": false
+      },
+      {
+        "method": "wiener_1_1.0",
+        "count": 8,
+        "summary": {
+          "vocal": {
+            "sdr_db": 8.82392428091872,
+            "si_sdr_db": 8.335894923377364,
+            "spectral_deficit": 0.07045285488488137,
+            "spectral_excess": 0.006726864310222187
+          },
+          "instrumental": {
+            "sdr_db": 13.391525199630482,
+            "si_sdr_db": 13.169637012204564,
+            "spectral_deficit": 0.02211791430571413,
+            "spectral_excess": 0.0032802739278291653
+          }
+        },
+        "gain_db": -4.173166040492578,
+        "content_safe": false
+      }
+    ],
+    "production_changed": false,
+    "acceptance": "Development screening cannot establish superiority. Fresh frozen comparison requires >=0.2 dB mean gain, positive 95% paired interval, both SI-SDR and all four content proxies no worse."
+  },
+  "constrained_fit": {
+    "baseline_preset": {
+      "id": "atlas_studio_v2",
+      "name": "Atlas Studio V2",
+      "models": [
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Viperx-1297",
+          "estimate": "vocal",
+          "weight": 0.33012480363949387
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.12487862191334616
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+          "estimate": "vocal",
+          "weight": 0.23131965935209897
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+          "estimate": "inst",
+          "weight": 0.07500066808972848
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.06716114351207544
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+          "estimate": "inst",
+          "weight": 0.17151510349325716
+        }
+      ],
+      "frequency_weights": {
+        "anchors_hz": [
+          0,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          16000,
+          22050
+        ],
+        "weights": [
+          [
+            0.4084982456994538,
+            0.42443580559379646,
+            0.41383984922926864,
+            0.5330400720304551,
+            0.47588228294832374,
+            0.25985698837851967,
+            0.30048836924416017,
+            0.13819231069906285,
+            0.15497096168695576,
+            0.1920431508849422
+          ],
+          [
+            0.47345484874578303,
+            0.07506000261281433,
+            0.18432343786624591,
+            0.0339855329720586,
+            0.18240393441440675,
+            0.16836407707311027,
+            0.021130632015431937,
+            0.05535563638008939,
+            0.02638201292288238,
+            0.028326104130638956
+          ],
+          [
+            0.09271090431525342,
+            0.1910628556714645,
+            5.451927565002304e-18,
+            0.0,
+            0.009940049302787775,
+            0.08908794758409168,
+            0.42301836712769814,
+            0.5174330301568099,
+            0.5053021599275335,
+            0.4846412794353511
+          ],
+          [
+            0.0,
+            1.399965467310067e-17,
+            0.1706092465190038,
+            0.18136044105807686,
+            0.05074877591474763,
+            0.25144102109022487,
+            0.07921543073181991,
+            1.0688708761402016e-17,
+            0.0,
+            0.016631765583411715
+          ],
+          [
+            0.007875577831976692,
+            0.21206272576102195,
+            0.20988481144628426,
+            0.13307303266961404,
+            0.10497879622845283,
+            0.0,
+            0.0,
+            0.0,
+            3.7269449679189215e-20,
+            0.0037364911834046072
+          ],
+          [
+            0.017460423407533184,
+            0.0973786103609028,
+            0.021342654939197393,
+            0.11854092126979547,
+            0.17604616119128141,
+            0.23124996587405355,
+            0.17614720088088984,
+            0.28901902276403796,
+            0.31334486546262846,
+            0.27462120878225144
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "calibration": {
+        "report": "docs/atlas-studio-v2-refinement.json",
+        "accepted": true,
+        "scope": "Mean metrics on frozen held-out reference excerpts; no zero-loss guarantee"
+      }
+    },
+    "development_ids": [
+      "fc9f42fdeb43",
+      "3c1b6f88b282",
+      "2063584c7f74",
+      "7446f71a03b7",
+      "465889e42b6a",
+      "2778930b9b61",
+      "5bc229213e9f",
+      "60a9cec090f0"
+    ],
+    "baseline_summary": {
+      "vocal": {
+        "sdr_db": 12.997090321411298,
+        "si_sdr_db": 12.696731638618623,
+        "spectral_deficit": 0.03493354956563117,
+        "spectral_excess": 0.007850888754944961
+      },
+      "instrumental": {
+        "sdr_db": 17.56469124012306,
+        "si_sdr_db": 17.450721005134977,
+        "spectral_deficit": 0.009709521601678407,
+        "spectral_excess": 0.003589905068565756
+      }
+    },
+    "trials": [
+      {
+        "regularization": 0.0001,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "valid": true,
+        "weights": [
+          [
+            0.24851545537322395,
+            0.00711299569357812,
+            0.27131491430607174,
+            0.22665537178598114,
+            0.33657531215838205,
+            0.22238493810558452,
+            0.05816560413466883,
+            0.14582923253629698,
+            0.07859918851668468,
+            0.19327948428735
+          ],
+          [
+            0.1503182924629661,
+            0.0,
+            0.16835421720754876,
+            0.0,
+            2.6413875427178102e-17,
+            1.6898942572433732e-17,
+            4.396100996249819e-18,
+            0.09165702479286761,
+            0.0,
+            0.029051649072159364
+          ],
+          [
+            0.0,
+            0.41378425596531,
+            2.822737296724956e-19,
+            1.7859689692856923e-18,
+            5.698837669126933e-18,
+            0.06936295443296817,
+            0.2831584707313064,
+            0.5074054517969373,
+            0.47076739666699313,
+            0.48640543610566217
+          ],
+          [
+            8.524539581167279e-18,
+            0.0,
+            3.7284908030476606e-17,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            4.777265822514254e-18,
+            1.2027867851011065e-19,
+            0.011782619152951281
+          ],
+          [
+            0.0,
+            0.0,
+            0.054137989163570564,
+            0.21239846974455653,
+            0.13618179254730786,
+            0.0,
+            3.443188930588731e-18,
+            0.0,
+            0.06375897978696131,
+            0.004206036094523303
+          ],
+          [
+            0.0,
+            0.1394052256377209,
+            2.964191798916424e-18,
+            0.0,
+            0.03183467142559271,
+            0.0,
+            0.0,
+            0.0158726555529483,
+            0.3273917294214709,
+            0.269912730476987
+          ],
+          [
+            5.5429836068321414e-18,
+            0.22529983165076886,
+            0.24629245099965608,
+            0.15124284233227978,
+            0.3180438552651944,
+            0.03549456710622199,
+            0.0,
+            0.23923563532094985,
+            0.05948270560788996,
+            1.2854783765768076e-18
+          ],
+          [
+            0.41338928027912986,
+            0.21439769105262227,
+            0.25990042832315285,
+            0.4097033161371827,
+            0.12930838321349272,
+            0.4769058591918182,
+            0.221983023682422,
+            0.0,
+            0.0,
+            0.0019974751944654145
+          ],
+          [
+            0.18777697188468015,
+            4.3109741850507616e-18,
+            6.183340514956392e-19,
+            0.0,
+            0.0480559853900302,
+            0.19585168116340718,
+            0.4366929014516028,
+            1.7279472123987727e-18,
+            1.2891841457210451e-18,
+            0.0033645696159015043
+          ]
+        ],
+        "development_mean_sdr_gain_db": 0.3425231370779006,
+        "full_development": {
+          "vocal": {
+            "sdr_db": 13.3396134584892,
+            "si_sdr_db": 13.050551795600796,
+            "spectral_deficit": 0.029980187758492267,
+            "spectral_excess": 0.007173423429783174
+          },
+          "instrumental": {
+            "sdr_db": 17.907214377200965,
+            "si_sdr_db": 17.801945309789254,
+            "spectral_deficit": 0.009603251804245014,
+            "spectral_excess": 0.0030295116677754937
+          }
+        },
+        "eligible": true
+      },
+      {
+        "regularization": 0.001,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "valid": true,
+        "weights": [
+          [
+            0.33645627452001314,
+            0.0402445682746793,
+            0.26807307098717253,
+            0.23542901705942923,
+            0.33970300939481973,
+            0.2254495020543952,
+            0.0890214396904907,
+            0.13031152260278422,
+            0.14220540218652988,
+            0.19226727053262924
+          ],
+          [
+            0.396774963808146,
+            0.0,
+            0.17346238750341253,
+            0.0,
+            2.6172471037210626e-17,
+            0.0,
+            6.080002495391368e-18,
+            0.06849514539418204,
+            3.820732691003654e-17,
+            0.028491032701999465
+          ],
+          [
+            0.0,
+            0.3981141173186154,
+            5.5489128374629215e-18,
+            5.792434809798533e-18,
+            1.3052777717188768e-18,
+            0.0741955474453313,
+            0.30457727517638045,
+            0.5033124169365171,
+            0.5014992528947557,
+            0.4849735390423985
+          ],
+          [
+            0.0,
+            0.0013479540546180251,
+            0.0,
+            0.0,
+            0.0,
+            1.5201912062609742e-17,
+            1.8507669897506462e-18,
+            0.0,
+            0.0,
+            0.01563972577687937
+          ],
+          [
+            0.0,
+            1.4729902952752283e-17,
+            0.05712551394639791,
+            0.2127018048404244,
+            0.13810340684113576,
+            0.0,
+            1.633079522306291e-18,
+            0.0,
+            0.01351667668149049,
+            0.0038460988705769483
+          ],
+          [
+            0.0,
+            0.14307756124775528,
+            9.018783305890163e-19,
+            2.1281702799764296e-18,
+            0.03682943992212351,
+            0.0,
+            0.0,
+            0.10032970161774159,
+            0.30752593249335103,
+            0.2736990772852952
+          ],
+          [
+            0.0,
+            0.21226443188399957,
+            0.24552527343485536,
+            0.15357614455596244,
+            0.3053442815192203,
+            0.047085608049689635,
+            0.0,
+            0.19755121344877516,
+            0.03525273574387281,
+            0.0
+          ],
+          [
+            0.1386654551288734,
+            0.20495136722033247,
+            0.2558137541281618,
+            0.39829303354418405,
+            0.13229612486708342,
+            0.43863710545302703,
+            0.23865349410542214,
+            0.0,
+            0.0,
+            0.00040308114867135627
+          ],
+          [
+            0.1281033065429675,
+            2.327858297291631e-18,
+            0.0,
+            1.979939514206927e-18,
+            0.04772373745561734,
+            0.21463223699755696,
+            0.3677477910277067,
+            3.63207727782644e-18,
+            0.0,
+            0.0006801746415500894
+          ]
+        ],
+        "development_mean_sdr_gain_db": 0.34161386195996063,
+        "full_development": {
+          "vocal": {
+            "sdr_db": 13.338704183371153,
+            "si_sdr_db": 13.049470324637438,
+            "spectral_deficit": 0.03002969635262383,
+            "spectral_excess": 0.0071940773297514155
+          },
+          "instrumental": {
+            "sdr_db": 17.906305102082914,
+            "si_sdr_db": 17.800897239582977,
+            "spectral_deficit": 0.009606029472187085,
+            "spectral_excess": 0.00303376020840908
+          }
+        },
+        "eligible": true
+      },
+      {
+        "regularization": 0.01,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "valid": true,
+        "weights": [
+          [
+            0.41332515091630123,
+            0.22650053161508357,
+            0.26498492796160683,
+            0.29528691911949456,
+            0.3641038167597867,
+            0.2359558324593582,
+            0.2136906971055873,
+            0.12955289600844824,
+            0.1531758918601211,
+            0.19206558853681494
+          ],
+          [
+            0.4905715478059563,
+            0.0,
+            0.1995303077812566,
+            3.730333099707939e-18,
+            0.01931975228323423,
+            0.06301546539774626,
+            9.216565499074042e-18,
+            0.05543062355888456,
+            0.02344076814046058,
+            0.028344508789579576
+          ],
+          [
+            2.0091621508872004e-18,
+            0.31035823296336656,
+            4.4265941823509736e-18,
+            1.5949630396798475e-18,
+            0.0,
+            0.0847508532333004,
+            0.3863934161277578,
+            0.5105977831225701,
+            0.5046726416105201,
+            0.48467548042343495
+          ],
+          [
+            0.0,
+            0.059776961975090755,
+            0.0,
+            1.0241898881725373e-17,
+            0.0,
+            2.2865019136419397e-17,
+            4.088628036396508e-18,
+            1.954528525789298e-18,
+            0.0,
+            0.016527861745927203
+          ],
+          [
+            2.523734666344188e-18,
+            0.0,
+            0.08463809908651711,
+            0.20730033801453948,
+            0.1366056374066646,
+            0.0,
+            0.0,
+            0.0,
+            0.0002874361616208002,
+            0.0037477145425285022
+          ],
+          [
+            1.2951133763518252e-18,
+            0.14796441982036598,
+            0.0,
+            0.010636902950570262,
+            0.08352755735443126,
+            0.06555521868620467,
+            0.021974206072296887,
+            0.2415094903593178,
+            0.3097514910592349,
+            0.27452443646677993
+          ],
+          [
+            3.5410212359966026e-18,
+            0.1443578530571908,
+            0.22162188772649985,
+            0.15443320065748123,
+            0.22211489778691362,
+            0.06851292487018158,
+            0.007912569738233987,
+            0.06290920695077941,
+            0.00867177116804273,
+            0.0
+          ],
+          [
+            0.0455825932620898,
+            0.11104200056890244,
+            0.22922477744411973,
+            0.31358785224400154,
+            0.12274274210737425,
+            0.27535231196120863,
+            0.17054392617758063,
+            0.0,
+            1.2328564547286341e-18,
+            4.2442813150827134e-05
+          ],
+          [
+            0.050520708015652796,
+            1.4314856808597676e-19,
+            0.0,
+            0.01875478701391296,
+            0.05158559630159528,
+            0.20685739339200004,
+            0.19948518477854343,
+            0.0,
+            0.0,
+            7.196668178384005e-05
+          ]
+        ],
+        "development_mean_sdr_gain_db": 0.3257882850461773,
+        "full_development": {
+          "vocal": {
+            "sdr_db": 13.32287860645754,
+            "si_sdr_db": 13.032689409347606,
+            "spectral_deficit": 0.030327879888321134,
+            "spectral_excess": 0.007330737947227387
+          },
+          "instrumental": {
+            "sdr_db": 17.890479525169305,
+            "si_sdr_db": 17.784403357142466,
+            "spectral_deficit": 0.009618936972249558,
+            "spectral_excess": 0.0030616140541907116
+          }
+        },
+        "eligible": true
+      }
+    ],
+    "selected": {
+      "regularization": 0.0001,
+      "converged": true,
+      "message": "Optimization terminated successfully",
+      "valid": true,
+      "weights": [
+        [
+          0.24851545537322395,
+          0.00711299569357812,
+          0.27131491430607174,
+          0.22665537178598114,
+          0.33657531215838205,
+          0.22238493810558452,
+          0.05816560413466883,
+          0.14582923253629698,
+          0.07859918851668468,
+          0.19327948428735
+        ],
+        [
+          0.1503182924629661,
+          0.0,
+          0.16835421720754876,
+          0.0,
+          2.6413875427178102e-17,
+          1.6898942572433732e-17,
+          4.396100996249819e-18,
+          0.09165702479286761,
+          0.0,
+          0.029051649072159364
+        ],
+        [
+          0.0,
+          0.41378425596531,
+          2.822737296724956e-19,
+          1.7859689692856923e-18,
+          5.698837669126933e-18,
+          0.06936295443296817,
+          0.2831584707313064,
+          0.5074054517969373,
+          0.47076739666699313,
+          0.48640543610566217
+        ],
+        [
+          8.524539581167279e-18,
+          0.0,
+          3.7284908030476606e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          4.777265822514254e-18,
+          1.2027867851011065e-19,
+          0.011782619152951281
+        ],
+        [
+          0.0,
+          0.0,
+          0.054137989163570564,
+          0.21239846974455653,
+          0.13618179254730786,
+          0.0,
+          3.443188930588731e-18,
+          0.0,
+          0.06375897978696131,
+          0.004206036094523303
+        ],
+        [
+          0.0,
+          0.1394052256377209,
+          2.964191798916424e-18,
+          0.0,
+          0.03183467142559271,
+          0.0,
+          0.0,
+          0.0158726555529483,
+          0.3273917294214709,
+          0.269912730476987
+        ],
+        [
+          5.5429836068321414e-18,
+          0.22529983165076886,
+          0.24629245099965608,
+          0.15124284233227978,
+          0.3180438552651944,
+          0.03549456710622199,
+          0.0,
+          0.23923563532094985,
+          0.05948270560788996,
+          1.2854783765768076e-18
+        ],
+        [
+          0.41338928027912986,
+          0.21439769105262227,
+          0.25990042832315285,
+          0.4097033161371827,
+          0.12930838321349272,
+          0.4769058591918182,
+          0.221983023682422,
+          0.0,
+          0.0,
+          0.0019974751944654145
+        ],
+        [
+          0.18777697188468015,
+          4.3109741850507616e-18,
+          6.183340514956392e-19,
+          0.0,
+          0.0480559853900302,
+          0.19585168116340718,
+          0.4366929014516028,
+          1.7279472123987727e-18,
+          1.2891841457210451e-18,
+          0.0033645696159015043
+        ]
+      ],
+      "development_mean_sdr_gain_db": 0.3425231370779006,
+      "full_development": {
+        "vocal": {
+          "sdr_db": 13.3396134584892,
+          "si_sdr_db": 13.050551795600796,
+          "spectral_deficit": 0.029980187758492267,
+          "spectral_excess": 0.007173423429783174
+        },
+        "instrumental": {
+          "sdr_db": 17.907214377200965,
+          "si_sdr_db": 17.801945309789254,
+          "spectral_deficit": 0.009603251804245014,
+          "spectral_excess": 0.0030295116677754937
+        }
+      },
+      "eligible": true
+    },
+    "evaluation_used_for_selection": false,
+    "preset_sha256": "bff171d135403e02c5141ded1eafe10e9d81653ae710c935d6def40c7abe2cc6",
+    "method": "Mean log exact waveform error; nonnegative frequency weights sum to one; per-recording .03 dB regression cap; four content constraints and full development metric screening"
+  },
+  "confirmation_manifest": {
+    "tracks": [
+      {
+        "id": "502f51d25f86",
+        "name": "Traffic Experiment - Once More (With Feeling)",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Traffic Experiment - Once More (With Feeling).stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "16512990064b",
+        "name": "Tim Taler - Stalker",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Tim Taler - Stalker.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "851d0684e5bc",
+        "name": "Sweet Lights - You Let Me Down",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Sweet Lights - You Let Me Down.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "bac2583979ee",
+        "name": "Music Delta - 80s Rock",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - 80s Rock.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "6370671b9d4b",
+        "name": "Triviul - Dorothy",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Triviul - Dorothy.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "a88daa04efcf",
+        "name": "Matthew Entwistle - Dont You Ever",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Matthew Entwistle - Dont You Ever.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "3e38f298d8d5",
+        "name": "Meaxic - Take A Step",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Meaxic - Take A Step.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "bd44a2ee8be2",
+        "name": "Jay Menon - Through My Eyes",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Jay Menon - Through My Eyes.stem.mp4",
+        "split": "evaluation"
+      }
+    ],
+    "selection": "First eight previously uncached recordings in fixed SHA order; frozen candidate selected before any new inference or scoring. Model-training overlap unknown."
+  },
+  "confirmation": {
+    "rows": [
+      {
+        "id": "502f51d25f86",
+        "name": "Traffic Experiment - Once More (With Feeling)",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 13.052160371683733,
+              "si_sdr_db": 12.953387864644752,
+              "spectral_deficit": 0.02618690226327826,
+              "spectral_excess": 0.0040561558265835235
+            },
+            "instrumental": {
+              "sdr_db": 19.14625895373917,
+              "si_sdr_db": 19.066182195773877,
+              "spectral_deficit": 0.0042863162573921745,
+              "spectral_excess": 0.0015238493328773688
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 13.273789544837378,
+              "si_sdr_db": 13.141810692381618,
+              "spectral_deficit": 0.02286187937615786,
+              "spectral_excess": 0.004725255827529358
+            },
+            "instrumental": {
+              "sdr_db": 19.367888126892815,
+              "si_sdr_db": 19.29653181122937,
+              "spectral_deficit": 0.00432918204096336,
+              "spectral_excess": 0.0013428381288569469
+            }
+          },
+          "xe_half": {
+            "vocal": {
+              "sdr_db": 13.030264964729511,
+              "si_sdr_db": 12.93623913760154,
+              "spectral_deficit": 0.025813101822043046,
+              "spectral_excess": 0.00424989676463452
+            },
+            "instrumental": {
+              "sdr_db": 19.12436354678495,
+              "si_sdr_db": 19.044340785370203,
+              "spectral_deficit": 0.004386917110511442,
+              "spectral_excess": 0.001458328152566433
+            }
+          }
+        }
+      },
+      {
+        "id": "16512990064b",
+        "name": "Tim Taler - Stalker",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 9.094124829411058,
+              "si_sdr_db": 8.526260805681147,
+              "spectral_deficit": 0.05353464859102008,
+              "spectral_excess": 0.01289908637069774
+            },
+            "instrumental": {
+              "sdr_db": 11.388350946365897,
+              "si_sdr_db": 11.072539399232992,
+              "spectral_deficit": 0.0273921513586412,
+              "spectral_excess": 0.008967735857574956
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 9.221566159047335,
+              "si_sdr_db": 8.672425082139604,
+              "spectral_deficit": 0.05187213136503789,
+              "spectral_excess": 0.011629543461012358
+            },
+            "instrumental": {
+              "sdr_db": 11.515792276002175,
+              "si_sdr_db": 11.215745892179543,
+              "spectral_deficit": 0.02674775529280933,
+              "spectral_excess": 0.008250762699027612
+            }
+          },
+          "xe_half": {
+            "vocal": {
+              "sdr_db": 9.412396336743088,
+              "si_sdr_db": 8.894268098828542,
+              "spectral_deficit": 0.05134325771171339,
+              "spectral_excess": 0.01061675372759761
+            },
+            "instrumental": {
+              "sdr_db": 11.706622453697925,
+              "si_sdr_db": 11.418171502158462,
+              "spectral_deficit": 0.024834306594129378,
+              "spectral_excess": 0.008287869368101653
+            }
+          }
+        }
+      },
+      {
+        "id": "851d0684e5bc",
+        "name": "Sweet Lights - You Let Me Down",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 5.234074774907425,
+              "si_sdr_db": 4.386489864931486,
+              "spectral_deficit": 0.21305984065403577,
+              "spectral_excess": 0.005510410297126306
+            },
+            "instrumental": {
+              "sdr_db": 5.956474915144159,
+              "si_sdr_db": 5.2885308000654465,
+              "spectral_deficit": 0.040831546326736606,
+              "spectral_excess": 0.07611706840577759
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 6.242259507614635,
+              "si_sdr_db": 5.531889855270203,
+              "spectral_deficit": 0.1475478195124507,
+              "spectral_excess": 0.007608681867906981
+            },
+            "instrumental": {
+              "sdr_db": 6.964659647851371,
+              "si_sdr_db": 6.26285482201837,
+              "spectral_deficit": 0.04549094293472343,
+              "spectral_excess": 0.046421991664039715
+            }
+          },
+          "xe_half": {
+            "vocal": {
+              "sdr_db": 6.451346535995512,
+              "si_sdr_db": 5.921307874068566,
+              "spectral_deficit": 0.1376621919265354,
+              "spectral_excess": 0.0067477394379204195
+            },
+            "instrumental": {
+              "sdr_db": 7.173746676232247,
+              "si_sdr_db": 6.462852873533897,
+              "spectral_deficit": 0.04543596286415494,
+              "spectral_excess": 0.041330406665841084
+            }
+          }
+        }
+      },
+      {
+        "id": "bac2583979ee",
+        "name": "Music Delta - 80s Rock",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 18.076983415258315,
+              "si_sdr_db": 18.012856742980986,
+              "spectral_deficit": 0.0067353187183347655,
+              "spectral_excess": 0.002133571242559234
+            },
+            "instrumental": {
+              "sdr_db": 19.703073756153607,
+              "si_sdr_db": 19.656444904697334,
+              "spectral_deficit": 0.003654433286560704,
+              "spectral_excess": 0.0014324206344049706
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 18.374690603503367,
+              "si_sdr_db": 18.311331277844843,
+              "spectral_deficit": 0.005551665705073318,
+              "spectral_excess": 0.002286554331859303
+            },
+            "instrumental": {
+              "sdr_db": 20.00078094439866,
+              "si_sdr_db": 19.95781897764146,
+              "spectral_deficit": 0.003631131788068147,
+              "spectral_excess": 0.001192339455775001
+            }
+          },
+          "xe_half": {
+            "vocal": {
+              "sdr_db": 18.281982340200106,
+              "si_sdr_db": 18.226307433310502,
+              "spectral_deficit": 0.006276473858692816,
+              "spectral_excess": 0.0020535737982358593
+            },
+            "instrumental": {
+              "sdr_db": 19.9080726810954,
+              "si_sdr_db": 19.86360776444769,
+              "spectral_deficit": 0.003638517899354759,
+              "spectral_excess": 0.0012733940000835247
+            }
+          }
+        }
+      },
+      {
+        "id": "6370671b9d4b",
+        "name": "Triviul - Dorothy",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 6.580751481926783,
+              "si_sdr_db": 6.232412951394249,
+              "spectral_deficit": 0.17170543051069956,
+              "spectral_excess": 0.004811704088008688
+            },
+            "instrumental": {
+              "sdr_db": 11.6384156823478,
+              "si_sdr_db": 11.40731574342851,
+              "spectral_deficit": 0.010781233179521217,
+              "spectral_excess": 0.016122304159319267
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 8.306745422786095,
+              "si_sdr_db": 8.091247198141584,
+              "spectral_deficit": 0.09631856321488438,
+              "spectral_excess": 0.0047732437803502505
+            },
+            "instrumental": {
+              "sdr_db": 13.364409623207113,
+              "si_sdr_db": 13.171199113266333,
+              "spectral_deficit": 0.013180874096214035,
+              "spectral_excess": 0.00616171746593073
+            }
+          },
+          "xe_half": {
+            "vocal": {
+              "sdr_db": 7.817081847501383,
+              "si_sdr_db": 7.654772750916921,
+              "spectral_deficit": 0.11873412366710026,
+              "spectral_excess": 0.0038608448933906948
+            },
+            "instrumental": {
+              "sdr_db": 12.8747460479224,
+              "si_sdr_db": 12.674111524997747,
+              "spectral_deficit": 0.01127294421265618,
+              "spectral_excess": 0.008084688294549065
+            }
+          }
+        }
+      },
+      {
+        "id": "a88daa04efcf",
+        "name": "Matthew Entwistle - Dont You Ever",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 20.877596848720547,
+              "si_sdr_db": 20.84296876814941,
+              "spectral_deficit": 0.003580613805738628,
+              "spectral_excess": 0.0010479562863990243
+            },
+            "instrumental": {
+              "sdr_db": 20.32013083005069,
+              "si_sdr_db": 20.284409364719732,
+              "spectral_deficit": 0.003401338678226723,
+              "spectral_excess": 0.0013081354857524391
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 20.97572744657917,
+              "si_sdr_db": 20.93855840772255,
+              "spectral_deficit": 0.0032919924731227563,
+              "spectral_excess": 0.0010745334251826553
+            },
+            "instrumental": {
+              "sdr_db": 20.418261427909314,
+              "si_sdr_db": 20.38234039468486,
+              "spectral_deficit": 0.003498830280414771,
+              "spectral_excess": 0.0012259912647739587
+            }
+          },
+          "xe_half": {
+            "vocal": {
+              "sdr_db": 20.94955234257293,
+              "si_sdr_db": 20.914551155726883,
+              "spectral_deficit": 0.0034373550427180383,
+              "spectral_excess": 0.0010133990838976337
+            },
+            "instrumental": {
+              "sdr_db": 20.392086323903076,
+              "si_sdr_db": 20.35600486057416,
+              "spectral_deficit": 0.0034699805016473015,
+              "spectral_excess": 0.0012486375555178474
+            }
+          }
+        }
+      },
+      {
+        "id": "3e38f298d8d5",
+        "name": "Meaxic - Take A Step",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 15.678131600606322,
+              "si_sdr_db": 15.607093360643859,
+              "spectral_deficit": 0.013423929323245556,
+              "spectral_excess": 0.0023004315740919085
+            },
+            "instrumental": {
+              "sdr_db": 18.227448632050795,
+              "si_sdr_db": 18.161841936893918,
+              "spectral_deficit": 0.005925722741383778,
+              "spectral_excess": 0.0015550965436910212
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 16.087989009079916,
+              "si_sdr_db": 15.986922134727966,
+              "spectral_deficit": 0.010823803583075307,
+              "spectral_excess": 0.0023518107638619387
+            },
+            "instrumental": {
+              "sdr_db": 18.637306040524386,
+              "si_sdr_db": 18.57879945083958,
+              "spectral_deficit": 0.005876855805609914,
+              "spectral_excess": 0.0012220243925320073
+            }
+          },
+          "xe_half": {
+            "vocal": {
+              "sdr_db": 15.992929806227396,
+              "si_sdr_db": 15.915700304337438,
+              "spectral_deficit": 0.011911705280117505,
+              "spectral_excess": 0.0020636024315515734
+            },
+            "instrumental": {
+              "sdr_db": 18.54224683767187,
+              "si_sdr_db": 18.481633611774477,
+              "spectral_deficit": 0.00570327750697205,
+              "spectral_excess": 0.0013630609977306868
+            }
+          }
+        }
+      },
+      {
+        "id": "bd44a2ee8be2",
+        "name": "Jay Menon - Through My Eyes",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 16.271767117625316,
+              "si_sdr_db": 16.170437081283907,
+              "spectral_deficit": 0.00849012717649285,
+              "spectral_excess": 0.0028954254167374138
+            },
+            "instrumental": {
+              "sdr_db": 19.032158839844197,
+              "si_sdr_db": 18.985338672796605,
+              "spectral_deficit": 0.005654046935293698,
+              "spectral_excess": 0.0011335018593598774
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 16.309161568968033,
+              "si_sdr_db": 16.208394778652913,
+              "spectral_deficit": 0.007843898487651145,
+              "spectral_excess": 0.0029154345558797725
+            },
+            "instrumental": {
+              "sdr_db": 19.069553291186917,
+              "si_sdr_db": 19.026856464443618,
+              "spectral_deficit": 0.005535949003884387,
+              "spectral_excess": 0.0010786189730221682
+            }
+          },
+          "xe_half": {
+            "vocal": {
+              "sdr_db": 16.135655503870566,
+              "si_sdr_db": 16.050773637153007,
+              "spectral_deficit": 0.009060371805241897,
+              "spectral_excess": 0.0024781903318573132
+            },
+            "instrumental": {
+              "sdr_db": 18.896047226089447,
+              "si_sdr_db": 18.844974139873226,
+              "spectral_deficit": 0.005414024633883872,
+              "spectral_excess": 0.0012307658315292242
+            }
+          }
+        }
+      }
+    ],
+    "summary": {
+      "current": {
+        "vocal": {
+          "sdr_db": 13.108198805017437,
+          "si_sdr_db": 12.841488429963725,
+          "spectral_deficit": 0.062089601380355686,
+          "spectral_excess": 0.00445684263777548
+        },
+        "instrumental": {
+          "sdr_db": 15.67653906946204,
+          "si_sdr_db": 15.490325377201053,
+          "spectral_deficit": 0.012740848595469513,
+          "spectral_excess": 0.013520014034844688
+        }
+      },
+      "candidate": {
+        "vocal": {
+          "sdr_db": 13.59899115780199,
+          "si_sdr_db": 13.36032242836016,
+          "spectral_deficit": 0.043263969214681675,
+          "spectral_excess": 0.004670632251697827
+        },
+        "instrumental": {
+          "sdr_db": 16.16733142224659,
+          "si_sdr_db": 15.98651836578789,
+          "spectral_deficit": 0.013536440155335921,
+          "spectral_excess": 0.008362035505494768
+        }
+      },
+      "xe_half": {
+        "vocal": {
+          "sdr_db": 13.50890120973006,
+          "si_sdr_db": 13.314240048992925,
+          "spectral_deficit": 0.045529822639270294,
+          "spectral_excess": 0.0041355000586357025
+        },
+        "instrumental": {
+          "sdr_db": 16.077241474174663,
+          "si_sdr_db": 15.893212132841231,
+          "spectral_deficit": 0.01301949141541374,
+          "spectral_excess": 0.00803464385823994
+        }
+      }
+    },
+    "mean_delta_db": 0.4907923527845538,
+    "bootstrap_97_5pct": [
+      0.14659515098474674,
+      0.9801631429050573
+    ],
+    "accepted": false,
+    "comparisons": {
+      "candidate": {
+        "mean_delta_db": 0.4907923527845538,
+        "bootstrap_97_5pct": [
+          0.14659515098474674,
+          0.9801631429050573
+        ],
+        "accepted": false
+      },
+      "xe_half": {
+        "mean_delta_db": 0.40070240471262386,
+        "bootstrap_97_5pct": [
+          0.048242872840275064,
+          0.8330258101577724
+        ],
+        "accepted": false
+      }
+    },
+    "confirmation_plan": {
+      "frozen_at": "2026-10-10T20:18:34.862886+00:00",
+      "candidates": [
+        "candidate",
+        "xe_half"
+      ],
+      "selection": "Primary: best eligible constrained development fit; secondary: best content-safe simple development blend (0.5 Leap Xe vocals). Neither chosen from confirmation scores.",
+      "acceptance": "Mean SDR gain >=0.2 dB, both SI-SDR and all content means no worse, Bonferroni-adjusted 97.5% paired interval lower bound >0."
+    },
+    "selected_confirmed": null,
+    "production_changed": false,
+    "candidate_spec": {
+      "anchors_hz": [
+        0,
+        125,
+        250,
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000,
+        22050
+      ],
+      "weights": [
+        [
+          0.24851545537322395,
+          0.00711299569357812,
+          0.27131491430607174,
+          0.22665537178598114,
+          0.33657531215838205,
+          0.22238493810558452,
+          0.05816560413466883,
+          0.14582923253629698,
+          0.07859918851668468,
+          0.19327948428735
+        ],
+        [
+          0.1503182924629661,
+          0.0,
+          0.16835421720754876,
+          0.0,
+          2.6413875427178102e-17,
+          1.6898942572433732e-17,
+          4.396100996249819e-18,
+          0.09165702479286761,
+          0.0,
+          0.029051649072159364
+        ],
+        [
+          0.0,
+          0.41378425596531,
+          2.822737296724956e-19,
+          1.7859689692856923e-18,
+          5.698837669126933e-18,
+          0.06936295443296817,
+          0.2831584707313064,
+          0.5074054517969373,
+          0.47076739666699313,
+          0.48640543610566217
+        ],
+        [
+          8.524539581167279e-18,
+          0.0,
+          3.7284908030476606e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          4.777265822514254e-18,
+          1.2027867851011065e-19,
+          0.011782619152951281
+        ],
+        [
+          0.0,
+          0.0,
+          0.054137989163570564,
+          0.21239846974455653,
+          0.13618179254730786,
+          0.0,
+          3.443188930588731e-18,
+          0.0,
+          0.06375897978696131,
+          0.004206036094523303
+        ],
+        [
+          0.0,
+          0.1394052256377209,
+          2.964191798916424e-18,
+          0.0,
+          0.03183467142559271,
+          0.0,
+          0.0,
+          0.0158726555529483,
+          0.3273917294214709,
+          0.269912730476987
+        ],
+        [
+          5.5429836068321414e-18,
+          0.22529983165076886,
+          0.24629245099965608,
+          0.15124284233227978,
+          0.3180438552651944,
+          0.03549456710622199,
+          0.0,
+          0.23923563532094985,
+          0.05948270560788996,
+          1.2854783765768076e-18
+        ],
+        [
+          0.41338928027912986,
+          0.21439769105262227,
+          0.25990042832315285,
+          0.4097033161371827,
+          0.12930838321349272,
+          0.4769058591918182,
+          0.221983023682422,
+          0.0,
+          0.0,
+          0.0019974751944654145
+        ],
+        [
+          0.18777697188468015,
+          4.3109741850507616e-18,
+          6.183340514956392e-19,
+          0.0,
+          0.0480559853900302,
+          0.19585168116340718,
+          0.4366929014516028,
+          1.7279472123987727e-18,
+          1.2891841457210451e-18,
+          0.0033645696159015043
+        ]
+      ]
+    },
+    "limitations": [
+      "Eight short reference excerpts, not full-song Turkish stems",
+      "Unknown model-training overlap; no universal superiority or zero-loss claim"
+    ]
+  },
+  "deux_provenance": {
+    "repo": "becruily/mel-band-roformer-deux",
+    "revision": "2da74427d682a3df47a774378fc24d7a1a0cdaad",
+    "checkpoint_sha256": "10255c02295bf3e3865d4ee50ff752d7b19b124ed5fd93b147babc4333eda3aa",
+    "development_ids": [
+      "fc9f42fdeb43",
+      "3c1b6f88b282",
+      "2063584c7f74",
+      "7446f71a03b7",
+      "465889e42b6a",
+      "2778930b9b61",
+      "5bc229213e9f",
+      "60a9cec090f0"
+    ]
+  },
+  "xe_provenance": [
+    {
+      "repo": "pcunwa/BS-Roformer-Leap",
+      "revision": "4e47d6662ae82eaa8b4ac4329fe66099a843b48e",
+      "file": "Xe/bs_leap_xe_voc.ckpt",
+      "sha256": "b739c1d2d87a81cd3dd3844ed9ad0bd678708c7a0a761a03a1aaff9af79a096d",
+      "index": 10
+    },
+    {
+      "repo": "pcunwa/BS-Roformer-Leap",
+      "revision": "4e47d6662ae82eaa8b4ac4329fe66099a843b48e",
+      "file": "Xe/bs_leap_xe_inst.ckpt",
+      "sha256": "33ee9415f491d257fa7a79f6e92a80d647bc71ed622bfef9a137b6e4250307d3",
+      "index": 11
+    }
+  ],
+  "candidate_indices": [
+    0,
+    1,
+    2,
+    4,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "candidate_models": [
+    {
+      "model_type": "roformer",
+      "model_key": "BS-Roformer-Viperx-1297",
+      "estimate": "vocal"
+    },
+    {
+      "model_type": "roformer",
+      "model_key": "BS Roformer Leap Vocals by pcunwa",
+      "estimate": "vocal"
+    },
+    {
+      "model_type": "roformer",
+      "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+      "estimate": "vocal"
+    },
+    {
+      "model_type": "roformer",
+      "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+      "estimate": "inst"
+    },
+    {
+      "model_type": "roformer",
+      "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+      "estimate": "vocal"
+    },
+    {
+      "model_type": "roformer",
+      "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+      "estimate": "inst"
+    },
+    {
+      "model_key": "Experimental becruily Deux pinned",
+      "estimate": "vocal"
+    },
+    {
+      "model_key": "Experimental Leap Xe voc",
+      "estimate": "vocal"
+    },
+    {
+      "model_key": "Experimental Leap Xe inst",
+      "estimate": "inst"
+    }
+  ],
+  "baseline_note": "The optimizer snapshot pads baseline frequency weights with three zero rows; the deployed baseline itself still has six models.",
+  "experiment_tool_sha256": "2ec3ab3a1c038760ad928c9f7fdf842c82dbad0a29ae39503e2e834a3ee06ecf",
+  "production_preset_sha256": "bff171d135403e02c5141ded1eafe10e9d81653ae710c935d6def40c7abe2cc6"
+}

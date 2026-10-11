@@ -1,7 +1,36 @@
 # Atlas Studio V2 — araştırma ve sınırlar
 
-10 Ekim 2026. Güncel preset altı modelin çıktısını frekanslara göre birleştirir.
+11 Ekim 2026. Güncel preset 13 modelin çıktısını frekanslara göre birleştirir.
 Her şarkıda sıfır sızıntı veya Atlas V1'e üstünlük garantisi yoktur.
+
+Son güncellemede HyperACE V2 vokal/enstrümantal, Large Inst V2 ve Siamese
+uzmanları eklendi. Beş yeni model gerçekten çalıştırıldı; MelBand Big kabul
+edilen karışıma alınmadı. İlk bağımsız aday vokal fazla içerik artışı nedeniyle
+reddedildi. Daha koruyucu karışım, ağırlıkları değiştirilmeden 16 yeni kısa
+referans kaydında doğrulandı: önceki dokuz modelli V2'ye göre ortalama
+**+0,2310 dB SDR**, %97,5 güven aralığı **[+0,0775, +0,4207] dB**.
+Vokal/enstrümantal eksik içerik göstergeleri **%6,18 / %3,01**, fazla içerik
+göstergeleri **%9,65 / %8,69** azaldı. İki kanalın referans izdüşümüyle ölçülen
+sızıntı göstergeleri ve SI-SDR de ortalamada iyileşti. 16 kaydın 13'ünde SDR
+yükseldi; her kayıtta iyileşme garantisi yoktur. İşlem süresi uzar.
+[Yeni modeller, karşılaştırma ve uygulanan karışım](atlas-studio-v2-new-models.md).
+
+Önceki dokuz modelli güncellemede Deux ve Leap Xe vokal/enstrümantal uzmanları eklendi.
+48 alternatif karışım denendi; ilk doğrulamada içerik gerilemesi gösteren
+adaylar reddedildi. Daha koruyucu ağırlıklar ayrı sekiz kısa referans kaydında
+doğrulandı: önceki altı modelli V2'ye göre ortalama +0,2478 dB SDR,
+sekiz kaydın tamamında artış, %97,5 eşleştirilmiş güven aralığı
+[+0,1026, +0,4704] dB. Vokal eksik içerik göstergesi %10,79,
+enstrümantal eksik içerik göstergesi %4,11 azaldı; iki fazla içerik
+göstergesi ve SI-SDR de ortalamada iyileşti. Bu göstergeler gerçek
+duyulabilir kayıp yüzdeleri değildir. Dokuz model işlem süresini artırır.
+[Güncel deney ve doğrulama raporu](atlas-studio-v2-alternatives.md).
+
+11 Ekim ek içerik koruma denemelerinde 11 sınırlı optimizasyon ve iki ayrı
+doğrulama grubunda 144 model çıktısı değerlendirildi. Yeni adaylar bazı
+eksiklik göstergelerini düşürdü fakat sızıntı veya SDR koşullarını birlikte
+geçemedi; mevcut dokuz modelli preset korundu.
+[Ek karşılaştırmalar ve reddetme gerekçeleri](atlas-studio-v2-content-refinement.md).
 
 ## İncelenen model aileleri
 
@@ -23,7 +52,7 @@ Kaynak: https://mvsep.com/en/algorithms
 Tablo puanları yayıncının veri kümesine aittir. Model adındaki 1297 ile buradaki
 SDR değerleri farklı değerlendirmelerdir; doğrudan karşılaştırılamaz.
 
-## Güncel preset
+## Önceki altı modelli presetin doğrulama geçmişi
 
 Viper 1297, Leap, MelBand FT2 Bleedless, MelBand Inst V2 ve
 [Resurrection vokal/enstrümantal uzmanları](https://huggingface.co/pcunwa/BS-Roformer-Resurrection/tree/8fc1a62f765e3e738db8394d7e87e379acc4c675)

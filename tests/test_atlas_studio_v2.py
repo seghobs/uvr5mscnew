@@ -22,7 +22,7 @@ class AtlasV2Tests(unittest.TestCase):
     def test_production_preset_has_valid_unique_experts(self):
         models=PRESET_V2['models']
         self.assertGreaterEqual(len(models),4)
-        self.assertLessEqual(len(models),6)
+        self.assertLessEqual(len(models),13)
         self.assertEqual(len({m['model_key'] for m in models}),len(models))
         source=np.ones((20,2))
         vocal,instrumental=combine(source,[source*.1]*len(models),PRESET_V2)
@@ -31,6 +31,26 @@ class AtlasV2Tests(unittest.TestCase):
     def test_production_weights_match_frozen_reference_experiment(self):
         if PRESET_V2.get('frequency_weights') is not None:
             report=json.loads((Path(__file__).resolve().parents[1]/PRESET_V2['calibration']['report']).read_text(encoding='utf8'))
+            if 'confirmation' in report:
+                from tools.atlas_sdr_optimize import eligible
+                confirmation=report['confirmation']
+                self.assertTrue(confirmation['accepted'])
+                if report.get('acceptance_kind') != 'new_model_content_preservation':
+                    self.assertGreaterEqual(confirmation['mean_delta_db'],.2)
+                self.assertGreater(confirmation['bootstrap_97_5pct'][0],0)
+                self.assertTrue(eligible(confirmation['summary']['candidate'],confirmation['summary']['current']))
+                if report.get('acceptance_kind') == 'new_model_content_preservation':
+                    from tools.atlas_content_refine import passes_robust_confirmation
+                    self.assertTrue(passes_robust_confirmation(confirmation))
+                    self.assertTrue(confirmation['leakage_safe'])
+                    for stem in ('vocal','instrumental'):
+                        self.assertLessEqual(confirmation['reference_projection_leakage_proxy']['candidate'][stem],
+                            confirmation['reference_projection_leakage_proxy']['current'][stem])
+                self.assertEqual(PRESET_V2,report['recipe'])
+                self.assertEqual(PRESET_V2['frequency_weights']['weights'],report['selected_fit']['selected']['weights'])
+                development=set(report['selected_fit']['development_ids'])
+                self.assertFalse(development & {t['id'] for t in report['confirmation_manifest']['tracks']})
+                return
             from tools.atlas_refinement import accepted
             self.assertTrue(accepted(report))
             self.assertTrue(report['accepted'])

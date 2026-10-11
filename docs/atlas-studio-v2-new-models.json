@@ -1,0 +1,6136 @@
+{
+  "date": "2026-10-11",
+  "development": [
+    {
+      "name": "Night Panther - Fire",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Night Panther - Fire.stem.mp4",
+      "id": "fc9f42fdeb43"
+    },
+    {
+      "name": "Auctioneer - Our Future Faces",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Auctioneer - Our Future Faces.stem.mp4",
+      "id": "3c1b6f88b282"
+    },
+    {
+      "name": "Clara Berry And Wooldog - Waltz For My Victims",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Clara Berry And Wooldog - Waltz For My Victims.stem.mp4",
+      "id": "2063584c7f74"
+    },
+    {
+      "name": "Alexander Ross - Velvet Curtain",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Alexander Ross - Velvet Curtain.stem.mp4",
+      "id": "7446f71a03b7"
+    },
+    {
+      "name": "Johnny Lokke - Whisper To A Scream",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Johnny Lokke - Whisper To A Scream.stem.mp4",
+      "id": "465889e42b6a"
+    },
+    {
+      "name": "Aimee Norwich - Child",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Aimee Norwich - Child.stem.mp4",
+      "id": "2778930b9b61"
+    },
+    {
+      "name": "The Long Wait - Back Home To Blue",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\The Long Wait - Back Home To Blue.stem.mp4",
+      "id": "5bc229213e9f"
+    },
+    {
+      "name": "James May - If You Say",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\James May - If You Say.stem.mp4",
+      "id": "60a9cec090f0"
+    },
+    {
+      "id": "502f51d25f86",
+      "name": "Traffic Experiment - Once More (With Feeling)",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Traffic Experiment - Once More (With Feeling).stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "16512990064b",
+      "name": "Tim Taler - Stalker",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Tim Taler - Stalker.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "851d0684e5bc",
+      "name": "Sweet Lights - You Let Me Down",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Sweet Lights - You Let Me Down.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "bac2583979ee",
+      "name": "Music Delta - 80s Rock",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - 80s Rock.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "6370671b9d4b",
+      "name": "Triviul - Dorothy",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Triviul - Dorothy.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "a88daa04efcf",
+      "name": "Matthew Entwistle - Dont You Ever",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Matthew Entwistle - Dont You Ever.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "3e38f298d8d5",
+      "name": "Meaxic - Take A Step",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Meaxic - Take A Step.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "bd44a2ee8be2",
+      "name": "Jay Menon - Through My Eyes",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Jay Menon - Through My Eyes.stem.mp4",
+      "split": "evaluation"
+    }
+  ],
+  "screening": {
+    "development": [
+      {
+        "name": "Night Panther - Fire",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Night Panther - Fire.stem.mp4",
+        "id": "fc9f42fdeb43"
+      },
+      {
+        "name": "Auctioneer - Our Future Faces",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Auctioneer - Our Future Faces.stem.mp4",
+        "id": "3c1b6f88b282"
+      },
+      {
+        "name": "Clara Berry And Wooldog - Waltz For My Victims",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Clara Berry And Wooldog - Waltz For My Victims.stem.mp4",
+        "id": "2063584c7f74"
+      },
+      {
+        "name": "Alexander Ross - Velvet Curtain",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Alexander Ross - Velvet Curtain.stem.mp4",
+        "id": "7446f71a03b7"
+      },
+      {
+        "name": "Johnny Lokke - Whisper To A Scream",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Johnny Lokke - Whisper To A Scream.stem.mp4",
+        "id": "465889e42b6a"
+      },
+      {
+        "name": "Aimee Norwich - Child",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Aimee Norwich - Child.stem.mp4",
+        "id": "2778930b9b61"
+      },
+      {
+        "name": "The Long Wait - Back Home To Blue",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\The Long Wait - Back Home To Blue.stem.mp4",
+        "id": "5bc229213e9f"
+      },
+      {
+        "name": "James May - If You Say",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\James May - If You Say.stem.mp4",
+        "id": "60a9cec090f0"
+      },
+      {
+        "id": "502f51d25f86",
+        "name": "Traffic Experiment - Once More (With Feeling)",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Traffic Experiment - Once More (With Feeling).stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "16512990064b",
+        "name": "Tim Taler - Stalker",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Tim Taler - Stalker.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "851d0684e5bc",
+        "name": "Sweet Lights - You Let Me Down",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Sweet Lights - You Let Me Down.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "bac2583979ee",
+        "name": "Music Delta - 80s Rock",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - 80s Rock.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "6370671b9d4b",
+        "name": "Triviul - Dorothy",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Triviul - Dorothy.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "a88daa04efcf",
+        "name": "Matthew Entwistle - Dont You Ever",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Matthew Entwistle - Dont You Ever.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "3e38f298d8d5",
+        "name": "Meaxic - Take A Step",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Meaxic - Take A Step.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "bd44a2ee8be2",
+        "name": "Jay Menon - Through My Eyes",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Jay Menon - Through My Eyes.stem.mp4",
+        "split": "evaluation"
+      }
+    ],
+    "baseline": {
+      "vocal": {
+        "sdr_db": 13.32508884249835,
+        "si_sdr_db": 13.064805545173542,
+        "spectral_deficit": 0.04207022973480368,
+        "spectral_excess": 0.005597599569126503
+      },
+      "instrumental": {
+        "sdr_db": 16.89305943407653,
+        "si_sdr_db": 16.74921073797414,
+        "spectral_deficit": 0.01087033298961922,
+        "spectral_excess": 0.0066318320001856005
+      }
+    },
+    "trials": [
+      {
+        "method": "expert_14:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.332500419262331,
+            "si_sdr_db": 13.069532699597112,
+            "spectral_deficit": 0.04210989890786285,
+            "spectral_excess": 0.005571363808767185
+          },
+          "instrumental": {
+            "sdr_db": 16.900471010840516,
+            "si_sdr_db": 16.754503378272425,
+            "spectral_deficit": 0.010963236711683987,
+            "spectral_excess": 0.006476944276351154
+          }
+        },
+        "gain_db": 0.007411576763981742,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.330850023138487,
+            "si_sdr_db": 13.069738708185131,
+            "spectral_deficit": 0.04207733052770855,
+            "spectral_excess": 0.005576930811565123
+          },
+          "instrumental": {
+            "sdr_db": 16.89882061471667,
+            "si_sdr_db": 16.753944851181853,
+            "spectral_deficit": 0.010911768536380777,
+            "spectral_excess": 0.006545415773345662
+          }
+        },
+        "gain_db": 0.005761180640137198,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.328715596137137,
+            "si_sdr_db": 13.067850176753916,
+            "spectral_deficit": 0.04230706514506975,
+            "spectral_excess": 0.00558905237993583
+          },
+          "instrumental": {
+            "sdr_db": 16.896686187715318,
+            "si_sdr_db": 16.75340709331125,
+            "spectral_deficit": 0.010840316620903283,
+            "spectral_excess": 0.006824165493460584
+          }
+        },
+        "gain_db": 0.0036267536387875055,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.328655355283916,
+            "si_sdr_db": 13.06610635775602,
+            "spectral_deficit": 0.0425802851511147,
+            "spectral_excess": 0.005594181812900326
+          },
+          "instrumental": {
+            "sdr_db": 16.896625946862095,
+            "si_sdr_db": 16.753861585379465,
+            "spectral_deficit": 0.010814984362726595,
+            "spectral_excess": 0.007040465318616696
+          }
+        },
+        "gain_db": 0.0035665127855661893,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.328482462140586,
+            "si_sdr_db": 13.067915633320535,
+            "spectral_deficit": 0.04207077052458214,
+            "spectral_excess": 0.00558543909829675
+          },
+          "instrumental": {
+            "sdr_db": 16.896453053718773,
+            "si_sdr_db": 16.752098762229274,
+            "spectral_deficit": 0.010889831655427952,
+            "spectral_excess": 0.006586341089269683
+          }
+        },
+        "gain_db": 0.0033936196422370557,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.327363583257512,
+            "si_sdr_db": 13.066925806281919,
+            "spectral_deficit": 0.04218414941358258,
+            "spectral_excess": 0.005591614051991842
+          },
+          "instrumental": {
+            "sdr_db": 16.895334174835696,
+            "si_sdr_db": 16.75177723066688,
+            "spectral_deficit": 0.010854733783260951,
+            "spectral_excess": 0.0067250280828131045
+          }
+        },
+        "gain_db": 0.0022747407591623414,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.326697350125052,
+            "si_sdr_db": 13.065905015020949,
+            "spectral_deficit": 0.042392334926281874,
+            "spectral_excess": 0.005550521959974681
+          },
+          "instrumental": {
+            "sdr_db": 16.894667941703233,
+            "si_sdr_db": 16.750977797026763,
+            "spectral_deficit": 0.010833206246717285,
+            "spectral_excess": 0.0067392354308207884
+          }
+        },
+        "gain_db": 0.0016085076267025045,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.326175162190527,
+            "si_sdr_db": 13.065697885093753,
+            "spectral_deficit": 0.042229104595388325,
+            "spectral_excess": 0.005573183245023672
+          },
+          "instrumental": {
+            "sdr_db": 16.89414575376871,
+            "si_sdr_db": 16.750382262584406,
+            "spectral_deficit": 0.010851508659118164,
+            "spectral_excess": 0.0066844295329011455
+          }
+        },
+        "gain_db": 0.0010863196921775398,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.326046924826867,
+            "si_sdr_db": 13.064258960606573,
+            "spectral_deficit": 0.042731812916766164,
+            "spectral_excess": 0.005510396070792241
+          },
+          "instrumental": {
+            "sdr_db": 16.89401751640505,
+            "si_sdr_db": 16.75043919933332,
+            "spectral_deficit": 0.010798177710513413,
+            "spectral_excess": 0.006855524523675286
+          }
+        },
+        "gain_db": 0.0009580823285180173,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.325394120251595,
+            "si_sdr_db": 13.064587949515683,
+            "spectral_deficit": 0.042333598098315176,
+            "spectral_excess": 0.005568769988594926
+          },
+          "instrumental": {
+            "sdr_db": 16.893364711829776,
+            "si_sdr_db": 16.749683615809094,
+            "spectral_deficit": 0.010842450108634836,
+            "spectral_excess": 0.006723137127274985
+          }
+        },
+        "gain_db": 0.00030527775324529216,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.32536139308155,
+            "si_sdr_db": 13.06484908116469,
+            "spectral_deficit": 0.04220080242855494,
+            "spectral_excess": 0.005582784254177718
+          },
+          "instrumental": {
+            "sdr_db": 16.893331984659735,
+            "si_sdr_db": 16.74956937425263,
+            "spectral_deficit": 0.010856268355193231,
+            "spectral_excess": 0.006676865790470778
+          }
+        },
+        "gain_db": 0.00027255058320108105,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.325313281359142,
+            "si_sdr_db": 13.06481625142052,
+            "spectral_deficit": 0.04221093664768849,
+            "spectral_excess": 0.005581049594226626
+          },
+          "instrumental": {
+            "sdr_db": 16.893283872937324,
+            "si_sdr_db": 16.749515405525187,
+            "spectral_deficit": 0.010855622143845117,
+            "spectral_excess": 0.0066790350348414134
+          }
+        },
+        "gain_db": 0.0002244388607923753,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.325265863556162,
+            "si_sdr_db": 13.064482912392837,
+            "spectral_deficit": 0.04235414362116173,
+            "spectral_excess": 0.0055654126192509505
+          },
+          "instrumental": {
+            "sdr_db": 16.893236455134346,
+            "si_sdr_db": 16.74954306031271,
+            "spectral_deficit": 0.010841194307233674,
+            "spectral_excess": 0.0067276160154498285
+          }
+        },
+        "gain_db": 0.0001770210578122544,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.325126880437434,
+            "si_sdr_db": 13.064529513278394,
+            "spectral_deficit": 0.04230443218155566,
+            "spectral_excess": 0.00556958505562398
+          },
+          "instrumental": {
+            "sdr_db": 16.89309747201562,
+            "si_sdr_db": 16.749320053543602,
+            "spectral_deficit": 0.010847943804047772,
+            "spectral_excess": 0.006707883890719373
+          }
+        },
+        "gain_db": 3.8037939084745176e-05,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.324740193034408,
+            "si_sdr_db": 13.063150854408978,
+            "spectral_deficit": 0.04260578729954065,
+            "spectral_excess": 0.005543121468021092
+          },
+          "instrumental": {
+            "sdr_db": 16.892710784612593,
+            "si_sdr_db": 16.749179255155056,
+            "spectral_deficit": 0.010815560891502441,
+            "spectral_excess": 0.006819419088280506
+          }
+        },
+        "gain_db": -0.0003486494639410864,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.324570986267428,
+            "si_sdr_db": 13.063064527964997,
+            "spectral_deficit": 0.04234591789289353,
+            "spectral_excess": 0.005584050256471731
+          },
+          "instrumental": {
+            "sdr_db": 16.89254157784561,
+            "si_sdr_db": 16.74898964459495,
+            "spectral_deficit": 0.01085763254420953,
+            "spectral_excess": 0.006737430835449816
+          }
+        },
+        "gain_db": -0.0005178562309211543,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.324434630359804,
+            "si_sdr_db": 13.063327436865674,
+            "spectral_deficit": 0.04254536744469775,
+            "spectral_excess": 0.005544057583104283
+          },
+          "instrumental": {
+            "sdr_db": 16.892405221937985,
+            "si_sdr_db": 16.748684841157242,
+            "spectral_deficit": 0.010826379874532503,
+            "spectral_excess": 0.006787676889895706
+          }
+        },
+        "gain_db": -0.0006542121385457733,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.324355594669917,
+            "si_sdr_db": 13.062783039278163,
+            "spectral_deficit": 0.042647986971544066,
+            "spectral_excess": 0.0055368501715109195
+          },
+          "instrumental": {
+            "sdr_db": 16.892326186248102,
+            "si_sdr_db": 16.74876776447014,
+            "spectral_deficit": 0.010813196451423545,
+            "spectral_excess": 0.006828942243239305
+          }
+        },
+        "gain_db": -0.0007332478284318711,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.323944163533163,
+            "si_sdr_db": 13.063148301552662,
+            "spectral_deficit": 0.04235980371384067,
+            "spectral_excess": 0.005571008462213846
+          },
+          "instrumental": {
+            "sdr_db": 16.891914755111344,
+            "si_sdr_db": 16.74825490043448,
+            "spectral_deficit": 0.010843537982213975,
+            "spectral_excess": 0.006736541316510202
+          }
+        },
+        "gain_db": -0.0011446789651863298,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.323738267858689,
+            "si_sdr_db": 13.063042385674684,
+            "spectral_deficit": 0.042304655376912415,
+            "spectral_excess": 0.0055779742458741555
+          },
+          "instrumental": {
+            "sdr_db": 16.89170885943687,
+            "si_sdr_db": 16.748035189005016,
+            "spectral_deficit": 0.010851292483626682,
+            "spectral_excess": 0.006721295821737727
+          }
+        },
+        "gain_db": -0.0013505746396607066,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.32346466978603,
+            "si_sdr_db": 13.053859687159566,
+            "spectral_deficit": 0.042256124532581874,
+            "spectral_excess": 0.005608863501159578
+          },
+          "instrumental": {
+            "sdr_db": 16.89143526136421,
+            "si_sdr_db": 16.743079896451064,
+            "spectral_deficit": 0.011097781139238566,
+            "spectral_excess": 0.0063919529194253364
+          }
+        },
+        "gain_db": -0.0016241727123187388,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.32303018719172,
+            "si_sdr_db": 13.059987628639758,
+            "spectral_deficit": 0.0426335356809439,
+            "spectral_excess": 0.005574053958873078
+          },
+          "instrumental": {
+            "sdr_db": 16.891000778769904,
+            "si_sdr_db": 16.747735813385077,
+            "spectral_deficit": 0.010846198967877169,
+            "spectral_excess": 0.006849508781138165
+          }
+        },
+        "gain_db": -0.002058655306630186,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.322201542852373,
+            "si_sdr_db": 13.061973402878799,
+            "spectral_deficit": 0.04246628562154571,
+            "spectral_excess": 0.005544012762277007
+          },
+          "instrumental": {
+            "sdr_db": 16.890172134430554,
+            "si_sdr_db": 16.746566364959286,
+            "spectral_deficit": 0.010825996427951765,
+            "spectral_excess": 0.0067548338015332105
+          }
+        },
+        "gain_db": -0.002887299645976782,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.322158411096986,
+            "si_sdr_db": 13.060615319218721,
+            "spectral_deficit": 0.042658610472929764,
+            "spectral_excess": 0.005546686945682432
+          },
+          "instrumental": {
+            "sdr_db": 16.890129002675167,
+            "si_sdr_db": 16.746650952362913,
+            "spectral_deficit": 0.010817571883209198,
+            "spectral_excess": 0.006846389467302009
+          }
+        },
+        "gain_db": -0.00293043140136362,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.322033289701498,
+            "si_sdr_db": 13.06074796200311,
+            "spectral_deficit": 0.042548180079659735,
+            "spectral_excess": 0.005559989079175743
+          },
+          "instrumental": {
+            "sdr_db": 16.89000388127968,
+            "si_sdr_db": 16.7465033403565,
+            "spectral_deficit": 0.010832830429861048,
+            "spectral_excess": 0.006814868149286651
+          }
+        },
+        "gain_db": -0.003055552796851657,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.320861611716886,
+            "si_sdr_db": 13.058142357309622,
+            "spectral_deficit": 0.043047341993208116,
+            "spectral_excess": 0.005500350526419639
+          },
+          "instrumental": {
+            "sdr_db": 16.88883220329507,
+            "si_sdr_db": 16.745184460163046,
+            "spectral_deficit": 0.010785716419096482,
+            "spectral_excess": 0.006958597994210966
+          }
+        },
+        "gain_db": -0.004227230781463476,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.320557660913144,
+            "si_sdr_db": 13.056615883486952,
+            "spectral_deficit": 0.04317628361216293,
+            "spectral_excess": 0.005501183011682549
+          },
+          "instrumental": {
+            "sdr_db": 16.888528252491326,
+            "si_sdr_db": 16.7452438133286,
+            "spectral_deficit": 0.010764741649536166,
+            "spectral_excess": 0.007027097086423342
+          }
+        },
+        "gain_db": -0.0045311815852056014,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.319430237248369,
+            "si_sdr_db": 13.0593580481917,
+            "spectral_deficit": 0.04262416417278178,
+            "spectral_excess": 0.005519836236482318
+          },
+          "instrumental": {
+            "sdr_db": 16.887400828826554,
+            "si_sdr_db": 16.743762861036522,
+            "spectral_deficit": 0.01079108508413949,
+            "spectral_excess": 0.006787517090728126
+          }
+        },
+        "gain_db": -0.0056586052499802975,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.319277153541975,
+            "si_sdr_db": 13.055248602285328,
+            "spectral_deficit": 0.04326514803534247,
+            "spectral_excess": 0.005490386527937752
+          },
+          "instrumental": {
+            "sdr_db": 16.887247745120156,
+            "si_sdr_db": 16.743900715805673,
+            "spectral_deficit": 0.010760599383440497,
+            "spectral_excess": 0.007048432752713642
+          }
+        },
+        "gain_db": -0.005811688956374184,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.318265683816325,
+            "si_sdr_db": 13.05780016531739,
+            "spectral_deficit": 0.042874371195071787,
+            "spectral_excess": 0.005494103799834138
+          },
+          "instrumental": {
+            "sdr_db": 16.88623627539451,
+            "si_sdr_db": 16.742863078860225,
+            "spectral_deficit": 0.010782752917985715,
+            "spectral_excess": 0.006884329051199101
+          }
+        },
+        "gain_db": -0.006823158682024655,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.317963672578562,
+            "si_sdr_db": 13.052713609177761,
+            "spectral_deficit": 0.0434625585662749,
+            "spectral_excess": 0.005450510232025774
+          },
+          "instrumental": {
+            "sdr_db": 16.885934264156745,
+            "si_sdr_db": 16.742445557596334,
+            "spectral_deficit": 0.010734309306453239,
+            "spectral_excess": 0.007115136181488606
+          }
+        },
+        "gain_db": -0.007125169919786956,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.317569447555833,
+            "si_sdr_db": 13.054568556115779,
+            "spectral_deficit": 0.0430626600093803,
+            "spectral_excess": 0.005528815262036581
+          },
+          "instrumental": {
+            "sdr_db": 16.885540039134014,
+            "si_sdr_db": 16.74238095676487,
+            "spectral_deficit": 0.01079758820829054,
+            "spectral_excess": 0.007014521932947796
+          }
+        },
+        "gain_db": -0.0075193949425163,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.317533177698623,
+            "si_sdr_db": 13.04827964602094,
+            "spectral_deficit": 0.04323863554443579,
+            "spectral_excess": 0.005645126731699634
+          },
+          "instrumental": {
+            "sdr_db": 16.885503769276806,
+            "si_sdr_db": 16.743609906838408,
+            "spectral_deficit": 0.010778415779526297,
+            "spectral_excess": 0.007546523056183576
+          }
+        },
+        "gain_db": -0.007555664799726358,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.31689273595292,
+            "si_sdr_db": 13.0498391944584,
+            "spectral_deficit": 0.04324432983422837,
+            "spectral_excess": 0.005564591083220549
+          },
+          "instrumental": {
+            "sdr_db": 16.8848633275311,
+            "si_sdr_db": 16.742143450428316,
+            "spectral_deficit": 0.010827047470897147,
+            "spectral_excess": 0.00709335620189293
+          }
+        },
+        "gain_db": -0.008196106545430126,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.316673883039662,
+            "si_sdr_db": 13.052924767367625,
+            "spectral_deficit": 0.043283746112088434,
+            "spectral_excess": 0.005504678049843982
+          },
+          "instrumental": {
+            "sdr_db": 16.884644474617847,
+            "si_sdr_db": 16.741510356086355,
+            "spectral_deficit": 0.01076807436545952,
+            "spectral_excess": 0.007081722704223793
+          }
+        },
+        "gain_db": -0.008414959458686866,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.312506369656948,
+            "si_sdr_db": 13.052318545442652,
+            "spectral_deficit": 0.0431933076967459,
+            "spectral_excess": 0.005446640321130733
+          },
+          "instrumental": {
+            "sdr_db": 16.880476961235132,
+            "si_sdr_db": 16.737049542261314,
+            "spectral_deficit": 0.010713371874664795,
+            "spectral_excess": 0.0069507367124759505
+          }
+        },
+        "gain_db": -0.012582472841401682,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.307266898951287,
+            "si_sdr_db": 13.045423956347957,
+            "spectral_deficit": 0.043726451045880216,
+            "spectral_excess": 0.0054050450175216775
+          },
+          "instrumental": {
+            "sdr_db": 16.875237490529468,
+            "si_sdr_db": 16.732299935054627,
+            "spectral_deficit": 0.01069952788917048,
+            "spectral_excess": 0.007163116991621789
+          }
+        },
+        "gain_db": -0.017821943547062347,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.304998621864318,
+            "si_sdr_db": 13.036669012256704,
+            "spectral_deficit": 0.04413219813204591,
+            "spectral_excess": 0.005441715630146622
+          },
+          "instrumental": {
+            "sdr_db": 16.872969213442502,
+            "si_sdr_db": 16.729310463048733,
+            "spectral_deficit": 0.010714079291135381,
+            "spectral_excess": 0.007346541494261541
+          }
+        },
+        "gain_db": -0.020090220634031652,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.304495315235904,
+            "si_sdr_db": 13.03589378983457,
+            "spectral_deficit": 0.044202062339288375,
+            "spectral_excess": 0.005484916922813145
+          },
+          "instrumental": {
+            "sdr_db": 16.872465906814085,
+            "si_sdr_db": 16.729976174499907,
+            "spectral_deficit": 0.010733494466782977,
+            "spectral_excess": 0.007465048298714106
+          }
+        },
+        "gain_db": -0.02059352726244512,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.300750228560226,
+            "si_sdr_db": 13.028955696365554,
+            "spectral_deficit": 0.044421513689838925,
+            "spectral_excess": 0.005453749747711586
+          },
+          "instrumental": {
+            "sdr_db": 16.86872082013841,
+            "si_sdr_db": 16.725737471483356,
+            "spectral_deficit": 0.010674688253142897,
+            "spectral_excess": 0.007504186558375415
+          }
+        },
+        "gain_db": -0.024338613938123643,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.298137091971284,
+            "si_sdr_db": 13.027106326252937,
+            "spectral_deficit": 0.044644122938283334,
+            "spectral_excess": 0.005446167635246718
+          },
+          "instrumental": {
+            "sdr_db": 16.866107683549465,
+            "si_sdr_db": 16.723592174703334,
+            "spectral_deficit": 0.010678155388183551,
+            "spectral_excess": 0.007616415830329199
+          }
+        },
+        "gain_db": -0.02695175052706489,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.296162529073548,
+            "si_sdr_db": 13.023707307761542,
+            "spectral_deficit": 0.04461675870611864,
+            "spectral_excess": 0.00543897955304714
+          },
+          "instrumental": {
+            "sdr_db": 16.86413312065173,
+            "si_sdr_db": 16.72099261525678,
+            "spectral_deficit": 0.01066867230002871,
+            "spectral_excess": 0.007556243851392277
+          }
+        },
+        "gain_db": -0.02892631342480101,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.294895784897182,
+            "si_sdr_db": 13.033458083540289,
+            "spectral_deficit": 0.04437706237268238,
+            "spectral_excess": 0.005313450869766289
+          },
+          "instrumental": {
+            "sdr_db": 16.862866376475367,
+            "si_sdr_db": 16.719865115819285,
+            "spectral_deficit": 0.010562485634848996,
+            "spectral_excess": 0.007300227903207184
+          }
+        },
+        "gain_db": -0.030193057601167084,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.292520438341487,
+            "si_sdr_db": 13.013739230783123,
+            "spectral_deficit": 0.04460709837567464,
+            "spectral_excess": 0.005587217828849185
+          },
+          "instrumental": {
+            "sdr_db": 16.860491029919668,
+            "si_sdr_db": 16.718749142904777,
+            "spectral_deficit": 0.010803270632041206,
+            "spectral_excess": 0.00766149096862322
+          }
+        },
+        "gain_db": -0.03256840415686213,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.274849618871013,
+            "si_sdr_db": 12.996825750345327,
+            "spectral_deficit": 0.04512788480663562,
+            "spectral_excess": 0.005409733426616297
+          },
+          "instrumental": {
+            "sdr_db": 16.842820210449197,
+            "si_sdr_db": 16.699024088685547,
+            "spectral_deficit": 0.010631837535282629,
+            "spectral_excess": 0.007745271131548557
+          }
+        },
+        "gain_db": -0.05023922362733657,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.272927699149548,
+            "si_sdr_db": 13.004591392981043,
+            "spectral_deficit": 0.0455734999335046,
+            "spectral_excess": 0.005268469598260792
+          },
+          "instrumental": {
+            "sdr_db": 16.840898290727733,
+            "si_sdr_db": 16.698724278643468,
+            "spectral_deficit": 0.010546074026878828,
+            "spectral_excess": 0.0078020076792748635
+          }
+        },
+        "gain_db": -0.052161143348801176,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.262360825417158,
+            "si_sdr_db": 12.973972390503654,
+            "spectral_deficit": 0.046925958077557714,
+            "spectral_excess": 0.0054667142325664966
+          },
+          "instrumental": {
+            "sdr_db": 16.830331416995342,
+            "si_sdr_db": 16.689163232538025,
+            "spectral_deficit": 0.010629077019560026,
+            "spectral_excess": 0.008578918823279422
+          }
+        },
+        "gain_db": -0.06272801708119147,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.256777805074632,
+            "si_sdr_db": 12.963807619253181,
+            "spectral_deficit": 0.042872280499879664,
+            "spectral_excess": 0.005894284163075638
+          },
+          "instrumental": {
+            "sdr_db": 16.824748396652815,
+            "si_sdr_db": 16.67074946275806,
+            "spectral_deficit": 0.01150245766385147,
+            "spectral_excess": 0.006421182767943002
+          }
+        },
+        "gain_db": -0.06831103742371702,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.252131659872166,
+            "si_sdr_db": 12.95644983509545,
+            "spectral_deficit": 0.04499561355842245,
+            "spectral_excess": 0.0059083787462573
+          },
+          "instrumental": {
+            "sdr_db": 16.82010225145035,
+            "si_sdr_db": 16.679352722045827,
+            "spectral_deficit": 0.010759233875992397,
+            "spectral_excess": 0.008862018194069754
+          }
+        },
+        "gain_db": -0.07295718262618323,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.244905319232274,
+            "si_sdr_db": 12.976686136189768,
+            "spectral_deficit": 0.046925098504728695,
+            "spectral_excess": 0.005096992169118698
+          },
+          "instrumental": {
+            "sdr_db": 16.812875910810458,
+            "si_sdr_db": 16.670784147255183,
+            "spectral_deficit": 0.010278720874779674,
+            "spectral_excess": 0.008094436675234856
+          }
+        },
+        "gain_db": -0.0801835232660757,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.242921701219746,
+            "si_sdr_db": 12.951675068555362,
+            "spectral_deficit": 0.0465365521623706,
+            "spectral_excess": 0.005470356719540987
+          },
+          "instrumental": {
+            "sdr_db": 16.81089229279793,
+            "si_sdr_db": 16.667946709160486,
+            "spectral_deficit": 0.010567171443899083,
+            "spectral_excess": 0.008379425974652011
+          }
+        },
+        "gain_db": -0.08216714127860314,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.239008538852412,
+            "si_sdr_db": 12.95005165153387,
+            "spectral_deficit": 0.04661362367155745,
+            "spectral_excess": 0.005435900325112903
+          },
+          "instrumental": {
+            "sdr_db": 16.806979130430594,
+            "si_sdr_db": 16.662755308822195,
+            "spectral_deficit": 0.010609105219427515,
+            "spectral_excess": 0.008313040307531348
+          }
+        },
+        "gain_db": -0.08608030364593766,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.231650053711501,
+            "si_sdr_db": 12.934790309315872,
+            "spectral_deficit": 0.04779273683749307,
+            "spectral_excess": 0.00542526967584626
+          },
+          "instrumental": {
+            "sdr_db": 16.799620645289686,
+            "si_sdr_db": 16.658133632182427,
+            "spectral_deficit": 0.010533059110338071,
+            "spectral_excess": 0.008952231688156748
+          }
+        },
+        "gain_db": -0.09343878878684819,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.229729979739624,
+            "si_sdr_db": 12.936077192512881,
+            "spectral_deficit": 0.04692343514621001,
+            "spectral_excess": 0.0054618633154473115
+          },
+          "instrumental": {
+            "sdr_db": 16.797700571317808,
+            "si_sdr_db": 16.654411767684238,
+            "spectral_deficit": 0.01056254052327802,
+            "spectral_excess": 0.008496069581340556
+          }
+        },
+        "gain_db": -0.09535886275872585,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.19689500866744,
+            "si_sdr_db": 12.880843363355229,
+            "spectral_deficit": 0.04788262180930727,
+            "spectral_excess": 0.005796426867304534
+          },
+          "instrumental": {
+            "sdr_db": 16.764865600245624,
+            "si_sdr_db": 16.624651409413133,
+            "spectral_deficit": 0.010812094115149364,
+            "spectral_excess": 0.009131531424146
+          }
+        },
+        "gain_db": -0.12819383383090965,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.161998531148036,
+            "si_sdr_db": 12.824440688438454,
+            "spectral_deficit": 0.05212758570143153,
+            "spectral_excess": 0.005600845598650029
+          },
+          "instrumental": {
+            "sdr_db": 16.729969122726217,
+            "si_sdr_db": 16.590851640171834,
+            "spectral_deficit": 0.010528758424751776,
+            "spectral_excess": 0.010806597170478242
+          }
+        },
+        "gain_db": -0.16309031135031304,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.15673098570628,
+            "si_sdr_db": 12.860090479473916,
+            "spectral_deficit": 0.04982548101162575,
+            "spectral_excess": 0.005151820053700628
+          },
+          "instrumental": {
+            "sdr_db": 16.724701577284463,
+            "si_sdr_db": 16.583699345454747,
+            "spectral_deficit": 0.010292424040197408,
+            "spectral_excess": 0.009420583983989948
+          }
+        },
+        "gain_db": -0.16835785679206872,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.152656877635557,
+            "si_sdr_db": 12.833452657765623,
+            "spectral_deficit": 0.048940487317068904,
+            "spectral_excess": 0.005588524978840997
+          },
+          "instrumental": {
+            "sdr_db": 16.720627469213742,
+            "si_sdr_db": 16.577340322210702,
+            "spectral_deficit": 0.010489655363307591,
+            "spectral_excess": 0.009453478917053313
+          }
+        },
+        "gain_db": -0.1724319648627919,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.145096490887337,
+            "si_sdr_db": 12.834119393660444,
+            "spectral_deficit": 0.04810024326878436,
+            "spectral_excess": 0.005538002183622054
+          },
+          "instrumental": {
+            "sdr_db": 16.71306708246552,
+            "si_sdr_db": 16.567842443256502,
+            "spectral_deficit": 0.01053450185999719,
+            "spectral_excess": 0.008978965019813129
+          }
+        },
+        "gain_db": -0.17999235161101268,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.126863136784134,
+            "si_sdr_db": 12.802582594712582,
+            "spectral_deficit": 0.04955506240387453,
+            "spectral_excess": 0.005600668859597814
+          },
+          "instrumental": {
+            "sdr_db": 16.69483372836232,
+            "si_sdr_db": 16.550987893142604,
+            "spectral_deficit": 0.010490688864974312,
+            "spectral_excess": 0.009657906334178883
+          }
+        },
+        "gain_db": -0.19822570571421494,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.08881267702445,
+            "si_sdr_db": 12.789101970147524,
+            "spectral_deficit": 0.05272641213568931,
+            "spectral_excess": 0.004844773497043494
+          },
+          "instrumental": {
+            "sdr_db": 16.65678326860263,
+            "si_sdr_db": 16.517000193453207,
+            "spectral_deficit": 0.009783086679464582,
+            "spectral_excess": 0.010085259258812648
+          }
+        },
+        "gain_db": -0.23627616547389962,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.063252497400649,
+            "si_sdr_db": 12.702552445446466,
+            "spectral_deficit": 0.05352783535020309,
+            "spectral_excess": 0.005617855187468239
+          },
+          "instrumental": {
+            "sdr_db": 16.63122308897883,
+            "si_sdr_db": 16.49101095829014,
+            "spectral_deficit": 0.010395814651105499,
+            "spectral_excess": 0.011655534409809265
+          }
+        },
+        "gain_db": -0.2618363450977004,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.05907380379891,
+            "si_sdr_db": 12.717862996790373,
+            "spectral_deficit": 0.05108359389156282,
+            "spectral_excess": 0.005696029556490635
+          },
+          "instrumental": {
+            "sdr_db": 16.62704439537709,
+            "si_sdr_db": 16.480997732368273,
+            "spectral_deficit": 0.010538508751185003,
+            "spectral_excess": 0.010261250752537055
+          }
+        },
+        "gain_db": -0.26601503869943954,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.052535223747153,
+            "si_sdr_db": 12.689080132518951,
+            "spectral_deficit": 0.0486954652016749,
+            "spectral_excess": 0.006716899247956294
+          },
+          "instrumental": {
+            "sdr_db": 16.620505815325334,
+            "si_sdr_db": 16.48018653226026,
+            "spectral_deficit": 0.010853115503411354,
+            "spectral_excess": 0.011624273246666138
+          }
+        },
+        "gain_db": -0.2725536187511963,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.043094510163309,
+            "si_sdr_db": 12.69837682847078,
+            "spectral_deficit": 0.044532616056389016,
+            "spectral_excess": 0.006904512359521366
+          },
+          "instrumental": {
+            "sdr_db": 16.611065101741488,
+            "si_sdr_db": 16.446337421577425,
+            "spectral_deficit": 0.012464936789715409,
+            "spectral_excess": 0.006931396308566458
+          }
+        },
+        "gain_db": -0.28199433233504045,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.021782504881067,
+            "si_sdr_db": 12.616627327096092,
+            "spectral_deficit": 0.0586143452847494,
+            "spectral_excess": 0.005920486640548133
+          },
+          "instrumental": {
+            "sdr_db": 16.589753096459248,
+            "si_sdr_db": 16.452874407249865,
+            "spectral_deficit": 0.010487337601910847,
+            "spectral_excess": 0.013731315982390746
+          }
+        },
+        "gain_db": -0.30330633761728265,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.945953299580712,
+            "si_sdr_db": 12.54647368788629,
+            "spectral_deficit": 0.05407102189453018,
+            "spectral_excess": 0.006524095967425064
+          },
+          "instrumental": {
+            "sdr_db": 16.513923891158893,
+            "si_sdr_db": 16.3750139802249,
+            "spectral_deficit": 0.010953445455326007,
+            "spectral_excess": 0.012209287865177972
+          }
+        },
+        "gain_db": -0.37913554291763774,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.943835235057778,
+            "si_sdr_db": 12.58580711105114,
+            "spectral_deficit": 0.05156351181227389,
+            "spectral_excess": 0.005889852755419015
+          },
+          "instrumental": {
+            "sdr_db": 16.51180582663596,
+            "si_sdr_db": 16.36443532521524,
+            "spectral_deficit": 0.01049914974959274,
+            "spectral_excess": 0.010574604182343886
+          }
+        },
+        "gain_db": -0.3812536074405717,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.874834224670714,
+            "si_sdr_db": 12.499586604467094,
+            "spectral_deficit": 0.0575040096969663,
+            "spectral_excess": 0.005344193813482989
+          },
+          "instrumental": {
+            "sdr_db": 16.442804816248895,
+            "si_sdr_db": 16.302969728386998,
+            "spectral_deficit": 0.01003857115644748,
+            "spectral_excess": 0.012753547915211095
+          }
+        },
+        "gain_db": -0.45025461782763543,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.822286213363547,
+            "si_sdr_db": 12.374641124745377,
+            "spectral_deficit": 0.060135917076747245,
+            "spectral_excess": 0.006071907771155096
+          },
+          "instrumental": {
+            "sdr_db": 16.39025680494173,
+            "si_sdr_db": 16.25134763381237,
+            "spectral_deficit": 0.010342362627161645,
+            "spectral_excess": 0.015240527985845808
+          }
+        },
+        "gain_db": -0.502802629134802,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.793354586189244,
+            "si_sdr_db": 12.379872579912327,
+            "spectral_deficit": 0.056222280738564674,
+            "spectral_excess": 0.006280657035955636
+          },
+          "instrumental": {
+            "sdr_db": 16.361325177767426,
+            "si_sdr_db": 16.2129076285272,
+            "spectral_deficit": 0.010564143948024348,
+            "spectral_excess": 0.012837089407650607
+          }
+        },
+        "gain_db": -0.5317342563091056,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.746267582451543,
+            "si_sdr_db": 12.291589142233839,
+            "spectral_deficit": 0.05324010798344077,
+            "spectral_excess": 0.00806701145103869
+          },
+          "instrumental": {
+            "sdr_db": 16.314238174029725,
+            "si_sdr_db": 16.173256089871778,
+            "spectral_deficit": 0.011072735672758738,
+            "spectral_excess": 0.015373839790201248
+          }
+        },
+        "gain_db": -0.5788212600468068,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.731304135051515,
+            "si_sdr_db": 12.340932196232234,
+            "spectral_deficit": 0.06301598605878442,
+            "spectral_excess": 0.004866524833014746
+          },
+          "instrumental": {
+            "sdr_db": 16.299274726629697,
+            "si_sdr_db": 16.165033811545552,
+            "spectral_deficit": 0.00920660700658069,
+            "spectral_excess": 0.01415291070882557
+          }
+        },
+        "gain_db": -0.5937847074468348,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.713343362091287,
+            "si_sdr_db": 12.309734163144942,
+            "spectral_deficit": 0.04672185907009227,
+            "spectral_excess": 0.008708868248939761
+          },
+          "instrumental": {
+            "sdr_db": 16.281313953669468,
+            "si_sdr_db": 16.10330399955947,
+            "spectral_deficit": 0.013827375686571663,
+            "spectral_excess": 0.007958435397875009
+          }
+        },
+        "gain_db": -0.6117454804070626,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.586664646081351,
+            "si_sdr_db": 12.082959978730164,
+            "spectral_deficit": 0.061274540063097,
+            "spectral_excess": 0.007783382259162637
+          },
+          "instrumental": {
+            "sdr_db": 16.154635237659534,
+            "si_sdr_db": 16.01602778742261,
+            "spectral_deficit": 0.011221438782367704,
+            "spectral_excess": 0.01638409577497129
+          }
+        },
+        "gain_db": -0.7384241964169984,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.48666423640665,
+            "si_sdr_db": 11.996876700154617,
+            "spectral_deficit": 0.06623156283234127,
+            "spectral_excess": 0.005969078556365542
+          },
+          "instrumental": {
+            "sdr_db": 16.05463482798483,
+            "si_sdr_db": 15.915698032715149,
+            "spectral_deficit": 0.009920192575485258,
+            "spectral_excess": 0.01724434874801265
+          }
+        },
+        "gain_db": -0.8384246060916993,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.258141696954288,
+            "si_sdr_db": 11.732550279111498,
+            "spectral_deficit": 0.07420756821646367,
+            "spectral_excess": 0.005327675120036629
+          },
+          "instrumental": {
+            "sdr_db": 15.82611228853247,
+            "si_sdr_db": 15.7006927811129,
+            "spectral_deficit": 0.00879933869327397,
+            "spectral_excess": 0.01961945245143978
+          }
+        },
+        "gain_db": -1.0669471455440611,
+        "content_safe": false
+      }
+    ],
+    "production_changed": false
+  },
+  "selected_fit": {
+    "baseline_preset": {
+      "id": "atlas_studio_v2",
+      "name": "Atlas Studio V2",
+      "models": [
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Viperx-1297",
+          "estimate": "vocal",
+          "weight": 0.17443023893149945
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.11430054074816169
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+          "estimate": "vocal",
+          "weight": 0.170177253718986
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+          "estimate": "inst",
+          "weight": 0.019257166249671314
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.03216386193638066
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+          "estimate": "inst",
+          "weight": 0.19631456977712158
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Deux by becruily",
+          "estimate": "vocal",
+          "weight": 0.036629851183394346
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Xe Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.15670929709193934
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Xe Instrumental by pcunwa",
+          "estimate": "inst",
+          "weight": 0.10001722036284563
+        }
+      ],
+      "frequency_weights": {
+        "anchors_hz": [
+          0,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          16000,
+          22050
+        ],
+        "weights": [
+          [
+            0.1038054954257249,
+            0.10386818380346963,
+            0.22149451737476863,
+            0.3686461979239519,
+            0.357088506046072,
+            0.20425008270271117,
+            3.369384126451306e-17,
+            0.1094398910520009,
+            0.08125959219465351,
+            0.19444992279164172
+          ],
+          [
+            0.7037921998356566,
+            5.995299200665938e-18,
+            0.4126504200092933,
+            0.0,
+            5.761941623697378e-17,
+            0.0,
+            0.0,
+            4.224312126634806e-19,
+            2.0030635136669694e-17,
+            0.026562787636667144
+          ],
+          [
+            5.803869754586466e-18,
+            0.0,
+            0.0,
+            2.44062485235078e-17,
+            0.0,
+            0.07472620319317419,
+            0.25691256941506035,
+            0.4035860000812989,
+            0.48006659220084136,
+            0.48648117229948523
+          ],
+          [
+            7.794905400402424e-17,
+            1.713208839116548e-17,
+            0.18186172558797353,
+            0.0,
+            1.9676575364717397e-18,
+            0.0,
+            2.536868932521145e-17,
+            0.0,
+            1.4606236142453155e-17,
+            0.010709936908739465
+          ],
+          [
+            0.0,
+            5.5853352541948564e-18,
+            6.1693644713266965e-18,
+            0.20232483087851616,
+            0.11273300955942543,
+            1.8238313420279595e-17,
+            0.0,
+            1.7099927608949417e-17,
+            0.0,
+            0.006580778925864981
+          ],
+          [
+            0.19240230473861858,
+            0.2746061655076554,
+            9.044194294307792e-19,
+            0.05602949631634217,
+            0.35000167585385,
+            0.1046153286269037,
+            0.0,
+            0.38832949820191454,
+            0.3254757991043873,
+            0.27168542942154417
+          ],
+          [
+            1.9408912953385038e-17,
+            0.20952471897234548,
+            0.0,
+            0.039567222674838906,
+            0.0,
+            7.911287727355165e-18,
+            2.543854719595659e-18,
+            0.006096675607633445,
+            0.11110989457912562,
+            4.777636399428678e-18
+          ],
+          [
+            0.0,
+            0.4120009317165294,
+            0.18399333702796464,
+            0.3255284138254862,
+            0.10125027237367801,
+            0.37234879546457267,
+            0.17064637617926195,
+            0.0,
+            1.734723475976807e-18,
+            0.0013248443319006423
+          ],
+          [
+            0.0,
+            0.0,
+            8.241207060310715e-18,
+            0.00790383838086461,
+            0.07892653616697459,
+            0.24405959001263827,
+            0.5724410544056777,
+            0.09254793505715227,
+            0.00208812192099218,
+            0.002205127684156718
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "calibration": {
+        "report": "docs/atlas-studio-v2-alternatives-round-two.json",
+        "accepted": true,
+        "scope": "Second frozen confirmation: eight short reference excerpts; all eight SDR gains positive; both mean content checks improved. No zero-loss or universal superiority guarantee."
+      }
+    },
+    "development_ids": [
+      "fc9f42fdeb43",
+      "3c1b6f88b282",
+      "2063584c7f74",
+      "7446f71a03b7",
+      "465889e42b6a",
+      "2778930b9b61",
+      "5bc229213e9f",
+      "60a9cec090f0",
+      "502f51d25f86",
+      "16512990064b",
+      "851d0684e5bc",
+      "bac2583979ee",
+      "6370671b9d4b",
+      "a88daa04efcf",
+      "3e38f298d8d5",
+      "bd44a2ee8be2"
+    ],
+    "baseline_summary": {
+      "vocal": {
+        "sdr_db": 13.32508884249835,
+        "si_sdr_db": 13.064805545173542,
+        "spectral_deficit": 0.04207022973480368,
+        "spectral_excess": 0.005597599569126503
+      },
+      "instrumental": {
+        "sdr_db": 16.89305943407653,
+        "si_sdr_db": 16.74921073797414,
+        "spectral_deficit": 0.01087033298961922,
+        "spectral_excess": 0.0066318320001856005
+      }
+    },
+    "trials": [
+      {
+        "regularization": 0.001,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "valid": true,
+        "weights": [
+          [
+            0.20798452885211358,
+            0.09391381437646451,
+            0.1423505418939904,
+            0.21381166800721987,
+            0.28523873427618335,
+            0.23551393326292533,
+            0.005972971762932346,
+            0.1006414327208079,
+            0.062499621516577064,
+            0.19454992126012835
+          ],
+          [
+            0.5364452971939928,
+            2.535402545192616e-17,
+            0.08074740115163938,
+            1.3423778148086152e-17,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            5.05424559626641e-18,
+            0.02602561709961523
+          ],
+          [
+            4.946672411965114e-19,
+            0.0,
+            2.903883053071918e-17,
+            4.7815009872505254e-17,
+            0.0,
+            0.06792557396700995,
+            0.24717158970885053,
+            0.2718314715700229,
+            0.44748066781180945,
+            0.48643231563215794
+          ],
+          [
+            0.0,
+            1.4797242072059e-17,
+            0.0,
+            0.0,
+            9.092898688774914e-18,
+            1.8031637381149546e-17,
+            0.0,
+            0.0,
+            1.151287181908045e-17,
+            0.009742888092954585
+          ],
+          [
+            0.0,
+            2.5758271926003273e-18,
+            0.0,
+            0.1852816276799404,
+            0.06542895173823285,
+            0.0,
+            0.0,
+            0.0,
+            0.002075055077538985,
+            0.00675863780038041
+          ],
+          [
+            0.013153917827421507,
+            0.1627654068944708,
+            4.095404299974542e-18,
+            1.4458852409630907e-17,
+            0.12915812071408858,
+            8.156292007348472e-18,
+            0.0,
+            0.24161072423954844,
+            0.3160520730248663,
+            0.27108864088323076
+          ],
+          [
+            0.0,
+            1.0950018425629968e-18,
+            0.22868098794467,
+            0.0,
+            0.08876040376698602,
+            0.0,
+            0.0,
+            0.17054085228151294,
+            0.12660521595065002,
+            3.571620301216164e-18
+          ],
+          [
+            0.130757540972444,
+            0.5269042678984809,
+            0.21972616282527666,
+            0.4907154677995685,
+            0.17904793389336204,
+            0.3677724485459211,
+            0.24080041583611222,
+            5.088126914156582e-18,
+            0.005542247793547909,
+            0.0014667043365823287
+          ],
+          [
+            0.0,
+            0.0,
+            9.00141913047145e-18,
+            0.0,
+            0.02799306848271672,
+            0.1992745251390082,
+            0.5052003110454173,
+            0.043627189580255674,
+            0.0021219471285983515,
+            0.0025104283481561934
+          ],
+          [
+            4.89373285276172e-19,
+            0.0,
+            1.7210015422312874e-17,
+            1.1553529400548657e-18,
+            0.0,
+            1.6421004231945494e-17,
+            5.7970934910084315e-18,
+            0.0,
+            0.0,
+            0.00019741059282243393
+          ],
+          [
+            0.0,
+            0.2164165108305839,
+            0.0,
+            0.1101912365132712,
+            0.22437278712843053,
+            0.12951351908513556,
+            0.0008547116466876949,
+            0.1717483296078521,
+            0.02483282871327481,
+            0.0008114159257999508
+          ],
+          [
+            0.11165871515402824,
+            0.0,
+            1.1558188081758555e-17,
+            1.5463433485074507e-17,
+            6.262749853761483e-18,
+            1.5360095465509482e-17,
+            0.0,
+            2.6668832344301646e-18,
+            0.0019694648541215476,
+            0.0003448760476388189
+          ],
+          [
+            0.0,
+            0.0,
+            0.3284949061844236,
+            4.435911544770771e-18,
+            0.0,
+            5.160124714673198e-18,
+            3.782002109490451e-18,
+            0.0,
+            0.01082087812901548,
+            7.114398053299069e-05
+          ]
+        ],
+        "content_slack_min": -9.866090583399156e-12,
+        "waveform_slack_min": 8.440547241740995e-05,
+        "development_mean_sdr_gain_db": 0.12601845082426583,
+        "full_development": {
+          "vocal": {
+            "sdr_db": 13.451107293322751,
+            "si_sdr_db": 13.195548322504106,
+            "spectral_deficit": 0.038152207554053394,
+            "spectral_excess": 0.005543274258512397
+          },
+          "instrumental": {
+            "sdr_db": 17.019077884900934,
+            "si_sdr_db": 16.87677575373729,
+            "spectral_deficit": 0.010759650950054253,
+            "spectral_excess": 0.006290207144162617
+          }
+        },
+        "eligible": true
+      },
+      {
+        "regularization": 0.01,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "valid": true,
+        "weights": [
+          [
+            0.12478861551391326,
+            0.08487922498438578,
+            0.15324536580585132,
+            0.22919676851362333,
+            0.29486657898336527,
+            0.2180056782379017,
+            0.0043396389147458015,
+            0.10103737234109608,
+            0.07745510097878883,
+            0.1944588110324584
+          ],
+          [
+            0.6795725395011148,
+            4.958446169931949e-17,
+            0.1711965967667706,
+            1.0287850419113918e-17,
+            1.8399249680257912e-17,
+            0.0,
+            0.0,
+            0.0,
+            5.1243375726517035e-18,
+            0.02649898645055675
+          ],
+          [
+            1.0020611524255187e-17,
+            0.0,
+            0.0,
+            0.0,
+            6.168093921905815e-18,
+            0.07423929218537675,
+            0.2473253466199755,
+            0.36565146046077784,
+            0.4729634813034904,
+            0.4864725717269204
+          ],
+          [
+            9.295445442287099e-18,
+            1.4389395707956054e-17,
+            0.0,
+            3.094740751911993e-17,
+            0.0,
+            0.0,
+            3.359332668810555e-18,
+            0.0,
+            6.01763969464977e-19,
+            0.010598956576469946
+          ],
+          [
+            2.348981181413785e-18,
+            3.888728260844493e-18,
+            2.931326920562957e-17,
+            0.1924334981006196,
+            0.07672149226209629,
+            1.2395056633645804e-17,
+            0.0,
+            0.0,
+            6.242099800637844e-05,
+            0.0065989102156845635
+          ],
+          [
+            0.14669058644890645,
+            0.21466852068369235,
+            1.173140631947206e-18,
+            5.084527024130751e-18,
+            0.22133671822704742,
+            0.02436275904283481,
+            0.0,
+            0.36637387655086107,
+            0.32359067820754145,
+            0.27161631500622546
+          ],
+          [
+            0.0,
+            0.07950556255859978,
+            0.18929513397332198,
+            0.0,
+            0.0451289744297535,
+            1.2943510466992963e-17,
+            1.0225275860135507e-17,
+            0.05352862235262918,
+            0.11613816227924724,
+            4.6397073410079105e-18
+          ],
+          [
+            0.03177316757784307,
+            0.47707307644842595,
+            0.22231975076853888,
+            0.45680673336132566,
+            0.1569043344193925,
+            0.37272015941044584,
+            0.18499861347947547,
+            8.32972200329879e-18,
+            0.0005564083014857162,
+            0.0013389983778934172
+          ],
+          [
+            0.0034307437728894634,
+            0.0,
+            5.613287341454248e-18,
+            0.0,
+            0.05411805846258498,
+            0.21290810338765173,
+            0.5490566244117563,
+            0.0851131833850376,
+            0.0019335901335242548,
+            0.0022423010700844126
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.0201735792015063e-18,
+            0.0,
+            0.0,
+            2.8392544391964147e-18,
+            4.755190026326439e-18,
+            2.1326588317299396e-05
+          ],
+          [
+            1.8196385289390507e-18,
+            0.14387361532489618,
+            2.7497230566716352e-17,
+            0.1215630000244315,
+            0.1509238432157602,
+            0.09776400773578929,
+            0.014279776574046906,
+            0.026051541452279888,
+            0.0038036907379467365,
+            0.00010148873246865432
+          ],
+          [
+            0.013744347185332854,
+            0.0,
+            0.0,
+            0.0,
+            1.525506338004995e-18,
+            0.0,
+            0.0,
+            1.827050067227526e-18,
+            0.0014918071675108662,
+            4.1823002393307736e-05
+          ],
+          [
+            1.5104979729708328e-18,
+            5.481997234629832e-18,
+            0.2639431526855173,
+            0.0,
+            2.5563454348134784e-18,
+            1.2730905197232134e-18,
+            0.0,
+            0.002243943457318375,
+            0.0020046598924580742,
+            9.511220527493169e-06
+          ]
+        ],
+        "content_slack_min": -4.389688265660219e-12,
+        "waveform_slack_min": 8.617400783352339e-05,
+        "development_mean_sdr_gain_db": 0.1180865745629866,
+        "full_development": {
+          "vocal": {
+            "sdr_db": 13.443175417061415,
+            "si_sdr_db": 13.187681881338236,
+            "spectral_deficit": 0.03858907739355737,
+            "spectral_excess": 0.005543063181169226
+          },
+          "instrumental": {
+            "sdr_db": 17.011146008639596,
+            "si_sdr_db": 16.869064156270092,
+            "spectral_deficit": 0.010760616553257179,
+            "spectral_excess": 0.006375173705065973
+          }
+        },
+        "eligible": true
+      },
+      {
+        "regularization": 0.1,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "valid": true,
+        "weights": [
+          [
+            0.10525880022386967,
+            0.07549973666354472,
+            0.18182539812662354,
+            0.28274964984273787,
+            0.31848064764802475,
+            0.19257675625927217,
+            7.557655606327183e-18,
+            0.10766049285847289,
+            0.08076772495441427,
+            0.1944511117882386
+          ],
+          [
+            0.6999502960408583,
+            0.0,
+            0.34313293660399785,
+            5.2439809764513734e-18,
+            0.0,
+            1.0525866677292377e-17,
+            0.0,
+            3.3881317890172014e-21,
+            0.0,
+            0.026555200172034322
+          ],
+          [
+            0.0,
+            0.0,
+            1.9398430920662766e-17,
+            3.04415170913723e-17,
+            0.0,
+            0.07170879959021297,
+            0.2522571380828565,
+            0.3989425362665452,
+            0.47927295133971726,
+            0.4864804683810179
+          ],
+          [
+            0.0,
+            0.0,
+            0.03824443350850605,
+            2.4368290859558966e-17,
+            0.0,
+            7.926534320405743e-18,
+            5.8112274040725325e-18,
+            0.0,
+            0.0,
+            0.010697463329223826
+          ],
+          [
+            8.056342119572464e-18,
+            0.0,
+            0.009038563297585858,
+            0.20194805351565323,
+            0.09812367618811312,
+            0.0,
+            0.0,
+            2.7357840707333816e-19,
+            4.94878999433325e-19,
+            0.006582240638565237
+          ],
+          [
+            0.18726815586727658,
+            0.2731833485309113,
+            1.5781282598531683e-18,
+            0.0421455642884094,
+            0.3283727416062707,
+            0.09650279942924228,
+            0.0,
+            0.38737483569782505,
+            0.32543099557676847,
+            0.2716759826426334
+          ],
+          [
+            3.994395621014467e-18,
+            0.18572491055619753,
+            0.06822994278050151,
+            0.005342505282655854,
+            8.68039364346207e-18,
+            1.1941470490391126e-17,
+            1.427876035010596e-17,
+            0.008387320043234083,
+            0.11123566645863704,
+            0.0
+          ],
+          [
+            0.00470620351343549,
+            0.4198983467573581,
+            0.2161140186056907,
+            0.3803466524179629,
+            0.11784450104033457,
+            0.36627194480374153,
+            0.167824284356882,
+            3.1837850904921014e-19,
+            2.276401045745932e-21,
+            0.0013260255850415057
+          ],
+          [
+            0.00034547711998108953,
+            1.460708317540041e-18,
+            0.0,
+            0.00806193046740608,
+            0.07903296459463857,
+            0.23431786864641616,
+            0.5658686885702813,
+            0.09206170222122524,
+            0.002143370544338939,
+            0.002210264895847494
+          ],
+          [
+            2.5165348862925263e-18,
+            0.0031584111899903046,
+            0.009480291005586962,
+            0.0,
+            3.3483212404962492e-18,
+            4.743384504624082e-19,
+            2.971712825384567e-18,
+            8.391687757346362e-18,
+            2.8493394252246612e-18,
+            1.555790716713599e-06
+          ],
+          [
+            0.00018359839388761294,
+            0.04253524630199802,
+            0.03190377516252254,
+            0.07940564418517472,
+            0.05814546892261827,
+            0.03862183127111491,
+            0.014049888989980336,
+            0.005573112912697667,
+            0.0007868105654636856,
+            1.3353683036701183e-05
+          ],
+          [
+            0.0022874688406912245,
+            5.871208873893183e-18,
+            0.011359945783351318,
+            2.0378342161517585e-17,
+            1.7143946852427039e-18,
+            0.0,
+            2.6853922699812986e-17,
+            0.0,
+            0.0002732158870806782,
+            5.3747624771277435e-06
+          ],
+          [
+            4.930578785967282e-18,
+            0.0,
+            0.09067069512563378,
+            0.0,
+            1.3493234849761004e-18,
+            4.773877690725237e-18,
+            1.119228387101853e-17,
+            6.245623906359185e-18,
+            8.926467357989e-05,
+            9.583311671656022e-07
+          ]
+        ],
+        "content_slack_min": -1.3185069355770018e-12,
+        "waveform_slack_min": -2.6499080707509393e-11,
+        "development_mean_sdr_gain_db": 0.07291285729092709,
+        "full_development": {
+          "vocal": {
+            "sdr_db": 13.398001699789322,
+            "si_sdr_db": 13.141377112059127,
+            "spectral_deficit": 0.04018991013018243,
+            "spectral_excess": 0.005542713573868473
+          },
+          "instrumental": {
+            "sdr_db": 16.965972291367507,
+            "si_sdr_db": 16.823333115505207,
+            "spectral_deficit": 0.010761904483398832,
+            "spectral_excess": 0.006555254033017025
+          }
+        },
+        "eligible": true
+      }
+    ],
+    "selected": {
+      "regularization": 0.001,
+      "converged": true,
+      "message": "Optimization terminated successfully",
+      "valid": true,
+      "weights": [
+        [
+          0.20798452885211358,
+          0.09391381437646451,
+          0.1423505418939904,
+          0.21381166800721987,
+          0.28523873427618335,
+          0.23551393326292533,
+          0.005972971762932346,
+          0.1006414327208079,
+          0.062499621516577064,
+          0.19454992126012835
+        ],
+        [
+          0.5364452971939928,
+          2.535402545192616e-17,
+          0.08074740115163938,
+          1.3423778148086152e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          5.05424559626641e-18,
+          0.02602561709961523
+        ],
+        [
+          4.946672411965114e-19,
+          0.0,
+          2.903883053071918e-17,
+          4.7815009872505254e-17,
+          0.0,
+          0.06792557396700995,
+          0.24717158970885053,
+          0.2718314715700229,
+          0.44748066781180945,
+          0.48643231563215794
+        ],
+        [
+          0.0,
+          1.4797242072059e-17,
+          0.0,
+          0.0,
+          9.092898688774914e-18,
+          1.8031637381149546e-17,
+          0.0,
+          0.0,
+          1.151287181908045e-17,
+          0.009742888092954585
+        ],
+        [
+          0.0,
+          2.5758271926003273e-18,
+          0.0,
+          0.1852816276799404,
+          0.06542895173823285,
+          0.0,
+          0.0,
+          0.0,
+          0.002075055077538985,
+          0.00675863780038041
+        ],
+        [
+          0.013153917827421507,
+          0.1627654068944708,
+          4.095404299974542e-18,
+          1.4458852409630907e-17,
+          0.12915812071408858,
+          8.156292007348472e-18,
+          0.0,
+          0.24161072423954844,
+          0.3160520730248663,
+          0.27108864088323076
+        ],
+        [
+          0.0,
+          1.0950018425629968e-18,
+          0.22868098794467,
+          0.0,
+          0.08876040376698602,
+          0.0,
+          0.0,
+          0.17054085228151294,
+          0.12660521595065002,
+          3.571620301216164e-18
+        ],
+        [
+          0.130757540972444,
+          0.5269042678984809,
+          0.21972616282527666,
+          0.4907154677995685,
+          0.17904793389336204,
+          0.3677724485459211,
+          0.24080041583611222,
+          5.088126914156582e-18,
+          0.005542247793547909,
+          0.0014667043365823287
+        ],
+        [
+          0.0,
+          0.0,
+          9.00141913047145e-18,
+          0.0,
+          0.02799306848271672,
+          0.1992745251390082,
+          0.5052003110454173,
+          0.043627189580255674,
+          0.0021219471285983515,
+          0.0025104283481561934
+        ],
+        [
+          4.89373285276172e-19,
+          0.0,
+          1.7210015422312874e-17,
+          1.1553529400548657e-18,
+          0.0,
+          1.6421004231945494e-17,
+          5.7970934910084315e-18,
+          0.0,
+          0.0,
+          0.00019741059282243393
+        ],
+        [
+          0.0,
+          0.2164165108305839,
+          0.0,
+          0.1101912365132712,
+          0.22437278712843053,
+          0.12951351908513556,
+          0.0008547116466876949,
+          0.1717483296078521,
+          0.02483282871327481,
+          0.0008114159257999508
+        ],
+        [
+          0.11165871515402824,
+          0.0,
+          1.1558188081758555e-17,
+          1.5463433485074507e-17,
+          6.262749853761483e-18,
+          1.5360095465509482e-17,
+          0.0,
+          2.6668832344301646e-18,
+          0.0019694648541215476,
+          0.0003448760476388189
+        ],
+        [
+          0.0,
+          0.0,
+          0.3284949061844236,
+          4.435911544770771e-18,
+          0.0,
+          5.160124714673198e-18,
+          3.782002109490451e-18,
+          0.0,
+          0.01082087812901548,
+          7.114398053299069e-05
+        ]
+      ],
+      "content_slack_min": -9.866090583399156e-12,
+      "waveform_slack_min": 8.440547241740995e-05,
+      "development_mean_sdr_gain_db": 0.12601845082426583,
+      "full_development": {
+        "vocal": {
+          "sdr_db": 13.451107293322751,
+          "si_sdr_db": 13.195548322504106,
+          "spectral_deficit": 0.038152207554053394,
+          "spectral_excess": 0.005543274258512397
+        },
+        "instrumental": {
+          "sdr_db": 17.019077884900934,
+          "si_sdr_db": 16.87677575373729,
+          "spectral_deficit": 0.010759650950054253,
+          "spectral_excess": 0.006290207144162617
+        }
+      },
+      "eligible": true
+    },
+    "evaluation_used_for_selection": false,
+    "preset_sha256": "dd8d1d265455b88843414ad6b4e341c15d54655bda05c469bced7748f7ccc7d6",
+    "content_margin": [
+      0.99,
+      0.99,
+      0.99,
+      0.99
+    ],
+    "maxiter": 100,
+    "regularizations": [
+      0.001,
+      0.01,
+      0.1
+    ],
+    "spectral_stride": 1,
+    "method": "Mean log exact waveform error; nonnegative frequency weights sum to one; per-recording .03 dB regression cap; four content constraints and full development metric screening"
+  },
+  "confirmation_manifest": {
+    "tracks": [
+      {
+        "id": "f679cf6282da",
+        "name": "AvaLuna - Waterduct",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\AvaLuna - Waterduct.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "9aed3dadcc3d",
+        "name": "Spike Mullings - Mike's Sulking",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Spike Mullings - Mike's Sulking.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "12115f819368",
+        "name": "Invisible Familiars - Disturbing Wildlife",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Invisible Familiars - Disturbing Wildlife.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "17fe72716aef",
+        "name": "James May - All Souls Moon",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\James May - All Souls Moon.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "4cff82ff6d6f",
+        "name": "Chris Durban - Celebrate",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Chris Durban - Celebrate.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "533dd8a0e9d0",
+        "name": "ANiMAL - Easy Tiger",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\ANiMAL - Easy Tiger.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "4c1d37cd6f13",
+        "name": "Alexander Ross - Goodbye Bolero",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Alexander Ross - Goodbye Bolero.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "e3b20fb05f3a",
+        "name": "Atlantis Bound - It Was My Fault For Waiting",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Atlantis Bound - It Was My Fault For Waiting.stem.mp4",
+        "split": "evaluation"
+      }
+    ],
+    "excluded_silent_references": [],
+    "selection": "Fixed SHA order among previously uncached references; only reference-energy eligibility (>1e-8 of mixture for both stems), never model quality.",
+    "candidate_indices": [
+      0,
+      1,
+      2,
+      4,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "confirmation": {
+    "summary": {
+      "current": {
+        "vocal": {
+          "sdr_db": 13.991468749268641,
+          "si_sdr_db": 13.824220499845762,
+          "spectral_deficit": 0.028419822372001507,
+          "spectral_excess": 0.003899353435118229
+        },
+        "instrumental": {
+          "sdr_db": 19.070183602197602,
+          "si_sdr_db": 19.0124109425089,
+          "spectral_deficit": 0.005843680680110848,
+          "spectral_excess": 0.0026431575339592407
+        }
+      },
+      "candidate": {
+        "vocal": {
+          "sdr_db": 14.173231353904946,
+          "si_sdr_db": 14.000928050015945,
+          "spectral_deficit": 0.026541649534299938,
+          "spectral_excess": 0.004107544058657259
+        },
+        "instrumental": {
+          "sdr_db": 19.251946206833907,
+          "si_sdr_db": 19.202435827959537,
+          "spectral_deficit": 0.005717946947433468,
+          "spectral_excess": 0.0025155872468529007
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": "f679cf6282da",
+        "name": "AvaLuna - Waterduct",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 14.349231507853055,
+              "si_sdr_db": 14.42394252068742,
+              "spectral_deficit": 0.019950111170170225,
+              "spectral_excess": 0.0030198739676228154
+            },
+            "instrumental": {
+              "sdr_db": 19.96225657063045,
+              "si_sdr_db": 20.02224122555004,
+              "spectral_deficit": 0.003710175429211502,
+              "spectral_excess": 0.0015767344873769404
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 14.765556637358536,
+              "si_sdr_db": 14.869571555684873,
+              "spectral_deficit": 0.015679452925579148,
+              "spectral_excess": 0.003542166670661192
+            },
+            "instrumental": {
+              "sdr_db": 20.378581700135932,
+              "si_sdr_db": 20.491742400588247,
+              "spectral_deficit": 0.003619599879187264,
+              "spectral_excess": 0.0013294472877750773
+            }
+          }
+        }
+      },
+      {
+        "id": "9aed3dadcc3d",
+        "name": "Spike Mullings - Mike's Sulking",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 10.764846983217964,
+              "si_sdr_db": 10.429553280839055,
+              "spectral_deficit": 0.042920029329437594,
+              "spectral_excess": 0.006423516665465731
+            },
+            "instrumental": {
+              "sdr_db": 14.339943451038454,
+              "si_sdr_db": 14.179016609302767,
+              "spectral_deficit": 0.013572796849963356,
+              "spectral_excess": 0.005007723114709192
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 10.84331944724241,
+              "si_sdr_db": 10.489375446547342,
+              "spectral_deficit": 0.03944575971050458,
+              "spectral_excess": 0.007314912137224784
+            },
+            "instrumental": {
+              "sdr_db": 14.418415915062901,
+              "si_sdr_db": 14.260455521357834,
+              "spectral_deficit": 0.013219956335830358,
+              "spectral_excess": 0.00493955820069319
+            }
+          }
+        }
+      },
+      {
+        "id": "12115f819368",
+        "name": "Invisible Familiars - Disturbing Wildlife",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 19.833457542891914,
+              "si_sdr_db": 19.807604348563345,
+              "spectral_deficit": 0.004528594384355535,
+              "spectral_excess": 0.001302282076717435
+            },
+            "instrumental": {
+              "sdr_db": 25.042406608202153,
+              "si_sdr_db": 25.028814425091397,
+              "spectral_deficit": 0.0011559914481385912,
+              "spectral_excess": 0.0004228815886737051
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 19.845773681965884,
+              "si_sdr_db": 19.819869939344063,
+              "spectral_deficit": 0.00444581200818696,
+              "spectral_excess": 0.0013571332976348885
+            },
+            "instrumental": {
+              "sdr_db": 25.05472274727612,
+              "si_sdr_db": 25.041143812021772,
+              "spectral_deficit": 0.0011484047136615953,
+              "spectral_excess": 0.00041992120418153975
+            }
+          }
+        }
+      },
+      {
+        "id": "17fe72716aef",
+        "name": "James May - All Souls Moon",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 18.009927902796935,
+              "si_sdr_db": 18.082562431483733,
+              "spectral_deficit": 0.009228900159007434,
+              "spectral_excess": 0.0008835265519058385
+            },
+            "instrumental": {
+              "sdr_db": 21.90561589238704,
+              "si_sdr_db": 21.889206071653806,
+              "spectral_deficit": 0.002415413570654541,
+              "spectral_excess": 0.0013783296429888117
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 18.921449686861394,
+              "si_sdr_db": 18.940736934326747,
+              "spectral_deficit": 0.005969884854983602,
+              "spectral_excess": 0.0009623586186566334
+            },
+            "instrumental": {
+              "sdr_db": 22.817137676451495,
+              "si_sdr_db": 22.80896998877731,
+              "spectral_deficit": 0.0020588116653406366,
+              "spectral_excess": 0.0007965156264553835
+            }
+          }
+        }
+      },
+      {
+        "id": "4cff82ff6d6f",
+        "name": "Chris Durban - Celebrate",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 9.288732722446532,
+              "si_sdr_db": 8.77449556197327,
+              "spectral_deficit": 0.06599083064848446,
+              "spectral_excess": 0.007700457429169702
+            },
+            "instrumental": {
+              "sdr_db": 13.94556461313898,
+              "si_sdr_db": 13.77568396418032,
+              "spectral_deficit": 0.012639804230826052,
+              "spectral_excess": 0.007083366869634375
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 9.3397803116074,
+              "si_sdr_db": 8.832753195106854,
+              "spectral_deficit": 0.06430379272732373,
+              "spectral_excess": 0.007587288166311271
+            },
+            "instrumental": {
+              "sdr_db": 13.996612202299852,
+              "si_sdr_db": 13.8292322661839,
+              "spectral_deficit": 0.012484877418832483,
+              "spectral_excess": 0.006906520584417134
+            }
+          }
+        }
+      },
+      {
+        "id": "533dd8a0e9d0",
+        "name": "ANiMAL - Easy Tiger",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 11.159015888636947,
+              "si_sdr_db": 10.842366940776557,
+              "spectral_deficit": 0.04743672037391321,
+              "spectral_excess": 0.005231131274790061
+            },
+            "instrumental": {
+              "sdr_db": 19.88963555574916,
+              "si_sdr_db": 19.84345253549873,
+              "spectral_deficit": 0.0037957170491337813,
+              "spectral_excess": 0.0013457304709156596
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 11.197297506174142,
+              "si_sdr_db": 10.883250077024451,
+              "spectral_deficit": 0.0461052894095975,
+              "spectral_excess": 0.005188952365062287
+            },
+            "instrumental": {
+              "sdr_db": 19.927917173286357,
+              "si_sdr_db": 19.882225595529405,
+              "spectral_deficit": 0.003758306924170929,
+              "spectral_excess": 0.0013294666308312612
+            }
+          }
+        }
+      },
+      {
+        "id": "4c1d37cd6f13",
+        "name": "Alexander Ross - Goodbye Bolero",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 14.535152874295871,
+              "si_sdr_db": 14.39802719003531,
+              "spectral_deficit": 0.015303657317122183,
+              "spectral_excess": 0.0037074761162299843
+            },
+            "instrumental": {
+              "sdr_db": 18.515710112727348,
+              "si_sdr_db": 18.454442078164448,
+              "spectral_deficit": 0.005318349760255605,
+              "spectral_excess": 0.002449536031143777
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 14.446177917356032,
+              "si_sdr_db": 14.298921347066209,
+              "spectral_deficit": 0.014824205002298968,
+              "spectral_excess": 0.0039585598633244306
+            },
+            "instrumental": {
+              "sdr_db": 18.426735155787508,
+              "si_sdr_db": 18.363970002604713,
+              "spectral_deficit": 0.0053283768483045856,
+              "spectral_excess": 0.002554726061771943
+            }
+          }
+        }
+      },
+      {
+        "id": "e3b20fb05f3a",
+        "name": "Atlantis Bound - It Was My Fault For Waiting",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 13.991384572009899,
+              "si_sdr_db": 13.835211724407408,
+              "spectral_deficit": 0.021999735593521405,
+              "spectral_excess": 0.002926563399044268
+            },
+            "instrumental": {
+              "sdr_db": 18.960336013707234,
+              "si_sdr_db": 18.906430630629686,
+              "spectral_deficit": 0.004141197102703351,
+              "spectral_excess": 0.0018809580662314668
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 14.026495642673765,
+              "si_sdr_db": 13.872945905027027,
+              "spectral_deficit": 0.021558999635925016,
+              "spectral_excess": 0.002948981350382584
+            },
+            "instrumental": {
+              "sdr_db": 18.9954470843711,
+              "si_sdr_db": 18.94174703661311,
+              "spectral_deficit": 0.004125241794139895,
+              "spectral_excess": 0.0018485423786976758
+            }
+          }
+        }
+      }
+    ],
+    "mean_delta_db": 0.18176260463630545,
+    "bootstrap_95pct": [
+      0.007270583652563056,
+      0.4188290845264877
+    ],
+    "improved_recordings": 7,
+    "accepted": false,
+    "frozen_spec": {
+      "anchors_hz": [
+        0,
+        125,
+        250,
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000,
+        22050
+      ],
+      "weights": [
+        [
+          0.20798452885211358,
+          0.09391381437646451,
+          0.1423505418939904,
+          0.21381166800721987,
+          0.28523873427618335,
+          0.23551393326292533,
+          0.005972971762932346,
+          0.1006414327208079,
+          0.062499621516577064,
+          0.19454992126012835
+        ],
+        [
+          0.5364452971939928,
+          2.535402545192616e-17,
+          0.08074740115163938,
+          1.3423778148086152e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          5.05424559626641e-18,
+          0.02602561709961523
+        ],
+        [
+          4.946672411965114e-19,
+          0.0,
+          2.903883053071918e-17,
+          4.7815009872505254e-17,
+          0.0,
+          0.06792557396700995,
+          0.24717158970885053,
+          0.2718314715700229,
+          0.44748066781180945,
+          0.48643231563215794
+        ],
+        [
+          0.0,
+          1.4797242072059e-17,
+          0.0,
+          0.0,
+          9.092898688774914e-18,
+          1.8031637381149546e-17,
+          0.0,
+          0.0,
+          1.151287181908045e-17,
+          0.009742888092954585
+        ],
+        [
+          0.0,
+          2.5758271926003273e-18,
+          0.0,
+          0.1852816276799404,
+          0.06542895173823285,
+          0.0,
+          0.0,
+          0.0,
+          0.002075055077538985,
+          0.00675863780038041
+        ],
+        [
+          0.013153917827421507,
+          0.1627654068944708,
+          4.095404299974542e-18,
+          1.4458852409630907e-17,
+          0.12915812071408858,
+          8.156292007348472e-18,
+          0.0,
+          0.24161072423954844,
+          0.3160520730248663,
+          0.27108864088323076
+        ],
+        [
+          0.0,
+          1.0950018425629968e-18,
+          0.22868098794467,
+          0.0,
+          0.08876040376698602,
+          0.0,
+          0.0,
+          0.17054085228151294,
+          0.12660521595065002,
+          3.571620301216164e-18
+        ],
+        [
+          0.130757540972444,
+          0.5269042678984809,
+          0.21972616282527666,
+          0.4907154677995685,
+          0.17904793389336204,
+          0.3677724485459211,
+          0.24080041583611222,
+          5.088126914156582e-18,
+          0.005542247793547909,
+          0.0014667043365823287
+        ],
+        [
+          0.0,
+          0.0,
+          9.00141913047145e-18,
+          0.0,
+          0.02799306848271672,
+          0.1992745251390082,
+          0.5052003110454173,
+          0.043627189580255674,
+          0.0021219471285983515,
+          0.0025104283481561934
+        ],
+        [
+          4.89373285276172e-19,
+          0.0,
+          1.7210015422312874e-17,
+          1.1553529400548657e-18,
+          0.0,
+          1.6421004231945494e-17,
+          5.7970934910084315e-18,
+          0.0,
+          0.0,
+          0.00019741059282243393
+        ],
+        [
+          0.0,
+          0.2164165108305839,
+          0.0,
+          0.1101912365132712,
+          0.22437278712843053,
+          0.12951351908513556,
+          0.0008547116466876949,
+          0.1717483296078521,
+          0.02483282871327481,
+          0.0008114159257999508
+        ],
+        [
+          0.11165871515402824,
+          0.0,
+          1.1558188081758555e-17,
+          1.5463433485074507e-17,
+          6.262749853761483e-18,
+          1.5360095465509482e-17,
+          0.0,
+          2.6668832344301646e-18,
+          0.0019694648541215476,
+          0.0003448760476388189
+        ],
+        [
+          0.0,
+          0.0,
+          0.3284949061844236,
+          4.435911544770771e-18,
+          0.0,
+          5.160124714673198e-18,
+          3.782002109490451e-18,
+          0.0,
+          0.01082087812901548,
+          7.114398053299069e-05
+        ]
+      ]
+    },
+    "limitations": [
+      "Short reference excerpts, unknown model-training overlap",
+      "No true Turkish studio stems; no claim of zero loss or universal superiority"
+    ],
+    "bootstrap_97_5pct": [
+      -0.0024708898318544434,
+      0.4618533044299491
+    ],
+    "reference_projection_leakage_proxy": {
+      "current": {
+        "vocal": 0.0011596478019172585,
+        "instrumental": 0.002138699237212821
+      },
+      "candidate": {
+        "vocal": 0.0011152374668176547,
+        "instrumental": 0.0019200467945522993
+      }
+    },
+    "leakage_safe": true
+  },
+  "production_applied": false,
+  "baseline_sha256": "dd8d1d265455b88843414ad6b4e341c15d54655bda05c469bced7748f7ccc7d6",
+  "acceptance_plan": {
+    "declared_at": "2026-10-11T09:58:09.171272+00:00",
+    "rules": [
+      "Positive paired 97.5% SDR bootstrap interval",
+      "Both mean SI-SDR no worse",
+      "Both mean spectral deficits at least 1% lower",
+      "Both mean spectral excess proxies no higher",
+      "Both mean instantaneous two-reference projection crosstalk proxies no higher"
+    ],
+    "note": "Projection crosstalk is an additional proxy, not a guarantee of absence of audible leakage. Declared before any fresh confirmation outputs or scores."
+  },
+  "acceptance_kind": "new_model_content_preservation",
+  "additional_screening": {
+    "development": [
+      {
+        "name": "Night Panther - Fire",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Night Panther - Fire.stem.mp4",
+        "id": "fc9f42fdeb43"
+      },
+      {
+        "name": "Auctioneer - Our Future Faces",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Auctioneer - Our Future Faces.stem.mp4",
+        "id": "3c1b6f88b282"
+      },
+      {
+        "name": "Clara Berry And Wooldog - Waltz For My Victims",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Clara Berry And Wooldog - Waltz For My Victims.stem.mp4",
+        "id": "2063584c7f74"
+      },
+      {
+        "name": "Alexander Ross - Velvet Curtain",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Alexander Ross - Velvet Curtain.stem.mp4",
+        "id": "7446f71a03b7"
+      },
+      {
+        "name": "Johnny Lokke - Whisper To A Scream",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Johnny Lokke - Whisper To A Scream.stem.mp4",
+        "id": "465889e42b6a"
+      },
+      {
+        "name": "Aimee Norwich - Child",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Aimee Norwich - Child.stem.mp4",
+        "id": "2778930b9b61"
+      },
+      {
+        "name": "The Long Wait - Back Home To Blue",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\The Long Wait - Back Home To Blue.stem.mp4",
+        "id": "5bc229213e9f"
+      },
+      {
+        "name": "James May - If You Say",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\James May - If You Say.stem.mp4",
+        "id": "60a9cec090f0"
+      },
+      {
+        "id": "502f51d25f86",
+        "name": "Traffic Experiment - Once More (With Feeling)",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Traffic Experiment - Once More (With Feeling).stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "16512990064b",
+        "name": "Tim Taler - Stalker",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Tim Taler - Stalker.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "851d0684e5bc",
+        "name": "Sweet Lights - You Let Me Down",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Sweet Lights - You Let Me Down.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "bac2583979ee",
+        "name": "Music Delta - 80s Rock",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - 80s Rock.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "6370671b9d4b",
+        "name": "Triviul - Dorothy",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Triviul - Dorothy.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "a88daa04efcf",
+        "name": "Matthew Entwistle - Dont You Ever",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Matthew Entwistle - Dont You Ever.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "3e38f298d8d5",
+        "name": "Meaxic - Take A Step",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Meaxic - Take A Step.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "bd44a2ee8be2",
+        "name": "Jay Menon - Through My Eyes",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Jay Menon - Through My Eyes.stem.mp4",
+        "split": "evaluation"
+      }
+    ],
+    "baseline": {
+      "vocal": {
+        "sdr_db": 13.32508884249835,
+        "si_sdr_db": 13.064805545173542,
+        "spectral_deficit": 0.04207022973480368,
+        "spectral_excess": 0.005597599569126503
+      },
+      "instrumental": {
+        "sdr_db": 16.89305943407653,
+        "si_sdr_db": 16.74921073797414,
+        "spectral_deficit": 0.01087033298961922,
+        "spectral_excess": 0.0066318320001856005
+      }
+    },
+    "trials": [
+      {
+        "method": "expert_14:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.332500419262331,
+            "si_sdr_db": 13.069532699597112,
+            "spectral_deficit": 0.04210989890786285,
+            "spectral_excess": 0.005571363808767185
+          },
+          "instrumental": {
+            "sdr_db": 16.900471010840516,
+            "si_sdr_db": 16.754503378272425,
+            "spectral_deficit": 0.010963236711683987,
+            "spectral_excess": 0.006476944276351154
+          }
+        },
+        "gain_db": 0.007411576763981742,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.330850023138487,
+            "si_sdr_db": 13.069738708185131,
+            "spectral_deficit": 0.04207733052770855,
+            "spectral_excess": 0.005576930811565123
+          },
+          "instrumental": {
+            "sdr_db": 16.89882061471667,
+            "si_sdr_db": 16.753944851181853,
+            "spectral_deficit": 0.010911768536380777,
+            "spectral_excess": 0.006545415773345662
+          }
+        },
+        "gain_db": 0.005761180640137198,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.328715596137137,
+            "si_sdr_db": 13.067850176753916,
+            "spectral_deficit": 0.04230706514506975,
+            "spectral_excess": 0.00558905237993583
+          },
+          "instrumental": {
+            "sdr_db": 16.896686187715318,
+            "si_sdr_db": 16.75340709331125,
+            "spectral_deficit": 0.010840316620903283,
+            "spectral_excess": 0.006824165493460584
+          }
+        },
+        "gain_db": 0.0036267536387875055,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.328655355283916,
+            "si_sdr_db": 13.06610635775602,
+            "spectral_deficit": 0.0425802851511147,
+            "spectral_excess": 0.005594181812900326
+          },
+          "instrumental": {
+            "sdr_db": 16.896625946862095,
+            "si_sdr_db": 16.753861585379465,
+            "spectral_deficit": 0.010814984362726595,
+            "spectral_excess": 0.007040465318616696
+          }
+        },
+        "gain_db": 0.0035665127855661893,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.328482462140586,
+            "si_sdr_db": 13.067915633320535,
+            "spectral_deficit": 0.04207077052458214,
+            "spectral_excess": 0.00558543909829675
+          },
+          "instrumental": {
+            "sdr_db": 16.896453053718773,
+            "si_sdr_db": 16.752098762229274,
+            "spectral_deficit": 0.010889831655427952,
+            "spectral_excess": 0.006586341089269683
+          }
+        },
+        "gain_db": 0.0033936196422370557,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.327363583257512,
+            "si_sdr_db": 13.066925806281919,
+            "spectral_deficit": 0.04218414941358258,
+            "spectral_excess": 0.005591614051991842
+          },
+          "instrumental": {
+            "sdr_db": 16.895334174835696,
+            "si_sdr_db": 16.75177723066688,
+            "spectral_deficit": 0.010854733783260951,
+            "spectral_excess": 0.0067250280828131045
+          }
+        },
+        "gain_db": 0.0022747407591623414,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.324570986267428,
+            "si_sdr_db": 13.063064527964997,
+            "spectral_deficit": 0.04234591789289353,
+            "spectral_excess": 0.005584050256471731
+          },
+          "instrumental": {
+            "sdr_db": 16.89254157784561,
+            "si_sdr_db": 16.74898964459495,
+            "spectral_deficit": 0.01085763254420953,
+            "spectral_excess": 0.006737430835449816
+          }
+        },
+        "gain_db": -0.0005178562309211543,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.324406000665409,
+            "si_sdr_db": 13.06404462808592,
+            "spectral_deficit": 0.04223763182238969,
+            "spectral_excess": 0.0055758441324871445
+          },
+          "instrumental": {
+            "sdr_db": 16.89237659224359,
+            "si_sdr_db": 16.74858276709739,
+            "spectral_deficit": 0.010855910871199506,
+            "spectral_excess": 0.006677947250422169
+          }
+        },
+        "gain_db": -0.0006828418329405395,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.323512852678306,
+            "si_sdr_db": 13.063013128029658,
+            "spectral_deficit": 0.04240731749953591,
+            "spectral_excess": 0.00555485056864583
+          },
+          "instrumental": {
+            "sdr_db": 16.89148344425649,
+            "si_sdr_db": 16.747740600135923,
+            "spectral_deficit": 0.010841727310950884,
+            "spectral_excess": 0.006725209956039964
+          }
+        },
+        "gain_db": -0.0015759898200435885,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.323484680995765,
+            "si_sdr_db": 13.063405369805617,
+            "spectral_deficit": 0.04227738809507613,
+            "spectral_excess": 0.005568357761665352
+          },
+          "instrumental": {
+            "sdr_db": 16.89145527257395,
+            "si_sdr_db": 16.74764458400297,
+            "spectral_deficit": 0.010854443056002413,
+            "spectral_excess": 0.006684397506790881
+          }
+        },
+        "gain_db": -0.0016041615025841338,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.32346466978603,
+            "si_sdr_db": 13.053859687159566,
+            "spectral_deficit": 0.042256124532581874,
+            "spectral_excess": 0.005608863501159578
+          },
+          "instrumental": {
+            "sdr_db": 16.89143526136421,
+            "si_sdr_db": 16.743079896451064,
+            "spectral_deficit": 0.011097781139238566,
+            "spectral_excess": 0.0063919529194253364
+          }
+        },
+        "gain_db": -0.0016241727123187388,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.32303018719172,
+            "si_sdr_db": 13.059987628639758,
+            "spectral_deficit": 0.0426335356809439,
+            "spectral_excess": 0.005574053958873078
+          },
+          "instrumental": {
+            "sdr_db": 16.891000778769904,
+            "si_sdr_db": 16.747735813385077,
+            "spectral_deficit": 0.010846198967877169,
+            "spectral_excess": 0.006849508781138165
+          }
+        },
+        "gain_db": -0.002058655306630186,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.32285650138353,
+            "si_sdr_db": 13.06239510391541,
+            "spectral_deficit": 0.042386022284976635,
+            "spectral_excess": 0.005560816102091155
+          },
+          "instrumental": {
+            "sdr_db": 16.890827092961715,
+            "si_sdr_db": 16.747085151467736,
+            "spectral_deficit": 0.010844051815982539,
+            "spectral_excess": 0.006723034384762798
+          }
+        },
+        "gain_db": -0.0022323411148192918,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.322794379498628,
+            "si_sdr_db": 13.06234045167961,
+            "spectral_deficit": 0.042332779504634516,
+            "spectral_excess": 0.00556852773128627
+          },
+          "instrumental": {
+            "sdr_db": 16.890764971076813,
+            "si_sdr_db": 16.74702398206061,
+            "spectral_deficit": 0.01084942292232081,
+            "spectral_excess": 0.006711559725337303
+          }
+        },
+        "gain_db": -0.0022944629997212473,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.322201542852373,
+            "si_sdr_db": 13.061973402878799,
+            "spectral_deficit": 0.04246628562154571,
+            "spectral_excess": 0.005544012762277007
+          },
+          "instrumental": {
+            "sdr_db": 16.890172134430554,
+            "si_sdr_db": 16.746566364959286,
+            "spectral_deficit": 0.010825996427951765,
+            "spectral_excess": 0.0067548338015332105
+          }
+        },
+        "gain_db": -0.002887299645976782,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.321636100254302,
+            "si_sdr_db": 13.06169794862771,
+            "spectral_deficit": 0.042487257947692175,
+            "spectral_excess": 0.005540018297590678
+          },
+          "instrumental": {
+            "sdr_db": 16.889606691832483,
+            "si_sdr_db": 16.74582981832956,
+            "spectral_deficit": 0.010838835772657061,
+            "spectral_excess": 0.006738306421180843
+          }
+        },
+        "gain_db": -0.0034527422440469024,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.321302096601698,
+            "si_sdr_db": 13.063047342457123,
+            "spectral_deficit": 0.04236615169240182,
+            "spectral_excess": 0.005538458249447792
+          },
+          "instrumental": {
+            "sdr_db": 16.88927268817988,
+            "si_sdr_db": 16.745407125106553,
+            "spectral_deficit": 0.010849160957034809,
+            "spectral_excess": 0.006694624955817794
+          }
+        },
+        "gain_db": -0.003786745896650956,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.321096560034372,
+            "si_sdr_db": 13.060137658779368,
+            "spectral_deficit": 0.04275351578011276,
+            "spectral_excess": 0.005515120099500705
+          },
+          "instrumental": {
+            "sdr_db": 16.889067151612554,
+            "si_sdr_db": 16.745414866786174,
+            "spectral_deficit": 0.010814060324218042,
+            "spectral_excess": 0.006823205672090105
+          }
+        },
+        "gain_db": -0.003992282463977759,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.32019546468633,
+            "si_sdr_db": 13.059422354813691,
+            "spectral_deficit": 0.04260299579116157,
+            "spectral_excess": 0.005540968533063375
+          },
+          "instrumental": {
+            "sdr_db": 16.888166056264517,
+            "si_sdr_db": 16.74452973827418,
+            "spectral_deficit": 0.010829031196070683,
+            "spectral_excess": 0.006794420816831067
+          }
+        },
+        "gain_db": -0.00489337781201904,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.320086527086527,
+            "si_sdr_db": 13.059256802241789,
+            "spectral_deficit": 0.04270971723686771,
+            "spectral_excess": 0.005526076571799926
+          },
+          "instrumental": {
+            "sdr_db": 16.88805711866471,
+            "si_sdr_db": 16.74441438817346,
+            "spectral_deficit": 0.010818475974834872,
+            "spectral_excess": 0.006818100659062111
+          }
+        },
+        "gain_db": -0.005002315411822167,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.319430237248369,
+            "si_sdr_db": 13.0593580481917,
+            "spectral_deficit": 0.04262416417278178,
+            "spectral_excess": 0.005519836236482318
+          },
+          "instrumental": {
+            "sdr_db": 16.887400828826554,
+            "si_sdr_db": 16.743762861036522,
+            "spectral_deficit": 0.01079108508413949,
+            "spectral_excess": 0.006787517090728126
+          }
+        },
+        "gain_db": -0.0056586052499802975,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.31940622206056,
+            "si_sdr_db": 13.061512005222843,
+            "spectral_deficit": 0.04247767551682381,
+            "spectral_excess": 0.005526141578089971
+          },
+          "instrumental": {
+            "sdr_db": 16.887376813638742,
+            "si_sdr_db": 16.743484571544165,
+            "spectral_deficit": 0.010843491127353663,
+            "spectral_excess": 0.006720662043376151
+          }
+        },
+        "gain_db": -0.00568262043779022,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.318265683816325,
+            "si_sdr_db": 13.05780016531739,
+            "spectral_deficit": 0.042874371195071787,
+            "spectral_excess": 0.005494103799834138
+          },
+          "instrumental": {
+            "sdr_db": 16.88623627539451,
+            "si_sdr_db": 16.742863078860225,
+            "spectral_deficit": 0.010782752917985715,
+            "spectral_excess": 0.006884329051199101
+          }
+        },
+        "gain_db": -0.006823158682024655,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.317533177698623,
+            "si_sdr_db": 13.04827964602094,
+            "spectral_deficit": 0.04323863554443579,
+            "spectral_excess": 0.005645126731699634
+          },
+          "instrumental": {
+            "sdr_db": 16.885503769276806,
+            "si_sdr_db": 16.743609906838408,
+            "spectral_deficit": 0.010778415779526297,
+            "spectral_excess": 0.007546523056183576
+          }
+        },
+        "gain_db": -0.007555664799726358,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.317207557709892,
+            "si_sdr_db": 13.057359906592014,
+            "spectral_deficit": 0.04291511406287829,
+            "spectral_excess": 0.005486006734076896
+          },
+          "instrumental": {
+            "sdr_db": 16.885178149288073,
+            "si_sdr_db": 16.741456668467208,
+            "spectral_deficit": 0.010808451300890979,
+            "spectral_excess": 0.0068501910128527434
+          }
+        },
+        "gain_db": -0.007881284788457066,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.31689273595292,
+            "si_sdr_db": 13.0498391944584,
+            "spectral_deficit": 0.04324432983422837,
+            "spectral_excess": 0.005564591083220549
+          },
+          "instrumental": {
+            "sdr_db": 16.8848633275311,
+            "si_sdr_db": 16.742143450428316,
+            "spectral_deficit": 0.010827047470897147,
+            "spectral_excess": 0.00709335620189293
+          }
+        },
+        "gain_db": -0.008196106545430126,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.316789592954226,
+            "si_sdr_db": 13.060670326253419,
+            "spectral_deficit": 0.0426670359154779,
+            "spectral_excess": 0.005481451203066277
+          },
+          "instrumental": {
+            "sdr_db": 16.88476018453241,
+            "si_sdr_db": 16.740866384337444,
+            "spectral_deficit": 0.010828375609348953,
+            "spectral_excess": 0.0067594034938612815
+          }
+        },
+        "gain_db": -0.0082992495441232,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.314093209971343,
+            "si_sdr_db": 13.052230018010786,
+            "spectral_deficit": 0.04316653836147176,
+            "spectral_excess": 0.005490279487779782
+          },
+          "instrumental": {
+            "sdr_db": 16.882063801549528,
+            "si_sdr_db": 16.738628519068904,
+            "spectral_deficit": 0.010789760196322874,
+            "spectral_excess": 0.006969680042838204
+          }
+        },
+        "gain_db": -0.010995632527006194,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.313752143586605,
+            "si_sdr_db": 13.051135447434048,
+            "spectral_deficit": 0.04347299686600415,
+            "spectral_excess": 0.005444473298206154
+          },
+          "instrumental": {
+            "sdr_db": 16.881722735164786,
+            "si_sdr_db": 16.738207847043814,
+            "spectral_deficit": 0.010761552433151269,
+            "spectral_excess": 0.007033266070813456
+          }
+        },
+        "gain_db": -0.011336698911744492,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.312943620537284,
+            "si_sdr_db": 13.050797711930466,
+            "spectral_deficit": 0.04338069369190392,
+            "spectral_excess": 0.005462581108461259
+          },
+          "instrumental": {
+            "sdr_db": 16.880914212115467,
+            "si_sdr_db": 16.737448562742895,
+            "spectral_deficit": 0.010769422356448517,
+            "spectral_excess": 0.007019990498006624
+          }
+        },
+        "gain_db": -0.012145221961064934,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.31263598321307,
+            "si_sdr_db": 13.05725177998075,
+            "spectral_deficit": 0.04289390028323997,
+            "spectral_excess": 0.005458062049580535
+          },
+          "instrumental": {
+            "sdr_db": 16.88060657479125,
+            "si_sdr_db": 16.73665431622518,
+            "spectral_deficit": 0.01081734337769509,
+            "spectral_excess": 0.006813192200150416
+          }
+        },
+        "gain_db": -0.012452859285279061,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.312506369656948,
+            "si_sdr_db": 13.052318545442652,
+            "spectral_deficit": 0.0431933076967459,
+            "spectral_excess": 0.005446640321130733
+          },
+          "instrumental": {
+            "sdr_db": 16.880476961235132,
+            "si_sdr_db": 16.737049542261314,
+            "spectral_deficit": 0.010713371874664795,
+            "spectral_excess": 0.0069507367124759505
+          }
+        },
+        "gain_db": -0.012582472841401682,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.307266898951287,
+            "si_sdr_db": 13.045423956347957,
+            "spectral_deficit": 0.043726451045880216,
+            "spectral_excess": 0.0054050450175216775
+          },
+          "instrumental": {
+            "sdr_db": 16.875237490529468,
+            "si_sdr_db": 16.732299935054627,
+            "spectral_deficit": 0.01069952788917048,
+            "spectral_excess": 0.007163116991621789
+          }
+        },
+        "gain_db": -0.017821943547062347,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.305599643533704,
+            "si_sdr_db": 13.054045805208252,
+            "spectral_deficit": 0.043283842942526435,
+            "spectral_excess": 0.005373607206905147
+          },
+          "instrumental": {
+            "sdr_db": 16.873570235111888,
+            "si_sdr_db": 16.729587012438916,
+            "spectral_deficit": 0.010788011488229369,
+            "spectral_excess": 0.00689501803054596
+          }
+        },
+        "gain_db": -0.019489198964645738,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.305440371992832,
+            "si_sdr_db": 13.044985348611082,
+            "spectral_deficit": 0.04380310963390946,
+            "spectral_excess": 0.0053883659600375495
+          },
+          "instrumental": {
+            "sdr_db": 16.873410963571015,
+            "si_sdr_db": 16.729753714719685,
+            "spectral_deficit": 0.010751030206752674,
+            "spectral_excess": 0.00709046681606238
+          }
+        },
+        "gain_db": -0.019648470505517324,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.298336952248258,
+            "si_sdr_db": 13.03245897441905,
+            "spectral_deficit": 0.044386633813849274,
+            "spectral_excess": 0.005406005545710279
+          },
+          "instrumental": {
+            "sdr_db": 16.86630754382644,
+            "si_sdr_db": 16.72324642112004,
+            "spectral_deficit": 0.010717134533731595,
+            "spectral_excess": 0.007359203213592789
+          }
+        },
+        "gain_db": -0.026751890250091392,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.295862975204571,
+            "si_sdr_db": 13.045807694209172,
+            "spectral_deficit": 0.04375304691288796,
+            "spectral_excess": 0.00533157333088746
+          },
+          "instrumental": {
+            "sdr_db": 16.863833566782755,
+            "si_sdr_db": 16.719714234473614,
+            "spectral_deficit": 0.01076723494024219,
+            "spectral_excess": 0.007009581119595076
+          }
+        },
+        "gain_db": -0.029225867293778407,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.294895784897182,
+            "si_sdr_db": 13.033458083540289,
+            "spectral_deficit": 0.04437706237268238,
+            "spectral_excess": 0.005313450869766289
+          },
+          "instrumental": {
+            "sdr_db": 16.862866376475367,
+            "si_sdr_db": 16.719865115819285,
+            "spectral_deficit": 0.010562485634848996,
+            "spectral_excess": 0.007300227903207184
+          }
+        },
+        "gain_db": -0.030193057601167084,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.292520438341487,
+            "si_sdr_db": 13.013739230783123,
+            "spectral_deficit": 0.04460709837567464,
+            "spectral_excess": 0.005587217828849185
+          },
+          "instrumental": {
+            "sdr_db": 16.860491029919668,
+            "si_sdr_db": 16.718749142904777,
+            "spectral_deficit": 0.010803270632041206,
+            "spectral_excess": 0.00766149096862322
+          }
+        },
+        "gain_db": -0.03256840415686213,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.292325632737043,
+            "si_sdr_db": 13.025188040557971,
+            "spectral_deficit": 0.04481710241199781,
+            "spectral_excess": 0.005358642483236542
+          },
+          "instrumental": {
+            "sdr_db": 16.860296224315228,
+            "si_sdr_db": 16.717108185448698,
+            "spectral_deficit": 0.010679410454890678,
+            "spectral_excess": 0.007471843305479259
+          }
+        },
+        "gain_db": -0.0327632097613062,
+        "content_safe": false
+      },
+      {
+        "method": "expert_16:0.025",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.290649263846309,
+            "si_sdr_db": 13.045766975167776,
+            "spectral_deficit": 0.04320184356730033,
+            "spectral_excess": 0.005366773105654034
+          },
+          "instrumental": {
+            "sdr_db": 16.858619855424493,
+            "si_sdr_db": 16.714173400207628,
+            "spectral_deficit": 0.010826656620965436,
+            "spectral_excess": 0.00677890110483353
+          }
+        },
+        "gain_db": -0.034439578652040836,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.289106445077643,
+            "si_sdr_db": 13.020168728850503,
+            "spectral_deficit": 0.04501938748806164,
+            "spectral_excess": 0.005337002872711213
+          },
+          "instrumental": {
+            "sdr_db": 16.857077036655824,
+            "si_sdr_db": 16.713677417889976,
+            "spectral_deficit": 0.010667595667426784,
+            "spectral_excess": 0.00751107044375038
+          }
+        },
+        "gain_db": -0.035982397420706747,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.2746944404136,
+            "si_sdr_db": 13.0332361467884,
+            "spectral_deficit": 0.04457860078504058,
+            "spectral_excess": 0.005181066912695556
+          },
+          "instrumental": {
+            "sdr_db": 16.84266503199178,
+            "si_sdr_db": 16.698380138059754,
+            "spectral_deficit": 0.01071237656920054,
+            "spectral_excess": 0.0071911916305726475
+          }
+        },
+        "gain_db": -0.05039440208475021,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.272927699149548,
+            "si_sdr_db": 13.004591392981043,
+            "spectral_deficit": 0.0455734999335046,
+            "spectral_excess": 0.005268469598260792
+          },
+          "instrumental": {
+            "sdr_db": 16.840898290727733,
+            "si_sdr_db": 16.698724278643468,
+            "spectral_deficit": 0.010546074026878828,
+            "spectral_excess": 0.0078020076792748635
+          }
+        },
+        "gain_db": -0.052161143348801176,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.2704224983965,
+            "si_sdr_db": 13.005464815449654,
+            "spectral_deficit": 0.045707212741434855,
+            "spectral_excess": 0.005232681484853046
+          },
+          "instrumental": {
+            "sdr_db": 16.838393089974684,
+            "si_sdr_db": 16.694697445716823,
+            "spectral_deficit": 0.010649377533868513,
+            "spectral_excess": 0.007638841663816646
+          }
+        },
+        "gain_db": -0.05466634410185023,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.256777805074632,
+            "si_sdr_db": 12.963807619253181,
+            "spectral_deficit": 0.042872280499879664,
+            "spectral_excess": 0.005894284163075638
+          },
+          "instrumental": {
+            "sdr_db": 16.824748396652815,
+            "si_sdr_db": 16.67074946275806,
+            "spectral_deficit": 0.01150245766385147,
+            "spectral_excess": 0.006421182767943002
+          }
+        },
+        "gain_db": -0.06831103742371702,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.253185832369411,
+            "si_sdr_db": 12.971923484728194,
+            "spectral_deficit": 0.04720206179914109,
+            "spectral_excess": 0.005301740560118969
+          },
+          "instrumental": {
+            "sdr_db": 16.821156423947592,
+            "si_sdr_db": 16.67876994430892,
+            "spectral_deficit": 0.01059450686765583,
+            "spectral_excess": 0.008300015120574086
+          }
+        },
+        "gain_db": -0.0719030101289384,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.252131659872166,
+            "si_sdr_db": 12.95644983509545,
+            "spectral_deficit": 0.04499561355842245,
+            "spectral_excess": 0.0059083787462573
+          },
+          "instrumental": {
+            "sdr_db": 16.82010225145035,
+            "si_sdr_db": 16.679352722045827,
+            "spectral_deficit": 0.010759233875992397,
+            "spectral_excess": 0.008862018194069754
+          }
+        },
+        "gain_db": -0.07295718262618323,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.24970053259536,
+            "si_sdr_db": 13.01110856287887,
+            "spectral_deficit": 0.045579603842308275,
+            "spectral_excess": 0.005114436485116905
+          },
+          "instrumental": {
+            "sdr_db": 16.817671124173547,
+            "si_sdr_db": 16.673047597513552,
+            "spectral_deficit": 0.010676223862761803,
+            "spectral_excess": 0.0074491901184122935
+          }
+        },
+        "gain_db": -0.07538830990298884,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.244905319232274,
+            "si_sdr_db": 12.976686136189768,
+            "spectral_deficit": 0.046925098504728695,
+            "spectral_excess": 0.005096992169118698
+          },
+          "instrumental": {
+            "sdr_db": 16.812875910810458,
+            "si_sdr_db": 16.670784147255183,
+            "spectral_deficit": 0.010278720874779674,
+            "spectral_excess": 0.008094436675234856
+          }
+        },
+        "gain_db": -0.0801835232660757,
+        "content_safe": false
+      },
+      {
+        "method": "expert_16:0.05",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.242582226880035,
+            "si_sdr_db": 13.018165229268412,
+            "spectral_deficit": 0.04441788189300362,
+            "spectral_excess": 0.005166612115934467
+          },
+          "instrumental": {
+            "sdr_db": 16.81055281845822,
+            "si_sdr_db": 16.665310376162154,
+            "spectral_deficit": 0.010786543265481488,
+            "spectral_excess": 0.006945602793866381
+          }
+        },
+        "gain_db": -0.08250661561831407,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.227814362442086,
+            "si_sdr_db": 12.941878693672514,
+            "spectral_deficit": 0.04759964154251825,
+            "spectral_excess": 0.0052548483054520225
+          },
+          "instrumental": {
+            "sdr_db": 16.795784954020267,
+            "si_sdr_db": 16.65222652129829,
+            "spectral_deficit": 0.010553597360696006,
+            "spectral_excess": 0.008377491630295187
+          }
+        },
+        "gain_db": -0.09727448005626371,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.226535718700568,
+            "si_sdr_db": 12.93993630576084,
+            "spectral_deficit": 0.04806212282798227,
+            "spectral_excess": 0.005236991709214503
+          },
+          "instrumental": {
+            "sdr_db": 16.79450631027875,
+            "si_sdr_db": 16.651634309467347,
+            "spectral_deficit": 0.01053095551066405,
+            "spectral_excess": 0.008575141513594804
+          }
+        },
+        "gain_db": -0.0985531237977817,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.19689500866744,
+            "si_sdr_db": 12.880843363355229,
+            "spectral_deficit": 0.04788262180930727,
+            "spectral_excess": 0.005796426867304534
+          },
+          "instrumental": {
+            "sdr_db": 16.764865600245624,
+            "si_sdr_db": 16.624651409413133,
+            "spectral_deficit": 0.010812094115149364,
+            "spectral_excess": 0.009131531424146
+          }
+        },
+        "gain_db": -0.12819383383090965,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.190094807432285,
+            "si_sdr_db": 12.909835933107818,
+            "spectral_deficit": 0.0488751875628088,
+            "spectral_excess": 0.005090519395499254
+          },
+          "instrumental": {
+            "sdr_db": 16.75806539901047,
+            "si_sdr_db": 16.61397844099179,
+            "spectral_deficit": 0.01052861768767494,
+            "spectral_excess": 0.008637957706879295
+          }
+        },
+        "gain_db": -0.13499403506606455,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.180480320694278,
+            "si_sdr_db": 12.961057113401855,
+            "spectral_deficit": 0.04741742829357168,
+            "spectral_excess": 0.004878736799625442
+          },
+          "instrumental": {
+            "sdr_db": 16.74845091227246,
+            "si_sdr_db": 16.60315147097999,
+            "spectral_deficit": 0.010583474262866445,
+            "spectral_excess": 0.007888572871512291
+          }
+        },
+        "gain_db": -0.1446085218040718,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.15673098570628,
+            "si_sdr_db": 12.860090479473916,
+            "spectral_deficit": 0.04982548101162575,
+            "spectral_excess": 0.005151820053700628
+          },
+          "instrumental": {
+            "sdr_db": 16.724701577284463,
+            "si_sdr_db": 16.583699345454747,
+            "spectral_deficit": 0.010292424040197408,
+            "spectral_excess": 0.009420583983989948
+          }
+        },
+        "gain_db": -0.16835785679206872,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.153980338845157,
+            "si_sdr_db": 12.832401835476862,
+            "spectral_deficit": 0.052369194316113886,
+            "spectral_excess": 0.005291768672606747
+          },
+          "instrumental": {
+            "sdr_db": 16.72195093042334,
+            "si_sdr_db": 16.580522369350284,
+            "spectral_deficit": 0.010462766542764563,
+            "spectral_excess": 0.010134409996195604
+          }
+        },
+        "gain_db": -0.1711085036531923,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_2:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.138615396281466,
+            "si_sdr_db": 12.82704119182936,
+            "spectral_deficit": 0.05047610397201813,
+            "spectral_excess": 0.005259724963858247
+          },
+          "instrumental": {
+            "sdr_db": 16.706585987859647,
+            "si_sdr_db": 16.56257882009839,
+            "spectral_deficit": 0.010468408566464114,
+            "spectral_excess": 0.0094312671062736
+          }
+        },
+        "gain_db": -0.18647344621688333,
+        "content_safe": false
+      },
+      {
+        "method": "expert_16:0.1",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.111028221159797,
+            "si_sdr_db": 12.937187311124179,
+            "spectral_deficit": 0.04712531097230279,
+            "spectral_excess": 0.004836065051653866
+          },
+          "instrumental": {
+            "sdr_db": 16.67899881273798,
+            "si_sdr_db": 16.531695860559648,
+            "spectral_deficit": 0.0107209155358481,
+            "spectral_excess": 0.007348252920556381
+          }
+        },
+        "gain_db": -0.21406062133855208,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.110632625255064,
+            "si_sdr_db": 12.894291842451246,
+            "spectral_deficit": 0.04967283308791064,
+            "spectral_excess": 0.0048055607009632895
+          },
+          "instrumental": {
+            "sdr_db": 16.67860321683325,
+            "si_sdr_db": 16.532447633111907,
+            "spectral_deficit": 0.010533053842303,
+            "spectral_excess": 0.008526946045514402
+          }
+        },
+        "gain_db": -0.2144562172432849,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.08881267702445,
+            "si_sdr_db": 12.789101970147524,
+            "spectral_deficit": 0.05272641213568931,
+            "spectral_excess": 0.004844773497043494
+          },
+          "instrumental": {
+            "sdr_db": 16.65678326860263,
+            "si_sdr_db": 16.517000193453207,
+            "spectral_deficit": 0.009783086679464582,
+            "spectral_excess": 0.010085259258812648
+          }
+        },
+        "gain_db": -0.23627616547389962,
+        "content_safe": false
+      },
+      {
+        "method": "disagreement_1:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.078323985567119,
+            "si_sdr_db": 12.772478731285023,
+            "spectral_deficit": 0.052397320447984584,
+            "spectral_excess": 0.005047512777507476
+          },
+          "instrumental": {
+            "sdr_db": 16.646294577145305,
+            "si_sdr_db": 16.50154761473324,
+            "spectral_deficit": 0.010441295321619647,
+            "spectral_excess": 0.009858739357990264
+          }
+        },
+        "gain_db": -0.24676485693123063,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.070634144107524,
+            "si_sdr_db": 12.732646781689862,
+            "spectral_deficit": 0.05383169939008371,
+            "spectral_excess": 0.005250071400750334
+          },
+          "instrumental": {
+            "sdr_db": 16.638604735685707,
+            "si_sdr_db": 16.49586950699932,
+            "spectral_deficit": 0.010378739587735358,
+            "spectral_excess": 0.01075355203616759
+          }
+        },
+        "gain_db": -0.25445469839082513,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.052535223747153,
+            "si_sdr_db": 12.689080132518951,
+            "spectral_deficit": 0.0486954652016749,
+            "spectral_excess": 0.006716899247956294
+          },
+          "instrumental": {
+            "sdr_db": 16.620505815325334,
+            "si_sdr_db": 16.48018653226026,
+            "spectral_deficit": 0.010853115503411354,
+            "spectral_excess": 0.011624273246666138
+          }
+        },
+        "gain_db": -0.2725536187511963,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.043094510163309,
+            "si_sdr_db": 12.69837682847078,
+            "spectral_deficit": 0.044532616056389016,
+            "spectral_excess": 0.006904512359521366
+          },
+          "instrumental": {
+            "sdr_db": 16.611065101741488,
+            "si_sdr_db": 16.446337421577425,
+            "spectral_deficit": 0.012464936789715409,
+            "spectral_excess": 0.006931396308566458
+          }
+        },
+        "gain_db": -0.28199433233504045,
+        "content_safe": false
+      },
+      {
+        "method": "magnitude_median:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 13.021295847585982,
+            "si_sdr_db": 12.642085216777328,
+            "spectral_deficit": 0.05863226352851731,
+            "spectral_excess": 0.005443631000281184
+          },
+          "instrumental": {
+            "sdr_db": 16.589266439164163,
+            "si_sdr_db": 16.448877672418007,
+            "spectral_deficit": 0.01038561245738671,
+            "spectral_excess": 0.012499082622280158
+          }
+        },
+        "gain_db": -0.3037929949123672,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.968353812512335,
+            "si_sdr_db": 12.777371903111813,
+            "spectral_deficit": 0.05230089223986019,
+            "spectral_excess": 0.004600071730154945
+          },
+          "instrumental": {
+            "sdr_db": 16.53632440409052,
+            "si_sdr_db": 16.388830486702954,
+            "spectral_deficit": 0.010443316933153996,
+            "spectral_excess": 0.00921758019932471
+          }
+        },
+        "gain_db": -0.35673502998601414,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.945953299580712,
+            "si_sdr_db": 12.54647368788629,
+            "spectral_deficit": 0.05407102189453018,
+            "spectral_excess": 0.006524095967425064
+          },
+          "instrumental": {
+            "sdr_db": 16.513923891158893,
+            "si_sdr_db": 16.3750139802249,
+            "spectral_deficit": 0.010953445455326007,
+            "spectral_excess": 0.012209287865177972
+          }
+        },
+        "gain_db": -0.37913554291763774,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.874834224670714,
+            "si_sdr_db": 12.499586604467094,
+            "spectral_deficit": 0.0575040096969663,
+            "spectral_excess": 0.005344193813482989
+          },
+          "instrumental": {
+            "sdr_db": 16.442804816248895,
+            "si_sdr_db": 16.302969728386998,
+            "spectral_deficit": 0.01003857115644748,
+            "spectral_excess": 0.012753547915211095
+          }
+        },
+        "gain_db": -0.45025461782763543,
+        "content_safe": false
+      },
+      {
+        "method": "complex_median:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.854083418496383,
+            "si_sdr_db": 12.442514798503474,
+            "spectral_deficit": 0.0604551210909445,
+            "spectral_excess": 0.005479732607804652
+          },
+          "instrumental": {
+            "sdr_db": 16.422054010074564,
+            "si_sdr_db": 16.27940941143652,
+            "spectral_deficit": 0.010299908197893653,
+            "spectral_excess": 0.013591125318887023
+          }
+        },
+        "gain_db": -0.4710054240019659,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.805579928548472,
+            "si_sdr_db": 12.605098623762329,
+            "spectral_deficit": 0.056900775987969596,
+            "spectral_excess": 0.004603716404003866
+          },
+          "instrumental": {
+            "sdr_db": 16.373550520126656,
+            "si_sdr_db": 16.224426843267118,
+            "spectral_deficit": 0.010404405849320923,
+            "spectral_excess": 0.01067959073131122
+          }
+        },
+        "gain_db": -0.5195089139498776,
+        "content_safe": false
+      },
+      {
+        "method": "expert_16:0.2",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.747549211661074,
+            "si_sdr_db": 12.677904969994042,
+            "spectral_deficit": 0.053722362047754754,
+            "spectral_excess": 0.004371264332396486
+          },
+          "instrumental": {
+            "sdr_db": 16.315519803239255,
+            "si_sdr_db": 16.162990141349212,
+            "spectral_deficit": 0.01064063599468314,
+            "spectral_excess": 0.008481065335399912
+          }
+        },
+        "gain_db": -0.5775396308372756,
+        "content_safe": false
+      },
+      {
+        "method": "expert_15:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.746267582451543,
+            "si_sdr_db": 12.291589142233839,
+            "spectral_deficit": 0.05324010798344077,
+            "spectral_excess": 0.00806701145103869
+          },
+          "instrumental": {
+            "sdr_db": 16.314238174029725,
+            "si_sdr_db": 16.173256089871778,
+            "spectral_deficit": 0.011072735672758738,
+            "spectral_excess": 0.015373839790201248
+          }
+        },
+        "gain_db": -0.5788212600468068,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.731304135051515,
+            "si_sdr_db": 12.340932196232234,
+            "spectral_deficit": 0.06301598605878442,
+            "spectral_excess": 0.004866524833014746
+          },
+          "instrumental": {
+            "sdr_db": 16.299274726629697,
+            "si_sdr_db": 16.165033811545552,
+            "spectral_deficit": 0.00920660700658069,
+            "spectral_excess": 0.01415291070882557
+          }
+        },
+        "gain_db": -0.5937847074468348,
+        "content_safe": false
+      },
+      {
+        "method": "expert_14:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.713343362091287,
+            "si_sdr_db": 12.309734163144942,
+            "spectral_deficit": 0.04672185907009227,
+            "spectral_excess": 0.008708868248939761
+          },
+          "instrumental": {
+            "sdr_db": 16.281313953669468,
+            "si_sdr_db": 16.10330399955947,
+            "spectral_deficit": 0.013827375686571663,
+            "spectral_excess": 0.007958435397875009
+          }
+        },
+        "gain_db": -0.6117454804070626,
+        "content_safe": false
+      },
+      {
+        "method": "conservative_consensus:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.689251682722201,
+            "si_sdr_db": 12.509279956036227,
+            "spectral_deficit": 0.057896427846671955,
+            "spectral_excess": 0.004495358298811624
+          },
+          "instrumental": {
+            "sdr_db": 16.257222274300386,
+            "si_sdr_db": 16.10722461411077,
+            "spectral_deficit": 0.01035411994101541,
+            "spectral_excess": 0.010913316935220222
+          }
+        },
+        "gain_db": -0.6358371597761483,
+        "content_safe": false
+      },
+      {
+        "method": "expert_12:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.586664646081351,
+            "si_sdr_db": 12.082959978730164,
+            "spectral_deficit": 0.061274540063097,
+            "spectral_excess": 0.007783382259162637
+          },
+          "instrumental": {
+            "sdr_db": 16.154635237659534,
+            "si_sdr_db": 16.01602778742261,
+            "spectral_deficit": 0.011221438782367704,
+            "spectral_excess": 0.01638409577497129
+          }
+        },
+        "gain_db": -0.7384241964169984,
+        "content_safe": false
+      },
+      {
+        "method": "energy_consistency:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.48666423640665,
+            "si_sdr_db": 11.996876700154617,
+            "spectral_deficit": 0.06623156283234127,
+            "spectral_excess": 0.005969078556365542
+          },
+          "instrumental": {
+            "sdr_db": 16.05463482798483,
+            "si_sdr_db": 15.915698032715149,
+            "spectral_deficit": 0.009920192575485258,
+            "spectral_excess": 0.01724434874801265
+          }
+        },
+        "gain_db": -0.8384246060916993,
+        "content_safe": false
+      },
+      {
+        "method": "new_mean:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.416814383727072,
+            "si_sdr_db": 12.19530262173251,
+            "spectral_deficit": 0.06527710389200385,
+            "spectral_excess": 0.004663856625357944
+          },
+          "instrumental": {
+            "sdr_db": 15.984784975305255,
+            "si_sdr_db": 15.832679361834424,
+            "spectral_deficit": 0.010362984650789692,
+            "spectral_excess": 0.013526435984921396
+          }
+        },
+        "gain_db": -0.9082744587712774,
+        "content_safe": false
+      },
+      {
+        "method": "expert_13:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 12.258141696954288,
+            "si_sdr_db": 11.732550279111498,
+            "spectral_deficit": 0.07420756821646367,
+            "spectral_excess": 0.005327675120036629
+          },
+          "instrumental": {
+            "sdr_db": 15.82611228853247,
+            "si_sdr_db": 15.7006927811129,
+            "spectral_deficit": 0.00879933869327397,
+            "spectral_excess": 0.01961945245143978
+          }
+        },
+        "gain_db": -1.0669471455440611,
+        "content_safe": false
+      },
+      {
+        "method": "expert_16:0.4",
+        "summary": {
+          "vocal": {
+            "sdr_db": 11.827995507649575,
+            "si_sdr_db": 11.854891198114869,
+            "spectral_deficit": 0.07192386082848787,
+            "spectral_excess": 0.003924467092456463
+          },
+          "instrumental": {
+            "sdr_db": 15.395966099227758,
+            "si_sdr_db": 15.23192499583465,
+            "spectral_deficit": 0.010645337643707923,
+            "spectral_excess": 0.012308570768662591
+          }
+        },
+        "gain_db": -1.497093334848774,
+        "content_safe": false
+      },
+      {
+        "method": "expert_16:0.7",
+        "summary": {
+          "vocal": {
+            "sdr_db": 10.328672389413654,
+            "si_sdr_db": 10.161638501215595,
+            "spectral_deficit": 0.11200414670127243,
+            "spectral_excess": 0.00402303856142217
+          },
+          "instrumental": {
+            "sdr_db": 13.896642980991837,
+            "si_sdr_db": 13.718690139636138,
+            "spectral_deficit": 0.01093944944438492,
+            "spectral_excess": 0.02256093929904931
+          }
+        },
+        "gain_db": -2.996416453084695,
+        "content_safe": false
+      },
+      {
+        "method": "expert_16:1.0",
+        "summary": {
+          "vocal": {
+            "sdr_db": 8.888902839593477,
+            "si_sdr_db": 8.189130959825835,
+            "spectral_deficit": 0.16670117570571535,
+            "spectral_excess": 0.004805273456115489
+          },
+          "instrumental": {
+            "sdr_db": 12.456873431171658,
+            "si_sdr_db": 12.27098451725708,
+            "spectral_deficit": 0.01146599634217233,
+            "spectral_excess": 0.03878669365877528
+          }
+        },
+        "gain_db": -4.436186002904872,
+        "content_safe": false
+      }
+    ],
+    "production_changed": false
+  },
+  "additional_fit": {
+    "baseline_preset": {
+      "id": "atlas_studio_v2",
+      "name": "Atlas Studio V2",
+      "models": [
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Viperx-1297",
+          "estimate": "vocal",
+          "weight": 0.17443023893149945
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.11430054074816169
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+          "estimate": "vocal",
+          "weight": 0.170177253718986
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+          "estimate": "inst",
+          "weight": 0.019257166249671314
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.03216386193638066
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+          "estimate": "inst",
+          "weight": 0.19631456977712158
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Deux by becruily",
+          "estimate": "vocal",
+          "weight": 0.036629851183394346
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Xe Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.15670929709193934
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Xe Instrumental by pcunwa",
+          "estimate": "inst",
+          "weight": 0.10001722036284563
+        }
+      ],
+      "frequency_weights": {
+        "anchors_hz": [
+          0,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          16000,
+          22050
+        ],
+        "weights": [
+          [
+            0.1038054954257249,
+            0.10386818380346963,
+            0.22149451737476863,
+            0.3686461979239519,
+            0.357088506046072,
+            0.20425008270271117,
+            3.369384126451306e-17,
+            0.1094398910520009,
+            0.08125959219465351,
+            0.19444992279164172
+          ],
+          [
+            0.7037921998356566,
+            5.995299200665938e-18,
+            0.4126504200092933,
+            0.0,
+            5.761941623697378e-17,
+            0.0,
+            0.0,
+            4.224312126634806e-19,
+            2.0030635136669694e-17,
+            0.026562787636667144
+          ],
+          [
+            5.803869754586466e-18,
+            0.0,
+            0.0,
+            2.44062485235078e-17,
+            0.0,
+            0.07472620319317419,
+            0.25691256941506035,
+            0.4035860000812989,
+            0.48006659220084136,
+            0.48648117229948523
+          ],
+          [
+            7.794905400402424e-17,
+            1.713208839116548e-17,
+            0.18186172558797353,
+            0.0,
+            1.9676575364717397e-18,
+            0.0,
+            2.536868932521145e-17,
+            0.0,
+            1.4606236142453155e-17,
+            0.010709936908739465
+          ],
+          [
+            0.0,
+            5.5853352541948564e-18,
+            6.1693644713266965e-18,
+            0.20232483087851616,
+            0.11273300955942543,
+            1.8238313420279595e-17,
+            0.0,
+            1.7099927608949417e-17,
+            0.0,
+            0.006580778925864981
+          ],
+          [
+            0.19240230473861858,
+            0.2746061655076554,
+            9.044194294307792e-19,
+            0.05602949631634217,
+            0.35000167585385,
+            0.1046153286269037,
+            0.0,
+            0.38832949820191454,
+            0.3254757991043873,
+            0.27168542942154417
+          ],
+          [
+            1.9408912953385038e-17,
+            0.20952471897234548,
+            0.0,
+            0.039567222674838906,
+            0.0,
+            7.911287727355165e-18,
+            2.543854719595659e-18,
+            0.006096675607633445,
+            0.11110989457912562,
+            4.777636399428678e-18
+          ],
+          [
+            0.0,
+            0.4120009317165294,
+            0.18399333702796464,
+            0.3255284138254862,
+            0.10125027237367801,
+            0.37234879546457267,
+            0.17064637617926195,
+            0.0,
+            1.734723475976807e-18,
+            0.0013248443319006423
+          ],
+          [
+            0.0,
+            0.0,
+            8.241207060310715e-18,
+            0.00790383838086461,
+            0.07892653616697459,
+            0.24405959001263827,
+            0.5724410544056777,
+            0.09254793505715227,
+            0.00208812192099218,
+            0.002205127684156718
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "calibration": {
+        "report": "docs/atlas-studio-v2-alternatives-round-two.json",
+        "accepted": true,
+        "scope": "Second frozen confirmation: eight short reference excerpts; all eight SDR gains positive; both mean content checks improved. No zero-loss or universal superiority guarantee."
+      }
+    },
+    "development_ids": [
+      "fc9f42fdeb43",
+      "3c1b6f88b282",
+      "2063584c7f74",
+      "7446f71a03b7",
+      "465889e42b6a",
+      "2778930b9b61",
+      "5bc229213e9f",
+      "60a9cec090f0",
+      "502f51d25f86",
+      "16512990064b",
+      "851d0684e5bc",
+      "bac2583979ee",
+      "6370671b9d4b",
+      "a88daa04efcf",
+      "3e38f298d8d5",
+      "bd44a2ee8be2"
+    ],
+    "baseline_summary": {
+      "vocal": {
+        "sdr_db": 13.32508884249835,
+        "si_sdr_db": 13.064805545173542,
+        "spectral_deficit": 0.04207022973480368,
+        "spectral_excess": 0.005597599569126503
+      },
+      "instrumental": {
+        "sdr_db": 16.89305943407653,
+        "si_sdr_db": 16.74921073797414,
+        "spectral_deficit": 0.01087033298961922,
+        "spectral_excess": 0.0066318320001856005
+      }
+    },
+    "trials": [
+      {
+        "regularization": 0.01,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "valid": true,
+        "weights": [
+          [
+            0.12462197268579304,
+            0.08478474310612573,
+            0.15347058578026393,
+            0.22911914206799708,
+            0.2949723681490348,
+            0.21794493274708995,
+            0.004230040489896498,
+            0.10085090208063895,
+            0.07748401094791622,
+            0.19442210718445174
+          ],
+          [
+            0.6801246829050259,
+            0.0,
+            0.17129387617997002,
+            0.0,
+            0.0,
+            2.5541325612387766e-17,
+            5.852997665527215e-19,
+            2.7118183322820053e-17,
+            0.0,
+            0.026464177376393585
+          ],
+          [
+            2.532907437592911e-17,
+            0.0,
+            2.065235731995435e-17,
+            0.0,
+            0.0,
+            0.0743219605187015,
+            0.24723506358800365,
+            0.3656249938170703,
+            0.47300568536521237,
+            0.4864362942683723
+          ],
+          [
+            2.9116889910764583e-18,
+            1.762802618178287e-17,
+            1.857035033560328e-17,
+            1.325246573450397e-17,
+            0.0,
+            1.1627538904315001e-17,
+            5.840292171318401e-18,
+            0.0,
+            0.0,
+            0.01056640207416908
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.19226973515143356,
+            0.07660333097438314,
+            0.0,
+            3.676800617441467e-17,
+            0.0,
+            6.0469480058259515e-05,
+            0.006561859449972312
+          ],
+          [
+            0.14680636170227174,
+            0.21454263110497457,
+            0.0,
+            1.0546618984500107e-17,
+            0.22139342710344445,
+            0.024380033232077897,
+            8.6075488099982e-18,
+            0.36666387394194894,
+            0.32359535245928606,
+            0.2715822326234289
+          ],
+          [
+            0.0,
+            0.07934588235854315,
+            0.1891802562025542,
+            0.0,
+            0.04499089000570643,
+            0.0,
+            0.0,
+            0.05382789407799316,
+            0.11619941781922359,
+            0.0
+          ],
+          [
+            0.03156897680115196,
+            0.47699380953267145,
+            0.2221242257989472,
+            0.45704187141123764,
+            0.1570244264197893,
+            0.37280481458664794,
+            0.18511638884072712,
+            0.0,
+            0.0005640726740220451,
+            0.0013021299659816614
+          ],
+          [
+            0.003587990709102618,
+            7.959992121822287e-18,
+            0.0,
+            7.105759394516326e-18,
+            0.054518956953591054,
+            0.21264472771391654,
+            0.5492110604957171,
+            0.08528414772579228,
+            0.0019358115467233027,
+            0.002204987884472919
+          ],
+          [
+            1.0211213789722105e-18,
+            0.0,
+            0.0,
+            1.2523805641628458e-17,
+            0.0,
+            0.0,
+            0.0,
+            2.8900764160316728e-18,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.14433293389768506,
+            2.432339811335449e-17,
+            0.12156925136933183,
+            0.15049660039405094,
+            0.09790353120156636,
+            0.014207446585655705,
+            0.02532215145660112,
+            0.0037000618177984806,
+            6.307722266189429e-05
+          ],
+          [
+            0.013290015196654723,
+            7.320905763118918e-18,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            7.665224656177791e-18,
+            0.0,
+            0.0014787055268981894,
+            4.393282971104856e-06
+          ],
+          [
+            0.0,
+            0.0,
+            0.2639310560382647,
+            4.794841756169781e-18,
+            0.0,
+            0.0,
+            0.0,
+            0.002426036899955365,
+            0.0019764123628613194,
+            0.0
+          ],
+          [
+            0.0,
+            7.791432565318682e-18,
+            1.326792408579136e-17,
+            0.0,
+            1.3798166710772553e-17,
+            2.753026485165927e-17,
+            0.0,
+            0.0,
+            0.0,
+            0.0003923386671242591
+          ]
+        ],
+        "content_slack_min": -3.7085357354471604e-11,
+        "waveform_slack_min": 8.628473455819796e-05,
+        "development_mean_sdr_gain_db": 0.11808238890482865,
+        "full_development": {
+          "vocal": {
+            "sdr_db": 13.443171231403333,
+            "si_sdr_db": 13.18767701872569,
+            "spectral_deficit": 0.03858956182015122,
+            "spectral_excess": 0.005543059730624038
+          },
+          "instrumental": {
+            "sdr_db": 17.011141822981518,
+            "si_sdr_db": 16.86905835661346,
+            "spectral_deficit": 0.010760610347083586,
+            "spectral_excess": 0.006375339482502371
+          }
+        },
+        "eligible": true
+      }
+    ],
+    "selected": {
+      "regularization": 0.01,
+      "converged": true,
+      "message": "Optimization terminated successfully",
+      "valid": true,
+      "weights": [
+        [
+          0.12462197268579304,
+          0.08478474310612573,
+          0.15347058578026393,
+          0.22911914206799708,
+          0.2949723681490348,
+          0.21794493274708995,
+          0.004230040489896498,
+          0.10085090208063895,
+          0.07748401094791622,
+          0.19442210718445174
+        ],
+        [
+          0.6801246829050259,
+          0.0,
+          0.17129387617997002,
+          0.0,
+          0.0,
+          2.5541325612387766e-17,
+          5.852997665527215e-19,
+          2.7118183322820053e-17,
+          0.0,
+          0.026464177376393585
+        ],
+        [
+          2.532907437592911e-17,
+          0.0,
+          2.065235731995435e-17,
+          0.0,
+          0.0,
+          0.0743219605187015,
+          0.24723506358800365,
+          0.3656249938170703,
+          0.47300568536521237,
+          0.4864362942683723
+        ],
+        [
+          2.9116889910764583e-18,
+          1.762802618178287e-17,
+          1.857035033560328e-17,
+          1.325246573450397e-17,
+          0.0,
+          1.1627538904315001e-17,
+          5.840292171318401e-18,
+          0.0,
+          0.0,
+          0.01056640207416908
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.19226973515143356,
+          0.07660333097438314,
+          0.0,
+          3.676800617441467e-17,
+          0.0,
+          6.0469480058259515e-05,
+          0.006561859449972312
+        ],
+        [
+          0.14680636170227174,
+          0.21454263110497457,
+          0.0,
+          1.0546618984500107e-17,
+          0.22139342710344445,
+          0.024380033232077897,
+          8.6075488099982e-18,
+          0.36666387394194894,
+          0.32359535245928606,
+          0.2715822326234289
+        ],
+        [
+          0.0,
+          0.07934588235854315,
+          0.1891802562025542,
+          0.0,
+          0.04499089000570643,
+          0.0,
+          0.0,
+          0.05382789407799316,
+          0.11619941781922359,
+          0.0
+        ],
+        [
+          0.03156897680115196,
+          0.47699380953267145,
+          0.2221242257989472,
+          0.45704187141123764,
+          0.1570244264197893,
+          0.37280481458664794,
+          0.18511638884072712,
+          0.0,
+          0.0005640726740220451,
+          0.0013021299659816614
+        ],
+        [
+          0.003587990709102618,
+          7.959992121822287e-18,
+          0.0,
+          7.105759394516326e-18,
+          0.054518956953591054,
+          0.21264472771391654,
+          0.5492110604957171,
+          0.08528414772579228,
+          0.0019358115467233027,
+          0.002204987884472919
+        ],
+        [
+          1.0211213789722105e-18,
+          0.0,
+          0.0,
+          1.2523805641628458e-17,
+          0.0,
+          0.0,
+          0.0,
+          2.8900764160316728e-18,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.14433293389768506,
+          2.432339811335449e-17,
+          0.12156925136933183,
+          0.15049660039405094,
+          0.09790353120156636,
+          0.014207446585655705,
+          0.02532215145660112,
+          0.0037000618177984806,
+          6.307722266189429e-05
+        ],
+        [
+          0.013290015196654723,
+          7.320905763118918e-18,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          7.665224656177791e-18,
+          0.0,
+          0.0014787055268981894,
+          4.393282971104856e-06
+        ],
+        [
+          0.0,
+          0.0,
+          0.2639310560382647,
+          4.794841756169781e-18,
+          0.0,
+          0.0,
+          0.0,
+          0.002426036899955365,
+          0.0019764123628613194,
+          0.0
+        ],
+        [
+          0.0,
+          7.791432565318682e-18,
+          1.326792408579136e-17,
+          0.0,
+          1.3798166710772553e-17,
+          2.753026485165927e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.0003923386671242591
+        ]
+      ],
+      "content_slack_min": -3.7085357354471604e-11,
+      "waveform_slack_min": 8.628473455819796e-05,
+      "development_mean_sdr_gain_db": 0.11808238890482865,
+      "full_development": {
+        "vocal": {
+          "sdr_db": 13.443171231403333,
+          "si_sdr_db": 13.18767701872569,
+          "spectral_deficit": 0.03858956182015122,
+          "spectral_excess": 0.005543059730624038
+        },
+        "instrumental": {
+          "sdr_db": 17.011141822981518,
+          "si_sdr_db": 16.86905835661346,
+          "spectral_deficit": 0.010760610347083586,
+          "spectral_excess": 0.006375339482502371
+        }
+      },
+      "eligible": true
+    },
+    "evaluation_used_for_selection": false,
+    "preset_sha256": "dd8d1d265455b88843414ad6b4e341c15d54655bda05c469bced7748f7ccc7d6",
+    "content_margin": [
+      0.99,
+      0.99,
+      0.99,
+      0.99
+    ],
+    "maxiter": 100,
+    "regularizations": [
+      0.01
+    ],
+    "spectral_stride": 1,
+    "initial_weights": null,
+    "ftol": 1e-08,
+    "method": "Mean log exact waveform error; nonnegative frequency weights sum to one; per-recording .03 dB regression cap; four content constraints and full development metric screening"
+  },
+  "development_selection": [
+    {
+      "folder": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_new_models",
+      "gain_db": 0.12601845082426583,
+      "baseline_projection": {
+        "vocal": 0.0028284405389805145,
+        "instrumental": 0.011107612104187573
+      },
+      "candidate_projection": {
+        "vocal": 0.002647559783679092,
+        "instrumental": 0.010065717645726745
+      },
+      "leakage_safe": true,
+      "frequency_weights": [
+        [
+          0.20798452885211358,
+          0.09391381437646451,
+          0.1423505418939904,
+          0.21381166800721987,
+          0.28523873427618335,
+          0.23551393326292533,
+          0.005972971762932346,
+          0.1006414327208079,
+          0.062499621516577064,
+          0.19454992126012835
+        ],
+        [
+          0.5364452971939928,
+          2.535402545192616e-17,
+          0.08074740115163938,
+          1.3423778148086152e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          5.05424559626641e-18,
+          0.02602561709961523
+        ],
+        [
+          4.946672411965114e-19,
+          0.0,
+          2.903883053071918e-17,
+          4.7815009872505254e-17,
+          0.0,
+          0.06792557396700995,
+          0.24717158970885053,
+          0.2718314715700229,
+          0.44748066781180945,
+          0.48643231563215794
+        ],
+        [
+          0.0,
+          1.4797242072059e-17,
+          0.0,
+          0.0,
+          9.092898688774914e-18,
+          1.8031637381149546e-17,
+          0.0,
+          0.0,
+          1.151287181908045e-17,
+          0.009742888092954585
+        ],
+        [
+          0.0,
+          2.5758271926003273e-18,
+          0.0,
+          0.1852816276799404,
+          0.06542895173823285,
+          0.0,
+          0.0,
+          0.0,
+          0.002075055077538985,
+          0.00675863780038041
+        ],
+        [
+          0.013153917827421507,
+          0.1627654068944708,
+          4.095404299974542e-18,
+          1.4458852409630907e-17,
+          0.12915812071408858,
+          8.156292007348472e-18,
+          0.0,
+          0.24161072423954844,
+          0.3160520730248663,
+          0.27108864088323076
+        ],
+        [
+          0.0,
+          1.0950018425629968e-18,
+          0.22868098794467,
+          0.0,
+          0.08876040376698602,
+          0.0,
+          0.0,
+          0.17054085228151294,
+          0.12660521595065002,
+          3.571620301216164e-18
+        ],
+        [
+          0.130757540972444,
+          0.5269042678984809,
+          0.21972616282527666,
+          0.4907154677995685,
+          0.17904793389336204,
+          0.3677724485459211,
+          0.24080041583611222,
+          5.088126914156582e-18,
+          0.005542247793547909,
+          0.0014667043365823287
+        ],
+        [
+          0.0,
+          0.0,
+          9.00141913047145e-18,
+          0.0,
+          0.02799306848271672,
+          0.1992745251390082,
+          0.5052003110454173,
+          0.043627189580255674,
+          0.0021219471285983515,
+          0.0025104283481561934
+        ],
+        [
+          4.89373285276172e-19,
+          0.0,
+          1.7210015422312874e-17,
+          1.1553529400548657e-18,
+          0.0,
+          1.6421004231945494e-17,
+          5.7970934910084315e-18,
+          0.0,
+          0.0,
+          0.00019741059282243393
+        ],
+        [
+          0.0,
+          0.2164165108305839,
+          0.0,
+          0.1101912365132712,
+          0.22437278712843053,
+          0.12951351908513556,
+          0.0008547116466876949,
+          0.1717483296078521,
+          0.02483282871327481,
+          0.0008114159257999508
+        ],
+        [
+          0.11165871515402824,
+          0.0,
+          1.1558188081758555e-17,
+          1.5463433485074507e-17,
+          6.262749853761483e-18,
+          1.5360095465509482e-17,
+          0.0,
+          2.6668832344301646e-18,
+          0.0019694648541215476,
+          0.0003448760476388189
+        ],
+        [
+          0.0,
+          0.0,
+          0.3284949061844236,
+          4.435911544770771e-18,
+          0.0,
+          5.160124714673198e-18,
+          3.782002109490451e-18,
+          0.0,
+          0.01082087812901548,
+          7.114398053299069e-05
+        ]
+      ]
+    },
+    {
+      "folder": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_new_models\\with_big",
+      "gain_db": 0.11808238890482865,
+      "baseline_projection": {
+        "vocal": 0.0028284405389805145,
+        "instrumental": 0.011107612104187573
+      },
+      "candidate_projection": {
+        "vocal": 0.002658342800246457,
+        "instrumental": 0.010234405980910022
+      },
+      "leakage_safe": true,
+      "frequency_weights": [
+        [
+          0.12462197268579304,
+          0.08478474310612573,
+          0.15347058578026393,
+          0.22911914206799708,
+          0.2949723681490348,
+          0.21794493274708995,
+          0.004230040489896498,
+          0.10085090208063895,
+          0.07748401094791622,
+          0.19442210718445174
+        ],
+        [
+          0.6801246829050259,
+          0.0,
+          0.17129387617997002,
+          0.0,
+          0.0,
+          2.5541325612387766e-17,
+          5.852997665527215e-19,
+          2.7118183322820053e-17,
+          0.0,
+          0.026464177376393585
+        ],
+        [
+          2.532907437592911e-17,
+          0.0,
+          2.065235731995435e-17,
+          0.0,
+          0.0,
+          0.0743219605187015,
+          0.24723506358800365,
+          0.3656249938170703,
+          0.47300568536521237,
+          0.4864362942683723
+        ],
+        [
+          2.9116889910764583e-18,
+          1.762802618178287e-17,
+          1.857035033560328e-17,
+          1.325246573450397e-17,
+          0.0,
+          1.1627538904315001e-17,
+          5.840292171318401e-18,
+          0.0,
+          0.0,
+          0.01056640207416908
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.19226973515143356,
+          0.07660333097438314,
+          0.0,
+          3.676800617441467e-17,
+          0.0,
+          6.0469480058259515e-05,
+          0.006561859449972312
+        ],
+        [
+          0.14680636170227174,
+          0.21454263110497457,
+          0.0,
+          1.0546618984500107e-17,
+          0.22139342710344445,
+          0.024380033232077897,
+          8.6075488099982e-18,
+          0.36666387394194894,
+          0.32359535245928606,
+          0.2715822326234289
+        ],
+        [
+          0.0,
+          0.07934588235854315,
+          0.1891802562025542,
+          0.0,
+          0.04499089000570643,
+          0.0,
+          0.0,
+          0.05382789407799316,
+          0.11619941781922359,
+          0.0
+        ],
+        [
+          0.03156897680115196,
+          0.47699380953267145,
+          0.2221242257989472,
+          0.45704187141123764,
+          0.1570244264197893,
+          0.37280481458664794,
+          0.18511638884072712,
+          0.0,
+          0.0005640726740220451,
+          0.0013021299659816614
+        ],
+        [
+          0.003587990709102618,
+          7.959992121822287e-18,
+          0.0,
+          7.105759394516326e-18,
+          0.054518956953591054,
+          0.21264472771391654,
+          0.5492110604957171,
+          0.08528414772579228,
+          0.0019358115467233027,
+          0.002204987884472919
+        ],
+        [
+          1.0211213789722105e-18,
+          0.0,
+          0.0,
+          1.2523805641628458e-17,
+          0.0,
+          0.0,
+          0.0,
+          2.8900764160316728e-18,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.14433293389768506,
+          2.432339811335449e-17,
+          0.12156925136933183,
+          0.15049660039405094,
+          0.09790353120156636,
+          0.014207446585655705,
+          0.02532215145660112,
+          0.0037000618177984806,
+          6.307722266189429e-05
+        ],
+        [
+          0.013290015196654723,
+          7.320905763118918e-18,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          7.665224656177791e-18,
+          0.0,
+          0.0014787055268981894,
+          4.393282971104856e-06
+        ],
+        [
+          0.0,
+          0.0,
+          0.2639310560382647,
+          4.794841756169781e-18,
+          0.0,
+          0.0,
+          0.0,
+          0.002426036899955365,
+          0.0019764123628613194,
+          0.0
+        ],
+        [
+          0.0,
+          7.791432565318682e-18,
+          1.326792408579136e-17,
+          0.0,
+          1.3798166710772553e-17,
+          2.753026485165927e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.0003923386671242591
+        ]
+      ]
+    }
+  ],
+  "publisher_provenance": [
+    {
+      "repo": "BS-Roformer-HyperACE",
+      "revision": "5b1f8283125d5e4a3614d0e3635a636e09c84059",
+      "checkpoint_sha256": "54cf516f621f2f460bf660ed137e244b8931bf7a2ce85ddceecff816dbc4d668",
+      "source_sha256": "48571e20d70ea8f245cffc6afbfa279f62042e7ba16fbaa3fe43dd2cbc25e1db",
+      "publisher_config_sha256": "033e57abee226a480ef410e0631b9fe00e8b7bc9a3bb5fe55659d0b43a238701",
+      "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+    },
+    {
+      "repo": "BS-Roformer-HyperACE",
+      "revision": "5b1f8283125d5e4a3614d0e3635a636e09c84059",
+      "checkpoint_sha256": "4d61178ef966d2b4e9ad456ffbbc6fd5b2828df07a7af32931142c1a5ff1fe6f",
+      "source_sha256": "48571e20d70ea8f245cffc6afbfa279f62042e7ba16fbaa3fe43dd2cbc25e1db",
+      "publisher_config_sha256": "85d10906007df21ee48dbb86faa09205609274eb38ea224dce767e2844d0a934",
+      "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+    },
+    {
+      "repo": "BS-Roformer-Large-Inst",
+      "revision": "94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d",
+      "checkpoint_sha256": "09251ab8b5bb892414a6ab8aa80a1be30c17852d5e7f4e76943610de049e4bc4",
+      "source_sha256": "fc4a907999e151bc8272b62e7829757ac4384bfccd4aae7dff6ff961a9d1af57",
+      "publisher_config_sha256": "85d10906007df21ee48dbb86faa09205609274eb38ea224dce767e2844d0a934",
+      "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+    },
+    {
+      "repo": "BS-EXP-SiameseRoformer",
+      "revision": "2042531f6f98ff5070124fec89dffbdd185877f9",
+      "checkpoint_sha256": "cf5456f703931bdc5415c167453b4d88630c3adb1f2d4de462423faa52b30b79",
+      "source_sha256": "2cd39f56b1e37b23a1e35db66139c607db3b2281f2dc6037d9df8e860c4cb8e2",
+      "publisher_config_sha256": "1d881ed6a68cae81717fe078b9a427cb206457e06eb3a4cbdf2ebbe659ac2f88",
+      "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+    },
+    {
+      "repo": "Mel-Band-Roformer-big",
+      "revision": "1508d1ed7c54cb0017b2cbfaabdaf3ca87d2cf74",
+      "checkpoint_sha256": "9d68b9a8689a3500c45d3418a7811934e557760db07285f483088a0965b0eb88",
+      "publisher_config_sha256": "a2ad8056dfdb394422d62dd823f7a02b7f17f6be12870da913bd84b962f2e7c9",
+      "architecture": "Installed MelBandRoformer with all publisher model parameters and strict checkpoint loading; only batch/hop metadata translated."
+    }
+  ],
+  "publisher_file_verification": [
+    {
+      "index": 12,
+      "file": "v2_voc/bs_roformer.py",
+      "publisher_blob_id": "012630e2deba7f0d4bad5de69c1833d54469354b",
+      "verified": true
+    },
+    {
+      "index": 12,
+      "file": "v2_voc/config.yaml",
+      "publisher_blob_id": "1e6b43c0f02845bd2175db27870a2c41cfcabc82",
+      "verified": true
+    },
+    {
+      "index": 13,
+      "file": "v2_inst/bs_roformer.py",
+      "publisher_blob_id": "012630e2deba7f0d4bad5de69c1833d54469354b",
+      "verified": true
+    },
+    {
+      "index": 13,
+      "file": "v2_inst/config.yaml",
+      "publisher_blob_id": "b2ab9c3647b7baeb68e98fc94f7856e5ccac9cc8",
+      "verified": true
+    },
+    {
+      "index": 14,
+      "file": "bs_roformer.py",
+      "publisher_blob_id": "229be99ba4a35665db0decff3e6b3e8dcf648ac2",
+      "verified": true
+    },
+    {
+      "index": 14,
+      "file": "config.yaml",
+      "publisher_blob_id": "b2ab9c3647b7baeb68e98fc94f7856e5ccac9cc8",
+      "verified": true
+    },
+    {
+      "index": 15,
+      "file": "bs_roformer.py",
+      "publisher_blob_id": "3f8b76330cdc05df19f90fd1c79b8d3a1bd40b2e",
+      "verified": true
+    },
+    {
+      "index": 15,
+      "file": "config.yaml",
+      "publisher_blob_id": "126a8c7429bb4e0f590c01fc34340acf79e5d91e",
+      "verified": true
+    }
+  ],
+  "completed_expert_outputs": 184,
+  "completed_constrained_fits": 4
+}

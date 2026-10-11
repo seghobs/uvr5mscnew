@@ -1,0 +1,2932 @@
+{
+  "date": "2026-10-11",
+  "development": [
+    {
+      "name": "Night Panther - Fire",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Night Panther - Fire.stem.mp4",
+      "id": "fc9f42fdeb43"
+    },
+    {
+      "name": "Auctioneer - Our Future Faces",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Auctioneer - Our Future Faces.stem.mp4",
+      "id": "3c1b6f88b282"
+    },
+    {
+      "name": "Clara Berry And Wooldog - Waltz For My Victims",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Clara Berry And Wooldog - Waltz For My Victims.stem.mp4",
+      "id": "2063584c7f74"
+    },
+    {
+      "name": "Alexander Ross - Velvet Curtain",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Alexander Ross - Velvet Curtain.stem.mp4",
+      "id": "7446f71a03b7"
+    },
+    {
+      "name": "Johnny Lokke - Whisper To A Scream",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Johnny Lokke - Whisper To A Scream.stem.mp4",
+      "id": "465889e42b6a"
+    },
+    {
+      "name": "Aimee Norwich - Child",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Aimee Norwich - Child.stem.mp4",
+      "id": "2778930b9b61"
+    },
+    {
+      "name": "The Long Wait - Back Home To Blue",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\The Long Wait - Back Home To Blue.stem.mp4",
+      "id": "5bc229213e9f"
+    },
+    {
+      "name": "James May - If You Say",
+      "split": "development",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\James May - If You Say.stem.mp4",
+      "id": "60a9cec090f0"
+    },
+    {
+      "id": "502f51d25f86",
+      "name": "Traffic Experiment - Once More (With Feeling)",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Traffic Experiment - Once More (With Feeling).stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "16512990064b",
+      "name": "Tim Taler - Stalker",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Tim Taler - Stalker.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "851d0684e5bc",
+      "name": "Sweet Lights - You Let Me Down",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Sweet Lights - You Let Me Down.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "bac2583979ee",
+      "name": "Music Delta - 80s Rock",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - 80s Rock.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "6370671b9d4b",
+      "name": "Triviul - Dorothy",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Triviul - Dorothy.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "a88daa04efcf",
+      "name": "Matthew Entwistle - Dont You Ever",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Matthew Entwistle - Dont You Ever.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "3e38f298d8d5",
+      "name": "Meaxic - Take A Step",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Meaxic - Take A Step.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "bd44a2ee8be2",
+      "name": "Jay Menon - Through My Eyes",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Jay Menon - Through My Eyes.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "f679cf6282da",
+      "name": "AvaLuna - Waterduct",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\AvaLuna - Waterduct.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "9aed3dadcc3d",
+      "name": "Spike Mullings - Mike's Sulking",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Spike Mullings - Mike's Sulking.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "12115f819368",
+      "name": "Invisible Familiars - Disturbing Wildlife",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Invisible Familiars - Disturbing Wildlife.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "17fe72716aef",
+      "name": "James May - All Souls Moon",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\James May - All Souls Moon.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "4cff82ff6d6f",
+      "name": "Chris Durban - Celebrate",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Chris Durban - Celebrate.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "533dd8a0e9d0",
+      "name": "ANiMAL - Easy Tiger",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\ANiMAL - Easy Tiger.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "4c1d37cd6f13",
+      "name": "Alexander Ross - Goodbye Bolero",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Alexander Ross - Goodbye Bolero.stem.mp4",
+      "split": "evaluation"
+    },
+    {
+      "id": "e3b20fb05f3a",
+      "name": "Atlantis Bound - It Was My Fault For Waiting",
+      "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Atlantis Bound - It Was My Fault For Waiting.stem.mp4",
+      "split": "evaluation"
+    }
+  ],
+  "screening": {
+    "first_development_screen": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_new_models\\screening.json",
+    "first_confirmation_rejected": true,
+    "round_two_method": "Full-resolution constrained refit, 24 development recordings."
+  },
+  "selected_fit": {
+    "baseline_preset": {
+      "id": "atlas_studio_v2",
+      "name": "Atlas Studio V2",
+      "models": [
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Viperx-1297",
+          "estimate": "vocal",
+          "weight": 0.17443023893149945
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.11430054074816169
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+          "estimate": "vocal",
+          "weight": 0.170177253718986
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+          "estimate": "inst",
+          "weight": 0.019257166249671314
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.03216386193638066
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+          "estimate": "inst",
+          "weight": 0.19631456977712158
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Deux by becruily",
+          "estimate": "vocal",
+          "weight": 0.036629851183394346
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Xe Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.15670929709193934
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Xe Instrumental by pcunwa",
+          "estimate": "inst",
+          "weight": 0.10001722036284563
+        }
+      ],
+      "frequency_weights": {
+        "anchors_hz": [
+          0,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          16000,
+          22050
+        ],
+        "weights": [
+          [
+            0.1038054954257249,
+            0.10386818380346963,
+            0.22149451737476863,
+            0.3686461979239519,
+            0.357088506046072,
+            0.20425008270271117,
+            3.369384126451306e-17,
+            0.1094398910520009,
+            0.08125959219465351,
+            0.19444992279164172
+          ],
+          [
+            0.7037921998356566,
+            5.995299200665938e-18,
+            0.4126504200092933,
+            0.0,
+            5.761941623697378e-17,
+            0.0,
+            0.0,
+            4.224312126634806e-19,
+            2.0030635136669694e-17,
+            0.026562787636667144
+          ],
+          [
+            5.803869754586466e-18,
+            0.0,
+            0.0,
+            2.44062485235078e-17,
+            0.0,
+            0.07472620319317419,
+            0.25691256941506035,
+            0.4035860000812989,
+            0.48006659220084136,
+            0.48648117229948523
+          ],
+          [
+            7.794905400402424e-17,
+            1.713208839116548e-17,
+            0.18186172558797353,
+            0.0,
+            1.9676575364717397e-18,
+            0.0,
+            2.536868932521145e-17,
+            0.0,
+            1.4606236142453155e-17,
+            0.010709936908739465
+          ],
+          [
+            0.0,
+            5.5853352541948564e-18,
+            6.1693644713266965e-18,
+            0.20232483087851616,
+            0.11273300955942543,
+            1.8238313420279595e-17,
+            0.0,
+            1.7099927608949417e-17,
+            0.0,
+            0.006580778925864981
+          ],
+          [
+            0.19240230473861858,
+            0.2746061655076554,
+            9.044194294307792e-19,
+            0.05602949631634217,
+            0.35000167585385,
+            0.1046153286269037,
+            0.0,
+            0.38832949820191454,
+            0.3254757991043873,
+            0.27168542942154417
+          ],
+          [
+            1.9408912953385038e-17,
+            0.20952471897234548,
+            0.0,
+            0.039567222674838906,
+            0.0,
+            7.911287727355165e-18,
+            2.543854719595659e-18,
+            0.006096675607633445,
+            0.11110989457912562,
+            4.777636399428678e-18
+          ],
+          [
+            0.0,
+            0.4120009317165294,
+            0.18399333702796464,
+            0.3255284138254862,
+            0.10125027237367801,
+            0.37234879546457267,
+            0.17064637617926195,
+            0.0,
+            1.734723475976807e-18,
+            0.0013248443319006423
+          ],
+          [
+            0.0,
+            0.0,
+            8.241207060310715e-18,
+            0.00790383838086461,
+            0.07892653616697459,
+            0.24405959001263827,
+            0.5724410544056777,
+            0.09254793505715227,
+            0.00208812192099218,
+            0.002205127684156718
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "calibration": {
+        "report": "docs/atlas-studio-v2-alternatives-round-two.json",
+        "accepted": true,
+        "scope": "Second frozen confirmation: eight short reference excerpts; all eight SDR gains positive; both mean content checks improved. No zero-loss or universal superiority guarantee."
+      }
+    },
+    "development_ids": [
+      "fc9f42fdeb43",
+      "3c1b6f88b282",
+      "2063584c7f74",
+      "7446f71a03b7",
+      "465889e42b6a",
+      "2778930b9b61",
+      "5bc229213e9f",
+      "60a9cec090f0",
+      "502f51d25f86",
+      "16512990064b",
+      "851d0684e5bc",
+      "bac2583979ee",
+      "6370671b9d4b",
+      "a88daa04efcf",
+      "3e38f298d8d5",
+      "bd44a2ee8be2",
+      "f679cf6282da",
+      "9aed3dadcc3d",
+      "12115f819368",
+      "17fe72716aef",
+      "4cff82ff6d6f",
+      "533dd8a0e9d0",
+      "4c1d37cd6f13",
+      "e3b20fb05f3a"
+    ],
+    "baseline_summary": {
+      "vocal": {
+        "sdr_db": 13.547215478088447,
+        "si_sdr_db": 13.317943863397614,
+        "spectral_deficit": 0.03752009394720295,
+        "spectral_excess": 0.005031517524457079
+      },
+      "instrumental": {
+        "sdr_db": 17.61876749011689,
+        "si_sdr_db": 17.50361080615239,
+        "spectral_deficit": 0.009194782219783095,
+        "spectral_excess": 0.005302273844776814
+      }
+    },
+    "trials": [
+      {
+        "regularization": 0.01,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "valid": true,
+        "weights": [
+          [
+            0.36747634683189573,
+            0.17764161017430824,
+            0.18354818459382663,
+            0.13368654392156387,
+            0.2539025884941187,
+            0.17948278654890026,
+            0.019922584288124236,
+            0.0927153955170237,
+            0.07261128087353737,
+            0.19447426646008642
+          ],
+          [
+            0.5054362617389232,
+            8.545651877377592e-17,
+            0.13845668018666057,
+            0.0,
+            0.0,
+            6.152000295907983e-18,
+            6.020710189083567e-17,
+            7.253990160285828e-18,
+            0.0,
+            0.026522924611848665
+          ],
+          [
+            0.0,
+            0.103930555081488,
+            0.0,
+            2.4598683821212136e-17,
+            0.0,
+            0.13234350541499265,
+            0.27096885710960167,
+            0.38461121290654837,
+            0.47223088603141955,
+            0.48650930917645313
+          ],
+          [
+            0.1233720579425973,
+            2.813165824420982e-17,
+            0.003719220564130258,
+            0.0296481026192494,
+            0.01277623331501023,
+            0.019268986764912087,
+            4.0543232020327086e-18,
+            0.0,
+            0.0,
+            0.010356841453008416
+          ],
+          [
+            4.372860529759529e-18,
+            5.440069103740744e-19,
+            0.011252125019958389,
+            0.2086372415832722,
+            0.0497519771396432,
+            0.0,
+            0.0,
+            1.5958100726271018e-18,
+            0.0,
+            0.006657882706222116
+          ],
+          [
+            0.0037153334865837884,
+            0.11518112836410739,
+            0.012383106056826475,
+            0.022448699165184754,
+            0.22227281679949762,
+            0.041854459152714164,
+            0.0,
+            0.33184276163875265,
+            0.3202840179049556,
+            0.27132362134154264
+          ],
+          [
+            0.0,
+            0.04650698852841264,
+            0.17449446574354346,
+            0.018781624339420263,
+            0.04713811589213053,
+            1.407938164926098e-17,
+            0.00816649540108478,
+            0.0766711578332435,
+            0.11536235335819511,
+            3.7664114093050515e-18
+          ],
+          [
+            4.6704549678654866e-17,
+            0.3153150752593036,
+            0.2837681805439994,
+            0.4320243188590043,
+            0.23597954163201904,
+            0.3872314155140159,
+            0.18242751017574813,
+            0.000390492583846352,
+            0.0,
+            0.0013511177884425816
+          ],
+          [
+            0.0,
+            0.0,
+            0.02648009744301799,
+            0.026407724779243004,
+            0.048837168154785525,
+            0.15197927819568388,
+            0.477307634558647,
+            0.08988079860535494,
+            0.004604525654674808,
+            0.0023437800619433443
+          ],
+          [
+            1.5649780733470453e-17,
+            0.09921823736233248,
+            2.1675573120237546e-17,
+            0.0,
+            1.543230502426291e-17,
+            4.670222033804992e-18,
+            0.0,
+            5.390517676326367e-18,
+            6.773153378931203e-18,
+            5.693792563482248e-05
+          ],
+          [
+            7.397985761319059e-18,
+            0.14220640523004752,
+            0.0,
+            0.12836574473306228,
+            0.12934155857279522,
+            0.08783956840878103,
+            0.04120691846679429,
+            0.02388818091523058,
+            0.01084967187906,
+            0.0002500906631980874
+          ],
+          [
+            6.507118859044349e-18,
+            6.4848842441789234e-18,
+            0.0,
+            7.5979702401658e-17,
+            3.654100134455052e-18,
+            0.0,
+            0.0,
+            2.0565959959334412e-18,
+            0.00405726429815755,
+            0.00012466521346567473
+          ],
+          [
+            0.0,
+            0.0,
+            0.16589793984803694,
+            4.1445322109152916e-18,
+            2.4532191734852674e-19,
+            0.0,
+            1.2985438597882051e-17,
+            1.0957218205681629e-17,
+            1.8398243828633047e-17,
+            2.856259815420685e-05
+          ]
+        ],
+        "content_slack_min": -2.1887552534294308e-11,
+        "waveform_slack_min": 3.196901813837423e-05,
+        "development_mean_sdr_gain_db": 0.13401538124847065,
+        "full_development": {
+          "vocal": {
+            "sdr_db": 13.681230859336955,
+            "si_sdr_db": 13.456490479661253,
+            "spectral_deficit": 0.03509348994613019,
+            "spectral_excess": 0.004783110948205832
+          },
+          "instrumental": {
+            "sdr_db": 17.752782871365397,
+            "si_sdr_db": 17.635572396752057,
+            "spectral_deficit": 0.009102333004058992,
+            "spectral_excess": 0.005068249770392336
+          }
+        },
+        "eligible": true
+      }
+    ],
+    "selected": {
+      "regularization": 0.01,
+      "converged": true,
+      "message": "Optimization terminated successfully",
+      "valid": true,
+      "weights": [
+        [
+          0.36747634683189573,
+          0.17764161017430824,
+          0.18354818459382663,
+          0.13368654392156387,
+          0.2539025884941187,
+          0.17948278654890026,
+          0.019922584288124236,
+          0.0927153955170237,
+          0.07261128087353737,
+          0.19447426646008642
+        ],
+        [
+          0.5054362617389232,
+          8.545651877377592e-17,
+          0.13845668018666057,
+          0.0,
+          0.0,
+          6.152000295907983e-18,
+          6.020710189083567e-17,
+          7.253990160285828e-18,
+          0.0,
+          0.026522924611848665
+        ],
+        [
+          0.0,
+          0.103930555081488,
+          0.0,
+          2.4598683821212136e-17,
+          0.0,
+          0.13234350541499265,
+          0.27096885710960167,
+          0.38461121290654837,
+          0.47223088603141955,
+          0.48650930917645313
+        ],
+        [
+          0.1233720579425973,
+          2.813165824420982e-17,
+          0.003719220564130258,
+          0.0296481026192494,
+          0.01277623331501023,
+          0.019268986764912087,
+          4.0543232020327086e-18,
+          0.0,
+          0.0,
+          0.010356841453008416
+        ],
+        [
+          4.372860529759529e-18,
+          5.440069103740744e-19,
+          0.011252125019958389,
+          0.2086372415832722,
+          0.0497519771396432,
+          0.0,
+          0.0,
+          1.5958100726271018e-18,
+          0.0,
+          0.006657882706222116
+        ],
+        [
+          0.0037153334865837884,
+          0.11518112836410739,
+          0.012383106056826475,
+          0.022448699165184754,
+          0.22227281679949762,
+          0.041854459152714164,
+          0.0,
+          0.33184276163875265,
+          0.3202840179049556,
+          0.27132362134154264
+        ],
+        [
+          0.0,
+          0.04650698852841264,
+          0.17449446574354346,
+          0.018781624339420263,
+          0.04713811589213053,
+          1.407938164926098e-17,
+          0.00816649540108478,
+          0.0766711578332435,
+          0.11536235335819511,
+          3.7664114093050515e-18
+        ],
+        [
+          4.6704549678654866e-17,
+          0.3153150752593036,
+          0.2837681805439994,
+          0.4320243188590043,
+          0.23597954163201904,
+          0.3872314155140159,
+          0.18242751017574813,
+          0.000390492583846352,
+          0.0,
+          0.0013511177884425816
+        ],
+        [
+          0.0,
+          0.0,
+          0.02648009744301799,
+          0.026407724779243004,
+          0.048837168154785525,
+          0.15197927819568388,
+          0.477307634558647,
+          0.08988079860535494,
+          0.004604525654674808,
+          0.0023437800619433443
+        ],
+        [
+          1.5649780733470453e-17,
+          0.09921823736233248,
+          2.1675573120237546e-17,
+          0.0,
+          1.543230502426291e-17,
+          4.670222033804992e-18,
+          0.0,
+          5.390517676326367e-18,
+          6.773153378931203e-18,
+          5.693792563482248e-05
+        ],
+        [
+          7.397985761319059e-18,
+          0.14220640523004752,
+          0.0,
+          0.12836574473306228,
+          0.12934155857279522,
+          0.08783956840878103,
+          0.04120691846679429,
+          0.02388818091523058,
+          0.01084967187906,
+          0.0002500906631980874
+        ],
+        [
+          6.507118859044349e-18,
+          6.4848842441789234e-18,
+          0.0,
+          7.5979702401658e-17,
+          3.654100134455052e-18,
+          0.0,
+          0.0,
+          2.0565959959334412e-18,
+          0.00405726429815755,
+          0.00012466521346567473
+        ],
+        [
+          0.0,
+          0.0,
+          0.16589793984803694,
+          4.1445322109152916e-18,
+          2.4532191734852674e-19,
+          0.0,
+          1.2985438597882051e-17,
+          1.0957218205681629e-17,
+          1.8398243828633047e-17,
+          2.856259815420685e-05
+        ]
+      ],
+      "content_slack_min": -2.1887552534294308e-11,
+      "waveform_slack_min": 3.196901813837423e-05,
+      "development_mean_sdr_gain_db": 0.13401538124847065,
+      "full_development": {
+        "vocal": {
+          "sdr_db": 13.681230859336955,
+          "si_sdr_db": 13.456490479661253,
+          "spectral_deficit": 0.03509348994613019,
+          "spectral_excess": 0.004783110948205832
+        },
+        "instrumental": {
+          "sdr_db": 17.752782871365397,
+          "si_sdr_db": 17.635572396752057,
+          "spectral_deficit": 0.009102333004058992,
+          "spectral_excess": 0.005068249770392336
+        }
+      },
+      "eligible": true
+    },
+    "evaluation_used_for_selection": false,
+    "preset_sha256": "dd8d1d265455b88843414ad6b4e341c15d54655bda05c469bced7748f7ccc7d6",
+    "content_margin": [
+      0.99,
+      0.95,
+      0.99,
+      0.99
+    ],
+    "maxiter": 100,
+    "regularizations": [
+      0.01
+    ],
+    "spectral_stride": 1,
+    "initial_weights": [
+      [
+        0.20798452885211358,
+        0.09391381437646451,
+        0.1423505418939904,
+        0.21381166800721987,
+        0.28523873427618335,
+        0.23551393326292533,
+        0.005972971762932346,
+        0.1006414327208079,
+        0.062499621516577064,
+        0.19454992126012835
+      ],
+      [
+        0.5364452971939928,
+        2.535402545192616e-17,
+        0.08074740115163938,
+        1.3423778148086152e-17,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        5.05424559626641e-18,
+        0.02602561709961523
+      ],
+      [
+        4.946672411965114e-19,
+        0.0,
+        2.903883053071918e-17,
+        4.7815009872505254e-17,
+        0.0,
+        0.06792557396700995,
+        0.24717158970885053,
+        0.2718314715700229,
+        0.44748066781180945,
+        0.48643231563215794
+      ],
+      [
+        0.0,
+        1.4797242072059e-17,
+        0.0,
+        0.0,
+        9.092898688774914e-18,
+        1.8031637381149546e-17,
+        0.0,
+        0.0,
+        1.151287181908045e-17,
+        0.009742888092954585
+      ],
+      [
+        0.0,
+        2.5758271926003273e-18,
+        0.0,
+        0.1852816276799404,
+        0.06542895173823285,
+        0.0,
+        0.0,
+        0.0,
+        0.002075055077538985,
+        0.00675863780038041
+      ],
+      [
+        0.013153917827421507,
+        0.1627654068944708,
+        4.095404299974542e-18,
+        1.4458852409630907e-17,
+        0.12915812071408858,
+        8.156292007348472e-18,
+        0.0,
+        0.24161072423954844,
+        0.3160520730248663,
+        0.27108864088323076
+      ],
+      [
+        0.0,
+        1.0950018425629968e-18,
+        0.22868098794467,
+        0.0,
+        0.08876040376698602,
+        0.0,
+        0.0,
+        0.17054085228151294,
+        0.12660521595065002,
+        3.571620301216164e-18
+      ],
+      [
+        0.130757540972444,
+        0.5269042678984809,
+        0.21972616282527666,
+        0.4907154677995685,
+        0.17904793389336204,
+        0.3677724485459211,
+        0.24080041583611222,
+        5.088126914156582e-18,
+        0.005542247793547909,
+        0.0014667043365823287
+      ],
+      [
+        0.0,
+        0.0,
+        9.00141913047145e-18,
+        0.0,
+        0.02799306848271672,
+        0.1992745251390082,
+        0.5052003110454173,
+        0.043627189580255674,
+        0.0021219471285983515,
+        0.0025104283481561934
+      ],
+      [
+        4.89373285276172e-19,
+        0.0,
+        1.7210015422312874e-17,
+        1.1553529400548657e-18,
+        0.0,
+        1.6421004231945494e-17,
+        5.7970934910084315e-18,
+        0.0,
+        0.0,
+        0.00019741059282243393
+      ],
+      [
+        0.0,
+        0.2164165108305839,
+        0.0,
+        0.1101912365132712,
+        0.22437278712843053,
+        0.12951351908513556,
+        0.0008547116466876949,
+        0.1717483296078521,
+        0.02483282871327481,
+        0.0008114159257999508
+      ],
+      [
+        0.11165871515402824,
+        0.0,
+        1.1558188081758555e-17,
+        1.5463433485074507e-17,
+        6.262749853761483e-18,
+        1.5360095465509482e-17,
+        0.0,
+        2.6668832344301646e-18,
+        0.0019694648541215476,
+        0.0003448760476388189
+      ],
+      [
+        0.0,
+        0.0,
+        0.3284949061844236,
+        4.435911544770771e-18,
+        0.0,
+        5.160124714673198e-18,
+        3.782002109490451e-18,
+        0.0,
+        0.01082087812901548,
+        7.114398053299069e-05
+      ]
+    ],
+    "ftol": 1e-08,
+    "method": "Mean log exact waveform error; nonnegative frequency weights sum to one; per-recording .03 dB regression cap; four content constraints and full development metric screening"
+  },
+  "confirmation_manifest": {
+    "tracks": [
+      {
+        "id": "d9de0098c6b8",
+        "name": "Actions - South Of The Water",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Actions - South Of The Water.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "a7f477c9522a",
+        "name": "Music Delta - Disco",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - Disco.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "40286c731c21",
+        "name": "Hollow Ground - Left Blind",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Hollow Ground - Left Blind.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "75a9dca52f41",
+        "name": "Dark Ride - Burning Bridges",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Dark Ride - Burning Bridges.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "9a232f60ec2f",
+        "name": "Swinging Steaks - Lost My Way",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Swinging Steaks - Lost My Way.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "d30c5a8798b3",
+        "name": "Clara Berry And Wooldog - Air Traffic",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Clara Berry And Wooldog - Air Traffic.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "6bc85ffdc706",
+        "name": "Flags - 54",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Flags - 54.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "85ec457afff1",
+        "name": "Creepoid - OldTree",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Creepoid - OldTree.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "f91d23293e0d",
+        "name": "Actions - One Minute Smile",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Actions - One Minute Smile.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "3f22fad5f38e",
+        "name": "Wall Of Death - Femme",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Wall Of Death - Femme.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "8e8b66cdf9d3",
+        "name": "Hop Along - Sister Cities",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Hop Along - Sister Cities.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "b9857fee3599",
+        "name": "Triviul - Angelsaint",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Triviul - Angelsaint.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "a69c98ff3930",
+        "name": "Patrick Talbot - Set Me Free",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Patrick Talbot - Set Me Free.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "6003f2d29cb4",
+        "name": "Leaf - Come Around",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Leaf - Come Around.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "b8144db263b0",
+        "name": "Clara Berry And Wooldog - Stella",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Clara Berry And Wooldog - Stella.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "002b2bd803f8",
+        "name": "ANiMAL - Clinic A",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\ANiMAL - Clinic A.stem.mp4",
+        "split": "evaluation"
+      }
+    ],
+    "excluded_silent_references": [],
+    "selection": "Fixed SHA order among previously uncached references; only reference-energy eligibility (>1e-8 of mixture for both stems), never model quality.",
+    "candidate_indices": [
+      0,
+      1,
+      2,
+      4,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "confirmation": {
+    "summary": {
+      "current": {
+        "vocal": {
+          "sdr_db": 13.062599762823696,
+          "si_sdr_db": 12.818280413040865,
+          "spectral_deficit": 0.0342459456269151,
+          "spectral_excess": 0.006485484914839538
+        },
+        "instrumental": {
+          "sdr_db": 17.07241608696018,
+          "si_sdr_db": 16.96470893213745,
+          "spectral_deficit": 0.009644635683520721,
+          "spectral_excess": 0.0028393101664492457
+        }
+      },
+      "candidate": {
+        "vocal": {
+          "sdr_db": 13.293589379792644,
+          "si_sdr_db": 13.06266736694695,
+          "spectral_deficit": 0.03213039811375025,
+          "spectral_excess": 0.005859543120845598
+        },
+        "instrumental": {
+          "sdr_db": 17.30340570392913,
+          "si_sdr_db": 17.20086758786927,
+          "spectral_deficit": 0.009354509398348636,
+          "spectral_excess": 0.0025925475957038523
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": "d9de0098c6b8",
+        "name": "Actions - South Of The Water",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 14.185163495664737,
+              "si_sdr_db": 14.029852385846514,
+              "spectral_deficit": 0.017401611193139436,
+              "spectral_excess": 0.0049448366872990104
+            },
+            "instrumental": {
+              "sdr_db": 19.16367328671971,
+              "si_sdr_db": 19.11346932997808,
+              "spectral_deficit": 0.004273576442763828,
+              "spectral_excess": 0.0014478898650727124
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 14.191445251172937,
+              "si_sdr_db": 14.043030724614827,
+              "spectral_deficit": 0.01764424157335594,
+              "spectral_excess": 0.0047172260741758934
+            },
+            "instrumental": {
+              "sdr_db": 19.169955042227908,
+              "si_sdr_db": 19.11983667674253,
+              "spectral_deficit": 0.004170399573661,
+              "spectral_excess": 0.0014931125901369775
+            }
+          }
+        }
+      },
+      {
+        "id": "a7f477c9522a",
+        "name": "Music Delta - Disco",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 18.75349108494421,
+              "si_sdr_db": 18.70262191093534,
+              "spectral_deficit": 0.0063881584763279525,
+              "spectral_excess": 0.0013854389272232122
+            },
+            "instrumental": {
+              "sdr_db": 21.380980551345136,
+              "si_sdr_db": 21.34954896269977,
+              "spectral_deficit": 0.0027069748418336362,
+              "spectral_excess": 0.0009016337927495812
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 18.741268933773043,
+              "si_sdr_db": 18.697878662969206,
+              "spectral_deficit": 0.006550264941745721,
+              "spectral_excess": 0.0012907691716245063
+            },
+            "instrumental": {
+              "sdr_db": 21.368758400173967,
+              "si_sdr_db": 21.33717049559095,
+              "spectral_deficit": 0.002656198880095549,
+              "spectral_excess": 0.0009197781088914505
+            }
+          }
+        }
+      },
+      {
+        "id": "40286c731c21",
+        "name": "Hollow Ground - Left Blind",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 9.635994071514727,
+              "si_sdr_db": 9.153770982236441,
+              "spectral_deficit": 0.05032434591981442,
+              "spectral_excess": 0.008883000989138728
+            },
+            "instrumental": {
+              "sdr_db": 14.955715327542727,
+              "si_sdr_db": 14.814709377310354,
+              "spectral_deficit": 0.012469806655528654,
+              "spectral_excess": 0.0030834615214297306
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 9.633937603017715,
+              "si_sdr_db": 9.157617025439396,
+              "spectral_deficit": 0.05073612664020201,
+              "spectral_excess": 0.008538716324605735
+            },
+            "instrumental": {
+              "sdr_db": 14.953658859045715,
+              "si_sdr_db": 14.812582413307439,
+              "spectral_deficit": 0.012500866953470151,
+              "spectral_excess": 0.0030628754949909745
+            }
+          }
+        }
+      },
+      {
+        "id": "75a9dca52f41",
+        "name": "Dark Ride - Burning Bridges",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 11.005870636136109,
+              "si_sdr_db": 10.710828283294553,
+              "spectral_deficit": 0.0449192482031326,
+              "spectral_excess": 0.0047688201056155415
+            },
+            "instrumental": {
+              "sdr_db": 17.289553592102145,
+              "si_sdr_db": 17.2129044648803,
+              "spectral_deficit": 0.0055067828066774765,
+              "spectral_excess": 0.0029961292504378243
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 11.087836607060025,
+              "si_sdr_db": 10.808650842144555,
+              "spectral_deficit": 0.044210310261405275,
+              "spectral_excess": 0.0045301332608208
+            },
+            "instrumental": {
+              "sdr_db": 17.371519563026062,
+              "si_sdr_db": 17.295755629163207,
+              "spectral_deficit": 0.005577877068808643,
+              "spectral_excess": 0.0028679846150666127
+            }
+          }
+        }
+      },
+      {
+        "id": "9a232f60ec2f",
+        "name": "Swinging Steaks - Lost My Way",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 12.413359011618619,
+              "si_sdr_db": 12.177069672371996,
+              "spectral_deficit": 0.02759728210308253,
+              "spectral_excess": 0.00494913485405939
+            },
+            "instrumental": {
+              "sdr_db": 15.907509652140469,
+              "si_sdr_db": 15.794762646319061,
+              "spectral_deficit": 0.009894014173524791,
+              "spectral_excess": 0.0028466278684912863
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 12.54129936232044,
+              "si_sdr_db": 12.313988388816066,
+              "spectral_deficit": 0.025795784671962894,
+              "spectral_excess": 0.004993255029431358
+            },
+            "instrumental": {
+              "sdr_db": 16.03545000284229,
+              "si_sdr_db": 15.926308892881153,
+              "spectral_deficit": 0.0098254171988871,
+              "spectral_excess": 0.002740601158961991
+            }
+          }
+        }
+      },
+      {
+        "id": "d30c5a8798b3",
+        "name": "Clara Berry And Wooldog - Air Traffic",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 9.19940547196363,
+              "si_sdr_db": 8.70581990282443,
+              "spectral_deficit": 0.07333213653452564,
+              "spectral_excess": 0.008602745463111697
+            },
+            "instrumental": {
+              "sdr_db": 15.051420021397096,
+              "si_sdr_db": 14.915158851003898,
+              "spectral_deficit": 0.009393854304792256,
+              "spectral_excess": 0.004331113668799678
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 10.053670065498114,
+              "si_sdr_db": 9.681197356240853,
+              "spectral_deficit": 0.05318519975473592,
+              "spectral_excess": 0.008740194925502305
+            },
+            "instrumental": {
+              "sdr_db": 15.90568461493158,
+              "si_sdr_db": 15.793017221391521,
+              "spectral_deficit": 0.009262997922265759,
+              "spectral_excess": 0.0025812905275262505
+            }
+          }
+        }
+      },
+      {
+        "id": "6bc85ffdc706",
+        "name": "Flags - 54",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 16.0280445509875,
+              "si_sdr_db": 16.371644645129873,
+              "spectral_deficit": 0.01785828729333261,
+              "spectral_excess": 0.0008378546113309351
+            },
+            "instrumental": {
+              "sdr_db": 19.042683298564327,
+              "si_sdr_db": 18.99942613992345,
+              "spectral_deficit": 0.002581990558999425,
+              "spectral_excess": 0.003308073997897945
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 17.02251656167735,
+              "si_sdr_db": 17.317516596703264,
+              "spectral_deficit": 0.01197188486111704,
+              "spectral_excess": 0.0010237593462651146
+            },
+            "instrumental": {
+              "sdr_db": 20.037155309254175,
+              "si_sdr_db": 19.996282117720437,
+              "spectral_deficit": 0.002636512670888101,
+              "spectral_excess": 0.001945589054122931
+            }
+          }
+        }
+      },
+      {
+        "id": "85ec457afff1",
+        "name": "Creepoid - OldTree",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 13.3623975427974,
+              "si_sdr_db": 13.176524457494555,
+              "spectral_deficit": 0.01924276504504612,
+              "spectral_excess": 0.005354464738891031
+            },
+            "instrumental": {
+              "sdr_db": 13.665079327177951,
+              "si_sdr_db": 13.474698134972648,
+              "spectral_deficit": 0.01895579266351735,
+              "spectral_excess": 0.00374078155309407
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 13.375589439088817,
+              "si_sdr_db": 13.19473422570118,
+              "spectral_deficit": 0.019329053350610012,
+              "spectral_excess": 0.0052058938759606856
+            },
+            "instrumental": {
+              "sdr_db": 13.67827122346937,
+              "si_sdr_db": 13.488494966065813,
+              "spectral_deficit": 0.018970259446862765,
+              "spectral_excess": 0.0037530397254517673
+            }
+          }
+        }
+      },
+      {
+        "id": "f91d23293e0d",
+        "name": "Actions - One Minute Smile",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 12.500985183300969,
+              "si_sdr_db": 12.256977594479414,
+              "spectral_deficit": 0.023816572763683444,
+              "spectral_excess": 0.006756729406796478
+            },
+            "instrumental": {
+              "sdr_db": 13.859717624496355,
+              "si_sdr_db": 13.67770320662595,
+              "spectral_deficit": 0.016343238291930826,
+              "spectral_excess": 0.004227448826147667
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 12.506583632905382,
+              "si_sdr_db": 12.268601476963106,
+              "spectral_deficit": 0.024208033273132718,
+              "spectral_excess": 0.006413400682083474
+            },
+            "instrumental": {
+              "sdr_db": 13.865316074100766,
+              "si_sdr_db": 13.683456549602065,
+              "spectral_deficit": 0.016125480990637743,
+              "spectral_excess": 0.004235198747006723
+            }
+          }
+        }
+      },
+      {
+        "id": "3f22fad5f38e",
+        "name": "Wall Of Death - Femme",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 6.330062844324504,
+              "si_sdr_db": 5.19693313671362,
+              "spectral_deficit": 0.130483668140841,
+              "spectral_excess": 0.014110415387967654
+            },
+            "instrumental": {
+              "sdr_db": 14.889951393132906,
+              "si_sdr_db": 14.74978082002428,
+              "spectral_deficit": 0.010425005388597839,
+              "spectral_excess": 0.004974725447769758
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 6.421814495587855,
+              "si_sdr_db": 5.323560689146691,
+              "spectral_deficit": 0.1262171381992107,
+              "spectral_excess": 0.013325239137334747
+            },
+            "instrumental": {
+              "sdr_db": 14.981703044396255,
+              "si_sdr_db": 14.843727599313222,
+              "spectral_deficit": 0.010246647031280476,
+              "spectral_excess": 0.004709660225128868
+            }
+          }
+        }
+      },
+      {
+        "id": "8e8b66cdf9d3",
+        "name": "Hop Along - Sister Cities",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 14.332948321329024,
+              "si_sdr_db": 14.222736040714361,
+              "spectral_deficit": 0.018834749263949645,
+              "spectral_excess": 0.0024343450107843765
+            },
+            "instrumental": {
+              "sdr_db": 20.330697918073774,
+              "si_sdr_db": 20.290294290734643,
+              "spectral_deficit": 0.0032487815338148604,
+              "spectral_excess": 0.0012346422402685331
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 14.331504788652829,
+              "si_sdr_db": 14.223936491039375,
+              "spectral_deficit": 0.018935035072901167,
+              "spectral_excess": 0.0024066357096754762
+            },
+            "instrumental": {
+              "sdr_db": 20.32925438539758,
+              "si_sdr_db": 20.288830796731922,
+              "spectral_deficit": 0.003240436059307362,
+              "spectral_excess": 0.00124425855499597
+            }
+          }
+        }
+      },
+      {
+        "id": "b9857fee3599",
+        "name": "Triviul - Angelsaint",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 10.261432294555279,
+              "si_sdr_db": 9.850627395593929,
+              "spectral_deficit": 0.04157478309680254,
+              "spectral_excess": 0.010949096966095098
+            },
+            "instrumental": {
+              "sdr_db": 12.264939541986575,
+              "si_sdr_db": 12.00043317157925,
+              "spectral_deficit": 0.026419723891397698,
+              "spectral_excess": 0.005736179511835089
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 10.29487562540127,
+              "si_sdr_db": 9.907641619488096,
+              "spectral_deficit": 0.04308428854048338,
+              "spectral_excess": 0.009734082410283573
+            },
+            "instrumental": {
+              "sdr_db": 12.298382872832567,
+              "si_sdr_db": 12.035770710542096,
+              "spectral_deficit": 0.024627139941813793,
+              "spectral_excess": 0.006070158548615474
+            }
+          }
+        }
+      },
+      {
+        "id": "a69c98ff3930",
+        "name": "Patrick Talbot - Set Me Free",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 16.03345257312476,
+              "si_sdr_db": 16.1547257848574,
+              "spectral_deficit": 0.012014649422602098,
+              "spectral_excess": 0.001408898494799652
+            },
+            "instrumental": {
+              "sdr_db": 13.745060429915476,
+              "si_sdr_db": 13.564476669192358,
+              "spectral_deficit": 0.018171859748839034,
+              "spectral_excess": 0.0034591422218793713
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 16.62077219421599,
+              "si_sdr_db": 16.709607665211383,
+              "spectral_deficit": 0.009792440447381374,
+              "spectral_excess": 0.0014685773203404386
+            },
+            "instrumental": {
+              "sdr_db": 14.33238005100671,
+              "si_sdr_db": 14.189597109064131,
+              "spectral_deficit": 0.017291943066255876,
+              "spectral_excess": 0.0028165794260564666
+            }
+          }
+        }
+      },
+      {
+        "id": "6003f2d29cb4",
+        "name": "Leaf - Come Around",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 17.249195897219572,
+              "si_sdr_db": 17.248845132157726,
+              "spectral_deficit": 0.01161727740616089,
+              "spectral_excess": 0.0008648564883144649
+            },
+            "instrumental": {
+              "sdr_db": 23.362455634319556,
+              "si_sdr_db": 23.342821371285186,
+              "spectral_deficit": 0.001632933638410443,
+              "spectral_excess": 0.0005923083978213834
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 17.7238883141002,
+              "si_sdr_db": 17.735952384731412,
+              "spectral_deficit": 0.00996068112041857,
+              "spectral_excess": 0.0008427248418299819
+            },
+            "instrumental": {
+              "sdr_db": 23.837148051200185,
+              "si_sdr_db": 23.820403332698486,
+              "spectral_deficit": 0.0015487679140484764,
+              "spectral_excess": 0.00052236996050827
+            }
+          }
+        }
+      },
+      {
+        "id": "b8144db263b0",
+        "name": "Clara Berry And Wooldog - Stella",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 18.259558733745084,
+              "si_sdr_db": 18.20641575382642,
+              "spectral_deficit": 0.005761811819340032,
+              "spectral_excess": 0.0021052312012313132
+            },
+            "instrumental": {
+              "sdr_db": 21.03778018816876,
+              "si_sdr_db": 21.006553609343165,
+              "spectral_deficit": 0.003501228129487207,
+              "spectral_excess": 0.0007568811939342418
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 18.39610817040391,
+              "si_sdr_db": 18.34530170950457,
+              "spectral_deficit": 0.005546268690534077,
+              "spectral_excess": 0.0020844957313193788
+            },
+            "instrumental": {
+              "sdr_db": 21.174329624827585,
+              "si_sdr_db": 21.14387166897341,
+              "spectral_deficit": 0.003416592720000932,
+              "spectral_excess": 0.0007189534633297422
+            }
+          }
+        }
+      },
+      {
+        "id": "002b2bd803f8",
+        "name": "ANiMAL - Clinic A",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 9.450234491953026,
+              "si_sdr_db": 8.927093530177276,
+              "spectral_deficit": 0.04676778334886067,
+              "spectral_excess": 0.025411889304774022
+            },
+            "instrumental": {
+              "sdr_db": 17.211439604279924,
+              "si_sdr_db": 17.12860186832683,
+              "spectral_deficit": 0.008788607866216209,
+              "spectral_excess": 0.001791923305559057
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 9.754319031806446,
+              "si_sdr_db": 9.273462012437223,
+              "spectral_deficit": 0.04691961842080723,
+              "spectral_excess": 0.018437586092276106
+            },
+            "instrumental": {
+              "sdr_db": 17.515524144133344,
+              "si_sdr_db": 17.438775226119894,
+              "spectral_deficit": 0.007574612935294453,
+              "spectral_excess": 0.0017993113304711635
+            }
+          }
+        }
+      }
+    ],
+    "mean_delta_db": 0.23098961696894865,
+    "bootstrap_95pct": [
+      0.08941952842181414,
+      0.39104062937962003
+    ],
+    "improved_recordings": 13,
+    "accepted": true,
+    "frozen_spec": {
+      "anchors_hz": [
+        0,
+        125,
+        250,
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000,
+        22050
+      ],
+      "weights": [
+        [
+          0.36747634683189573,
+          0.17764161017430824,
+          0.18354818459382663,
+          0.13368654392156387,
+          0.2539025884941187,
+          0.17948278654890026,
+          0.019922584288124236,
+          0.0927153955170237,
+          0.07261128087353737,
+          0.19447426646008642
+        ],
+        [
+          0.5054362617389232,
+          8.545651877377592e-17,
+          0.13845668018666057,
+          0.0,
+          0.0,
+          6.152000295907983e-18,
+          6.020710189083567e-17,
+          7.253990160285828e-18,
+          0.0,
+          0.026522924611848665
+        ],
+        [
+          0.0,
+          0.103930555081488,
+          0.0,
+          2.4598683821212136e-17,
+          0.0,
+          0.13234350541499265,
+          0.27096885710960167,
+          0.38461121290654837,
+          0.47223088603141955,
+          0.48650930917645313
+        ],
+        [
+          0.1233720579425973,
+          2.813165824420982e-17,
+          0.003719220564130258,
+          0.0296481026192494,
+          0.01277623331501023,
+          0.019268986764912087,
+          4.0543232020327086e-18,
+          0.0,
+          0.0,
+          0.010356841453008416
+        ],
+        [
+          4.372860529759529e-18,
+          5.440069103740744e-19,
+          0.011252125019958389,
+          0.2086372415832722,
+          0.0497519771396432,
+          0.0,
+          0.0,
+          1.5958100726271018e-18,
+          0.0,
+          0.006657882706222116
+        ],
+        [
+          0.0037153334865837884,
+          0.11518112836410739,
+          0.012383106056826475,
+          0.022448699165184754,
+          0.22227281679949762,
+          0.041854459152714164,
+          0.0,
+          0.33184276163875265,
+          0.3202840179049556,
+          0.27132362134154264
+        ],
+        [
+          0.0,
+          0.04650698852841264,
+          0.17449446574354346,
+          0.018781624339420263,
+          0.04713811589213053,
+          1.407938164926098e-17,
+          0.00816649540108478,
+          0.0766711578332435,
+          0.11536235335819511,
+          3.7664114093050515e-18
+        ],
+        [
+          4.6704549678654866e-17,
+          0.3153150752593036,
+          0.2837681805439994,
+          0.4320243188590043,
+          0.23597954163201904,
+          0.3872314155140159,
+          0.18242751017574813,
+          0.000390492583846352,
+          0.0,
+          0.0013511177884425816
+        ],
+        [
+          0.0,
+          0.0,
+          0.02648009744301799,
+          0.026407724779243004,
+          0.048837168154785525,
+          0.15197927819568388,
+          0.477307634558647,
+          0.08988079860535494,
+          0.004604525654674808,
+          0.0023437800619433443
+        ],
+        [
+          1.5649780733470453e-17,
+          0.09921823736233248,
+          2.1675573120237546e-17,
+          0.0,
+          1.543230502426291e-17,
+          4.670222033804992e-18,
+          0.0,
+          5.390517676326367e-18,
+          6.773153378931203e-18,
+          5.693792563482248e-05
+        ],
+        [
+          7.397985761319059e-18,
+          0.14220640523004752,
+          0.0,
+          0.12836574473306228,
+          0.12934155857279522,
+          0.08783956840878103,
+          0.04120691846679429,
+          0.02388818091523058,
+          0.01084967187906,
+          0.0002500906631980874
+        ],
+        [
+          6.507118859044349e-18,
+          6.4848842441789234e-18,
+          0.0,
+          7.5979702401658e-17,
+          3.654100134455052e-18,
+          0.0,
+          0.0,
+          2.0565959959334412e-18,
+          0.00405726429815755,
+          0.00012466521346567473
+        ],
+        [
+          0.0,
+          0.0,
+          0.16589793984803694,
+          4.1445322109152916e-18,
+          2.4532191734852674e-19,
+          0.0,
+          1.2985438597882051e-17,
+          1.0957218205681629e-17,
+          1.8398243828633047e-17,
+          2.856259815420685e-05
+        ]
+      ]
+    },
+    "limitations": [
+      "Short reference excerpts, unknown model-training overlap",
+      "No true Turkish studio stems; no claim of zero loss or universal superiority"
+    ],
+    "bootstrap_97_5pct": [
+      0.07754205585892107,
+      0.4206728617217207
+    ],
+    "reference_projection_leakage_proxy": {
+      "current": {
+        "vocal": 0.0019195598143220893,
+        "instrumental": 0.0032596722985620222
+      },
+      "candidate": {
+        "vocal": 0.001881777045674839,
+        "instrumental": 0.003124438103209667
+      }
+    },
+    "leakage_safe": true
+  },
+  "production_applied": true,
+  "baseline_sha256": "dd8d1d265455b88843414ad6b4e341c15d54655bda05c469bced7748f7ccc7d6",
+  "acceptance_plan": {
+    "declared_at": "2026-10-11T09:58:09.171272+00:00",
+    "rules": [
+      "Positive paired 97.5% SDR bootstrap interval",
+      "Both mean SI-SDR no worse",
+      "Both mean spectral deficits at least 1% lower",
+      "Both mean spectral excess proxies no higher",
+      "Both mean instantaneous two-reference projection crosstalk proxies no higher"
+    ],
+    "note": "Projection crosstalk is an additional proxy, not a guarantee of absence of audible leakage. Declared before any fresh confirmation outputs or scores."
+  },
+  "acceptance_kind": "new_model_content_preservation",
+  "baseline_deployed_preset": {
+    "id": "atlas_studio_v2",
+    "name": "Atlas Studio V2",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297",
+        "estimate": "vocal",
+        "weight": 0.17443023893149945
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Vocals by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.11430054074816169
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "estimate": "vocal",
+        "weight": 0.170177253718986
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "estimate": "inst",
+        "weight": 0.019257166249671314
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.03216386193638066
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+        "estimate": "inst",
+        "weight": 0.19631456977712158
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Deux by becruily",
+        "estimate": "vocal",
+        "weight": 0.036629851183394346
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Xe Vocals by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.15670929709193934
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Xe Instrumental by pcunwa",
+        "estimate": "inst",
+        "weight": 0.10001722036284563
+      }
+    ],
+    "frequency_weights": {
+      "anchors_hz": [
+        0,
+        125,
+        250,
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000,
+        22050
+      ],
+      "weights": [
+        [
+          0.1038054954257249,
+          0.10386818380346963,
+          0.22149451737476863,
+          0.3686461979239519,
+          0.357088506046072,
+          0.20425008270271117,
+          3.369384126451306e-17,
+          0.1094398910520009,
+          0.08125959219465351,
+          0.19444992279164172
+        ],
+        [
+          0.7037921998356566,
+          5.995299200665938e-18,
+          0.4126504200092933,
+          0.0,
+          5.761941623697378e-17,
+          0.0,
+          0.0,
+          4.224312126634806e-19,
+          2.0030635136669694e-17,
+          0.026562787636667144
+        ],
+        [
+          5.803869754586466e-18,
+          0.0,
+          0.0,
+          2.44062485235078e-17,
+          0.0,
+          0.07472620319317419,
+          0.25691256941506035,
+          0.4035860000812989,
+          0.48006659220084136,
+          0.48648117229948523
+        ],
+        [
+          7.794905400402424e-17,
+          1.713208839116548e-17,
+          0.18186172558797353,
+          0.0,
+          1.9676575364717397e-18,
+          0.0,
+          2.536868932521145e-17,
+          0.0,
+          1.4606236142453155e-17,
+          0.010709936908739465
+        ],
+        [
+          0.0,
+          5.5853352541948564e-18,
+          6.1693644713266965e-18,
+          0.20232483087851616,
+          0.11273300955942543,
+          1.8238313420279595e-17,
+          0.0,
+          1.7099927608949417e-17,
+          0.0,
+          0.006580778925864981
+        ],
+        [
+          0.19240230473861858,
+          0.2746061655076554,
+          9.044194294307792e-19,
+          0.05602949631634217,
+          0.35000167585385,
+          0.1046153286269037,
+          0.0,
+          0.38832949820191454,
+          0.3254757991043873,
+          0.27168542942154417
+        ],
+        [
+          1.9408912953385038e-17,
+          0.20952471897234548,
+          0.0,
+          0.039567222674838906,
+          0.0,
+          7.911287727355165e-18,
+          2.543854719595659e-18,
+          0.006096675607633445,
+          0.11110989457912562,
+          4.777636399428678e-18
+        ],
+        [
+          0.0,
+          0.4120009317165294,
+          0.18399333702796464,
+          0.3255284138254862,
+          0.10125027237367801,
+          0.37234879546457267,
+          0.17064637617926195,
+          0.0,
+          1.734723475976807e-18,
+          0.0013248443319006423
+        ],
+        [
+          0.0,
+          0.0,
+          8.241207060310715e-18,
+          0.00790383838086461,
+          0.07892653616697459,
+          0.24405959001263827,
+          0.5724410544056777,
+          0.09254793505715227,
+          0.00208812192099218,
+          0.002205127684156718
+        ]
+      ]
+    },
+    "calibration": {
+      "report": "docs/atlas-studio-v2-alternatives-round-two.json",
+      "accepted": true,
+      "scope": "Second frozen confirmation: eight short reference excerpts; all eight SDR gains positive; both mean content checks improved. No zero-loss or universal superiority guarantee."
+    }
+  },
+  "recipe": {
+    "id": "atlas_studio_v2",
+    "name": "Atlas Studio V2",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297",
+        "estimate": "vocal",
+        "weight": 0.16754615877033852
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Vocals by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.06704158665374327
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "estimate": "vocal",
+        "weight": 0.18505943257205035
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "estimate": "inst",
+        "weight": 0.019914144265890773
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.027629922644909592
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+        "estimate": "inst",
+        "weight": 0.13413059439101652
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Deux by becruily",
+        "estimate": "vocal",
+        "weight": 0.04871212010960303
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Xe Vocals by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.18384876523563792
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Xe Instrumental by pcunwa",
+        "estimate": "inst",
+        "weight": 0.08278410074533506
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer HyperACE V2 Vocals by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.009927517528796738
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer HyperACE V2 Instrumental by pcunwa",
+        "estimate": "inst",
+        "weight": 0.0563948138868969
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Large Inst V2 by pcunwa",
+        "estimate": "inst",
+        "weight": 0.0004181929511623319
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Siamese by pcunwa",
+        "estimate": "vocal",
+        "weight": 0.01659265024461912
+      }
+    ],
+    "frequency_weights": {
+      "anchors_hz": [
+        0,
+        125,
+        250,
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000,
+        22050
+      ],
+      "weights": [
+        [
+          0.36747634683189573,
+          0.17764161017430824,
+          0.18354818459382663,
+          0.13368654392156387,
+          0.2539025884941187,
+          0.17948278654890026,
+          0.019922584288124236,
+          0.0927153955170237,
+          0.07261128087353737,
+          0.19447426646008642
+        ],
+        [
+          0.5054362617389232,
+          8.545651877377592e-17,
+          0.13845668018666057,
+          0.0,
+          0.0,
+          6.152000295907983e-18,
+          6.020710189083567e-17,
+          7.253990160285828e-18,
+          0.0,
+          0.026522924611848665
+        ],
+        [
+          0.0,
+          0.103930555081488,
+          0.0,
+          2.4598683821212136e-17,
+          0.0,
+          0.13234350541499265,
+          0.27096885710960167,
+          0.38461121290654837,
+          0.47223088603141955,
+          0.48650930917645313
+        ],
+        [
+          0.1233720579425973,
+          2.813165824420982e-17,
+          0.003719220564130258,
+          0.0296481026192494,
+          0.01277623331501023,
+          0.019268986764912087,
+          4.0543232020327086e-18,
+          0.0,
+          0.0,
+          0.010356841453008416
+        ],
+        [
+          4.372860529759529e-18,
+          5.440069103740744e-19,
+          0.011252125019958389,
+          0.2086372415832722,
+          0.0497519771396432,
+          0.0,
+          0.0,
+          1.5958100726271018e-18,
+          0.0,
+          0.006657882706222116
+        ],
+        [
+          0.0037153334865837884,
+          0.11518112836410739,
+          0.012383106056826475,
+          0.022448699165184754,
+          0.22227281679949762,
+          0.041854459152714164,
+          0.0,
+          0.33184276163875265,
+          0.3202840179049556,
+          0.27132362134154264
+        ],
+        [
+          0.0,
+          0.04650698852841264,
+          0.17449446574354346,
+          0.018781624339420263,
+          0.04713811589213053,
+          1.407938164926098e-17,
+          0.00816649540108478,
+          0.0766711578332435,
+          0.11536235335819511,
+          3.7664114093050515e-18
+        ],
+        [
+          4.6704549678654866e-17,
+          0.3153150752593036,
+          0.2837681805439994,
+          0.4320243188590043,
+          0.23597954163201904,
+          0.3872314155140159,
+          0.18242751017574813,
+          0.000390492583846352,
+          0.0,
+          0.0013511177884425816
+        ],
+        [
+          0.0,
+          0.0,
+          0.02648009744301799,
+          0.026407724779243004,
+          0.048837168154785525,
+          0.15197927819568388,
+          0.477307634558647,
+          0.08988079860535494,
+          0.004604525654674808,
+          0.0023437800619433443
+        ],
+        [
+          1.5649780733470453e-17,
+          0.09921823736233248,
+          2.1675573120237546e-17,
+          0.0,
+          1.543230502426291e-17,
+          4.670222033804992e-18,
+          0.0,
+          5.390517676326367e-18,
+          6.773153378931203e-18,
+          5.693792563482248e-05
+        ],
+        [
+          7.397985761319059e-18,
+          0.14220640523004752,
+          0.0,
+          0.12836574473306228,
+          0.12934155857279522,
+          0.08783956840878103,
+          0.04120691846679429,
+          0.02388818091523058,
+          0.01084967187906,
+          0.0002500906631980874
+        ],
+        [
+          6.507118859044349e-18,
+          6.4848842441789234e-18,
+          0.0,
+          7.5979702401658e-17,
+          3.654100134455052e-18,
+          0.0,
+          0.0,
+          2.0565959959334412e-18,
+          0.00405726429815755,
+          0.00012466521346567473
+        ],
+        [
+          0.0,
+          0.0,
+          0.16589793984803694,
+          4.1445322109152916e-18,
+          2.4532191734852674e-19,
+          0.0,
+          1.2985438597882051e-17,
+          1.0957218205681629e-17,
+          1.8398243828633047e-17,
+          2.856259815420685e-05
+        ]
+      ]
+    },
+    "calibration": {
+      "report": "docs/atlas-studio-v2-new-models-round-two.json",
+      "accepted": true,
+      "scope": "Frozen independent 16-excerpt confirmation: mean SDR +0.231 dB; both mean deficits/excess and projection crosstalk lower. No zero-loss or universal superiority guarantee."
+    }
+  },
+  "completed_expert_outputs": 392,
+  "completed_constrained_fits": 5,
+  "publisher_models": {
+    "BS Roformer HyperACE V2 Vocals by pcunwa": {
+      "filename": "bs_roformer_voc_hyperacev2.ckpt",
+      "checkpoint_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_voc/bs_roformer_voc_hyperacev2.ckpt",
+      "config_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_voc/config.yaml",
+      "source_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_voc/bs_roformer.py",
+      "repo": "BS-Roformer-HyperACE",
+      "revision": "5b1f8283125d5e4a3614d0e3635a636e09c84059",
+      "checkpoint_sha256": "54cf516f621f2f460bf660ed137e244b8931bf7a2ce85ddceecff816dbc4d668",
+      "source_sha256": "48571e20d70ea8f245cffc6afbfa279f62042e7ba16fbaa3fe43dd2cbc25e1db",
+      "publisher_config_sha256": "033e57abee226a480ef410e0631b9fe00e8b7bc9a3bb5fe55659d0b43a238701",
+      "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+    },
+    "BS Roformer HyperACE V2 Instrumental by pcunwa": {
+      "filename": "bs_roformer_inst_hyperacev2.ckpt",
+      "checkpoint_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_inst/bs_roformer_inst_hyperacev2.ckpt",
+      "config_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_inst/config.yaml",
+      "source_url": "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_inst/bs_roformer.py",
+      "repo": "BS-Roformer-HyperACE",
+      "revision": "5b1f8283125d5e4a3614d0e3635a636e09c84059",
+      "checkpoint_sha256": "4d61178ef966d2b4e9ad456ffbbc6fd5b2828df07a7af32931142c1a5ff1fe6f",
+      "source_sha256": "48571e20d70ea8f245cffc6afbfa279f62042e7ba16fbaa3fe43dd2cbc25e1db",
+      "publisher_config_sha256": "85d10906007df21ee48dbb86faa09205609274eb38ea224dce767e2844d0a934",
+      "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+    },
+    "BS Roformer Large Inst V2 by pcunwa": {
+      "filename": "bs_large_v2_inst.ckpt",
+      "checkpoint_url": "https://huggingface.co/pcunwa/BS-Roformer-Large-Inst/resolve/94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d/bs_large_v2_inst.ckpt",
+      "config_url": "https://huggingface.co/pcunwa/BS-Roformer-Large-Inst/resolve/94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d/config.yaml",
+      "source_url": "https://huggingface.co/pcunwa/BS-Roformer-Large-Inst/resolve/94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d/bs_roformer.py",
+      "repo": "BS-Roformer-Large-Inst",
+      "revision": "94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d",
+      "checkpoint_sha256": "09251ab8b5bb892414a6ab8aa80a1be30c17852d5e7f4e76943610de049e4bc4",
+      "source_sha256": "fc4a907999e151bc8272b62e7829757ac4384bfccd4aae7dff6ff961a9d1af57",
+      "publisher_config_sha256": "85d10906007df21ee48dbb86faa09205609274eb38ea224dce767e2844d0a934",
+      "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+    },
+    "BS Roformer Siamese by pcunwa": {
+      "filename": "bs_exp_siameseroformer.ckpt",
+      "checkpoint_url": "https://huggingface.co/pcunwa/BS-EXP-SiameseRoformer/resolve/2042531f6f98ff5070124fec89dffbdd185877f9/bs_exp_siameseroformer.ckpt",
+      "config_url": "https://huggingface.co/pcunwa/BS-EXP-SiameseRoformer/resolve/2042531f6f98ff5070124fec89dffbdd185877f9/config.yaml",
+      "source_url": "https://huggingface.co/pcunwa/BS-EXP-SiameseRoformer/resolve/2042531f6f98ff5070124fec89dffbdd185877f9/bs_roformer.py",
+      "repo": "BS-EXP-SiameseRoformer",
+      "revision": "2042531f6f98ff5070124fec89dffbdd185877f9",
+      "checkpoint_sha256": "cf5456f703931bdc5415c167453b4d88630c3adb1f2d4de462423faa52b30b79",
+      "source_sha256": "2cd39f56b1e37b23a1e35db66139c607db3b2281f2dc6037d9df8e860c4cb8e2",
+      "publisher_config_sha256": "1d881ed6a68cae81717fe078b9a427cb206457e06eb3a4cbdf2ebbe659ac2f88",
+      "translation": "Only Attend import location, batch 1, hop metadata and output label order. Strict state_dict loading."
+    }
+  },
+  "production_live_verified": true,
+  "second_confirmation_plan": {
+    "declared_at": "2026-10-11T11:03:43.592611+00:00",
+    "sample_size": 16,
+    "reason": "Larger fixed confirmation size for the refit, declared before any new reference selection, candidate inference or score inspection. First-round near-zero conservative interval and excess regression do not permit deployment.",
+    "rules": [
+      "Positive paired 97.5% SDR bootstrap interval",
+      "Both mean SI-SDR no worse",
+      "Both mean spectral deficits at least 1% lower",
+      "Both mean spectral excess proxies no higher",
+      "Both mean instantaneous two-reference projection crosstalk proxies no higher"
+    ],
+    "candidate": [
+      [
+        0.36747634683189573,
+        0.17764161017430824,
+        0.18354818459382663,
+        0.13368654392156387,
+        0.2539025884941187,
+        0.17948278654890026,
+        0.019922584288124236,
+        0.0927153955170237,
+        0.07261128087353737,
+        0.19447426646008642
+      ],
+      [
+        0.5054362617389232,
+        8.545651877377592e-17,
+        0.13845668018666057,
+        0.0,
+        0.0,
+        6.152000295907983e-18,
+        6.020710189083567e-17,
+        7.253990160285828e-18,
+        0.0,
+        0.026522924611848665
+      ],
+      [
+        0.0,
+        0.103930555081488,
+        0.0,
+        2.4598683821212136e-17,
+        0.0,
+        0.13234350541499265,
+        0.27096885710960167,
+        0.38461121290654837,
+        0.47223088603141955,
+        0.48650930917645313
+      ],
+      [
+        0.1233720579425973,
+        2.813165824420982e-17,
+        0.003719220564130258,
+        0.0296481026192494,
+        0.01277623331501023,
+        0.019268986764912087,
+        4.0543232020327086e-18,
+        0.0,
+        0.0,
+        0.010356841453008416
+      ],
+      [
+        4.372860529759529e-18,
+        5.440069103740744e-19,
+        0.011252125019958389,
+        0.2086372415832722,
+        0.0497519771396432,
+        0.0,
+        0.0,
+        1.5958100726271018e-18,
+        0.0,
+        0.006657882706222116
+      ],
+      [
+        0.0037153334865837884,
+        0.11518112836410739,
+        0.012383106056826475,
+        0.022448699165184754,
+        0.22227281679949762,
+        0.041854459152714164,
+        0.0,
+        0.33184276163875265,
+        0.3202840179049556,
+        0.27132362134154264
+      ],
+      [
+        0.0,
+        0.04650698852841264,
+        0.17449446574354346,
+        0.018781624339420263,
+        0.04713811589213053,
+        1.407938164926098e-17,
+        0.00816649540108478,
+        0.0766711578332435,
+        0.11536235335819511,
+        3.7664114093050515e-18
+      ],
+      [
+        4.6704549678654866e-17,
+        0.3153150752593036,
+        0.2837681805439994,
+        0.4320243188590043,
+        0.23597954163201904,
+        0.3872314155140159,
+        0.18242751017574813,
+        0.000390492583846352,
+        0.0,
+        0.0013511177884425816
+      ],
+      [
+        0.0,
+        0.0,
+        0.02648009744301799,
+        0.026407724779243004,
+        0.048837168154785525,
+        0.15197927819568388,
+        0.477307634558647,
+        0.08988079860535494,
+        0.004604525654674808,
+        0.0023437800619433443
+      ],
+      [
+        1.5649780733470453e-17,
+        0.09921823736233248,
+        2.1675573120237546e-17,
+        0.0,
+        1.543230502426291e-17,
+        4.670222033804992e-18,
+        0.0,
+        5.390517676326367e-18,
+        6.773153378931203e-18,
+        5.693792563482248e-05
+      ],
+      [
+        7.397985761319059e-18,
+        0.14220640523004752,
+        0.0,
+        0.12836574473306228,
+        0.12934155857279522,
+        0.08783956840878103,
+        0.04120691846679429,
+        0.02388818091523058,
+        0.01084967187906,
+        0.0002500906631980874
+      ],
+      [
+        6.507118859044349e-18,
+        6.4848842441789234e-18,
+        0.0,
+        7.5979702401658e-17,
+        3.654100134455052e-18,
+        0.0,
+        0.0,
+        2.0565959959334412e-18,
+        0.00405726429815755,
+        0.00012466521346567473
+      ],
+      [
+        0.0,
+        0.0,
+        0.16589793984803694,
+        4.1445322109152916e-18,
+        2.4532191734852674e-19,
+        0.0,
+        1.2985438597882051e-17,
+        1.0957218205681629e-17,
+        1.8398243828633047e-17,
+        2.856259815420685e-05
+      ]
+    ]
+  },
+  "production_live_check": {
+    "passed": true,
+    "task_id": "f5e1cef0-16b8-444a-a56f-33498766d3c8",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Vocals by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Vocals by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Deux by becruily"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Xe Vocals by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Leap Xe Instrumental by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer HyperACE V2 Vocals by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer HyperACE V2 Instrumental by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Large Inst V2 by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Siamese by pcunwa"
+      }
+    ],
+    "frames": 132300,
+    "rate": 44100,
+    "sum_max_abs_error": 2.9802322387695312e-08,
+    "output_files": [
+      "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\outputs\\AtlasStudioV2_Vocals_1ed074e27259.wav",
+      "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\outputs\\AtlasStudioV2_Instrumental_1ed074e27259.wav"
+    ],
+    "events": [
+      {
+        "status": "processing",
+        "progress": 0,
+        "message": "Starting Ensemble..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.013846153846153847,
+        "message": "Atlas Studio V2 1/13 Â· Loading model..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.01730769230769231,
+        "message": "Atlas Studio V2 1/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.02639423076923077,
+        "message": "Atlas Studio V2 1/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 3/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.03850961538461538,
+        "message": "Atlas Studio V2 1/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 7/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.050624999999999996,
+        "message": "Atlas Studio V2 1/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 11/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.06274038461538461,
+        "message": "Atlas Studio V2 1/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 15/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.09094405594405594,
+        "message": "Atlas Studio V2 2/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/11 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.10416083916083915,
+        "message": "Atlas Studio V2 2/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 4/11 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.1217832167832168,
+        "message": "Atlas Studio V2 2/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 8/11 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.13846153846153847,
+        "message": "Atlas Studio V2 2/13 Â· Model Ã§Ä±ktÄ±larÄ± hazÄ±r"
+      },
+      {
+        "status": "processing",
+        "progress": 0.15879807692307693,
+        "message": "Atlas Studio V2 3/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.18302884615384615,
+        "message": "Atlas Studio V2 3/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 9/16 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.22153846153846155,
+        "message": "Atlas Studio V2 4/13 Â· Loading model..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.2330769230769231,
+        "message": "Atlas Studio V2 4/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 2/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.24519230769230774,
+        "message": "Atlas Studio V2 4/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 5/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.2573076923076923,
+        "message": "Atlas Studio V2 4/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 8/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.2734615384615384,
+        "message": "Atlas Studio V2 4/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 12/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.30028846153846156,
+        "message": "Atlas Studio V2 5/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.31846153846153846,
+        "message": "Atlas Studio V2 5/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 4/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.3366346153846154,
+        "message": "Atlas Studio V2 5/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 7/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.3688461538461538,
+        "message": "Atlas Studio V2 6/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/9 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.37961538461538463,
+        "message": "Atlas Studio V2 6/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 3/9 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.39576923076923076,
+        "message": "Atlas Studio V2 6/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 6/9 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.4153846153846154,
+        "message": "Atlas Studio V2 6/13 Â· Model Ã§Ä±ktÄ±larÄ± hazÄ±r"
+      },
+      {
+        "status": "processing",
+        "progress": 0.43673076923076926,
+        "message": "Atlas Studio V2 7/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.44884615384615384,
+        "message": "Atlas Studio V2 7/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 4/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.4650000000000001,
+        "message": "Atlas Studio V2 7/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 8/12 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.4846153846153846,
+        "message": "Atlas Studio V2 7/13 Â· Model Ã§Ä±ktÄ±larÄ± hazÄ±r"
+      },
+      {
+        "status": "processing",
+        "progress": 0.5019230769230769,
+        "message": "Atlas Studio V2 8/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.5140384615384616,
+        "message": "Atlas Studio V2 8/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 2/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.5200961538461539,
+        "message": "Atlas Studio V2 8/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 3/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.5261538461538461,
+        "message": "Atlas Studio V2 8/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 4/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.5322115384615385,
+        "message": "Atlas Studio V2 8/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 5/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.5382692307692307,
+        "message": "Atlas Studio V2 8/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 6/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.5538461538461539,
+        "message": "Atlas Studio V2 8/13 Â· Model Ã§Ä±ktÄ±larÄ± hazÄ±r"
+      },
+      {
+        "status": "processing",
+        "progress": 0.5711538461538461,
+        "message": "Atlas Studio V2 9/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.5772115384615385,
+        "message": "Atlas Studio V2 9/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.589326923076923,
+        "message": "Atlas Studio V2 9/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 3/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.5953846153846154,
+        "message": "Atlas Studio V2 9/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 4/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.6014423076923077,
+        "message": "Atlas Studio V2 9/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 5/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.6075,
+        "message": "Atlas Studio V2 9/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 6/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.6230769230769231,
+        "message": "Atlas Studio V2 9/13 Â· Model Ã§Ä±ktÄ±larÄ± hazÄ±r"
+      },
+      {
+        "status": "processing",
+        "progress": 0.6464423076923077,
+        "message": "Atlas Studio V2 10/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.6585576923076922,
+        "message": "Atlas Studio V2 10/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 3/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.670673076923077,
+        "message": "Atlas Studio V2 10/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 5/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.6827884615384616,
+        "message": "Atlas Studio V2 10/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 7/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.7096153846153846,
+        "message": "Atlas Studio V2 11/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.7217307692307693,
+        "message": "Atlas Studio V2 11/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 2/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.7338461538461538,
+        "message": "Atlas Studio V2 11/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 4/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.7459615384615386,
+        "message": "Atlas Studio V2 11/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 6/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.7753846153846153,
+        "message": "Atlas Studio V2 12/13 Â· Loading model..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.7849038461538462,
+        "message": "Atlas Studio V2 12/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 1/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.7970192307692308,
+        "message": "Atlas Studio V2 12/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 3/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.8091346153846154,
+        "message": "Atlas Studio V2 12/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 5/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.8151923076923077,
+        "message": "Atlas Studio V2 12/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 6/8 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.8446153846153847,
+        "message": "Atlas Studio V2 13/13 Â· Loading model..."
+      },
+      {
+        "status": "processing",
+        "progress": 0.8612937062937064,
+        "message": "Atlas Studio V2 13/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 3/11 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.878916083916084,
+        "message": "Atlas Studio V2 13/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 7/11 parÃ§a"
+      },
+      {
+        "status": "processing",
+        "progress": 0.8921328671328671,
+        "message": "Atlas Studio V2 13/13 Â· Ses ayrÄ±ÅŸtÄ±rÄ±lÄ±yor Â· 10/11 parÃ§a"
+      },
+      {
+        "status": "completed",
+        "progress": 1.0,
+        "message": "Atlas Studio V2 tamamlandÄ±"
+      }
+    ],
+    "quality_benchmark": false
+  },
+  "verification": {
+    "unit_tests_passed": 42,
+    "production_build_passed": true,
+    "typescript_passed": true,
+    "frontend_proxy_models_verified": 13,
+    "frontend_http_status": 200
+  }
+}

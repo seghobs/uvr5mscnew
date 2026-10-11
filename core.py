@@ -31,6 +31,27 @@ try:
     _orig_download = Separator.download_model_files
     _orig_list = Separator.list_supported_model_files
     _new_models = {
+        "MelBand Roformer Deux by becruily": {
+            "filename": "becruily_deux.ckpt",
+            "download_files": [
+                "https://huggingface.co/becruily/mel-band-roformer-deux/resolve/2da74427d682a3df47a774378fc24d7a1a0cdaad/becruily_deux.ckpt",
+                "https://huggingface.co/becruily/mel-band-roformer-deux/resolve/2da74427d682a3df47a774378fc24d7a1a0cdaad/config_deux_becruily.yaml"
+            ]
+        },
+        "BS Roformer Leap Xe Vocals by pcunwa": {
+            "filename": "bs_leap_xe_voc.ckpt",
+            "download_files": [
+                "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/4e47d6662ae82eaa8b4ac4329fe66099a843b48e/Xe/bs_leap_xe_voc.ckpt",
+                "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/4e47d6662ae82eaa8b4ac4329fe66099a843b48e/Xe/leap_xe_config_voc.yaml"
+            ]
+        },
+        "BS Roformer Leap Xe Instrumental by pcunwa": {
+            "filename": "bs_leap_xe_inst.ckpt",
+            "download_files": [
+                "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/4e47d6662ae82eaa8b4ac4329fe66099a843b48e/Xe/bs_leap_xe_inst.ckpt",
+                "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/4e47d6662ae82eaa8b4ac4329fe66099a843b48e/Xe/leap_xe_config_inst.yaml"
+            ]
+        },
         "BS Roformer Leap Vocals by pcunwa": {
             "filename": "bs_roformer_leap_voc.ckpt",
             "download_files": [
@@ -74,6 +95,9 @@ try:
             ]
         }
     }
+    from roformer_publisher import REGISTRY as _publisher_models
+    _new_models.update({name: {'filename': spec['filename'], 'download_files':
+        [spec['checkpoint_url'], spec['config_url']]} for name, spec in _publisher_models.items()})
     def _patched_list(self, *args, **kwargs):
         result = _orig_list(self, *args, **kwargs)
         # Inject new models into MDXC group
@@ -93,6 +117,10 @@ try:
     Separator.list_supported_model_files = _patched_list
 
     def _patched_download(self, model_filename, *args, **kwargs):
+        from roformer_publisher import download_custom
+        publisher_files = download_custom(self, model_filename)
+        if publisher_files is not None:
+            return publisher_files
         # Check if it's one of our patched models
         for name, info in _new_models.items():
             if info["filename"] == model_filename or model_filename == name:
@@ -135,10 +163,10 @@ try:
                 # The stock separator detects Roformer from its config filename.
                 if yaml_candidate:
                     import shutil
-                    named_config = os.path.join(isolated_dir, 'config_bs_roformer.yaml')
+                    named_config = os.path.join(isolated_dir, 'config_mel_band_roformer.yaml' if name == 'MelBand Roformer Deux by becruily' else 'config_bs_roformer.yaml')
                     shutil.copyfile(yaml_candidate, named_config)
                     yaml_candidate = named_config
-                    if name == 'BS Roformer Leap Vocals by pcunwa' or name.startswith('BS-Roformer-Resurrection '):
+                    if name == 'BS Roformer Leap Vocals by pcunwa' or name.startswith(('BS-Roformer-Resurrection ', 'BS Roformer Leap Xe ')):
                         # These published defaults are equivalent to the stock
                         # implementation, whose constructor lacks the keywords.
                         import yaml
@@ -146,6 +174,8 @@ try:
                             config = yaml.load(config_file, Loader=yaml.FullLoader)
                         from roformer_config import compatible_single_target_config
                         config = compatible_single_target_config(config)
+                        if name.startswith('BS Roformer Leap Xe '):
+                            config['inference']['batch_size'] = 1
                         with open(named_config, 'w', encoding='utf8') as config_file:
                             yaml.dump(config, config_file)
                 if model_path.endswith('.safetensors'):
@@ -287,8 +317,14 @@ roformer_models = {
     'BS-Roformer-Revive 2 (Bleedless) by pcunwa' : 'bs_roformer_revive2.ckpt',
     'BS-Roformer-Revive 3e (Fullness) by pcunwa' : 'bs_roformer_revive3e.ckpt',
     'BS-Roformer-Resurrection Vocals by pcunwa' : 'BS-Roformer-Resurrection.ckpt',
-    'BS-Roformer-Resurrection Instrumental by pcunwa' : 'BS-Roformer-Resurrection-Inst.ckpt'
+    'BS-Roformer-Resurrection Instrumental by pcunwa' : 'BS-Roformer-Resurrection-Inst.ckpt',
+    'MelBand Roformer Deux by becruily': 'becruily_deux.ckpt',
+    'BS Roformer Leap Xe Vocals by pcunwa': 'bs_leap_xe_voc.ckpt',
+    'BS Roformer Leap Xe Instrumental by pcunwa': 'bs_leap_xe_inst.ckpt'
 }
+
+from roformer_publisher import REGISTRY as _publisher_registry
+roformer_models.update({name: spec['filename'] for name, spec in _publisher_registry.items()})
 
 mdx23c_models = [
     'MDX23C_D1581.ckpt',
@@ -534,7 +570,9 @@ def generic_separator(audio, model_filename, params, progress_callback=None, wor
             **params
         )
         if progress_callback: progress_callback(0.2, "Loading model...")
-        separator.load_model(model_filename=model_filename)
+        from roformer_publisher import architecture_scope
+        with architecture_scope(separator, model_filename):
+            separator.load_model(model_filename=model_filename)
         from roformer_input import attach_minimum_window
         minimum_window=attach_minimum_window(separator.model_instance)
         if overlap_factor is not None:

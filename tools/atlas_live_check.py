@@ -1,4 +1,4 @@
-"""Exercise the actual local API and six-model production export, not mocks."""
+"""Exercise the actual local API and configured production export, not mocks."""
 import json
 from pathlib import Path
 import time

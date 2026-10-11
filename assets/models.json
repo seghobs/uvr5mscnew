@@ -12,16 +12,16 @@
         "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/main/bs_leap_voc_conf.yaml"
     ],
     "BS-Roformer-Viperx-1297": [
-      "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_317_sdr_12.9755.ckpt",
-      "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_317_sdr_12.9755.yaml"
+        "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_317_sdr_12.9755.ckpt",
+        "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_317_sdr_12.9755.yaml"
     ],
     "BS-Roformer-Viperx-1296": [
-      "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_368_sdr_12.9628.ckpt",
-      "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_368_sdr_12.9628.yaml"
+        "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_368_sdr_12.9628.ckpt",
+        "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_368_sdr_12.9628.yaml"
     ],
     "BS-Roformer-Viperx-1053": [
-      "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_937_sdr_10.5309.ckpt",
-      "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_937_sdr_10.5309.yaml"
+        "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_937_sdr_10.5309.ckpt",
+        "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_bs_roformer_ep_937_sdr_10.5309.yaml"
     ],
     "Mel-Roformer-Viperx-1143": [
         "https://github.com/nomadkaraoke/python-audio-separator/releases/download/model-configs/model_mel_band_roformer_ep_3005_sdr_11.4360.ckpt",
@@ -535,5 +535,33 @@
     "BS Roformer 124 bands (ver. 2026.07)": [
         "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/main/model.safetensors",
         "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/main/config.yaml"
+    ],
+    "MelBand Roformer Deux by becruily": [
+        "https://huggingface.co/becruily/mel-band-roformer-deux/resolve/2da74427d682a3df47a774378fc24d7a1a0cdaad/becruily_deux.ckpt",
+        "https://huggingface.co/becruily/mel-band-roformer-deux/resolve/2da74427d682a3df47a774378fc24d7a1a0cdaad/config_deux_becruily.yaml"
+    ],
+    "BS Roformer Leap Xe Vocals by pcunwa": [
+        "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/4e47d6662ae82eaa8b4ac4329fe66099a843b48e/Xe/bs_leap_xe_voc.ckpt",
+        "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/4e47d6662ae82eaa8b4ac4329fe66099a843b48e/Xe/leap_xe_config_voc.yaml"
+    ],
+    "BS Roformer Leap Xe Instrumental by pcunwa": [
+        "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/4e47d6662ae82eaa8b4ac4329fe66099a843b48e/Xe/bs_leap_xe_inst.ckpt",
+        "https://huggingface.co/pcunwa/BS-Roformer-Leap/resolve/4e47d6662ae82eaa8b4ac4329fe66099a843b48e/Xe/leap_xe_config_inst.yaml"
+    ],
+    "BS Roformer HyperACE V2 Vocals by pcunwa": [
+        "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_voc/bs_roformer_voc_hyperacev2.ckpt",
+        "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_voc/config.yaml"
+    ],
+    "BS Roformer HyperACE V2 Instrumental by pcunwa": [
+        "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_inst/bs_roformer_inst_hyperacev2.ckpt",
+        "https://huggingface.co/pcunwa/BS-Roformer-HyperACE/resolve/5b1f8283125d5e4a3614d0e3635a636e09c84059/v2_inst/config.yaml"
+    ],
+    "BS Roformer Large Inst V2 by pcunwa": [
+        "https://huggingface.co/pcunwa/BS-Roformer-Large-Inst/resolve/94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d/bs_large_v2_inst.ckpt",
+        "https://huggingface.co/pcunwa/BS-Roformer-Large-Inst/resolve/94ea5d723ef7aceeeb211472a7bb42ad6ce4ee0d/config.yaml"
+    ],
+    "BS Roformer Siamese by pcunwa": [
+        "https://huggingface.co/pcunwa/BS-EXP-SiameseRoformer/resolve/2042531f6f98ff5070124fec89dffbdd185877f9/bs_exp_siameseroformer.ckpt",
+        "https://huggingface.co/pcunwa/BS-EXP-SiameseRoformer/resolve/2042531f6f98ff5070124fec89dffbdd185877f9/config.yaml"
     ]
 }

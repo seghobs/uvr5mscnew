@@ -1,0 +1,1361 @@
+{
+  "date": "2026-10-11",
+  "acceptance_kind": "content_preservation",
+  "development": {
+    "tracks": [
+      {
+        "name": "Night Panther - Fire",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Night Panther - Fire.stem.mp4",
+        "id": "fc9f42fdeb43"
+      },
+      {
+        "name": "Auctioneer - Our Future Faces",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Auctioneer - Our Future Faces.stem.mp4",
+        "id": "3c1b6f88b282"
+      },
+      {
+        "name": "Clara Berry And Wooldog - Waltz For My Victims",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Clara Berry And Wooldog - Waltz For My Victims.stem.mp4",
+        "id": "2063584c7f74"
+      },
+      {
+        "name": "Alexander Ross - Velvet Curtain",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Alexander Ross - Velvet Curtain.stem.mp4",
+        "id": "7446f71a03b7"
+      },
+      {
+        "name": "Johnny Lokke - Whisper To A Scream",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Johnny Lokke - Whisper To A Scream.stem.mp4",
+        "id": "465889e42b6a"
+      },
+      {
+        "name": "Aimee Norwich - Child",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Aimee Norwich - Child.stem.mp4",
+        "id": "2778930b9b61"
+      },
+      {
+        "name": "The Long Wait - Back Home To Blue",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\The Long Wait - Back Home To Blue.stem.mp4",
+        "id": "5bc229213e9f"
+      },
+      {
+        "name": "James May - If You Say",
+        "split": "development",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\James May - If You Say.stem.mp4",
+        "id": "60a9cec090f0"
+      },
+      {
+        "id": "502f51d25f86",
+        "name": "Traffic Experiment - Once More (With Feeling)",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Traffic Experiment - Once More (With Feeling).stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "16512990064b",
+        "name": "Tim Taler - Stalker",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Tim Taler - Stalker.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "851d0684e5bc",
+        "name": "Sweet Lights - You Let Me Down",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Sweet Lights - You Let Me Down.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "bac2583979ee",
+        "name": "Music Delta - 80s Rock",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - 80s Rock.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "6370671b9d4b",
+        "name": "Triviul - Dorothy",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Triviul - Dorothy.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "a88daa04efcf",
+        "name": "Matthew Entwistle - Dont You Ever",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Matthew Entwistle - Dont You Ever.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "3e38f298d8d5",
+        "name": "Meaxic - Take A Step",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Meaxic - Take A Step.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "bd44a2ee8be2",
+        "name": "Jay Menon - Through My Eyes",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Jay Menon - Through My Eyes.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "d301ab31d8f1",
+        "name": "Actions - Devil's Words",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Actions - Devil's Words.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "99887d7d46e5",
+        "name": "Lushlife - Toynbee Suite",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Lushlife - Toynbee Suite.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "0953be6891af",
+        "name": "Skelpolu - Human Mistakes",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Skelpolu - Human Mistakes.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "6ef96b1881db",
+        "name": "Fergessen - Nos Palpitants",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Fergessen - Nos Palpitants.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "8dc66f602a4f",
+        "name": "BigTroubles - Phantom",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\BigTroubles - Phantom.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "88b7ac4d20ad",
+        "name": "Celestial Shore - Die For Us",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Celestial Shore - Die For Us.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "b4dbd7f748f5",
+        "name": "A Classic Education - NightOwl",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\A Classic Education - NightOwl.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "6a5b6450efaa",
+        "name": "Skelpolu - Together Alone",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Skelpolu - Together Alone.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "760b8c4b6536",
+        "name": "Young Griffo - Pennies",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Young Griffo - Pennies.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "3808527612f5",
+        "name": "Titanium - Haunted Age",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Titanium - Haunted Age.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "a393d88129ad",
+        "name": "Bill Chudziak - Children Of No-one",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Bill Chudziak - Children Of No-one.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "48134f22b8a5",
+        "name": "Helado Negro - Mitad Del Mundo",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Helado Negro - Mitad Del Mundo.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "a1a84dac4a19",
+        "name": "The So So Glos - Emergency",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\The So So Glos - Emergency.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "4dc4a76d2d33",
+        "name": "Meaxic - You Listen",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Meaxic - You Listen.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "80b294951244",
+        "name": "Fergessen - Back From The Start",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Fergessen - Back From The Start.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "4b34c51c436e",
+        "name": "Black Bloc - If You Want Success",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Black Bloc - If You Want Success.stem.mp4",
+        "split": "evaluation"
+      }
+    ],
+    "content_margin": [
+      0.99,
+      0.98,
+      0.99,
+      0.995
+    ],
+    "reason": "All 32 previously scored recordings are development, never independent confirmation. Both deficits targeted together; no excess/SI-SDR regressions."
+  },
+  "selected_fit": {
+    "baseline_preset": {
+      "id": "atlas_studio_v2",
+      "name": "Atlas Studio V2",
+      "models": [
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Viperx-1297",
+          "estimate": "vocal",
+          "weight": 0.17443023893149945
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.11430054074816169
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+          "estimate": "vocal",
+          "weight": 0.170177253718986
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+          "estimate": "inst",
+          "weight": 0.019257166249671314
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.03216386193638066
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa",
+          "estimate": "inst",
+          "weight": 0.19631456977712158
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "MelBand Roformer Deux by becruily",
+          "estimate": "vocal",
+          "weight": 0.036629851183394346
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Xe Vocals by pcunwa",
+          "estimate": "vocal",
+          "weight": 0.15670929709193934
+        },
+        {
+          "model_type": "roformer",
+          "model_key": "BS Roformer Leap Xe Instrumental by pcunwa",
+          "estimate": "inst",
+          "weight": 0.10001722036284563
+        }
+      ],
+      "frequency_weights": {
+        "anchors_hz": [
+          0,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          16000,
+          22050
+        ],
+        "weights": [
+          [
+            0.1038054954257249,
+            0.10386818380346963,
+            0.22149451737476863,
+            0.3686461979239519,
+            0.357088506046072,
+            0.20425008270271117,
+            3.369384126451306e-17,
+            0.1094398910520009,
+            0.08125959219465351,
+            0.19444992279164172
+          ],
+          [
+            0.7037921998356566,
+            5.995299200665938e-18,
+            0.4126504200092933,
+            0.0,
+            5.761941623697378e-17,
+            0.0,
+            0.0,
+            4.224312126634806e-19,
+            2.0030635136669694e-17,
+            0.026562787636667144
+          ],
+          [
+            5.803869754586466e-18,
+            0.0,
+            0.0,
+            2.44062485235078e-17,
+            0.0,
+            0.07472620319317419,
+            0.25691256941506035,
+            0.4035860000812989,
+            0.48006659220084136,
+            0.48648117229948523
+          ],
+          [
+            7.794905400402424e-17,
+            1.713208839116548e-17,
+            0.18186172558797353,
+            0.0,
+            1.9676575364717397e-18,
+            0.0,
+            2.536868932521145e-17,
+            0.0,
+            1.4606236142453155e-17,
+            0.010709936908739465
+          ],
+          [
+            0.0,
+            5.5853352541948564e-18,
+            6.1693644713266965e-18,
+            0.20232483087851616,
+            0.11273300955942543,
+            1.8238313420279595e-17,
+            0.0,
+            1.7099927608949417e-17,
+            0.0,
+            0.006580778925864981
+          ],
+          [
+            0.19240230473861858,
+            0.2746061655076554,
+            9.044194294307792e-19,
+            0.05602949631634217,
+            0.35000167585385,
+            0.1046153286269037,
+            0.0,
+            0.38832949820191454,
+            0.3254757991043873,
+            0.27168542942154417
+          ],
+          [
+            1.9408912953385038e-17,
+            0.20952471897234548,
+            0.0,
+            0.039567222674838906,
+            0.0,
+            7.911287727355165e-18,
+            2.543854719595659e-18,
+            0.006096675607633445,
+            0.11110989457912562,
+            4.777636399428678e-18
+          ],
+          [
+            0.0,
+            0.4120009317165294,
+            0.18399333702796464,
+            0.3255284138254862,
+            0.10125027237367801,
+            0.37234879546457267,
+            0.17064637617926195,
+            0.0,
+            1.734723475976807e-18,
+            0.0013248443319006423
+          ],
+          [
+            0.0,
+            0.0,
+            8.241207060310715e-18,
+            0.00790383838086461,
+            0.07892653616697459,
+            0.24405959001263827,
+            0.5724410544056777,
+            0.09254793505715227,
+            0.00208812192099218,
+            0.002205127684156718
+          ]
+        ]
+      },
+      "calibration": {
+        "report": "docs/atlas-studio-v2-alternatives-round-two.json",
+        "accepted": true,
+        "scope": "Second frozen confirmation: eight short reference excerpts; all eight SDR gains positive; both mean content checks improved. No zero-loss or universal superiority guarantee."
+      }
+    },
+    "development_ids": [
+      "fc9f42fdeb43",
+      "3c1b6f88b282",
+      "2063584c7f74",
+      "7446f71a03b7",
+      "465889e42b6a",
+      "2778930b9b61",
+      "5bc229213e9f",
+      "60a9cec090f0",
+      "502f51d25f86",
+      "16512990064b",
+      "851d0684e5bc",
+      "bac2583979ee",
+      "6370671b9d4b",
+      "a88daa04efcf",
+      "3e38f298d8d5",
+      "bd44a2ee8be2",
+      "d301ab31d8f1",
+      "99887d7d46e5",
+      "0953be6891af",
+      "6ef96b1881db",
+      "8dc66f602a4f",
+      "88b7ac4d20ad",
+      "b4dbd7f748f5",
+      "6a5b6450efaa",
+      "760b8c4b6536",
+      "3808527612f5",
+      "a393d88129ad",
+      "48134f22b8a5",
+      "a1a84dac4a19",
+      "4dc4a76d2d33",
+      "80b294951244",
+      "4b34c51c436e"
+    ],
+    "baseline_summary": {
+      "vocal": {
+        "sdr_db": 12.625111773880496,
+        "si_sdr_db": 12.325892997595261,
+        "spectral_deficit": 0.04290657340391921,
+        "spectral_excess": 0.006234911439713693
+      },
+      "instrumental": {
+        "sdr_db": 16.861252209828535,
+        "si_sdr_db": 16.724420859254323,
+        "spectral_deficit": 0.010815451846788672,
+        "spectral_excess": 0.00544978991455067
+      }
+    },
+    "trials": [
+      {
+        "regularization": 0.01,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "valid": true,
+        "weights": [
+          [
+            0.15265392857007823,
+            0.05332681361836931,
+            0.29797833986187056,
+            0.19300499946304234,
+            0.2667113175840728,
+            0.15681317414339252,
+            5.816292904479527e-18,
+            0.050793689212768174,
+            0.07748512614352247,
+            0.194574375504081
+          ],
+          [
+            0.6691475806289183,
+            1.2719364373325794e-17,
+            0.3365798614601746,
+            4.864806677612986e-17,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.026499356079698298
+          ],
+          [
+            0.0,
+            2.778172775787539e-17,
+            0.0,
+            0.0,
+            0.0,
+            0.10003626066374943,
+            0.2781420809077259,
+            0.4189764392496598,
+            0.4821498785944114,
+            0.4865952749639105
+          ],
+          [
+            4.266504955319911e-18,
+            0.0,
+            0.032559593250906654,
+            0.017368054123274267,
+            0.019613961128134585,
+            0.004374693457327974,
+            0.0,
+            1.2080383893740831e-17,
+            4.9214731817842985e-18,
+            0.010458316156019514
+          ],
+          [
+            0.0,
+            0.0,
+            1.460835372482129e-17,
+            0.1903513520648226,
+            0.004843593246571936,
+            6.4205097401875966e-18,
+            0.0,
+            3.877716832530187e-18,
+            0.0,
+            0.0066207952731633015
+          ],
+          [
+            0.16421252526344968,
+            0.3795427894482501,
+            1.5596417657793432e-17,
+            0.13316988911144614,
+            0.4047180168941912,
+            0.12007761112721115,
+            0.045813697288469915,
+            0.4112189702690999,
+            0.3340792822559551,
+            0.27151266253255557
+          ],
+          [
+            2.924804766869099e-18,
+            0.031417082923062785,
+            0.06913045373704566,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0984104533374872,
+            0.0
+          ],
+          [
+            0.013985965537553732,
+            0.5357133140103179,
+            0.19030994633762785,
+            0.4217324093261612,
+            0.2274747712698796,
+            0.394260807913975,
+            0.14363470352792496,
+            1.6412957418946578e-17,
+            0.0,
+            0.001371210158835131
+          ],
+          [
+            0.0,
+            0.0,
+            0.0734418053523747,
+            0.0443732959112536,
+            0.07663833987715002,
+            0.22443745269434404,
+            0.5324095182758791,
+            0.11901090126847208,
+            0.007875259668623716,
+            0.002368009331736618
+          ]
+        ],
+        "content_slack_min": -2.390905182170222e-12,
+        "waveform_slack_min": -4.1591674548868696e-11,
+        "development_mean_sdr_gain_db": 0.05059553915050616,
+        "full_development": {
+          "vocal": {
+            "sdr_db": 12.675707313030957,
+            "si_sdr_db": 12.378384961831753,
+            "spectral_deficit": 0.04162030575988223,
+            "spectral_excess": 0.006111848535793942
+          },
+          "instrumental": {
+            "sdr_db": 16.911847748978996,
+            "si_sdr_db": 16.775691573546887,
+            "spectral_deficit": 0.010707935534836573,
+            "spectral_excess": 0.005423307937173218
+          }
+        },
+        "eligible": true
+      }
+    ],
+    "selected": {
+      "regularization": 0.01,
+      "converged": true,
+      "message": "Optimization terminated successfully",
+      "valid": true,
+      "weights": [
+        [
+          0.15265392857007823,
+          0.05332681361836931,
+          0.29797833986187056,
+          0.19300499946304234,
+          0.2667113175840728,
+          0.15681317414339252,
+          5.816292904479527e-18,
+          0.050793689212768174,
+          0.07748512614352247,
+          0.194574375504081
+        ],
+        [
+          0.6691475806289183,
+          1.2719364373325794e-17,
+          0.3365798614601746,
+          4.864806677612986e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.026499356079698298
+        ],
+        [
+          0.0,
+          2.778172775787539e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.10003626066374943,
+          0.2781420809077259,
+          0.4189764392496598,
+          0.4821498785944114,
+          0.4865952749639105
+        ],
+        [
+          4.266504955319911e-18,
+          0.0,
+          0.032559593250906654,
+          0.017368054123274267,
+          0.019613961128134585,
+          0.004374693457327974,
+          0.0,
+          1.2080383893740831e-17,
+          4.9214731817842985e-18,
+          0.010458316156019514
+        ],
+        [
+          0.0,
+          0.0,
+          1.460835372482129e-17,
+          0.1903513520648226,
+          0.004843593246571936,
+          6.4205097401875966e-18,
+          0.0,
+          3.877716832530187e-18,
+          0.0,
+          0.0066207952731633015
+        ],
+        [
+          0.16421252526344968,
+          0.3795427894482501,
+          1.5596417657793432e-17,
+          0.13316988911144614,
+          0.4047180168941912,
+          0.12007761112721115,
+          0.045813697288469915,
+          0.4112189702690999,
+          0.3340792822559551,
+          0.27151266253255557
+        ],
+        [
+          2.924804766869099e-18,
+          0.031417082923062785,
+          0.06913045373704566,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0984104533374872,
+          0.0
+        ],
+        [
+          0.013985965537553732,
+          0.5357133140103179,
+          0.19030994633762785,
+          0.4217324093261612,
+          0.2274747712698796,
+          0.394260807913975,
+          0.14363470352792496,
+          1.6412957418946578e-17,
+          0.0,
+          0.001371210158835131
+        ],
+        [
+          0.0,
+          0.0,
+          0.0734418053523747,
+          0.0443732959112536,
+          0.07663833987715002,
+          0.22443745269434404,
+          0.5324095182758791,
+          0.11901090126847208,
+          0.007875259668623716,
+          0.002368009331736618
+        ]
+      ],
+      "content_slack_min": -2.390905182170222e-12,
+      "waveform_slack_min": -4.1591674548868696e-11,
+      "development_mean_sdr_gain_db": 0.05059553915050616,
+      "full_development": {
+        "vocal": {
+          "sdr_db": 12.675707313030957,
+          "si_sdr_db": 12.378384961831753,
+          "spectral_deficit": 0.04162030575988223,
+          "spectral_excess": 0.006111848535793942
+        },
+        "instrumental": {
+          "sdr_db": 16.911847748978996,
+          "si_sdr_db": 16.775691573546887,
+          "spectral_deficit": 0.010707935534836573,
+          "spectral_excess": 0.005423307937173218
+        }
+      },
+      "eligible": true
+    },
+    "evaluation_used_for_selection": false,
+    "preset_sha256": "dd8d1d265455b88843414ad6b4e341c15d54655bda05c469bced7748f7ccc7d6",
+    "content_margin": [
+      0.99,
+      0.98,
+      0.99,
+      0.995
+    ],
+    "maxiter": 100,
+    "regularizations": [
+      0.01
+    ],
+    "spectral_stride": 1,
+    "method": "Mean log exact waveform error; nonnegative frequency weights sum to one; per-recording .03 dB regression cap; four content constraints and full development metric screening"
+  },
+  "confirmation_plan": {
+    "frozen_at": "2026-10-10T22:46:12.269827+00:00",
+    "acceptance": "Positive paired 97.5% SDR interval, both SI-SDR/excess no worse, both deficits at least 1% lower.",
+    "baseline_sha256": "dd8d1d265455b88843414ad6b4e341c15d54655bda05c469bced7748f7ccc7d6",
+    "weights": [
+      [
+        0.15265392857007823,
+        0.05332681361836931,
+        0.29797833986187056,
+        0.19300499946304234,
+        0.2667113175840728,
+        0.15681317414339252,
+        5.816292904479527e-18,
+        0.050793689212768174,
+        0.07748512614352247,
+        0.194574375504081
+      ],
+      [
+        0.6691475806289183,
+        1.2719364373325794e-17,
+        0.3365798614601746,
+        4.864806677612986e-17,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.026499356079698298
+      ],
+      [
+        0.0,
+        2.778172775787539e-17,
+        0.0,
+        0.0,
+        0.0,
+        0.10003626066374943,
+        0.2781420809077259,
+        0.4189764392496598,
+        0.4821498785944114,
+        0.4865952749639105
+      ],
+      [
+        4.266504955319911e-18,
+        0.0,
+        0.032559593250906654,
+        0.017368054123274267,
+        0.019613961128134585,
+        0.004374693457327974,
+        0.0,
+        1.2080383893740831e-17,
+        4.9214731817842985e-18,
+        0.010458316156019514
+      ],
+      [
+        0.0,
+        0.0,
+        1.460835372482129e-17,
+        0.1903513520648226,
+        0.004843593246571936,
+        6.4205097401875966e-18,
+        0.0,
+        3.877716832530187e-18,
+        0.0,
+        0.0066207952731633015
+      ],
+      [
+        0.16421252526344968,
+        0.3795427894482501,
+        1.5596417657793432e-17,
+        0.13316988911144614,
+        0.4047180168941912,
+        0.12007761112721115,
+        0.045813697288469915,
+        0.4112189702690999,
+        0.3340792822559551,
+        0.27151266253255557
+      ],
+      [
+        2.924804766869099e-18,
+        0.031417082923062785,
+        0.06913045373704566,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0984104533374872,
+        0.0
+      ],
+      [
+        0.013985965537553732,
+        0.5357133140103179,
+        0.19030994633762785,
+        0.4217324093261612,
+        0.2274747712698796,
+        0.394260807913975,
+        0.14363470352792496,
+        1.6412957418946578e-17,
+        0.0,
+        0.001371210158835131
+      ],
+      [
+        0.0,
+        0.0,
+        0.0734418053523747,
+        0.0443732959112536,
+        0.07663833987715002,
+        0.22443745269434404,
+        0.5324095182758791,
+        0.11901090126847208,
+        0.007875259668623716,
+        0.002368009331736618
+      ]
+    ],
+    "interval_note": "Conservative interval tightened before any second-confirmation quality scores were computed; inference only in progress."
+  },
+  "confirmation_manifest": {
+    "tracks": [
+      {
+        "id": "ec0ad218a3c1",
+        "name": "Music Delta - Country1",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - Country1.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "dc46d7862fe1",
+        "name": "Music Delta - Gospel",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Music Delta - Gospel.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "2b09a80dbdb6",
+        "name": "ANiMAL - Rockshow",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\ANiMAL - Rockshow.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "70ac8614c954",
+        "name": "Hezekiah Jones - Borrowed Heart",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Hezekiah Jones - Borrowed Heart.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "ac1f2318ff1c",
+        "name": "The Scarlet Brand - Les Fleurs Du Mal",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\The Scarlet Brand - Les Fleurs Du Mal.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "e2cba981dfa9",
+        "name": "North To Alaska - All The Same",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\North To Alaska - All The Same.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "1b474a4bce93",
+        "name": "Strand Of Oaks - Spacestation",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Strand Of Oaks - Spacestation.stem.mp4",
+        "split": "evaluation"
+      },
+      {
+        "id": "864c695dcd6b",
+        "name": "Young Griffo - Facade",
+        "file": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\atlas_benchmark\\dataset\\train\\Young Griffo - Facade.stem.mp4",
+        "split": "evaluation"
+      }
+    ],
+    "selection": "First eight previously uncached recordings in fixed SHA order; frozen candidate selected before any new inference or scoring. Model-training overlap unknown.",
+    "candidate_indices": [
+      0,
+      1,
+      2,
+      4,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  "confirmation": {
+    "summary": {
+      "current": {
+        "vocal": {
+          "sdr_db": 13.742280309682625,
+          "si_sdr_db": 13.470904613572003,
+          "spectral_deficit": 0.026636459780119345,
+          "spectral_excess": 0.02370724060892765
+        },
+        "instrumental": {
+          "sdr_db": 16.37062236913158,
+          "si_sdr_db": 16.239161169787817,
+          "spectral_deficit": 0.015811636004946027,
+          "spectral_excess": 0.0028386783530824434
+        }
+      },
+      "candidate": {
+        "vocal": {
+          "sdr_db": 13.738241290669965,
+          "si_sdr_db": 13.465523757331223,
+          "spectral_deficit": 0.02659201149772325,
+          "spectral_excess": 0.023646158163409536
+        },
+        "instrumental": {
+          "sdr_db": 16.366583350118923,
+          "si_sdr_db": 16.23443205909155,
+          "spectral_deficit": 0.015653139778776987,
+          "spectral_excess": 0.0028721602038803834
+        }
+      }
+    },
+    "rows": [
+      {
+        "id": "ec0ad218a3c1",
+        "name": "Music Delta - Country1",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 18.116975667483118,
+              "si_sdr_db": 18.049746152401514,
+              "spectral_deficit": 0.005247811413924913,
+              "spectral_excess": 0.0024189681675099587
+            },
+            "instrumental": {
+              "sdr_db": 19.968457696245178,
+              "si_sdr_db": 19.94725902458353,
+              "spectral_deficit": 0.0038668412537976164,
+              "spectral_excess": 0.0010906465516611315
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 18.094638429158266,
+              "si_sdr_db": 18.027306809891076,
+              "spectral_deficit": 0.0052852824719907075,
+              "spectral_excess": 0.002371654321439889
+            },
+            "instrumental": {
+              "sdr_db": 19.94612045792033,
+              "si_sdr_db": 19.922414294236404,
+              "spectral_deficit": 0.0038059849717200253,
+              "spectral_excess": 0.0011054800568514659
+            }
+          }
+        }
+      },
+      {
+        "id": "dc46d7862fe1",
+        "name": "Music Delta - Gospel",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 21.926830030681145,
+              "si_sdr_db": 21.906016330942325,
+              "spectral_deficit": 0.002781330020817133,
+              "spectral_excess": 0.0008133410423548628
+            },
+            "instrumental": {
+              "sdr_db": 21.297346440067262,
+              "si_sdr_db": 21.26538823160121,
+              "spectral_deficit": 0.002945602313437573,
+              "spectral_excess": 0.0007539323868649125
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 21.917007070260183,
+              "si_sdr_db": 21.900222734753466,
+              "spectral_deficit": 0.002825371922183015,
+              "spectral_excess": 0.0007863946828708915
+            },
+            "instrumental": {
+              "sdr_db": 21.287523479646303,
+              "si_sdr_db": 21.255585210768544,
+              "spectral_deficit": 0.0029228692781821447,
+              "spectral_excess": 0.0007587912737126405
+            }
+          }
+        }
+      },
+      {
+        "id": "2b09a80dbdb6",
+        "name": "ANiMAL - Rockshow",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 5.704094792955379,
+              "si_sdr_db": 5.076802243989515,
+              "spectral_deficit": 0.03547411233900156,
+              "spectral_excess": 0.15703700060980622
+            },
+            "instrumental": {
+              "sdr_db": 10.549132890338482,
+              "si_sdr_db": 10.162620765856282,
+              "spectral_deficit": 0.0673395399165851,
+              "spectral_excess": 0.002468745496616169
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 5.710454695723714,
+              "si_sdr_db": 5.063848903737085,
+              "spectral_deficit": 0.036100454951025096,
+              "spectral_excess": 0.15636168967783146
+            },
+            "instrumental": {
+              "sdr_db": 10.555492793106819,
+              "si_sdr_db": 10.168058586469062,
+              "spectral_deficit": 0.06655931133932791,
+              "spectral_excess": 0.0025580181636216948
+            }
+          }
+        }
+      },
+      {
+        "id": "70ac8614c954",
+        "name": "Hezekiah Jones - Borrowed Heart",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 8.211866244045272,
+              "si_sdr_db": 7.539518723158074,
+              "spectral_deficit": 0.08748858049160921,
+              "spectral_excess": 0.00976915107873611
+            },
+            "instrumental": {
+              "sdr_db": 14.851529041318528,
+              "si_sdr_db": 14.707441669710477,
+              "spectral_deficit": 0.010687490928869576,
+              "spectral_excess": 0.005640370727259721
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 8.24089835479091,
+              "si_sdr_db": 7.568784926000745,
+              "spectral_deficit": 0.08530592328535282,
+              "spectral_excess": 0.01033501265428315
+            },
+            "instrumental": {
+              "sdr_db": 14.880561152064164,
+              "si_sdr_db": 14.737469833270287,
+              "spectral_deficit": 0.01058184836339213,
+              "spectral_excess": 0.005603119294542603
+            }
+          }
+        }
+      },
+      {
+        "id": "ac1f2318ff1c",
+        "name": "The Scarlet Brand - Les Fleurs Du Mal",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 11.007810534958889,
+              "si_sdr_db": 10.655293711185896,
+              "spectral_deficit": 0.033519650601770645,
+              "spectral_excess": 0.008793970071292402
+            },
+            "instrumental": {
+              "sdr_db": 13.915531540877069,
+              "si_sdr_db": 13.743430106593186,
+              "spectral_deficit": 0.01632061263977629,
+              "spectral_excess": 0.004275456354763491
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 11.006217907022434,
+              "si_sdr_db": 10.655318981863555,
+              "spectral_deficit": 0.033954740074214944,
+              "spectral_excess": 0.00856876797158825
+            },
+            "instrumental": {
+              "sdr_db": 13.913938912940614,
+              "si_sdr_db": 13.740964704548036,
+              "spectral_deficit": 0.016102147854340075,
+              "spectral_excess": 0.004346583863631673
+            }
+          }
+        }
+      },
+      {
+        "id": "e2cba981dfa9",
+        "name": "North To Alaska - All The Same",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 18.101066532681738,
+              "si_sdr_db": 18.04129966110422,
+              "spectral_deficit": 0.006361229345214054,
+              "spectral_excess": 0.0020828882192365653
+            },
+            "instrumental": {
+              "sdr_db": 19.54347567137529,
+              "si_sdr_db": 19.497971080696633,
+              "spectral_deficit": 0.004107102225668707,
+              "spectral_excess": 0.0013408341880518475
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 18.12177286028907,
+              "si_sdr_db": 18.064073001150863,
+              "spectral_deficit": 0.006319115606344367,
+              "spectral_excess": 0.00204909270650275
+            },
+            "instrumental": {
+              "sdr_db": 19.56418199898263,
+              "si_sdr_db": 19.518541670734603,
+              "spectral_deficit": 0.004014954673319477,
+              "spectral_excess": 0.001356966999523225
+            }
+          }
+        }
+      },
+      {
+        "id": "1b474a4bce93",
+        "name": "Strand Of Oaks - Spacestation",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 14.33531193189818,
+              "si_sdr_db": 14.20610526848429,
+              "spectral_deficit": 0.01647986054652654,
+              "spectral_excess": 0.003230599293152627
+            },
+            "instrumental": {
+              "sdr_db": 15.320509811263598,
+              "si_sdr_db": 15.191373884734404,
+              "spectral_deficit": 0.01087867518903828,
+              "spectral_excess": 0.0034150874093087868
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 14.347125346958352,
+              "si_sdr_db": 14.218628014249262,
+              "spectral_deficit": 0.01632469254984698,
+              "spectral_excess": 0.003238127229737364
+            },
+            "instrumental": {
+              "sdr_db": 15.332323226323767,
+              "si_sdr_db": 15.203531332194189,
+              "spectral_deficit": 0.010796238668313755,
+              "spectral_excess": 0.003403041050454628
+            }
+          }
+        }
+      },
+      {
+        "id": "864c695dcd6b",
+        "name": "Young Griffo - Facade",
+        "systems": {
+          "current": {
+            "vocal": {
+              "sdr_db": 12.534286742757285,
+              "si_sdr_db": 12.292454817310183,
+              "spectral_deficit": 0.02573910348209072,
+              "spectral_excess": 0.005512006389332462
+            },
+            "instrumental": {
+              "sdr_db": 15.518995861567236,
+              "si_sdr_db": 15.397804594526825,
+              "spectral_deficit": 0.010347223572395054,
+              "spectral_excess": 0.0037243537101334886
+            }
+          },
+          "candidate": {
+            "vocal": {
+              "sdr_db": 12.467815661156795,
+              "si_sdr_db": 12.226006687003734,
+              "spectral_deficit": 0.026620511120828062,
+              "spectral_excess": 0.005458526063022528
+            },
+            "instrumental": {
+              "sdr_db": 15.452524779966748,
+              "si_sdr_db": 15.328890840511269,
+              "spectral_deficit": 0.010441763081620373,
+              "spectral_excess": 0.0038452809287051366
+            }
+          }
+        }
+      }
+    ],
+    "mean_delta_db": -0.004039019012660461,
+    "bootstrap_95pct": [
+      -0.02508079110202943,
+      0.0133968735024248
+    ],
+    "improved_recordings": 4,
+    "accepted": false,
+    "frozen_spec": {
+      "anchors_hz": [
+        0,
+        125,
+        250,
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000,
+        22050
+      ],
+      "weights": [
+        [
+          0.15265392857007823,
+          0.05332681361836931,
+          0.29797833986187056,
+          0.19300499946304234,
+          0.2667113175840728,
+          0.15681317414339252,
+          5.816292904479527e-18,
+          0.050793689212768174,
+          0.07748512614352247,
+          0.194574375504081
+        ],
+        [
+          0.6691475806289183,
+          1.2719364373325794e-17,
+          0.3365798614601746,
+          4.864806677612986e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.026499356079698298
+        ],
+        [
+          0.0,
+          2.778172775787539e-17,
+          0.0,
+          0.0,
+          0.0,
+          0.10003626066374943,
+          0.2781420809077259,
+          0.4189764392496598,
+          0.4821498785944114,
+          0.4865952749639105
+        ],
+        [
+          4.266504955319911e-18,
+          0.0,
+          0.032559593250906654,
+          0.017368054123274267,
+          0.019613961128134585,
+          0.004374693457327974,
+          0.0,
+          1.2080383893740831e-17,
+          4.9214731817842985e-18,
+          0.010458316156019514
+        ],
+        [
+          0.0,
+          0.0,
+          1.460835372482129e-17,
+          0.1903513520648226,
+          0.004843593246571936,
+          6.4205097401875966e-18,
+          0.0,
+          3.877716832530187e-18,
+          0.0,
+          0.0066207952731633015
+        ],
+        [
+          0.16421252526344968,
+          0.3795427894482501,
+          1.5596417657793432e-17,
+          0.13316988911144614,
+          0.4047180168941912,
+          0.12007761112721115,
+          0.045813697288469915,
+          0.4112189702690999,
+          0.3340792822559551,
+          0.27151266253255557
+        ],
+        [
+          2.924804766869099e-18,
+          0.031417082923062785,
+          0.06913045373704566,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0984104533374872,
+          0.0
+        ],
+        [
+          0.013985965537553732,
+          0.5357133140103179,
+          0.19030994633762785,
+          0.4217324093261612,
+          0.2274747712698796,
+          0.394260807913975,
+          0.14363470352792496,
+          1.6412957418946578e-17,
+          0.0,
+          0.001371210158835131
+        ],
+        [
+          0.0,
+          0.0,
+          0.0734418053523747,
+          0.0443732959112536,
+          0.07663833987715002,
+          0.22443745269434404,
+          0.5324095182758791,
+          0.11901090126847208,
+          0.007875259668623716,
+          0.002368009331736618
+        ]
+      ]
+    },
+    "limitations": [
+      "Short reference excerpts, unknown model-training overlap",
+      "No true Turkish studio stems; no claim of zero loss or universal superiority"
+    ],
+    "bootstrap_97_5pct": [
+      -0.02858744423886939,
+      0.015072628877003114
+    ],
+    "production_changed": false
+  },
+  "production_applied": false,
+  "production_preset_sha256": "dd8d1d265455b88843414ad6b4e341c15d54655bda05c469bced7748f7ccc7d6",
+  "completed_model_inferences": 144,
+  "completed_constrained_fits": 11,
+  "prior_confirmation_report": "docs/atlas-studio-v2-content-refinement.json"
+}
