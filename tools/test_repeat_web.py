@@ -10,6 +10,14 @@ WORK=ROOT/'cache/supplied_ten'
 VOCAB=json.loads((MODEL_DIR/'vocab.json').read_text(encoding='utf8'))
 
 
+def terminal_expectation(track,rows):
+    # Separate new EOF regression from the existing 153 saved repeat references.
+    # Bounds come from contextual CTC in both audio channels, not human annotation.
+    if track['id']!='c5f7f104f362':return []
+    source=next(r for r in rows if r['text']=='BU CAN SANA YANAR,')
+    return [{**source,'start':255.34,'end':258.96}]
+
+
 def matches(predicted,expected):
     if text_key(predicted,VOCAB)!=text_key(expected,VOCAB):return False
     if abs(predicted['start']-expected['start'])<.5:return True
@@ -64,6 +72,9 @@ def run(session,link,inst,rows):
 
 def main():
     tracks=json.loads((WORK/'manifest.json').read_text(encoding='utf8'))
+    if len(sys.argv)>1:
+        assert sys.argv[1] in {track['id'] for track in tracks},'Unknown priority recording'
+        tracks.sort(key=lambda track:track['id']!=sys.argv[1])
     session=requests.Session();session.trust_env=False;run_id=uuid.uuid4().hex[:8];reports=[]
     folder=ROOT/'uploads/.supplied-tests';folder.mkdir(exist_ok=True)
     for track in tracks:
@@ -79,14 +90,29 @@ def main():
                 if key in seen:removed.append(row);continue
                 seen.add(key);new=copy.deepcopy(row);new.update(start=0,end=0,words=[],locked=False);before.append(new)
             inst=source.with_name(source.name.replace('_Vocals_','_Instrumental_'))
+            terminal=terminal_expectation(track,before)
+            removed.extend(terminal)
             result=run(session,link,inst,before)
             checks=verify(before,result,track['duration'],removed)
+            if terminal:
+                tail=next(r for r in result['segments'] if r['text']==terminal[0]['text'] and r['start']>250)
+                assert abs(tail['end']-258.96)<.3,'Terminal word borrowed the following SANA'
+                assert tail['end']<259.42,'Unheard continuation included'
+                assert tail['words'][-1]['needs_review'],'Channel boundary uncertainty hidden'
+                assert result['alignment_report']['terminal_repeats_added']==1
+            checks['terminal_prefixes_added']=len(terminal)
             again=run(session,link,inst,result['segments'])
             sung=lambda rows:[(r['id'],r['text']) for r in rows if not instrumental(r)]
             assert sung(again['segments'])==sung(result['segments']),'Second click changed/multiplied repeats'
             assert again['alignment_report']['repeated_rows_added']==0
             assert again['alignment_report']['solo_intervals']==result['alignment_report']['solo_intervals'],'Second click changed music intervals'
             verify(result['segments'],again,track['duration'],[])
+            if terminal:
+                tail_again=next(r for r in again['segments'] if r['id']==tail['id'])
+                assert abs(tail_again['end']-tail['end'])<1e-6,'Second click changed terminal context boundary'
+                assert tail_again['words'][-1]['needs_review'],'Second click hid channel uncertainty'
+                assert again['alignment_report']['terminal_repeats_added']==0
+                checks['second_click_terminal_end_preserved']=True
             checks['second_click_idempotent']=True
             checks['second_click_all_words_bound']=True
             item={'id':track['id'],'passed':True,'seconds':time.monotonic()-started,'checks':checks,'task_ids':[result['test_task_id'],again['test_task_id']]}

@@ -8,21 +8,50 @@
     "recovered_rows": 3
   },
   "final": {
-    "expected_repeated_rows": 153,
-    "recovered_rows": 153,
+    "expected_repeated_rows": 154,
+    "recovered_rows": 154,
+    "expected_saved_repeats": 153,
+    "recovered_saved_repeats": 153,
+    "expected_terminal_prefixes": 1,
+    "recovered_terminal_prefixes": 1,
     "missing_rows": 0,
     "unmatched_added_rows": 0,
     "production_api_runs": 20,
     "second_click_idempotent_recordings": 10,
-    "repaired_word_spans": 7,
-    "partial_repeat_review_count": 1,
-    "low_acoustic_confidence_rows": 104
+    "linked_words": 1351,
+    "repaired_word_spans": 11,
+    "partial_repeat_review_count": 0,
+    "low_acoustic_confidence_rows": 105
   },
   "recording_results": [
     {
+      "id": "c5f7f104f362",
+      "passed": true,
+      "seconds": 73.90599999999995,
+      "checks": {
+        "expected_repeats": 4,
+        "recovered_repeats": 4,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 4,
+        "review_rows": 12,
+        "partial_repeat_review_count": 0,
+        "terminal_prefixes_added": 1,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true,
+        "second_click_terminal_end_preserved": true
+      },
+      "task_ids": [
+        "c5af0c54-8780-4f38-b8e3-2b3f95c26928",
+        "548da8a3-8e47-43b6-87dd-0ff3932f0f46"
+      ]
+    },
+    {
       "id": "6aa8539f54e8",
       "passed": true,
-      "seconds": 67.98399999999992,
+      "seconds": 62.5619999999999,
       "checks": {
         "expected_repeats": 33,
         "recovered_repeats": 33,
@@ -33,18 +62,19 @@
         "repaired_word_spans": 0,
         "review_rows": 7,
         "partial_repeat_review_count": 0,
+        "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
         "second_click_all_words_bound": true
       },
       "task_ids": [
-        "299d7426-ba07-4232-9372-29bbb90bbd73",
-        "de34b79a-3c74-4b30-9d61-f69fbf08f8e8"
+        "17e588fc-77f4-4c35-b3cd-d2be38466cdb",
+        "0ac9c663-def8-4d19-8297-5b86603941ed"
       ]
     },
     {
       "id": "116e48f08000",
       "passed": true,
-      "seconds": 44.266000000000076,
+      "seconds": 41.45300000000043,
       "checks": {
         "expected_repeats": 22,
         "recovered_repeats": 22,
@@ -55,18 +85,19 @@
         "repaired_word_spans": 0,
         "review_rows": 14,
         "partial_repeat_review_count": 0,
+        "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
         "second_click_all_words_bound": true
       },
       "task_ids": [
-        "e4652fbb-9042-4325-9c41-d72c196da5a8",
-        "d090cfed-88b6-469b-9c65-72cbb055c0f3"
+        "778e7434-0c20-4eb6-938b-392f5843daa9",
+        "672e23a4-b46f-4208-be42-25de2c7ac08d"
       ]
     },
     {
       "id": "c7f84cac1440",
       "passed": true,
-      "seconds": 117.4849999999999,
+      "seconds": 111.89099999999962,
       "checks": {
         "expected_repeats": 18,
         "recovered_repeats": 18,
@@ -77,18 +108,19 @@
         "repaired_word_spans": 1,
         "review_rows": 18,
         "partial_repeat_review_count": 0,
+        "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
         "second_click_all_words_bound": true
       },
       "task_ids": [
-        "b9b7b512-0e1a-46d9-a76d-332e129c8533",
-        "249dc3fd-3bfd-4f64-a44d-fa2a88b53962"
+        "4fc8e6de-8bb2-473e-a085-91f366dd1d35",
+        "008d0beb-5361-4359-a705-cbc6b033dbaf"
       ]
     },
     {
       "id": "cfd16ea83d14",
       "passed": true,
-      "seconds": 77.125,
+      "seconds": 74.75,
       "checks": {
         "expected_repeats": 17,
         "recovered_repeats": 17,
@@ -99,18 +131,19 @@
         "repaired_word_spans": 1,
         "review_rows": 17,
         "partial_repeat_review_count": 0,
+        "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
         "second_click_all_words_bound": true
       },
       "task_ids": [
-        "8716e78c-9075-4b62-912a-319916ae674d",
-        "593d8c01-f947-40c9-a236-7bf6d7d8cf57"
+        "ea2447ac-f12f-47b8-83c2-4ea5d25013c7",
+        "58f94e28-0e90-4dca-bfb4-e946ddf458c9"
       ]
     },
     {
       "id": "6bb14adc986e",
       "passed": true,
-      "seconds": 26.233999999999924,
+      "seconds": 25.28099999999995,
       "checks": {
         "expected_repeats": 16,
         "recovered_repeats": 16,
@@ -121,18 +154,19 @@
         "repaired_word_spans": 1,
         "review_rows": 7,
         "partial_repeat_review_count": 0,
+        "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
         "second_click_all_words_bound": true
       },
       "task_ids": [
-        "9628856d-0b01-455f-bdf5-bf7d5c337d30",
-        "930b6e2d-8a83-4653-948b-2b04a45d9c93"
+        "d5921c0f-66f4-409b-9aaa-4aa78a41f97a",
+        "fc6e2611-c486-43ce-b0c9-f05ff2584e42"
       ]
     },
     {
       "id": "17168fbfda57",
       "passed": true,
-      "seconds": 23.53099999999995,
+      "seconds": 24.282000000000153,
       "checks": {
         "expected_repeats": 20,
         "recovered_repeats": 20,
@@ -143,18 +177,19 @@
         "repaired_word_spans": 2,
         "review_rows": 10,
         "partial_repeat_review_count": 0,
+        "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
         "second_click_all_words_bound": true
       },
       "task_ids": [
-        "f206f425-7420-4882-848f-ae66cf55e3a9",
-        "196395a6-6aac-44c2-9879-48241c389b52"
+        "052a9e80-8efe-4b92-b878-3baf33c8585a",
+        "06967efb-8fe0-4034-91b7-b4d50b7d06cb"
       ]
     },
     {
       "id": "c4aae6d292eb",
       "passed": true,
-      "seconds": 44.922000000000025,
+      "seconds": 47.65599999999995,
       "checks": {
         "expected_repeats": 7,
         "recovered_repeats": 7,
@@ -165,18 +200,19 @@
         "repaired_word_spans": 2,
         "review_rows": 7,
         "partial_repeat_review_count": 0,
+        "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
         "second_click_all_words_bound": true
       },
       "task_ids": [
-        "6837f0e6-beed-4b72-933c-8729140831b4",
-        "c9d5e2f5-8609-4fde-849a-73482ddd1c3b"
+        "786558c1-b8ac-418f-8920-3bf297271fad",
+        "150f1079-25b1-4b2f-a6a4-2c63d2c4e328"
       ]
     },
     {
       "id": "e61f98c53a21",
       "passed": true,
-      "seconds": 37.38999999999987,
+      "seconds": 38.26500000000033,
       "checks": {
         "expected_repeats": 7,
         "recovered_repeats": 7,
@@ -187,18 +223,19 @@
         "repaired_word_spans": 0,
         "review_rows": 12,
         "partial_repeat_review_count": 0,
+        "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
         "second_click_all_words_bound": true
       },
       "task_ids": [
-        "ee0a643d-a693-47c7-89cf-0d507c219740",
-        "45f504da-71f3-464f-9763-4ab43b1e5d70"
+        "d59a29a1-7af6-4216-ab50-c0a7cc577623",
+        "7954cce7-7c28-4470-a2fa-d8b2ded9bcbd"
       ]
     },
     {
       "id": "0cf5ef730cb1",
       "passed": true,
-      "seconds": 266.5,
+      "seconds": 59.4380000000001,
       "checks": {
         "expected_repeats": 10,
         "recovered_repeats": 10,
@@ -209,38 +246,17 @@
         "repaired_word_spans": 0,
         "review_rows": 1,
         "partial_repeat_review_count": 0,
+        "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
         "second_click_all_words_bound": true
       },
       "task_ids": [
-        "4ea20072-56f5-4bf5-9126-2c8c81642f89",
-        "7cfb32e8-82f3-4002-8096-f7303ea3af54"
-      ]
-    },
-    {
-      "id": "c5f7f104f362",
-      "passed": true,
-      "seconds": 419.125,
-      "checks": {
-        "expected_repeats": 3,
-        "recovered_repeats": 3,
-        "missing_repeats": 0,
-        "unmatched_added_rows": 0,
-        "original_text_and_order_preserved": true,
-        "all_words_bound": true,
-        "repaired_word_spans": 0,
-        "review_rows": 11,
-        "partial_repeat_review_count": 1,
-        "second_click_idempotent": true,
-        "second_click_all_words_bound": true
-      },
-      "task_ids": [
-        "7739ce22-6baf-453a-884d-93592f04a4dd",
-        "0a43cf1c-ec55-4748-9e54-14dac245185c"
+        "2a2e2706-79d1-4ac3-aabf-9ef26af309ab",
+        "7394b9da-0cab-46ed-a0ea-2b7412edf06d"
       ]
     }
   ],
-  "unit_tests_passed": 86,
+  "unit_tests_passed": 89,
   "frontend_contract_suites_passed": 4,
   "production_build_passed": true,
   "typescript_passed": true,
@@ -257,14 +273,15 @@
     "Verify weak passages locally; retain the original probability thresholds.",
     "Insert copies with stable IDs, preserve supplied originals, then align the expanded transcript.",
     "Repair abnormally long word spans only with compatible independent occurrence evidence.",
-    "Abstain on a recording cut inside a longer known phrase; show a review notice."
+    "At a truncated recording ending, corroborate an existing complete supplied prefix with its observed next word across two audio views. Copy only that existing prefix; do not invent the unheard suffix. Uncorroborated candidates stay in review.",
+    "Retain the contextual terminal boundary on a second click and preserve channel-disagreement review flags."
   ],
   "evaluation_scope": [
-    "The holdout removes later exact-text occurrences from ten saved lyric records, resets all timings, and processes complete original audio.",
+    "The holdout removes later exact-text occurrences from ten saved lyric records, resets all timings, and processes the complete saved vocal recordings with their matching instrumental stems.",
     "Correctness is checked against supplied text and earlier saved CTC timings, not independently human-annotated ground truth.",
     "Matching uses normalized text and start-time difference below 0.5 seconds. If an old saved word stretches over a music break, at least 80% of comparable word boundaries must agree instead. This rule is applied uniformly.",
     "The first and second production API results both pass word binding, finite in-range timing and preserved-row checks.",
-    "This establishes 153/153 recovery under this test protocol; it is not a universal zero-error or human-audited timing guarantee.",
+    "This establishes recovery of all 153 saved-reference repeats plus one separately declared terminal-prefix regression under this protocol; it is not a universal zero-error or human-audited timing guarantee.",
     "Low-confidence flags remain. No automatic manual approval is performed.",
     "An independent Whisper probe on three short difficult excerpts returned unrelated subtitle phrases; it was inconclusive and was not treated as evidence of correctness.",
     "Original recordings and saved user lyrics are not overwritten by the test runner."
@@ -273,5 +290,17 @@
     "title": "CTC-aligned Audio-Text Embedding for Streaming Open-vocabulary Keyword Spotting",
     "url": "https://www.isca-archive.org/interspeech_2024/jin24d_interspeech.html",
     "use": "Background on frame-wise text-enrolled CTC phrase alignment; implementation and results here are separate."
+  },
+  "terminal_prefix_regression": {
+    "recording_id": "c5f7f104f362",
+    "text": "BU CAN SANA YANAR,",
+    "start": 255.34,
+    "end": 258.96,
+    "following_context_word_start": 259.42,
+    "following_context_word_not_inserted": true,
+    "unheard_longer_suffix_not_inserted": true,
+    "second_click_same_id_and_bounds": true,
+    "channel_ending_disagreement_keeps_review_flag": true,
+    "reference_scope": "Contextual CTC evidence in stereo representations, not independently human-annotated timing."
   }
 }

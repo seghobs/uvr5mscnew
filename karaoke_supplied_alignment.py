@@ -109,7 +109,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     blocks=alignment_blocks(rows,duration)
     music_regions,voice_regions,available=music_evidence(audio_path,instrumental_path)
     repeat_report={'repeated_rows_added':0,'repeat_candidates':0,
-                   'repeat_method':'supplied_text_ctc_occurrence_graph','repeat_accuracy_guaranteed':False,'repeat_review_candidates':[],'repaired_word_spans':0}
+                   'repeat_method':'supplied_text_ctc_occurrence_graph','repeat_accuracy_guaranteed':False,'repeat_review_candidates':[],'repaired_word_spans':0,'terminal_repeats_added':0}
     last_progress=0.
     def emit(value,message):
         nonlocal last_progress
@@ -174,6 +174,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
             expanded,report,hits=expand_supplied_rows(local_rows,[e[0].numpy() for e in emissions],vocab,
                 lambda p,message:emit(.96*(block_index+.68+.17*p)/len(blocks),message),rescue=verify)
             repeat_report['repeated_rows_added']+=report['repeated_rows_added']
+            repeat_report['terminal_repeats_added']+=report.get('terminal_repeats_added',0)
             repeat_report['repeat_candidates']+=report['repeat_candidates']
             repeat_report['repeat_review_candidates'].extend({**item,'start':start+item['start'],'end':start+item['end']} for item in report['repeat_review_candidates'])
             existing_ids={r.get('id') for r in local_rows}
@@ -203,7 +204,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         if len(rows)>500:raise ValueError('Tekrarlarla birlikte 500 satır sınırı aşıldı; mevcut sözler korundu.')
         positions={id(row):index for index,row in enumerate(rows)}
         completed=[([positions[id(row)] for row in expanded],aligned) for expanded,aligned in local_completed]
-        for row in rows:row.pop('_original_index',None);row.pop('_occurrence_words',None)
+        for row in rows:row.pop('_original_index',None);row.pop('_occurrence_words',None);row.pop('_terminal_occurrence',None)
         emit(.98,'Satır sırası, dönüşler ve ara müzikler kontrol ediliyor…')
         return finish(completed)
     finally:
@@ -262,13 +263,14 @@ def repair_anomalous_words(aligned,rows,vocab,start,end):
             manual=next((w for w in original if w.get('word')==tokens[index] and w.get('timing_source')=='manual'
                          and not w.get('needs_review') and w['end']>w['start']),None)
             if manual:continue
-            if word['end']-word['start']<=6:continue
+            terminal=row.get('_terminal_occurrence',False)
+            if not terminal and word['end']-word['start']<=6:continue
             a=start+alternative['start'];b=start+alternative['end']
             lower=aligned[cursor+index-1]['end'] if cursor+index else start
             upper=aligned[cursor+index+1]['start'] if cursor+index+1<len(aligned) else end
-            if lower<=a<b<=upper and b-a<(word['end']-word['start'])*.6 and alternative['probability']>=.1:
+            if lower<=a<b<=upper and (terminal or b-a<(word['end']-word['start'])*.6) and alternative['probability']>=.1:
                 aligned[cursor+index]={**word,'start':a,'end':b,'probability':alternative['probability'],
-                                      'needs_review':alternative['probability']<.5,'timing_source':'ctc'}
+                                      'needs_review':alternative.get('needs_review',False) or alternative['probability']<.5,'timing_source':'ctc'}
                 repaired+=1
         cursor+=len(tokens)
     return repaired

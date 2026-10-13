@@ -83,6 +83,59 @@ def text_key(row,vocab):
     return ''.join(normalized_words([{'word':t} for t in row['text'].split() if spoken(t)],vocab))
 
 
+def bound_terminal_phrase(hit,rows,views,vocab):
+    """Verify a complete supplied prefix against its observed next word at EOF.
+
+    The following word is context only: the unheard remainder is never copied.
+    Two channels must corroborate every onset; uncertain endings retain review.
+    """
+    import torch
+    import torchaudio.functional as AF
+    from karaoke_ctc import normalized_words,words_from_spans
+    from karaoke_supplied_alignment import spoken
+    prefix=[w['word'] for w in hit['words']]
+    normalized=normalized_words([{'word':t} for t in prefix],vocab)
+    contexts=[]
+    for row in rows:
+        tokens=[t for t in row['text'].split() if spoken(t)]
+        keys=normalized_words([{'word':t} for t in tokens],vocab)
+        if len(keys)>len(normalized) and keys[:len(normalized)]==normalized:
+            contexts.append(prefix+[tokens[len(prefix)]])
+    if len(views)<2:return None
+    for tokens in contexts:
+        words=[{'word':t} for t in tokens]
+        keys=normalized_words(words,vocab);targets=[vocab[c] for c in '|'.join(keys)]
+        candidates=[]
+        for view in views:
+            a=max(0,round((hit['start']-.12)*50));b=len(view)
+            try:
+                path,scores=AF.forced_align(torch.from_numpy(view[a:b].copy())[None],
+                    torch.tensor([targets],dtype=torch.int32),blank=vocab.get('[PAD]',0))
+                spans=AF.merge_tokens(path[0],scores[0].exp(),blank=vocab.get('[PAD]',0))
+                aligned=words_from_spans(words,keys,spans,targets,.02,a*.02)
+            except (ValueError,RuntimeError):continue
+            if min(w['probability'] for w in aligned)<.1:continue
+            if sum(w['probability'] for w in aligned)/len(aligned)<.5:continue
+            if aligned[-1]['probability']<.5:continue
+            if abs(aligned[0]['start']-hit['start'])>.3:continue
+            if aligned[-1]['start']-aligned[-2]['end']>3:continue
+            candidates.append(aligned)
+        if len(candidates)<2:continue
+        if any(max(w['start'] for w in pair)-min(w['start'] for w in pair)>.3
+               for pair in zip(*candidates)):continue
+        result=[]
+        next_start=min(c[-1]['start'] for c in candidates)
+        for pair in zip(*(c[:-1] for c in candidates)):
+            best=dict(max(pair,key=lambda w:w['probability']))
+            best['end']=max(w['end'] for w in pair)
+            if best['end']>next_start:return None
+            best['needs_review']=best.get('needs_review',False) or max(w['end'] for w in pair)-min(w['end'] for w in pair)>.3
+            result.append(best)
+        return {**hit,'words':result,'start':result[0]['start'],'end':result[-1]['end'],
+                'terminal_bounded':True}
+    return None
+
+
 def select_occurrences(rows,hits,vocab):
     """Joint non-overlap and supplied-order decoder; repeats cannot skip originals."""
     import bisect
@@ -163,23 +216,30 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
                 if confidence<.4 or min(w['probability'] for w in aligned)<.1:continue
                 hits.append({**hit,'text':row['text'],'row_id':row.get('id'),'start':aligned[0]['start'],
                              'end':aligned[-1]['end'],'words':aligned,'confidence':confidence,'recovery':'local_suffix'})
-    selected=select_occurrences(rows,hits,vocab);copies={};count=0;review=[]
+    selected=select_occurrences(rows,hits,vocab);copies={};count=0;review=[];terminal_count=0
+    for i,hit in enumerate(selected):
+        key=text_key(hit,vocab)
+        longer=[h for h in hits if text_key(h,vocab).startswith(key) and len(text_key(h,vocab))>len(key)/.8]
+        if len(views[0])*.02-hit['end']>=2 or not longer:continue
+        typical=float(np.median([h['end']-h['start'] for h in longer]))
+        if len(views[0])*.02-hit['start']>=.8*typical:continue
+        bounded=bound_terminal_phrase(hit,rows,views,vocab)
+        if bounded:selected[i]=bounded
+        else:hit['terminal_unverified']=True
     for hit in selected:
         if hit['kind']!='repeat':continue
         if len(rows)+count>=500:break
         source=rows[hit['source_index']]
         if not source.get('id'):continue
-        key=text_key(source,vocab);remaining=len(views[0])*.02-hit['start']
-        longer=[h for h in hits if text_key(h,vocab).startswith(key) and len(text_key(h,vocab))>len(key)/.8]
-        if len(views[0])*.02-hit['end']<2 and longer:
-            typical=float(np.median([h['end']-h['start'] for h in longer]))
-            if remaining<.8*typical:
-                review.append({'text':source['text'],'start':hit['start'],'end':hit['end'],
-                               'reason':'recording_ends_inside_longer_known_phrase'})
-                continue
+        if hit.get('terminal_unverified'):
+            review.append({'text':source['text'],'start':hit['start'],'end':hit['end'],
+                           'reason':'terminal_prefix_not_corroborated'})
+            continue
 
         row=copy.deepcopy(source)
         row['_occurrence_words']=copy.deepcopy(hit['words'])
+        if hit.get('terminal_bounded'):
+            row['_terminal_occurrence']=True;terminal_count+=1
         row.update(id='auto-repeat:'+hashlib.sha256((source['id']+str(round(hit['start'],2))).encode()).hexdigest()[:16],
                    repeat_source_id=source['id'],start=hit['start'],end=hit['end'],words=[],locked=False)
         copies.setdefault(hit['slot'],[]).append(row);count+=1
@@ -188,11 +248,14 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
         result.extend(copies.get(i,[]))
         original=copy.deepcopy(row)
         matching=next((h for h in selected if h['kind']=='original' and h['source_index']==i),None)
-        if matching:original['_occurrence_words']=copy.deepcopy(matching['words'])
+        if matching:
+            original['_occurrence_words']=copy.deepcopy(matching['words'])
+            if matching.get('terminal_bounded'):original['_terminal_occurrence']=True
         result.append(original)
     result.extend(copies.get(len(rows),[]))
     return result,{'repeated_rows_added':count,'repeat_method':'supplied_text_ctc_occurrence_graph',
-                   'repeat_accuracy_guaranteed':False,'repeat_candidates':len(hits),'repeat_review_candidates':review},selected
+                   'repeat_accuracy_guaranteed':False,'repeat_candidates':len(hits),'repeat_review_candidates':review,
+                   'terminal_repeats_added':terminal_count},selected
 
 
 def local_verifier(audio,rate,model,extractor,vocab,device,progress=lambda *args:None):

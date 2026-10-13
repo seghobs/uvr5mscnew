@@ -1,7 +1,7 @@
 import copy
 import unittest
 import numpy as np
-from karaoke_repeat_spotting import expand_supplied_rows,select_occurrences
+from karaoke_repeat_spotting import expand_supplied_rows,select_occurrences,bound_terminal_phrase
 
 VOCAB={c:i+1 for i,c in enumerate('|abcdefghijklmnopqrstuvwxyzıüşöçğ')};VOCAB['[PAD]']=0
 
@@ -23,6 +23,20 @@ def hit(text,start,end,quality=.9,path=-.2,similarity=.95):
         'confidence':quality,'words':[{'word':t,'start':start+i*step,'end':start+(i+1)*step,'probability':quality} for i,t in enumerate(tokens)]}
 
 class RepeatSpottingTests(unittest.TestCase):
+    def test_terminal_context_bounds_prefix_without_copying_unheard_suffix(self):
+        audio=evidence(['gel bana don'])
+        rows=[{'id':'a','text':'GEL BANA'},{'id':'b','text':'GEL BANA DON ARTIK'}]
+        bounded=bound_terminal_phrase(hit('GEL BANA',1,len(audio)*.02-1.4),rows,[audio,audio.copy()],VOCAB)
+        self.assertIsNotNone(bounded)
+        self.assertEqual([w['word'] for w in bounded['words']],['GEL','BANA'])
+        self.assertLess(bounded['end'],len(audio)*.02-1.4)
+        self.assertTrue(bounded['terminal_bounded'])
+    def test_terminal_silence_and_single_channel_are_not_corroboration(self):
+        audio=evidence(['gel bana don']);silence=np.full_like(audio,-20);silence[:,0]=0
+        rows=[{'id':'a','text':'GEL BANA DON ARTIK'}]
+        candidate=hit('GEL BANA',1,3)
+        self.assertIsNone(bound_terminal_phrase(candidate,rows,[audio],VOCAB))
+        self.assertIsNone(bound_terminal_phrase(candidate,rows,[audio,silence],VOCAB))
     def test_detects_repeated_supplied_text_and_second_click_is_idempotent(self):
         rows=[{'id':'a','text':'GEL BANA','start':0,'end':0,'words':[]}]
         audio=evidence(['gel bana','gel bana'])

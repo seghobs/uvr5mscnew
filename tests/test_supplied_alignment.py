@@ -71,5 +71,20 @@ class SuppliedAlignmentTests(unittest.TestCase):
         rows[0]['words']=[]
         self.assertEqual(repair_anomalous_words(words,rows,vocab,0,30),0)
 
+    def test_terminal_context_repairs_short_borrowed_end_and_keeps_uncertainty(self):
+        vocab={c:i for i,c in enumerate('gelbana')}
+        proposal=[{'word':'GEL','start':1,'end':2,'probability':.9},
+                  {'word':'BANA','start':3,'end':4,'probability':.8,'needs_review':True}]
+        rows=[{'text':'GEL BANA','_terminal_occurrence':True,'_occurrence_words':proposal}]
+        words=[{'word':'GEL','start':1,'end':2,'probability':.9},
+               {'word':'BANA','start':3,'end':5,'probability':.8}]
+        repair_anomalous_words(words,rows,vocab,0,6)
+        self.assertEqual(words[1]['end'],4)
+        self.assertTrue(words[1]['needs_review'])
+        rows[0]['words']=[{'word':'BANA','start':3,'end':5,'timing_source':'manual','needs_review':False}]
+        words[1]['end']=5
+        repair_anomalous_words(words,rows,vocab,0,6)
+        self.assertEqual(words[1]['end'],5)
+
 
 if __name__=='__main__':unittest.main()

@@ -6,6 +6,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from karaoke_supplied_alignment import align_supplied,instrumental
 from karaoke_repeat_spotting import text_key
 from karaoke_ctc import MODEL_DIR
+from tools.test_repeat_web import terminal_expectation
 vocab=json.loads((MODEL_DIR/'vocab.json').read_text(encoding='utf8'))
 ROOT=Path(__file__).resolve().parents[1]
 work=ROOT/'cache/supplied_ten'
@@ -21,6 +22,7 @@ for track in manifest:
         key=row['text'].strip().casefold()
         if key in seen:removed.append(row);continue
         seen.add(key);r=copy.deepcopy(row);r.update(start=0,end=0,words=[],locked=False);rows.append(r)
+    removed.extend(terminal_expectation(track,rows))
     started=time.monotonic()
     try:
         result,report=align_supplied(track['file'],rows,instrumental_path=Path(track['file']).with_name(Path(track['file']).name.replace('_Vocals_','_Instrumental_')))
