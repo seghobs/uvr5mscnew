@@ -1,0 +1,112 @@
+{
+  "date": "2026-10-13",
+  "issue": "Multiple automatic SOLO captions in the same lyric gap caused by fragmented music/voice evidence.",
+  "policy": "One unlocked automatic caption per lyric gap, on its longest verified music-only interval. Do not bridge voice vetoes or silence. Preserve locked labels.",
+  "affected_recording": "3cb793220045",
+  "affected_intro_before": 4,
+  "affected_intro_after": 1,
+  "affected_full_song_api_runs": 2,
+  "affected_second_click_stable": true,
+  "affected_lyric_ids_and_text_preserved": true,
+  "affected_solo_intervals": [
+    {
+      "start": 33.980000000000004,
+      "end": 57.26,
+      "id": "auto-solo:a73bef2c8794525f"
+    },
+    {
+      "start": 158.04,
+      "end": 189.64,
+      "id": "auto-solo:05e0fb8f5e23f56c"
+    },
+    {
+      "start": 296.92,
+      "end": 353.08,
+      "id": "auto-solo:17707c79ad691546"
+    }
+  ],
+  "cached_recordings_checked": [
+    {
+      "id": "6aa8539f54e8",
+      "passed": true,
+      "old_solo_count": 4,
+      "solo_count": 3,
+      "second_click_stable": true,
+      "lyric_rows_unchanged": true
+    },
+    {
+      "id": "116e48f08000",
+      "passed": true,
+      "old_solo_count": 3,
+      "solo_count": 3,
+      "second_click_stable": true,
+      "lyric_rows_unchanged": true
+    },
+    {
+      "id": "c7f84cac1440",
+      "passed": true,
+      "old_solo_count": 3,
+      "solo_count": 3,
+      "second_click_stable": true,
+      "lyric_rows_unchanged": true
+    },
+    {
+      "id": "cfd16ea83d14",
+      "passed": true,
+      "old_solo_count": 6,
+      "solo_count": 3,
+      "second_click_stable": true,
+      "lyric_rows_unchanged": true
+    },
+    {
+      "id": "6bb14adc986e",
+      "passed": true,
+      "old_solo_count": 1,
+      "solo_count": 1,
+      "second_click_stable": true,
+      "lyric_rows_unchanged": true
+    },
+    {
+      "id": "17168fbfda57",
+      "passed": true,
+      "old_solo_count": 4,
+      "solo_count": 3,
+      "second_click_stable": true,
+      "lyric_rows_unchanged": true
+    },
+    {
+      "id": "c4aae6d292eb",
+      "passed": true,
+      "old_solo_count": 7,
+      "solo_count": 5,
+      "second_click_stable": true,
+      "lyric_rows_unchanged": true
+    },
+    {
+      "id": "e61f98c53a21",
+      "passed": true,
+      "old_solo_count": 2,
+      "solo_count": 2,
+      "second_click_stable": true,
+      "lyric_rows_unchanged": true
+    },
+    {
+      "id": "0cf5ef730cb1",
+      "passed": true,
+      "old_solo_count": 3,
+      "solo_count": 2,
+      "second_click_stable": true,
+      "lyric_rows_unchanged": true
+    },
+    {
+      "id": "c5f7f104f362",
+      "passed": true,
+      "old_solo_count": 3,
+      "solo_count": 2,
+      "second_click_stable": true,
+      "lyric_rows_unchanged": true
+    }
+  ],
+  "unit_tests_passed": 93,
+  "scope": "Ten cached whole-song lyric results with recomputed real accompaniment/VAD evidence and cached whole-song CTC voice vetoes; two fresh production API alignments on the actual screenshot recording. No user lyric database writes."
+}

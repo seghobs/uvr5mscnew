@@ -97,12 +97,19 @@ def place_interludes(rows,duration,voice_regions,music_regions,evidence_availabl
                 # a long break flicker and do not establish a musical section.
                 minimum=.4 if start==0 and end<4 else 3.
                 windows.extend((ca,cb) for ca,cb in pieces if cb-ca>=minimum)
+        # A musical section belongs to one gap between lyric rows. Residual
+        # stem noise can fragment its acoustic evidence into several windows.
+        # Keep one caption on the longest verified window; never bridge a
+        # vocal veto or silence just to make a longer caption.
+        if windows:
+            windows=[max(windows,key=lambda span:span[1]-span[0])]
         if not evidence_available:
             # No accompaniment recording: preserve user labels, but don't invent
             # music from silence or an unverified vocal-only recording.
             result.extend(originals)
         else:
             if originals and not windows:unplaced.extend(r.get('id') for r in originals)
+            elif len(originals)>1:unplaced.extend(r.get('id') for r in originals[1:])
             for n,(a,b) in enumerate(windows):
                 row=copy.deepcopy(originals[n]) if n<len(originals) else {
                     'id':'auto-solo:'+hashlib.sha256(f'{slot}:{a:.3f}:{b:.3f}'.encode()).hexdigest()[:16],

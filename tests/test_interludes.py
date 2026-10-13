@@ -46,6 +46,24 @@ class InterludeTests(unittest.TestCase):
         repeated,_=place_interludes(result,60,[],[(0,60)])
         self.assertEqual(result,repeated)
 
+    def test_fragmented_music_gap_gets_one_caption_without_bridging_voice(self):
+        result,report=place_interludes(self.rows,50,[(24,25),(30,31)],[(20,40)])
+        labels=[r for r in result if generated(r)]
+        self.assertEqual(len(labels),1)
+        self.assertEqual(report['solo_count'],1)
+        self.assertAlmostEqual(labels[0]['start'],31.2)
+        self.assertFalse(any(labels[0]['start']<b and labels[0]['end']>a for a,b in [(24,25),(30,31)]))
+        again,_=place_interludes(result,50,[(24,25),(30,31)],[(20,40)])
+        self.assertEqual(result,again)
+
+    def test_multiple_unlocked_supplied_solo_labels_in_one_gap_collapse(self):
+        labels=[{'id':str(i),'text':'SOLO...','start':20+i*4,'end':24+i*4} for i in range(4)]
+        result,report=place_interludes([self.rows[0],*labels,self.rows[1]],50,[],[(20,40)])
+        solos=[r for r in result if r['text']=='SOLO...']
+        self.assertEqual(len(solos),1)
+        self.assertEqual((solos[0]['start'],solos[0]['end']),(20,40))
+        self.assertEqual(report['unplaced_solo_ids'],['1','2','3'])
+
     def test_stereo_cancellation_does_not_erase_the_vocal(self):
         t=np.linspace(-1,1,400,dtype=np.float32);audio=np.stack([t,-t],axis=1)
         np.testing.assert_equal(alignment_mono(audio),t)
