@@ -21,13 +21,15 @@
     "linked_words": 1351,
     "repaired_word_spans": 11,
     "partial_repeat_review_count": 0,
-    "low_acoustic_confidence_rows": 105
+    "low_acoustic_confidence_rows": 76,
+    "automatically_resolved_uncertain_words": 45,
+    "remaining_uncertain_words": 92
   },
   "recording_results": [
     {
       "id": "c5f7f104f362",
       "passed": true,
-      "seconds": 73.90599999999995,
+      "seconds": 80.73499999999967,
       "checks": {
         "expected_repeats": 4,
         "recovered_repeats": 4,
@@ -36,22 +38,23 @@
         "original_text_and_order_preserved": true,
         "all_words_bound": true,
         "repaired_word_spans": 4,
-        "review_rows": 12,
+        "review_rows": 7,
         "partial_repeat_review_count": 0,
         "terminal_prefixes_added": 1,
+        "second_click_terminal_end_preserved": true,
         "second_click_idempotent": true,
         "second_click_all_words_bound": true,
-        "second_click_terminal_end_preserved": true
+        "uncertain_word_repairs": 7
       },
       "task_ids": [
-        "c5af0c54-8780-4f38-b8e3-2b3f95c26928",
-        "548da8a3-8e47-43b6-87dd-0ff3932f0f46"
+        "bd92c39e-1bfe-4813-b35a-3dd00d907141",
+        "ed767d51-10df-417c-9c81-aea70dac0dad"
       ]
     },
     {
       "id": "6aa8539f54e8",
       "passed": true,
-      "seconds": 62.5619999999999,
+      "seconds": 64.64000000000033,
       "checks": {
         "expected_repeats": 33,
         "recovered_repeats": 33,
@@ -60,21 +63,22 @@
         "original_text_and_order_preserved": true,
         "all_words_bound": true,
         "repaired_word_spans": 0,
-        "review_rows": 7,
+        "review_rows": 6,
         "partial_repeat_review_count": 0,
         "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
-        "second_click_all_words_bound": true
+        "second_click_all_words_bound": true,
+        "uncertain_word_repairs": 3
       },
       "task_ids": [
-        "17e588fc-77f4-4c35-b3cd-d2be38466cdb",
-        "0ac9c663-def8-4d19-8297-5b86603941ed"
+        "68d831ce-2c36-4451-86f8-5812fd40b8da",
+        "396140e1-cfb1-4b68-a9c5-3979e044baa4"
       ]
     },
     {
       "id": "116e48f08000",
       "passed": true,
-      "seconds": 41.45300000000043,
+      "seconds": 44.70399999999972,
       "checks": {
         "expected_repeats": 22,
         "recovered_repeats": 22,
@@ -83,21 +87,22 @@
         "original_text_and_order_preserved": true,
         "all_words_bound": true,
         "repaired_word_spans": 0,
-        "review_rows": 14,
+        "review_rows": 10,
         "partial_repeat_review_count": 0,
         "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
-        "second_click_all_words_bound": true
+        "second_click_all_words_bound": true,
+        "uncertain_word_repairs": 8
       },
       "task_ids": [
-        "778e7434-0c20-4eb6-938b-392f5843daa9",
-        "672e23a4-b46f-4208-be42-25de2c7ac08d"
+        "c5ca99e6-377f-45e0-aae2-d2bc3e418eb2",
+        "c9828a98-9acc-41bb-ac72-5fe37943d109"
       ]
     },
     {
       "id": "c7f84cac1440",
       "passed": true,
-      "seconds": 111.89099999999962,
+      "seconds": 127.04600000000028,
       "checks": {
         "expected_repeats": 18,
         "recovered_repeats": 18,
@@ -106,21 +111,22 @@
         "original_text_and_order_preserved": true,
         "all_words_bound": true,
         "repaired_word_spans": 1,
-        "review_rows": 18,
+        "review_rows": 16,
         "partial_repeat_review_count": 0,
         "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
-        "second_click_all_words_bound": true
+        "second_click_all_words_bound": true,
+        "uncertain_word_repairs": 3
       },
       "task_ids": [
-        "4fc8e6de-8bb2-473e-a085-91f366dd1d35",
-        "008d0beb-5361-4359-a705-cbc6b033dbaf"
+        "efadc018-8fff-4703-98dc-2d25a124b69e",
+        "baff810a-3920-42ff-aacd-4193abfbf953"
       ]
     },
     {
       "id": "cfd16ea83d14",
       "passed": true,
-      "seconds": 74.75,
+      "seconds": 81.32800000000043,
       "checks": {
         "expected_repeats": 17,
         "recovered_repeats": 17,
@@ -129,21 +135,22 @@
         "original_text_and_order_preserved": true,
         "all_words_bound": true,
         "repaired_word_spans": 1,
-        "review_rows": 17,
+        "review_rows": 12,
         "partial_repeat_review_count": 0,
         "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
-        "second_click_all_words_bound": true
+        "second_click_all_words_bound": true,
+        "uncertain_word_repairs": 7
       },
       "task_ids": [
-        "ea2447ac-f12f-47b8-83c2-4ea5d25013c7",
-        "58f94e28-0e90-4dca-bfb4-e946ddf458c9"
+        "99a67eab-ced6-469c-ac33-30e78ce5b2b8",
+        "55c508d2-a532-40df-a96e-2e3b1c6a1075"
       ]
     },
     {
       "id": "6bb14adc986e",
       "passed": true,
-      "seconds": 25.28099999999995,
+      "seconds": 27.95299999999952,
       "checks": {
         "expected_repeats": 16,
         "recovered_repeats": 16,
@@ -152,21 +159,22 @@
         "original_text_and_order_preserved": true,
         "all_words_bound": true,
         "repaired_word_spans": 1,
-        "review_rows": 7,
+        "review_rows": 3,
         "partial_repeat_review_count": 0,
         "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
-        "second_click_all_words_bound": true
+        "second_click_all_words_bound": true,
+        "uncertain_word_repairs": 5
       },
       "task_ids": [
-        "d5921c0f-66f4-409b-9aaa-4aa78a41f97a",
-        "fc6e2611-c486-43ce-b0c9-f05ff2584e42"
+        "68ff33b2-f4ab-4550-bc4e-a73dca3f22ef",
+        "2f6dfd15-9f0d-47b4-94ad-dfd0514b57a2"
       ]
     },
     {
       "id": "17168fbfda57",
       "passed": true,
-      "seconds": 24.282000000000153,
+      "seconds": 30.45299999999952,
       "checks": {
         "expected_repeats": 20,
         "recovered_repeats": 20,
@@ -175,21 +183,22 @@
         "original_text_and_order_preserved": true,
         "all_words_bound": true,
         "repaired_word_spans": 2,
-        "review_rows": 10,
+        "review_rows": 6,
         "partial_repeat_review_count": 0,
         "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
-        "second_click_all_words_bound": true
+        "second_click_all_words_bound": true,
+        "uncertain_word_repairs": 4
       },
       "task_ids": [
-        "052a9e80-8efe-4b92-b878-3baf33c8585a",
-        "06967efb-8fe0-4034-91b7-b4d50b7d06cb"
+        "86fcf94c-2074-4fb5-a386-e1463a1adf2f",
+        "33c68a4c-8768-4d01-8190-366291f75ee1"
       ]
     },
     {
       "id": "c4aae6d292eb",
       "passed": true,
-      "seconds": 47.65599999999995,
+      "seconds": 50.625,
       "checks": {
         "expected_repeats": 7,
         "recovered_repeats": 7,
@@ -198,21 +207,22 @@
         "original_text_and_order_preserved": true,
         "all_words_bound": true,
         "repaired_word_spans": 2,
-        "review_rows": 7,
+        "review_rows": 6,
         "partial_repeat_review_count": 0,
         "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
-        "second_click_all_words_bound": true
+        "second_click_all_words_bound": true,
+        "uncertain_word_repairs": 1
       },
       "task_ids": [
-        "786558c1-b8ac-418f-8920-3bf297271fad",
-        "150f1079-25b1-4b2f-a6a4-2c63d2c4e328"
+        "9f08bdec-4c13-46f4-b1bb-73b0982ceada",
+        "f16e5a56-c133-4f92-9e53-a56acba5546e"
       ]
     },
     {
       "id": "e61f98c53a21",
       "passed": true,
-      "seconds": 38.26500000000033,
+      "seconds": 44.04699999999957,
       "checks": {
         "expected_repeats": 7,
         "recovered_repeats": 7,
@@ -221,21 +231,22 @@
         "original_text_and_order_preserved": true,
         "all_words_bound": true,
         "repaired_word_spans": 0,
-        "review_rows": 12,
+        "review_rows": 9,
         "partial_repeat_review_count": 0,
         "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
-        "second_click_all_words_bound": true
+        "second_click_all_words_bound": true,
+        "uncertain_word_repairs": 7
       },
       "task_ids": [
-        "d59a29a1-7af6-4216-ab50-c0a7cc577623",
-        "7954cce7-7c28-4470-a2fa-d8b2ded9bcbd"
+        "f6bfa6a5-3a7e-49e6-8c91-4980ddb076e4",
+        "149fc2ef-1cb8-49a7-910e-86ca35f17b11"
       ]
     },
     {
       "id": "0cf5ef730cb1",
       "passed": true,
-      "seconds": 59.4380000000001,
+      "seconds": 59.60900000000038,
       "checks": {
         "expected_repeats": 10,
         "recovered_repeats": 10,
@@ -248,15 +259,16 @@
         "partial_repeat_review_count": 0,
         "terminal_prefixes_added": 0,
         "second_click_idempotent": true,
-        "second_click_all_words_bound": true
+        "second_click_all_words_bound": true,
+        "uncertain_word_repairs": 0
       },
       "task_ids": [
-        "2a2e2706-79d1-4ac3-aabf-9ef26af309ab",
-        "7394b9da-0cab-46ed-a0ea-2b7412edf06d"
+        "7aeac29a-b387-4609-be53-2051a8b4f09e",
+        "065a49ee-9827-40f2-8b3f-4f0c38df7da2"
       ]
     }
   ],
-  "unit_tests_passed": 89,
+  "unit_tests_passed": 91,
   "frontend_contract_suites_passed": 4,
   "production_build_passed": true,
   "typescript_passed": true,
@@ -274,7 +286,8 @@
     "Insert copies with stable IDs, preserve supplied originals, then align the expanded transcript.",
     "Repair abnormally long word spans only with compatible independent occurrence evidence.",
     "At a truncated recording ending, corroborate an existing complete supplied prefix with its observed next word across two audio views. Copy only that existing prefix; do not invent the unheard suffix. Uncorroborated candidates stay in review.",
-    "Retain the contextual terminal boundary on a second click and preserve channel-disagreement review flags."
+    "Retain the contextual terminal boundary on a second click and preserve channel-disagreement review flags.",
+    "After occurrence-span repair, retry every uncertain word with its neighbouring supplied words in mix/left/right local audio. Require probability >=0.5 in two distinct channel views, start/end agreement within 160ms, and non-overlapping neighbour bounds before averaging the boundaries and clearing review. Preserve confirmed manual words."
   ],
   "evaluation_scope": [
     "The holdout removes later exact-text occurrences from ten saved lyric records, resets all timings, and processes the complete saved vocal recordings with their matching instrumental stems.",
@@ -284,7 +297,8 @@
     "This establishes recovery of all 153 saved-reference repeats plus one separately declared terminal-prefix regression under this protocol; it is not a universal zero-error or human-audited timing guarantee.",
     "Low-confidence flags remain. No automatic manual approval is performed.",
     "An independent Whisper probe on three short difficult excerpts returned unrelated subtitle phrases; it was inconclusive and was not treated as evidence of correctness.",
-    "Original recordings and saved user lyrics are not overwritten by the test runner."
+    "Original recordings and saved user lyrics are not overwritten by the test runner.",
+    "Uncertainty flags are not cleared in bulk. Remaining weak or contradictory evidence stays in review; channel agreement is model-based evidence, not a guarantee of human timing accuracy."
   ],
   "research_reference": {
     "title": "CTC-aligned Audio-Text Embedding for Streaming Open-vocabulary Keyword Spotting",
@@ -295,12 +309,18 @@
     "recording_id": "c5f7f104f362",
     "text": "BU CAN SANA YANAR,",
     "start": 255.34,
-    "end": 258.96,
+    "end": 257.95,
     "following_context_word_start": 259.42,
     "following_context_word_not_inserted": true,
     "unheard_longer_suffix_not_inserted": true,
     "second_click_same_id_and_bounds": true,
-    "channel_ending_disagreement_keeps_review_flag": true,
-    "reference_scope": "Contextual CTC evidence in stereo representations, not independently human-annotated timing."
+    "channel_ending_disagreement_keeps_review_flag": false,
+    "reference_scope": "Local contextual CTC channel consensus, not independently human-annotated timing.",
+    "previous_end": 258.96,
+    "local_consensus_resolved_ending_disagreement": true
+  },
+  "uncertainty_baseline": {
+    "revision": "d3a84c22d8c99748df5d81cf2584e7a8eb68ffb9",
+    "review_rows": 105
   }
 }

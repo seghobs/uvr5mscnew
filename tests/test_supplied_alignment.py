@@ -4,6 +4,24 @@ from karaoke_supplied_alignment import alignment_blocks,assemble,repair_anomalou
 
 
 class SuppliedAlignmentTests(unittest.TestCase):
+    def test_local_uncertainty_retry_does_not_touch_confirmed_manual_word(self):
+        from karaoke_supplied_alignment import rescue_weak_words
+        word={'word':'GEL','start':1,'end':2,'probability':.2,'timing_source':'manual','needs_review':False}
+        words=[copy.deepcopy(word)]
+        self.assertEqual(rescue_weak_words(None,16000,0,3,words,None,None,{},'cpu',lambda *args:None,threshold=.5),0)
+        self.assertEqual(words,[word])
+    def test_uncertain_boundaries_require_two_agreeing_channels(self):
+        from karaoke_supplied_alignment import choose_boundary_candidate
+        original={'word':'GEL','start':1,'end':2,'probability':.3,'needs_review':True}
+        left={**original,'start':1.1,'end':1.8,'probability':.8,'recovery_channel':'left'}
+        right={**left,'start':1.12,'end':1.82,'probability':.9,'recovery_channel':'right'}
+        fixed=choose_boundary_candidate(original,[left,right],0,3)
+        self.assertFalse(fixed['needs_review'])
+        self.assertAlmostEqual(fixed['end'],1.81)
+        self.assertEqual(choose_boundary_candidate(original,[left],0,3),original)
+        self.assertEqual(choose_boundary_candidate(original,[left,{**right,'end':2.2}],0,3),original)
+        self.assertEqual(choose_boundary_candidate(original,[left,right],0,1.5),original)
+
     def test_default_times_do_not_limit_full_song_and_repeats_keep_order(self):
         rows=[{'text':'SOLO...','start':0,'end':.5},{'text':'AYNI SÖZ','start':0,'end':.5},
               {'text':'SOLO...','start':0,'end':.5},{'text':'AYNI SÖZ','start':0,'end':.5}]

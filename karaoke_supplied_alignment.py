@@ -197,6 +197,9 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
             rescue_weak_words(audio,rate,start,end,aligned,model,extractor,vocab,device,
                 lambda p,message:emit(.96*(block_index+.95)/len(blocks),message))
             repeat_report['repaired_word_spans']+=repair_anomalous_words(aligned,expanded,vocab,start,end)
+            repeat_report['uncertain_word_repairs']=repeat_report.get('uncertain_word_repairs',0)+rescue_weak_words(
+                audio,rate,start,end,aligned,model,extractor,vocab,device,
+                lambda p,message:emit(.96*(block_index+.97)/len(blocks),message),threshold=.5)
             local_completed.append((expanded,aligned))
         rows=[]
         for i,row in enumerate(original_rows):
@@ -212,19 +215,36 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         if device=='cuda':torch.cuda.empty_cache()
 
 
-def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,progress):
+def choose_boundary_candidate(original,candidates,lower,upper):
+    """Require corroborated local boundaries before clearing an uncertainty flag."""
+    usable=[w for w in candidates if w['probability']>=.5 and lower<=w['start']<w['end']<=upper]
+    pairs=[(a,b) for i,a in enumerate(usable) for b in usable[i+1:]
+           if a.get('recovery_channel')!=b.get('recovery_channel')
+           and abs(a['start']-b['start'])<=.16 and abs(a['end']-b['end'])<=.16]
+    if not pairs:return original
+    a,b=max(pairs,key=lambda pair:min(w['probability'] for w in pair))
+    return {**original,'start':(a['start']+b['start'])/2,'end':(a['end']+b['end'])/2,
+            'probability':min(a['probability'],b['probability']),'needs_review':False,
+            'timing_source':'ctc','recovery_channel':'local_consensus'}
+
+
+def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,progress,threshold=.1):
     """Retry only rejected words in a local phrase, never relaxing acceptance."""
     import torch
     import torchaudio.functional as AF
     from karaoke_ctc import normalized_words,words_from_spans
+    repaired=0
     for index,word in enumerate(words):
-        if word['probability']>=.10:continue
+        if word.get('timing_source')=='manual' and not word.get('needs_review'):continue
+        if word['probability']>=threshold and not (threshold>.1 and word.get('needs_review')):continue
         progress(.86,'Belirsiz kelime, komşularıyla ve ses kanallarıyla kontrol ediliyor…')
         first=max(0,index-1);last=min(len(words),index+2)
         phrase=words[first:last]
         a=max(start,phrase[0]['start']-.25);b=min(end,phrase[-1]['end']+.35)
         if b<=a:continue
-        original=copy.deepcopy(word);best=original
+        original=copy.deepcopy(word);best=original;candidates=[]
+        lower=words[index-1]['end'] if index else start
+        upper=words[index+1]['start'] if index+1<len(words) else end
         normalized=normalized_words(phrase,vocab);targets=[vocab[c] for c in '|'.join(normalized)]
         for channel in ('mix','left','right'):
             clip=audio[round((a-start)*rate):round((b-start)*rate)]
@@ -242,9 +262,14 @@ def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,pr
             except (ValueError,RuntimeError):continue
             lower=words[index-1]['end'] if index else start
             upper=words[index+1]['start'] if index+1<len(words) else end
+            candidates.append({**candidate,'recovery_channel':channel})
             if lower<=candidate['start']<candidate['end']<=upper and candidate['probability']>best['probability']:
                 best={**candidate,'recovery_channel':channel}
+        if threshold>.1:
+            best=choose_boundary_candidate(original,candidates,lower,upper)
+        if best!=original:repaired+=1
         words[index]=best
+    return repaired
 
 
 def repair_anomalous_words(aligned,rows,vocab,start,end):
