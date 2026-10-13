@@ -58,7 +58,8 @@ import LyricsCatalogSearch from './LyricsCatalogSearch';
 import { WordPlayer, checkWordInterval } from '@/lib/word-player';
 import { AudioPassageEditor } from './AudioPassageEditor';
 import { fitPassageRow } from '@/lib/audio-passages';
-import { fullyBound, isSpokenToken, smartBindRow } from '@/lib/smart-passage-binding';
+import { fullyBound, isSpokenToken, isInstrumentalRow, prepareBindingRows, smartBindRow } from '@/lib/smart-passage-binding';
+import {validateSuppliedResult} from '@/lib/supplied-alignment';
 import {recordLiveRow, clearLiveTimings, clearRowTimings} from '@/lib/live-sync';
 import { preservePassages, poolKey, validRange, clearRowPassages } from '@/lib/audio-passages';
 
@@ -649,14 +650,18 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     const issues:string[]=[];
     try {
       let expected=segmentsRef.current;
-      const result=[...expected];
+      const result=prepareBindingRows(expected,duration);
       const unchanged=()=>{
         if(JSON.stringify(segmentsRef.current)!==JSON.stringify(expected))throw Error('DÜZENLEME: Sözler bu sırada değişti. Yeni düzenlemeler ve tamamlanan bağlantılar korundu.');
       };
+      if(result.some((row,index)=>row!==expected[index])){
+        unchanged();controller.signal.throwIfAborted();
+        expected=[...result];segmentsRef.current=expected;setSegments(expected);triggerAutoSave(expected);
+      }
       for(let index=0;index<result.length;index++){
         controller.signal.throwIfAborted();unchanged();
         const row=result[index];
-        if(row.locked||fullyBound(row)||/^\s*(solo|enstr[üu]mantal|instrumental)[.\s…!]*$/i.test(row.text)){skipped++;continue;}
+        if(row.locked||fullyBound(row)||isInstrumentalRow(row)){skipped++;continue;}
         try {
           const outcome=await smartBindRow(result,index,duration,async (target,attempt)=>{
             unchanged();
@@ -863,6 +868,29 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     } finally {
       if (requestId === lyricsRequestRef.current) setLoadingLyrics(false);
     }
+  };
+
+  const alignSuppliedLyrics=async()=>{
+    if(loadingLyrics||bulkBindingStatus||!segmentsRef.current.some(s=>s.text.trim()&&!isInstrumentalRow(s)))return;
+    const requestId=++lyricsRequestRef.current;
+    const snapshot=JSON.parse(JSON.stringify(segmentsRef.current)) as LyricSegment[];
+    setLoadingLyrics(true);setLyricsProgress('Verdiğiniz sözler senkronlanıyor…');setLyricsProgressPercent(0);
+    setLiveLyricsSegments([]);setLyricsQueue({position:1,total:1,ahead:0,remaining:0});
+    audioRef.current?.pause();stopWordPreview();liveCaptureRef.current=null;setIsLiveSyncMode(false);
+    try{
+      flushPendingSave();await enqueueLyricsSave(()=>Promise.resolve());
+      const result=await api.alignSuppliedLyrics(vocalStem||instStem,snapshot,(message,progress)=>{
+        if(requestId===lyricsRequestRef.current){setLyricsProgress(message);setLyricsProgressPercent(progress);}
+      },instStem);
+      if(requestId!==lyricsRequestRef.current)return;
+      if(JSON.stringify(segmentsRef.current)!==JSON.stringify(snapshot))throw Error('Sözler bu sırada değişti; yeni düzenlemelerin korundu.');
+      validateSuppliedResult(snapshot,result.segments);
+      loadSegments(result.segments);triggerAutoSave(result.segments);setBulkBindingProblems([]);setActiveTab('lyrics');
+      const report=result.alignment_report;
+      onNotify(report.review_rows.length?'warning':'success','Otomatik senkron ve bağlama',
+        `${report.target_words?`${report.linked_words}/${report.target_words} kelime bağlı.`:'Mevcut doğrulanmış kelime bağlantıları korundu.'} ${report.repeated_rows_added||0} sesle doğrulanmış tekrar satırı eklendi. ${report.solo_count||0} müzik aralığına SOLO etiketi yerleştirildi. ${report.review_rows.length} satır dinleme kontrolü bekliyor. Tekrar taraması tüm dönüşleri bulmayı garanti etmez.`);
+    }catch(error){if(requestId===lyricsRequestRef.current)onNotify('warning','Senkron tamamlanamadı',(error as Error).message);}
+    finally{if(requestId===lyricsRequestRef.current)setLoadingLyrics(false);}
   };
 
   const cancelAllTasks=async()=>{
@@ -1621,7 +1649,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           <div className="flex flex-wrap gap-2">
             <button disabled={cancellingAllTasks} onClick={()=>void cancelAllTasks()} className="rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-200 hover:bg-rose-500/20 disabled:opacity-40">{cancellingAllTasks?'Sonlandırılıyor…':'Tüm görevleri sonlandır'}</button>
             <button disabled={loadingLyrics || !!bulkBindingStatus || !segments.length} onClick={()=>void bindEveryRow()} className="rounded-lg border border-pink-400/30 bg-pink-400/10 px-3 py-2 text-sm font-semibold text-pink-200 hover:bg-pink-400/20 disabled:opacity-40">{bulkBindingStatus || 'Tüm satırların ses parçalarını bağla'}</button>
-            <button disabled={loadingLyrics || !segments.length} onClick={() => activeTab === 'verify' ? setShowReferenceModal(true) : void fetchInitialLyrics(vocalStem || instStem, true, whisperModel, segments.map(s => s.text).join('\n')).catch(() => {})} className="rounded-lg bg-amber-400 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-40">{loadingLyrics ? 'İşleniyor…' : activeTab === 'verify' ? 'Sözleri bul ve karşılaştır' : 'Otomatik hizala'}</button>
+            <button disabled={loadingLyrics || !!bulkBindingStatus || !segments.some(s=>s.text.trim()&&!isInstrumentalRow(s))} onClick={()=>void alignSuppliedLyrics()} className="rounded-lg bg-amber-400 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-40">{loadingLyrics ? 'İşleniyor…' : 'Otomatik senkronla ve bağla'}</button>
+            {activeTab==='verify'&&<button disabled={loadingLyrics} onClick={()=>setShowReferenceModal(true)} className="rounded-lg border border-white/15 px-3 py-2 text-sm disabled:opacity-40">Sözleri bul ve karşılaştır</button>}
             <button aria-expanded={showAdvancedTools} aria-controls="karaoke-tools" onClick={() => setShowAdvancedTools(!showAdvancedTools)} className={cn("rounded-lg border px-3 py-2 text-sm transition-colors", showAdvancedTools ? "border-indigo-400/30 bg-indigo-400/10 text-indigo-200" : "border-white/10 text-zinc-200 hover:bg-white/5")}>Diğer araçlar <ChevronDown className={cn("ml-1 inline h-3 w-3 transition-transform", showAdvancedTools && "rotate-180")}/></button>
           </div>
         </div>}
@@ -2953,7 +2982,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             </div>
 
             <p className="text-xs text-zinc-400 leading-relaxed">
-            Önce aradığınız şarkıyı belirtin. Sonuçlardan uygun sözleri seçin; bulamazsanız aşağıya elle yapıştırın. Metin satır satır eklenir; zamanlarını daha sonra elle ayarlayabilirsiniz.
+            Sözlerinizi aşağıya yazın veya yapıştırın. Metin yalnızca satır satır eklenir. Sonrasında “Otomatik senkronla ve bağla” düğmesine basabilir ya da zamanlarını elle ayarlayabilirsiniz.
             </p>
 
             <LyricsCatalogSearch initialTitle={title} initialArtist={artist} onSelect={setPastedLyricsText} onBusyChange={setCatalogBusy} disabled={isAligningPasted}/>
@@ -2988,7 +3017,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                     setSegments(rows);
                     setShowPasteModal(false);
                     setPastedLyricsText('');
-                    onNotify('success','Sözler eklendi',`${rows.length} satır eklendi. Zamanlarını manuel senkronla ayarlayabilirsiniz.`);
+                    onNotify('success','Sözler eklendi',`${rows.length} satır eklendi. Hazır olduğunuzda “Otomatik senkronla ve bağla” düğmesine basabilirsiniz.`);
                 }}
                 className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-purple-600/30 cursor-pointer disabled:opacity-50"
               >

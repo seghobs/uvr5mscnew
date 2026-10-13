@@ -1,0 +1,432 @@
+{
+  "date": "2026-10-13",
+  "language": "tr",
+  "recording_count": 10,
+  "audio_seconds_per_pass": 2384.6196825396823,
+  "baseline_bound_words": 1344,
+  "target_words": 1347,
+  "final_bound_words": 1347,
+  "pipeline_checks_passed": 10,
+  "pipeline_checks_total": 10,
+  "verified_music_intervals": 31,
+  "low_acoustic_confidence_rows": 104,
+  "recordings": [
+    {
+      "id": "6aa8539f54e8",
+      "duration": 262.8498866213152,
+      "seconds": 11.73399999999674,
+      "passed": true,
+      "checks": {
+        "word_count": 193,
+        "solo_count": 4,
+        "review_rows": 7,
+        "supplied_text_preserved": true,
+        "all_words_bound": true,
+        "times_ordered_in_audio": true,
+        "solo_display_end_exact": true,
+        "no_unverified_video_gap_labels": true,
+        "repeat_labels_identical": true,
+        "no_solo_over_detected_voice": true,
+        "solo_inside_detected_accompaniment": true
+      },
+      "solo_intervals": [
+        {
+          "start": 6.904,
+          "end": 20.503999999999998,
+          "id": "auto-solo:32e702c2a29774f7"
+        },
+        {
+          "start": 122.552,
+          "end": 141.6,
+          "id": "auto-solo:a64f05dd3a43b4d8"
+        },
+        {
+          "start": 141.94,
+          "end": 148.472,
+          "id": "auto-solo:533195e9e1aa7679"
+        },
+        {
+          "start": 257.048,
+          "end": 260.66,
+          "id": "auto-solo:a8e4dcbed53857cd"
+        }
+      ]
+    },
+    {
+      "id": "116e48f08000",
+      "duration": 172.17596371882087,
+      "seconds": 8.469000000040978,
+      "passed": true,
+      "checks": {
+        "word_count": 196,
+        "solo_count": 3,
+        "review_rows": 14,
+        "supplied_text_preserved": true,
+        "all_words_bound": true,
+        "times_ordered_in_audio": true,
+        "solo_display_end_exact": true,
+        "no_unverified_video_gap_labels": true,
+        "repeat_labels_identical": true,
+        "no_solo_over_detected_voice": true,
+        "solo_inside_detected_accompaniment": true
+      },
+      "solo_intervals": [
+        {
+          "start": 0.7000000000000001,
+          "end": 14.200000000000001,
+          "id": "auto-solo:3ab34e3dfa558645"
+        },
+        {
+          "start": 110.808,
+          "end": 124.11999999999999,
+          "id": "auto-solo:589f9c35b758e529"
+        },
+        {
+          "start": 165.688,
+          "end": 169.70000000000002,
+          "id": "auto-solo:d545511c5c70911b"
+        }
+      ]
+    },
+    {
+      "id": "c7f84cac1440",
+      "duration": 258.4148752834467,
+      "seconds": 11.5,
+      "passed": true,
+      "checks": {
+        "word_count": 177,
+        "solo_count": 2,
+        "review_rows": 18,
+        "supplied_text_preserved": true,
+        "all_words_bound": true,
+        "times_ordered_in_audio": true,
+        "solo_display_end_exact": true,
+        "no_unverified_video_gap_labels": true,
+        "repeat_labels_identical": true,
+        "no_solo_over_detected_voice": true,
+        "solo_inside_detected_accompaniment": true
+      },
+      "solo_intervals": [
+        {
+          "start": 0.08,
+          "end": 24.023999999999997,
+          "id": "auto-solo:f75709d7a6d65d72"
+        },
+        {
+          "start": 135.128,
+          "end": 158.48,
+          "id": "auto-solo:7e6e9f911c316f81"
+        }
+      ]
+    },
+    {
+      "id": "cfd16ea83d14",
+      "duration": 298.3067573696145,
+      "seconds": 12.702999999979511,
+      "passed": true,
+      "checks": {
+        "word_count": 154,
+        "solo_count": 5,
+        "review_rows": 17,
+        "supplied_text_preserved": true,
+        "all_words_bound": true,
+        "times_ordered_in_audio": true,
+        "solo_display_end_exact": true,
+        "no_unverified_video_gap_labels": true,
+        "repeat_labels_identical": true,
+        "no_solo_over_detected_voice": true,
+        "solo_inside_detected_accompaniment": true
+      },
+      "solo_intervals": [
+        {
+          "start": 0.66,
+          "end": 28.48,
+          "id": "auto-solo:211408b60466f973"
+        },
+        {
+          "start": 38.760000000000005,
+          "end": 54.328,
+          "id": "auto-solo:fc10fec81d57185c"
+        },
+        {
+          "start": 151.128,
+          "end": 165.66,
+          "id": "auto-solo:238ec0c4171b3744"
+        },
+        {
+          "start": 166.22,
+          "end": 169.52,
+          "id": "auto-solo:4edbe79a169ef418"
+        },
+        {
+          "start": 288.376,
+          "end": 296.40000000000003,
+          "id": "auto-solo:de166d22a6696e06"
+        }
+      ]
+    },
+    {
+      "id": "6bb14adc986e",
+      "duration": 176.3787755102041,
+      "seconds": 9.313000000023749,
+      "passed": true,
+      "checks": {
+        "word_count": 103,
+        "solo_count": 1,
+        "review_rows": 7,
+        "supplied_text_preserved": true,
+        "all_words_bound": true,
+        "times_ordered_in_audio": true,
+        "solo_display_end_exact": true,
+        "no_unverified_video_gap_labels": true,
+        "repeat_labels_identical": true,
+        "no_solo_over_detected_voice": true,
+        "solo_inside_detected_accompaniment": true
+      },
+      "solo_intervals": [
+        {
+          "start": 96.16000000000001,
+          "end": 105.368,
+          "id": "auto-solo:a6dcac350e79cd69"
+        }
+      ]
+    },
+    {
+      "id": "17168fbfda57",
+      "duration": 266.0542403628118,
+      "seconds": 11.84399999998277,
+      "passed": true,
+      "checks": {
+        "word_count": 106,
+        "solo_count": 3,
+        "review_rows": 10,
+        "supplied_text_preserved": true,
+        "all_words_bound": true,
+        "times_ordered_in_audio": true,
+        "solo_display_end_exact": true,
+        "no_unverified_video_gap_labels": true,
+        "repeat_labels_identical": true,
+        "no_solo_over_detected_voice": true,
+        "solo_inside_detected_accompaniment": true
+      },
+      "solo_intervals": [
+        {
+          "start": 4.78,
+          "end": 9.540000000000001,
+          "id": "auto-solo:69ef9733d7dd583a"
+        },
+        {
+          "start": 55.42,
+          "end": 76.72,
+          "id": "auto-solo:47d2104ba5c804a5"
+        },
+        {
+          "start": 157.9,
+          "end": 182.58,
+          "id": "auto-solo:d20764a85b0a1c2d"
+        }
+      ]
+    },
+    {
+      "id": "c4aae6d292eb",
+      "duration": 274.64562358276646,
+      "seconds": 12.21799999999348,
+      "passed": true,
+      "checks": {
+        "word_count": 112,
+        "solo_count": 5,
+        "review_rows": 7,
+        "supplied_text_preserved": true,
+        "all_words_bound": true,
+        "times_ordered_in_audio": true,
+        "solo_display_end_exact": true,
+        "no_unverified_video_gap_labels": true,
+        "repeat_labels_identical": true,
+        "no_solo_over_detected_voice": true,
+        "solo_inside_detected_accompaniment": true
+      },
+      "solo_intervals": [
+        {
+          "start": 0.32,
+          "end": 15.9,
+          "id": "auto-solo:410e4401d315f6d5"
+        },
+        {
+          "start": 16.759999999999998,
+          "end": 52.64,
+          "id": "auto-solo:28d056057d16bb22"
+        },
+        {
+          "start": 95.8,
+          "end": 107.896,
+          "id": "auto-solo:4544fdc7cf46a560"
+        },
+        {
+          "start": 149.94,
+          "end": 170.12,
+          "id": "auto-solo:634c7e2cb4dc2aa4"
+        },
+        {
+          "start": 213.016,
+          "end": 224.952,
+          "id": "auto-solo:65647093c2770000"
+        }
+      ]
+    },
+    {
+      "id": "e61f98c53a21",
+      "duration": 142.40798185941043,
+      "seconds": 7.23399999999674,
+      "passed": true,
+      "checks": {
+        "word_count": 88,
+        "solo_count": 2,
+        "review_rows": 12,
+        "supplied_text_preserved": true,
+        "all_words_bound": true,
+        "times_ordered_in_audio": true,
+        "solo_display_end_exact": true,
+        "no_unverified_video_gap_labels": true,
+        "repeat_labels_identical": true,
+        "no_solo_over_detected_voice": true,
+        "solo_inside_detected_accompaniment": true
+      },
+      "solo_intervals": [
+        {
+          "start": 0.12,
+          "end": 0.664,
+          "id": "auto-solo:aead3555364185b4"
+        },
+        {
+          "start": 69.528,
+          "end": 87.72,
+          "id": "auto-solo:615c213822522a55"
+        }
+      ]
+    },
+    {
+      "id": "0cf5ef730cb1",
+      "duration": 271.4180498866213,
+      "seconds": 12.96899999998277,
+      "passed": true,
+      "checks": {
+        "word_count": 120,
+        "solo_count": 3,
+        "review_rows": 1,
+        "supplied_text_preserved": true,
+        "all_words_bound": true,
+        "times_ordered_in_audio": true,
+        "solo_display_end_exact": true,
+        "no_unverified_video_gap_labels": true,
+        "repeat_labels_identical": true,
+        "no_solo_over_detected_voice": true,
+        "solo_inside_detected_accompaniment": true
+      },
+      "solo_intervals": [
+        {
+          "start": 0.22,
+          "end": 3.24,
+          "id": "auto-solo:fc715745972d8d8e"
+        },
+        {
+          "start": 3.9,
+          "end": 35.352000000000004,
+          "id": "auto-solo:bb9cacf035814ac3"
+        },
+        {
+          "start": 115.22,
+          "end": 145.34,
+          "id": "auto-solo:ab7a8b10d8abcca3"
+        }
+      ]
+    },
+    {
+      "id": "c5f7f104f362",
+      "duration": 261.9675283446712,
+      "seconds": 12.875,
+      "passed": true,
+      "checks": {
+        "word_count": 98,
+        "solo_count": 3,
+        "review_rows": 11,
+        "supplied_text_preserved": true,
+        "all_words_bound": true,
+        "times_ordered_in_audio": true,
+        "solo_display_end_exact": true,
+        "no_unverified_video_gap_labels": true,
+        "repeat_labels_identical": true,
+        "no_solo_over_detected_voice": true,
+        "solo_inside_detected_accompaniment": true
+      },
+      "solo_intervals": [
+        {
+          "start": 0.48,
+          "end": 5.176,
+          "id": "auto-solo:f32531260b18d28c"
+        },
+        {
+          "start": 30.1,
+          "end": 48.504000000000005,
+          "id": "auto-solo:4e83b731d24df05a"
+        },
+        {
+          "start": 146.22,
+          "end": 165.816,
+          "id": "auto-solo:de5d1d5152009f0c"
+        }
+      ]
+    }
+  ],
+  "negative_controls": {
+    "phase_cancellation_passed": true,
+    "silence_no_false_links_passed": true,
+    "silence_no_false_solo_passed": true
+  },
+  "actual_ffmpeg_video_check": {
+    "passed": true,
+    "video": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\cache\\supplied_ten\\video\\SoloIntervalCheck (2).mp4",
+    "frames_at_seconds": [
+      0.8,
+      2.2,
+      3.6,
+      6.0
+    ],
+    "gold_pixels": [
+      0,
+      1691,
+      0,
+      0
+    ],
+    "solo_only_inside_1_6_to_3_seconds": true,
+    "no_early_upcoming_label": true,
+    "no_fabricated_outro_label": true
+  },
+  "production_models": {
+    "alignment": "mpoyraz/wav2vec2-xls-r-300m-cv7-turkish",
+    "alignment_revision": "708639f50559d7970f462e13ec64d3f059ca89f6",
+    "speech_presence": "Silero VAD v6"
+  },
+  "additional_classifier_experiment": {
+    "model": "MIT/ast-finetuned-audioset-10-10-0.4593",
+    "revision": "f826b80d28226b62986cc218e5cec390b1096902",
+    "production_used": false,
+    "reason": "Ambiguous voice-like residuals did not yield a reliable music/voice distinction across vocal-only, reconstructed-mix and gain-normalized probes; not used to override the vocal veto."
+  },
+  "scope": {
+    "measured": "Supplied text/order, binding coverage, finite ordered intervals, exact SOLO display duration, repeat stability, silent and stereo controls.",
+    "not_measured": "Human-annotated word-boundary accuracy; 100% binding coverage is not proof of 100% audible timing accuracy.",
+    "warnings_preserved": true,
+    "original_lyrics_database_not_written_by_test_runner": true,
+    "automatic_start_without_button": false
+  },
+  "unit_tests_passed": 76,
+  "frontend_contract_tests_passed": true,
+  "final_whole_song_api_runs": 20,
+  "production_build_passed": true,
+  "typescript_passed": true,
+  "runtime_smoke": {
+    "frontend": true,
+    "backend_proxy": true,
+    "alignment_validation": true
+  }
+}

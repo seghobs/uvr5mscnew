@@ -1707,6 +1707,14 @@ class LyricSegmentModel(BaseModel):
     end: float
     text: str
     words: Optional[List[WordModel]] = None
+    repeat_source_id: Optional[str] = None
+    alignment_mode: Optional[str] = None
+
+    def model_dump(self,*args,**kwargs):
+        result=super().model_dump(*args,**kwargs)
+        if result.get('alignment_mode') is None:result.pop('alignment_mode',None)
+        if result.get('repeat_source_id') is None:result.pop('repeat_source_id',None)
+        return result
 
 class LyricsRequest(BaseModel):
     file_name: str = Field(..., min_length=1, max_length=256)
@@ -2383,6 +2391,55 @@ def resume_separation_jobs():
         threading.Thread(target=target,args=args,daemon=True).start()
 
 
+class SuppliedAlignmentRequest(SaveLyricsRequest):
+    instrumental_file_name: Optional[str] = Field(default=None,max_length=256)
+
+
+@gpu_operation
+def run_supplied_alignment(task_id,req,expected_revision):
+    from karaoke_supplied_alignment import align_supplied
+    acquired=False
+    try:
+        acquired=_lyrics_inference_lock.acquire(blocking=False)
+        if not acquired:raise ValueError('Başka bir hizalama çalışıyor. Tamamlanınca tekrar deneyin.')
+        def progress(p,message):
+            with tasks_lock:
+                if task_id not in tasks:raise ValueError('Görev iptal edildi.')
+            _update_task(task_id,progress=p,message=message)
+        segments,report=align_supplied(_find_audio_file(req.file_name),
+            [s.model_dump() for s in req.segments],progress,
+            instrumental_path=_find_audio_file(req.instrumental_file_name) if req.instrumental_file_name else None)
+        with _lyrics_data_lock:
+            if _lyrics_revision(req.file_name)!=expected_revision:
+                raise ValueError('Bu sırada sözler değişti; yeni düzenlemeler korundu.')
+        # Only the initiating editor can commit after its own snapshot check.
+        # Opening a project or finishing an unrelated job cannot apply this.
+        _update_task(task_id,status='completed',progress=1.,result={'segments':segments,'alignment_report':report},
+                     message='Verdiğiniz sözler senkronlandı ve ses parçaları bağlandı.')
+    except Exception as exc:
+        _update_task(task_id,status='failed',error=str(exc),message='Senkron tamamlanamadı; mevcut sözler korundu.')
+    finally:
+        if acquired:_lyrics_inference_lock.release()
+
+
+@app.post('/api/lyrics/align-supplied')
+def supplied_alignment_endpoint(req: SuppliedAlignmentRequest,background_tasks: BackgroundTasks):
+    if req.language not in ('tr','auto',None):raise HTTPException(422,'Bu hizalama modeli Türkçe sözler içindir.')
+    if not req.segments or len(req.segments)>500 or sum(len(s.text) for s in req.segments)>100000:
+        raise HTTPException(422,'Önce 1–500 satır söz ekleyin.')
+    if not any(s.text.strip() for s in req.segments):raise HTTPException(422,'Sözler boş olamaz.')
+    _find_audio_file(req.file_name)
+    if req.instrumental_file_name:_find_audio_file(req.instrumental_file_name)
+    if not _lyrics_inference_lock.acquire(blocking=False):
+        raise HTTPException(409,'Başka bir hizalama çalışıyor. Tamamlanınca tekrar deneyin.')
+    _lyrics_inference_lock.release()
+    if any(j['status'] in ('queued','processing','cancelling') for j in audio_jobs.list()):
+        raise HTTPException(409,'Ses ayrıştırması bitince senkronlamayı başlatın.')
+    task_id=_create_task({'message':'Verdiğiniz sözler senkronlanıyor…','model_type':'supplied_alignment'})
+    background_tasks.add_task(run_supplied_alignment,task_id,req,_lyrics_revision(req.file_name))
+    return {'task_id':task_id}
+
+
 @gpu_operation
 def run_pasted_sync(task_id,req,expected_revision):
     from paste_sync import synchronize
@@ -2625,12 +2682,12 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
 
         windows = render_windows([s.model_dump() for s in segments_to_use])
         segments_to_use = [LyricSegmentModel(**s) for s, _ in windows]
-        from karaoke_timing import solo_windows
+        from karaoke_timing import solo_windows,is_music_label
         import soundfile as sf
         for solo_start,solo_end in solo_windows([s.model_dump() for s in segments_to_use],sf.info(str(inst_path)).duration):
             ass_lines.append(f"Dialogue: 0,{to_ass_time(solo_start)},{to_ass_time(solo_end)},BreakNotice,,0,0,0,,{{\\pos({x_center}, {y_active})}}Solo...")
 
-        if segments_to_use and segments_to_use[0].start >= 1.5:
+        if segments_to_use and segments_to_use[0].start >= 1.5 and not is_music_label(segments_to_use[0].text):
             first_seg = segments_to_use[0]
             first_text = escape_ass(first_seg.text.strip())
             if first_text:
@@ -2658,7 +2715,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             if idx + 1 < len(segments_to_use):
                 next_seg = segments_to_use[idx + 1]
                 next_text = escape_ass(next_seg.text.strip())
-                if next_text and next_seg.start > seg.start:
+                if next_text and next_seg.start > seg.start and not is_music_label(next_seg.text):
                     ass_lines.append(f"Dialogue: 0,{st},{to_ass_time(next_seg.start)},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{next_text}")
 
         from karaoke_design import ambient_events, progress_events

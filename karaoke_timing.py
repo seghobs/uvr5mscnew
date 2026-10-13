@@ -5,12 +5,17 @@ import re
 from decimal import Decimal, ROUND_CEILING
 
 
+def is_music_label(text):
+    return bool(re.fullmatch(r'\s*(solo|enstr[üu]mantal|instrumental)[.\s…!]*',text,re.I))
+
+
 def render_windows(segments):
     """One active display slot; clip display tails, never rewrite saved timings."""
     ordered = sorted((s for s in segments if s.get('text', '').strip()), key=lambda s: s['start'])
     result = []
     for index, segment in enumerate(ordered):
-        end = segment['end'] + (0.35 if index + 1 < len(ordered) else 2.0)
+        music=is_music_label(segment.get('text',''))
+        end = segment['end'] + (0 if music else 0.35 if index + 1 < len(ordered) else 2.0)
         if index + 1 < len(ordered):
             end = min(end, ordered[index + 1]['start'])
         if centiseconds(end) > centiseconds(segment['start']):
@@ -20,6 +25,7 @@ def render_windows(segments):
 
 def solo_windows(segments, duration, minimum=3.0):
     """Presentation-only breaks; never insert invented lyrics into saved rows."""
+    if any(s.get('alignment_mode')=='supplied_ctc' for s in segments):return []
     result=[]
     cursor=0.0
     for segment,end in render_windows(segments):

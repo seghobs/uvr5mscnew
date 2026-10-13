@@ -15,6 +15,8 @@ async function main() {
     {start:5,end:10,text:'Bir'}, {start:20,end:25,text:'İki'},
   ],35)), JSON.stringify([[0,5],[10.35,20],[27,35]]));
   assert.equal(timing.soloWindows([{start:1,end:10,text:'Bir'}],12).length,0);
+  assert.equal(timing.rowDisplayEnd({text:'SOLO...',start:0,end:10},false,12),10);
+  assert.equal(timing.soloWindows([{text:'SÖZ',start:20,end:22,alignment_mode:'supplied_ctc'}],60).length,0);
   const tinyOverlap = [
     {text:'DUR',start:85,end:91.6,words:[{word:'DUR',start:85,end:91.6,needs_review:true}]},
     {text:'AY',start:91.59997732426304,end:92,words:[{word:'AY',start:91.59997732426304,end:92}]}

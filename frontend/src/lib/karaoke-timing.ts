@@ -157,7 +157,8 @@ export function enqueueLyricsSave<T>(save: () => Promise<T>): Promise<T> {
   return next;
 }
 /** Display breaks without adding artificial lyric rows or touching saved timings. */
-export function soloWindows(segments: Array<{start:number;end:number;text:string}>, duration:number): Array<[number,number]> {
+export function soloWindows(segments: Array<{start:number;end:number;text:string;alignment_mode?:string|null}>, duration:number): Array<[number,number]> {
+  if(segments.some(s=>s.alignment_mode==='supplied_ctc'))return [];
   const rows=segments.filter(s=>s.text.trim()).slice().sort((a,b)=>a.start-b.start);
   const gaps:Array<[number,number]>=[];
   let cursor=0;
@@ -168,4 +169,13 @@ export function soloWindows(segments: Array<{start:number;end:number;text:string
   });
   if(duration-cursor>=3)gaps.push([cursor,duration]);
   return gaps;
+}
+
+export function isInstrumentalText(text:string):boolean {
+  return /^\s*(solo|enstr[üu]mantal|instrumental)[.\s…!]*$/i.test(text);
+}
+
+export function rowDisplayEnd(row:LyricSegment,last:boolean,nextStart=Infinity):number {
+  const music=isInstrumentalText(row.text);
+  return Math.min(row.end+(music?0:last?2:.35),nextStart);
 }

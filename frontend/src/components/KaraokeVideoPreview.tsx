@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {Play,Pause,RotateCcw,RotateCw,Volume2,VolumeX,Maximize,Minimize,Clapperboard} from 'lucide-react';
 import type {LyricSegment} from '@/lib/types';
-import {videoSegments,wordFillWithNeighbors,soloWindows} from '@/lib/karaoke-timing';
+import {videoSegments,wordFillWithNeighbors,soloWindows,rowDisplayEnd,isInstrumentalText} from '@/lib/karaoke-timing';
 
 export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPlay}:{onPlay:()=>void;file:string;segments:LyricSegment[];theme:string;aspectRatio:string;header:string}) {
   const canvas=useRef<HTMLCanvasElement>(null),audio=useRef<HTMLAudioElement>(null);
@@ -32,7 +32,7 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
   const toggleFullscreen=async()=>{try{if(document.fullscreenElement===shell.current)await document.exitFullscreen();else await shell.current?.requestFullscreen();}catch{setError('Bu tarayıcı tam ekranı açamadı.');}};
   const schedule=useMemo(()=>{
     const rows=videoSegments(segments).filter(s=>s.text.trim()).slice().sort((a,b)=>a.start-b.start);
-    return rows.map((row,i)=>({row,end:Math.min(row.end+(i===rows.length-1?2:.35),rows[i+1]?.start??Infinity)})).filter(s=>s.end>s.row.start);
+    return rows.map((row,i)=>({row,end:rowDisplayEnd(row,i===rows.length-1,rows[i+1]?.start)})).filter(s=>s.end>s.row.start);
   },[segments]);
   const solos=useMemo(()=>soloWindows(videoSegments(segments),duration),[segments,duration]);
   const analyser=useRef<AnalyserNode|null>(null),context=useRef<AudioContext|null>(null);
@@ -107,7 +107,7 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
         }
       }
       if(!active&&solos.some(([start,end])=>time>=start&&time<end))text('Solo...',y,44,'#d0c4ed',false);
-      if(upcoming)text(upcoming.row.text,vertical?1260:750,vertical?34:30,'#95959c',false);
+      if(upcoming&&!isInstrumentalText(upcoming.row.text))text(upcoming.row.text,vertical?1260:750,vertical?34:30,'#95959c',false);
       frame=requestAnimationFrame(draw);
     };draw();return ()=>cancelAnimationFrame(frame);
   },[schedule,solos,theme,aspectRatio,header]);

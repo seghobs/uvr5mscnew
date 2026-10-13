@@ -9,9 +9,9 @@ const {smartBindRow,fullyBound,bindingLimits}=context.exports;
 const word=(word,start,end)=>({word,start,end,timing_source:'manual',needs_review:false});
 const match=(index,start,end,score=.9)=>({index,start,end,score});
 const make=()=>[
- {text:'ÖNCEKİ',start:7,end:9.9,words:[word('ÖNCEKİ',7,9.9)]},
- {text:'GÖZLERİM YOLDA, DİLİM DUADA,',start:10,end:14,words:[word('GÖZLERİM',10,10),word('YOLDA,',11,12),word('DİLİM',12,13),word('DUADA,',14,14)]},
- {text:'SONRAKİ',start:14.4,end:16,words:[word('SONRAKİ',14.4,16)]}];
+ {text:'Ã–NCEKÄ°',start:7,end:9.9,words:[word('Ã–NCEKÄ°',7,9.9)]},
+ {text:'GÃ–ZLERÄ°M YOLDA, DÄ°LÄ°M DUADA,',start:10,end:14,words:[word('GÃ–ZLERÄ°M',10,10),word('YOLDA,',11,12),word('DÄ°LÄ°M',12,13),word('DUADA,',14,14)]},
+ {text:'SONRAKÄ°',start:14.4,end:16,words:[word('SONRAKÄ°',14.4,16)]}];
 const run=(rows,analyze,signal=new AbortController().signal)=>smartBindRow(rows,1,20,analyze,signal,()=>{});
 (async()=>{
  let rows=make(),snapshot=JSON.stringify(rows),calls=[];
@@ -42,12 +42,12 @@ const run=(rows,analyze,signal=new AbortController().signal)=>smartBindRow(rows,
  assert.equal(bad.segment,rows[1],'out-of-row and extra words are rejected');
  const wrong=await run(make(),async()=>({word_times:[match(0,10.1,11.5),match(3,13.1,13.8,.1)]}));
  assert.equal(wrong.complete,false);assert.equal(wrong.segment.words[0].end,10,'existing neighbour word protected');
- rows=make();rows[0]={text:'BİLİNMİYOR',start:0,end:0};rows[2]={text:'BİLİNMİYOR',start:0,end:0};
+ rows=make();rows[0]={text:'BÄ°LÄ°NMÄ°YOR',start:0,end:0};rows[2]={text:'BÄ°LÄ°NMÄ°YOR',start:0,end:0};
  assert.equal(bindingLimits(rows,1,20).start,10);assert.equal(bindingLimits(rows,1,20).end,14);
- rows=make();rows[1]={text:'İLK SON',start:10,end:14};calls=[];
+ rows=make();rows[1]={text:'Ä°LK SON',start:10,end:14};calls=[];
  assert.equal((await run(rows,async r=>{calls.push(r);return {word_times:[match(0,10.2,11),match(1,12,13)]};})).complete,true);
  assert.equal(calls.length,1,'stop immediately when all words match');
- rows=make();rows[1]={text:'İLK SON',start:10,end:14};
+ rows=make();rows[1]={text:'Ä°LK SON',start:10,end:14};
  const accepted=[match(0,10.2,10.23,.2),match(1,12,13,.33)];
  const single=passages.bindDetectedWords(rows[1],accepted);
  const bulk=await run(rows,async()=>({word_times:accepted}));
@@ -55,10 +55,10 @@ const run=(rows,analyze,signal=new AbortController().signal)=>smartBindRow(rows,
  assert.equal(bulk.attempts,1);
  assert.equal(JSON.stringify(bulk.segment.words),JSON.stringify(single.words),'single and bulk use identical word binding');
  // Acoustic result captured from the user's Ezo recording: formerly discarded by bulk's .5 cutoff.
- const ezo={text:'NE OLUR DÖN GEL EZO',start:83.3685,end:88.68589,words:[
+ const ezo={text:'NE OLUR DÃ–N GEL EZO',start:83.3685,end:88.68589,words:[
    word('NE',83.68953082616694,83.78985898258675),
    word('OLUR',84.39182792110554,84.7730749155008),
-   word('DÖN',84.87340307192059,85.35497822273564),
+   word('DÃ–N',84.87340307192059,85.35497822273564),
    word('GEL',85.57570016685919,85.7763564796988),word('EZO',83.3685,83.3685)]};
  const ezoTimes=[match(4,86.11747221152612,86.45858794335345,.33239517609278363)];
  const ezoResult=await smartBindRow([ezo],0,300,async()=>({word_times:ezoTimes}),new AbortController().signal,()=>{});
@@ -66,8 +66,24 @@ const run=(rows,analyze,signal=new AbortController().signal)=>smartBindRow(rows,
  assert.equal(ezoResult.attempts,1);
  assert.equal(JSON.stringify(ezoResult.segment.words),JSON.stringify(passages.bindDetectedWords(ezo,ezoTimes).words));
  assert.equal(JSON.stringify(ezoResult.segment.words.slice(0,4)),JSON.stringify(ezo.words.slice(0,4)));
+ const interludeRows=[
+   {text:'İLK',start:20,end:26}, {text:'SON',start:120,end:122},
+   {text:'SOLO...',start:0,end:.5,words:[word('SOLO...',0,.5)]},
+   {text:'DEVAM',start:148,end:154,words:[word('DEVAM',149,150)]}
+ ];
+ const prepared=context.exports.prepareBindingRows(interludeRows,263);
+ assert.equal(prepared[2].start,122);assert.equal(prepared[2].end,148);
+ assert.equal(prepared[2].words[0].start,122);
+ assert.equal(interludeRows[2].start,0,'repair does not mutate input');
+ assert.equal(prepared[3],interludeRows[3],'completed spoken links preserved');
+ assert.equal(bindingLimits(interludeRows,0,263).end,120,'default middle SOLO must not block all first-half rows');
+ assert.equal(context.exports.prepareBindingRows(prepared,263)[2],prepared[2],'repair is idempotent');
+ const lockedSolo=interludeRows.map(r=>r.text==='SOLO...'?{...r,locked:true}:r);
+ assert.equal(context.exports.prepareBindingRows(lockedSolo,263)[2],lockedSolo[2]);
+ const overlappingGap=interludeRows.map((r,i)=>i===1?{...r,end:151}:r);
+ assert.equal(context.exports.prepareBindingRows(overlappingGap,263)[2],overlappingGap[2],'ambiguous gap never fabricated');
  const abort=new AbortController();abort.abort();
- const backwards=[{text:'ÖNCE',start:248,end:253},{text:'HEDEF',start:253,end:261},
+ const backwards=[{text:'Ã–NCE',start:248,end:253},{text:'HEDEF',start:253,end:261},
    {text:'SONRA',start:261,end:269},{text:'SON',start:250,end:250.5}];
  assert.equal(bindingLimits(backwards,1,277).end,261,'unbound backwards final row cannot block earlier rows');
  const repaired=await smartBindRow(backwards,3,277,async target=>{
@@ -79,7 +95,7 @@ const run=(rows,analyze,signal=new AbortController().signal)=>smartBindRow(rows,
  assert.equal(unchanged.segment,backwards[3],'failed automatic repair leaves original untouched');
  const protectedRows=structuredClone(backwards);protectedRows[3].words=[word('SON',250,250.5)];
  assert.equal(bindingLimits(protectedRows,1,277).end,250,'existing linked audio must never be ignored');
- const punctuation={text:'OY EZO ! TUTMUYOR , DİZİM EZO',start:0,end:10};
+ const punctuation={text:'OY EZO ! TUTMUYOR , DÄ°ZÄ°M EZO',start:0,end:10};
  const punctTimes=[0,1,3,5,6].map((index,i)=>match(index,i+1,i+1.5));
  const punctResult=await smartBindRow([punctuation],0,20,async()=>({word_times:punctTimes}),new AbortController().signal,()=>{});
  assert.equal(punctResult.complete,true,'standalone punctuation must not require nonexistent audio');
@@ -88,9 +104,9 @@ const run=(rows,analyze,signal=new AbortController().signal)=>smartBindRow(rows,
  assert.equal(punctResult.segment.words[3].word,'TUTMUYOR');
  assert.equal(punctResult.segment.words[3].start,3);
  await assert.rejects(run(make(),()=>assert.fail('aborted'),abort.signal));
- assert.equal(fullyBound({text:'İLK SON',start:1,end:3,words:[word('İLK',2,3),word('SON',1,2)]}),false);
+ assert.equal(fullyBound({text:'Ä°LK SON',start:1,end:3,words:[word('Ä°LK',2,3),word('SON',1,2)]}),false);
  const retryCalls=[];
- await smartBindRow([{text:'İLK SON',start:1,end:4}],0,5,async(target,attempt)=>{
+ await smartBindRow([{text:'Ä°LK SON',start:1,end:4}],0,5,async(target,attempt)=>{
    retryCalls.push(attempt);
    if(attempt>1)assert.equal(target.words[0].start,1.2,'retry receives previously recovered links');
    return {word_times:attempt===1?[match(0,1.2,1.6)]:[]};

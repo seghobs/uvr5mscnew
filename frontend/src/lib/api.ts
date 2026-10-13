@@ -345,6 +345,22 @@ export const api = {
     throw new Error('Hizalama bekleme süresi doldu; görev sunucuda devam ediyor olabilir.');
   },
 
+  async alignSuppliedLyrics(fileName:string,segments:LyricSegment[],onProgress:(message:string,progress:number)=>void,instrumentalFileName?:string) {
+    const res=await safeFetch('/api/lyrics/align-supplied',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({file_name:fileName,segments,language:'tr',instrumental_file_name:instrumentalFileName})});
+    if(!res.ok){const error=await res.json().catch(()=>({}));throw Error(error.detail||'Senkron başlatılamadı.');}
+    const {task_id}=await res.json();
+    for(let attempt=0;attempt<3600;attempt++){
+      await new Promise(resolve=>setTimeout(resolve,1000));
+      const response=await safeFetch(`/status/${encodeURIComponent(task_id)}`);
+      if(!response.ok)throw Error('Senkron görevi sorgulanamadı; mevcut sözler korundu.');
+      const task=await response.json();onProgress(task.message||'Senkronlanıyor…',Math.min(100,(Number(task.progress)||0)*100));
+      if(task.status==='failed')throw Error(task.error||'Senkron tamamlanamadı.');
+      if(task.status==='completed')return task.result as {segments:LyricSegment[];alignment_report:{linked_words:number;target_words:number;review_rows:number[];preserved_rows:number;solo_count?:number;repeated_rows_added?:number}};
+    }
+    throw Error('Senkron bekleme süresi doldu; mevcut sözler korundu.');
+  },
+
   async saveLyrics(
     fileName: string,
     segments: LyricSegment[],

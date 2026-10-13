@@ -8,6 +8,27 @@ export const isSpokenToken=(text:string)=>!!text&&!/^\p{P}+$/u.test(text);
 const same=(a:string,b:string)=>a.toLocaleUpperCase('tr-TR')===b.toLocaleUpperCase('tr-TR');
 const bound=(word:Word|undefined,text:string)=>!!word&&same(word.word,text)&&validRange(word.start,word.end);
 
+export const isInstrumentalRow=(row:LyricSegment)=>/^\s*(solo|enstr[üu]mantal|instrumental)[.\s…!]*$/i.test(row.text);
+
+// A newly inserted interlude can still have the default 0–0.5s envelope.
+// Repair only unlocked labels with an unambiguous gap between adjacent rows;
+// never shift a sung word or a user-locked interval to make room.
+export function prepareBindingRows(rows:LyricSegment[],duration:number):LyricSegment[] {
+  return rows.map((row,index)=>{
+    if(row.locked||!isInstrumentalRow(row)||index===0||index===rows.length-1)return row;
+    const before=rows[index-1],after=rows[index+1];
+    if(isInstrumentalRow(before)||isInstrumentalRow(after)||
+      !validRange(before.start,before.end)||!validRange(after.start,after.end))return row;
+    const start=Math.max(before.end,...(before.words||[]).filter(w=>validRange(w.start,w.end)).map(w=>w.end));
+    const end=Math.min(after.start,...(after.words||[]).filter(w=>validRange(w.start,w.end)).map(w=>w.start));
+    if(!validRange(start,end)||(duration>0&&end>duration))return row;
+    const wordRanges=(row.words||[]).filter(w=>validRange(w.start,w.end));
+    if(validRange(row.start,row.end)&&row.start>=start&&row.end<=end&&
+      wordRanges.every(w=>w.start>=start&&w.end<=end))return row;
+    return {...row,start,end,words:[{word:row.text.trim(),start,end,timing_source:'manual',needs_review:false}]};
+  });
+}
+
 export function fullyBound(row:LyricSegment):boolean {
   const text=tokens(row),words=row.words||[];
   const spoken=text.map((word,i)=>({word,i})).filter(t=>isSpokenToken(t.word));
@@ -27,6 +48,7 @@ function orderedRanges(rows:LyricSegment[]) {
 }
 
 export function bindingLimits(rows:LyricSegment[],index:number,duration:number) {
+  rows=prepareBindingRows(rows,duration);
   const row=rows[index];let start=0,end=duration>0?duration:row.end;
   const usable=orderedRanges(rows);
   rows.forEach((other,i)=>{

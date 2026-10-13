@@ -103,6 +103,8 @@ export interface AudioAnalysis {
 }
 
 export interface LyricSegment {
+  repeat_source_id?: string | null;
+  alignment_mode?: 'supplied_ctc' | null;
   id?: string;
   locked?: boolean;
   start: number;
