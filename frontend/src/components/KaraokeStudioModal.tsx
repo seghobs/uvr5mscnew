@@ -172,6 +172,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     committedSegments.current=snapshot.segments;segmentsRef.current=snapshot.segments;setRawSegments(snapshot.segments);persistHistory();triggerAutoSave(snapshot.segments,true);
   };
   const toggleRowLock=(index:number)=>commitSegments(committedSegments.current.map((row,i)=>i===index?{...row,locked:!row.locked}:row),true);
+  const [showClearLyrics, setShowClearLyrics] = useState(false);
+  const [clearingLyrics, setClearingLyrics] = useState(false);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
   const [lyricsProgress,setLyricsProgress] = useState('Vokal ve sözler kontrol ediliyor...');
   const [lyricsProgressPercent,setLyricsProgressPercent] = useState(0);
@@ -891,6 +893,29 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         `${report.target_words?`${report.linked_words}/${report.target_words} kelime bağlı.`:'Mevcut doğrulanmış kelime bağlantıları korundu.'} ${report.repeated_rows_added||0} sesle doğrulanmış tekrar satırı eklendi. ${report.terminal_repeats_added?`${report.terminal_repeats_added} kesilmiş dönüşün tamamlanan ifadesi eklendi; duyulmayan devamı eklenmedi. `:''}${report.solo_count||0} müzik aralığına SOLO etiketi yerleştirildi. ${report.review_rows.length} satır dinleme kontrolü bekliyor. ${report.repeat_review_candidates?.length?`${report.repeat_review_candidates.length} kesilmiş dönüş otomatik eklenmedi; dinleyerek kontrol edin. `:''}Tekrar taraması tüm dönüşleri bulmayı garanti etmez.`);
     }catch(error){if(requestId===lyricsRequestRef.current)onNotify('warning','Senkron tamamlanamadı',(error as Error).message);}
     finally{if(requestId===lyricsRequestRef.current)setLoadingLyrics(false);}
+  };
+
+  const clearSongLyrics=async()=>{
+    if(clearingLyrics||loadingLyrics||bulkBindingStatus)return;
+    const file=vocalStem||instStem;
+    if(!file)return;
+    const requestId=++lyricsRequestRef.current;
+    setClearingLyrics(true);
+    audioRef.current?.pause();stopWordPreview();liveCaptureRef.current=null;
+    setIsLiveSyncMode(false);setIsSpacePressed(false);wordRequestRef.current++;
+    try{
+      flushPendingSave();await enqueueLyricsSave(()=>Promise.resolve());
+      await enqueueLyricsSave(()=>api.saveLyrics(file,[],selectedLyricsLang));
+      projectStorage.removeItem('uvr-lyrics-draft:'+file);
+      projectStorage.removeItem('uvr-history:'+file);
+      const prefixes=['uvr-passages-v2:','uvr-passages-v3:'].map(prefix=>prefix+file+':');
+      for(const key of projectStorage.keys())if(prefixes.some(prefix=>key.startsWith(prefix)))projectStorage.removeItem(key);
+      if(requestId!==lyricsRequestRef.current)return;
+      loadSegments([]);setLiveLyricsSegments([]);setBulkBindingProblems([]);setPassageRow(null);
+      setLastSavedTime(new Date().toLocaleTimeString());setShowClearLyrics(false);
+      onNotify('success','Söz satırları silindi','Yalnızca bu şarkının sözleri, SOLO satırları ve kelime bağlantıları temizlendi.');
+    }catch(error){onNotify('error','Sözler silinemedi',(error as Error).message);}
+    finally{setClearingLyrics(false);}
   };
 
   const cancelAllTasks=async()=>{
@@ -2143,6 +2168,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                         <span>Önceki satır (Backspace)</span>
                       </button>
 
+                      <button onClick={()=>setShowClearLyrics(true)} disabled={!segments.length||loadingLyrics||!!bulkBindingStatus||clearingLyrics} className="rounded-xl border border-rose-400/40 bg-rose-400/10 px-3 py-1 text-xs font-bold text-rose-200 hover:bg-rose-400/20 disabled:opacity-30">Tüm söz satırlarını sil</button>
                       <button onClick={undoAllLiveSync} disabled={!segments.length} title="Sözleri koruyarak tüm satır ve kelime zamanlamalarını temizle" className="rounded-xl border border-rose-400/25 bg-rose-400/10 px-3 py-1 text-xs font-bold text-rose-200 hover:bg-rose-400/20 disabled:opacity-30">Tüm zamanlamaları temizle</button>
 
                       <button onClick={() => clearAndResumeLiveSyncFromRow(liveSyncIndex)} disabled={!segments.length || segments[liveSyncIndex]?.locked} title="Bu satırın sürelerini ve ses parçalarını sil, bu satırdan canlı senkrona yeniden başla" className="rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-200 hover:bg-amber-400/20 disabled:opacity-30">Bu satırı sıfırla ve tekrar dene</button>
@@ -3037,6 +3063,16 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           </div>
         </div>
       )}
+      {showClearLyrics && <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-labelledby="clear-lyrics-title">
+        <div className="w-full max-w-md rounded-2xl border border-rose-400/25 bg-[#211c2b] p-6 shadow-2xl">
+          <h3 id="clear-lyrics-title" className="text-lg font-bold text-white">Bu şarkının tüm söz satırları silinsin mi?</h3>
+          <p className="mt-3 text-sm text-zinc-300">Kilitli satırlar, SOLO etiketleri ve kelime bağlantıları dahil tüm söz satırları temizlenir. Diğer şarkılar ve ses dosyaları korunur.</p>
+          <div className="mt-5 flex justify-end gap-3">
+            <button disabled={clearingLyrics} onClick={()=>setShowClearLyrics(false)} className="rounded-xl bg-white/10 px-4 py-2 text-sm text-white disabled:opacity-50">Vazgeç</button>
+            <button disabled={clearingLyrics} onClick={()=>void clearSongLyrics()} className="rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white hover:bg-rose-500 disabled:opacity-50">{clearingLyrics?'Siliniyor…':'Tüm satırları sil'}</button>
+          </div>
+        </div>
+      </div>}
     </div>,
     document.body
   );

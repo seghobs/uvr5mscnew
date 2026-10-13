@@ -77,6 +77,18 @@ class ApiTests(unittest.TestCase):
         with closing(sqlite3.connect(self.ns['FAVORITES_DB_PATH'])) as conn:
             self.assertEqual(conn.execute('select segments_json from lyrics_history').fetchone()[0], previous)
 
+    def test_clear_song_rows_including_locks_preserves_other_song_and_audio(self):
+        root=self.ns['OUTPUT_DIR']
+        audio=root/'first_Vocals.wav';audio.write_bytes(b'original audio')
+        locked={**self.seg,'id':'locked','locked':True}
+        save=self.ns['save_lyrics_db']
+        save(audio.name,'tr',[locked]);save('second_Vocals.wav','tr',[self.seg])
+        req=self.ns['SaveLyricsRequest'](file_name=audio.name,language='tr',segments=[])
+        asyncio.run(self.ns['save_lyrics_endpoint'](req))
+        self.assertEqual(self.ns['get_saved_lyrics']('first_Instrumental.wav')['segments'],[])
+        self.assertEqual(self.ns['get_saved_lyrics']('second_Vocals.wav')['segments'],[self.seg])
+        self.assertEqual(audio.read_bytes(),b'original audio')
+
     def test_render_rejects_overlap_before_creating_task(self):
         self.seg['words'][1]['start'] = 1.5
         req = self.ns['KaraokeVideoRequest'](inst_file='sample.wav', segments=[self.seg])
