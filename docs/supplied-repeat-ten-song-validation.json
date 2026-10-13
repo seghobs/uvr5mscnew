@@ -2,853 +2,276 @@
   "date": "2026-10-13",
   "language": "tr",
   "recordings": 10,
-  "holdout": {
-    "method": "Remove subsequent exact-text occurrences, clear all timings, process complete original audio",
-    "omitted_rows": 153,
-    "recovered_rows": 3,
-    "matched_saved_reference": 3,
-    "unmatched_additions": 0,
-    "cases": [
-      {
-        "id": "6aa8539f54e8",
-        "omitted_repeats": 33,
-        "added": 3,
-        "correct": 3,
-        "incorrect": 0,
-        "report": {
-          "method": "supplied_turkish_ctc",
-          "linked_words": 85,
-          "target_words": 85,
-          "review_rows": [
-            8
-          ],
-          "preserved_rows": 0,
-          "repeated_rows_added": 3,
-          "repeat_templates_checked": 16,
-          "repeat_method": "acoustic_repeat_with_supplied_text_verification",
-          "repeat_accuracy_guaranteed": false,
-          "solo_intervals": [
-            {
-              "start": 6.904,
-              "end": 20.503999999999998,
-              "id": "auto-solo:32e702c2a29774f7"
-            },
-            {
-              "start": 122.552,
-              "end": 141.6,
-              "id": "auto-solo:f66725c2c0a9b0cc"
-            },
-            {
-              "start": 141.94,
-              "end": 148.472,
-              "id": "auto-solo:56bf75355a278172"
-            },
-            {
-              "start": 257.048,
-              "end": 260.66,
-              "id": "auto-solo:906dc89626d13881"
-            }
-          ],
-          "solo_count": 4,
-          "unplaced_solo_ids": [],
-          "music_evidence_available": true,
-          "solo_policy": "acoustic_vocal_veto_and_accompaniment_activity"
-        },
-        "seconds": 12.03100000001723
-      },
-      {
-        "id": "116e48f08000",
-        "omitted_repeats": 22,
-        "added": 0,
-        "correct": 0,
-        "incorrect": 0,
-        "report": {
-          "method": "supplied_turkish_ctc",
-          "linked_words": 97,
-          "target_words": 99,
-          "review_rows": [
-            5,
-            6,
-            9,
-            15,
-            16,
-            17,
-            19
-          ],
-          "preserved_rows": 0,
-          "repeated_rows_added": 0,
-          "repeat_templates_checked": 16,
-          "repeat_method": "acoustic_repeat_with_supplied_text_verification",
-          "repeat_accuracy_guaranteed": false,
-          "solo_intervals": [
-            {
-              "start": 0.7000000000000001,
-              "end": 14.200000000000001,
-              "id": "auto-solo:3ab34e3dfa558645"
-            },
-            {
-              "start": 165.688,
-              "end": 169.70000000000002,
-              "id": "auto-solo:49ab2b06d552a5d1"
-            }
-          ],
-          "solo_count": 2,
-          "unplaced_solo_ids": [],
-          "music_evidence_available": true,
-          "solo_policy": "acoustic_vocal_veto_and_accompaniment_activity"
-        },
-        "seconds": 5.75
-      },
-      {
-        "id": "c7f84cac1440",
-        "omitted_repeats": 18,
-        "added": 0,
-        "correct": 0,
-        "incorrect": 0,
-        "report": {
-          "method": "supplied_turkish_ctc",
-          "linked_words": 89,
-          "target_words": 89,
-          "review_rows": [
-            3,
-            5,
-            6,
-            7,
-            8,
-            10,
-            11,
-            12,
-            16,
-            17
-          ],
-          "preserved_rows": 0,
-          "repeated_rows_added": 0,
-          "repeat_templates_checked": 14,
-          "repeat_method": "acoustic_repeat_with_supplied_text_verification",
-          "repeat_accuracy_guaranteed": false,
-          "solo_intervals": [
-            {
-              "start": 0.08,
-              "end": 24.023999999999997,
-              "id": "auto-solo:f75709d7a6d65d72"
-            },
-            {
-              "start": 135.128,
-              "end": 158.48,
-              "id": "auto-solo:ccfdc8e5117ebc97"
-            }
-          ],
-          "solo_count": 2,
-          "unplaced_solo_ids": [],
-          "music_evidence_available": true,
-          "solo_policy": "acoustic_vocal_veto_and_accompaniment_activity"
-        },
-        "seconds": 6.875
-      },
-      {
-        "id": "cfd16ea83d14",
-        "omitted_repeats": 17,
-        "added": 0,
-        "correct": 0,
-        "incorrect": 0,
-        "report": {
-          "method": "supplied_turkish_ctc",
-          "linked_words": 74,
-          "target_words": 74,
-          "review_rows": [
-            5,
-            6,
-            10,
-            11,
-            13,
-            14,
-            15
-          ],
-          "preserved_rows": 0,
-          "repeated_rows_added": 0,
-          "repeat_templates_checked": 11,
-          "repeat_method": "acoustic_repeat_with_supplied_text_verification",
-          "repeat_accuracy_guaranteed": false,
-          "solo_intervals": [
-            {
-              "start": 0.66,
-              "end": 28.48,
-              "id": "auto-solo:211408b60466f973"
-            },
-            {
-              "start": 38.760000000000005,
-              "end": 54.328,
-              "id": "auto-solo:fc10fec81d57185c"
-            },
-            {
-              "start": 288.376,
-              "end": 296.40000000000003,
-              "id": "auto-solo:0f7b602c8c26ce71"
-            }
-          ],
-          "solo_count": 3,
-          "unplaced_solo_ids": [],
-          "music_evidence_available": true,
-          "solo_policy": "acoustic_vocal_veto_and_accompaniment_activity"
-        },
-        "seconds": 7.405999999959022
-      },
-      {
-        "id": "6bb14adc986e",
-        "omitted_repeats": 16,
-        "added": 0,
-        "correct": 0,
-        "incorrect": 0,
-        "report": {
-          "method": "supplied_turkish_ctc",
-          "linked_words": 52,
-          "target_words": 52,
-          "review_rows": [
-            5,
-            6,
-            9,
-            10,
-            16
-          ],
-          "preserved_rows": 0,
-          "repeated_rows_added": 0,
-          "repeat_templates_checked": 13,
-          "repeat_method": "acoustic_repeat_with_supplied_text_verification",
-          "repeat_accuracy_guaranteed": false,
-          "solo_intervals": [
-            {
-              "start": 96.16000000000001,
-              "end": 105.368,
-              "id": "auto-solo:5df467dde94f982f"
-            }
-          ],
-          "solo_count": 1,
-          "unplaced_solo_ids": [],
-          "music_evidence_available": true,
-          "solo_policy": "acoustic_vocal_veto_and_accompaniment_activity"
-        },
-        "seconds": 4.938000000023749
-      },
-      {
-        "id": "17168fbfda57",
-        "omitted_repeats": 20,
-        "added": 0,
-        "correct": 0,
-        "incorrect": 0,
-        "report": {
-          "method": "supplied_turkish_ctc",
-          "linked_words": 40,
-          "target_words": 41,
-          "review_rows": [
-            7,
-            8,
-            9,
-            11,
-            14
-          ],
-          "preserved_rows": 0,
-          "repeated_rows_added": 0,
-          "repeat_templates_checked": 9,
-          "repeat_method": "acoustic_repeat_with_supplied_text_verification",
-          "repeat_accuracy_guaranteed": false,
-          "solo_intervals": [
-            {
-              "start": 4.78,
-              "end": 9.540000000000001,
-              "id": "auto-solo:69ef9733d7dd583a"
-            },
-            {
-              "start": 55.42,
-              "end": 76.72,
-              "id": "auto-solo:47d2104ba5c804a5"
-            },
-            {
-              "start": 138.78,
-              "end": 156.98,
-              "id": "auto-solo:b04ed97ba8b51bf8"
-            },
-            {
-              "start": 157.9,
-              "end": 182.58,
-              "id": "auto-solo:03d795f91c8b4f29"
-            }
-          ],
-          "solo_count": 4,
-          "unplaced_solo_ids": [],
-          "music_evidence_available": true,
-          "solo_policy": "acoustic_vocal_veto_and_accompaniment_activity"
-        },
-        "seconds": 7.420999999972992
-      },
-      {
-        "id": "c4aae6d292eb",
-        "omitted_repeats": 7,
-        "added": 0,
-        "correct": 0,
-        "incorrect": 0,
-        "report": {
-          "method": "supplied_turkish_ctc",
-          "linked_words": 81,
-          "target_words": 81,
-          "review_rows": [
-            7,
-            11,
-            12,
-            13,
-            21
-          ],
-          "preserved_rows": 0,
-          "repeated_rows_added": 0,
-          "repeat_templates_checked": 14,
-          "repeat_method": "acoustic_repeat_with_supplied_text_verification",
-          "repeat_accuracy_guaranteed": false,
-          "solo_intervals": [
-            {
-              "start": 0.32,
-              "end": 15.9,
-              "id": "auto-solo:410e4401d315f6d5"
-            },
-            {
-              "start": 16.759999999999998,
-              "end": 52.64,
-              "id": "auto-solo:28d056057d16bb22"
-            },
-            {
-              "start": 95.8,
-              "end": 107.896,
-              "id": "auto-solo:8b0b373d33646f1e"
-            },
-            {
-              "start": 149.94,
-              "end": 170.12,
-              "id": "auto-solo:963bf2e1ba6a47a7"
-            }
-          ],
-          "solo_count": 4,
-          "unplaced_solo_ids": [],
-          "music_evidence_available": true,
-          "solo_policy": "acoustic_vocal_veto_and_accompaniment_activity"
-        },
-        "seconds": 7.1560000000172295
-      },
-      {
-        "id": "e61f98c53a21",
-        "omitted_repeats": 7,
-        "added": 0,
-        "correct": 0,
-        "incorrect": 0,
-        "report": {
-          "method": "supplied_turkish_ctc",
-          "linked_words": 43,
-          "target_words": 44,
-          "review_rows": [
-            2,
-            3,
-            4,
-            5,
-            9
-          ],
-          "preserved_rows": 0,
-          "repeated_rows_added": 0,
-          "repeat_templates_checked": 4,
-          "repeat_method": "acoustic_repeat_with_supplied_text_verification",
-          "repeat_accuracy_guaranteed": false,
-          "solo_intervals": [
-            {
-              "start": 0.12,
-              "end": 0.664,
-              "id": "auto-solo:aead3555364185b4"
-            },
-            {
-              "start": 69.528,
-              "end": 87.72,
-              "id": "auto-solo:1d99d2952c4a5ad7"
-            }
-          ],
-          "solo_count": 2,
-          "unplaced_solo_ids": [],
-          "music_evidence_available": true,
-          "solo_policy": "acoustic_vocal_veto_and_accompaniment_activity"
-        },
-        "seconds": 4.188000000023749
-      },
-      {
-        "id": "0cf5ef730cb1",
-        "omitted_repeats": 10,
-        "added": 0,
-        "correct": 0,
-        "incorrect": 0,
-        "report": {
-          "method": "supplied_turkish_ctc",
-          "linked_words": 71,
-          "target_words": 71,
-          "review_rows": [],
-          "preserved_rows": 0,
-          "repeated_rows_added": 0,
-          "repeat_templates_checked": 12,
-          "repeat_method": "acoustic_repeat_with_supplied_text_verification",
-          "repeat_accuracy_guaranteed": false,
-          "solo_intervals": [
-            {
-              "start": 0.22,
-              "end": 3.24,
-              "id": "auto-solo:fc715745972d8d8e"
-            },
-            {
-              "start": 3.9,
-              "end": 35.352000000000004,
-              "id": "auto-solo:bb9cacf035814ac3"
-            },
-            {
-              "start": 115.22,
-              "end": 145.34,
-              "id": "auto-solo:c85412d9843a8926"
-            }
-          ],
-          "solo_count": 3,
-          "unplaced_solo_ids": [],
-          "music_evidence_available": true,
-          "solo_policy": "acoustic_vocal_veto_and_accompaniment_activity"
-        },
-        "seconds": 6.936999999976251
-      },
-      {
-        "id": "c5f7f104f362",
-        "omitted_repeats": 3,
-        "added": 0,
-        "correct": 0,
-        "incorrect": 0,
-        "report": {
-          "method": "supplied_turkish_ctc",
-          "linked_words": 77,
-          "target_words": 77,
-          "review_rows": [
-            5,
-            6,
-            8,
-            9,
-            10,
-            16,
-            20,
-            21,
-            22
-          ],
-          "preserved_rows": 0,
-          "repeated_rows_added": 0,
-          "repeat_templates_checked": 18,
-          "repeat_method": "acoustic_repeat_with_supplied_text_verification",
-          "repeat_accuracy_guaranteed": false,
-          "solo_intervals": [
-            {
-              "start": 0.48,
-              "end": 5.176,
-              "id": "auto-solo:f32531260b18d28c"
-            },
-            {
-              "start": 30.1,
-              "end": 48.504000000000005,
-              "id": "auto-solo:4e83b731d24df05a"
-            },
-            {
-              "start": 146.22,
-              "end": 165.816,
-              "id": "auto-solo:de5d1d5152009f0c"
-            }
-          ],
-          "solo_count": 3,
-          "unplaced_solo_ids": [],
-          "music_evidence_available": true,
-          "solo_policy": "acoustic_vocal_veto_and_accompaniment_activity"
-        },
-        "seconds": 7.936999999976251
-      }
-    ]
+  "method": "supplied_text_ctc_occurrence_graph",
+  "baseline": {
+    "expected_repeated_rows": 153,
+    "recovered_rows": 3
   },
-  "limits": [
-    "Reference is earlier saved CTC timing, not independently annotated studio ground truth.",
-    "No universal zero-error or complete repeat recovery guarantee.",
-    "This conservative version does not recover most omitted repeats in this test.",
-    "Only user-supplied text is copied; no newly transcribed lyrics are inserted.",
-    "Runs only after explicit alignment button click."
+  "final": {
+    "expected_repeated_rows": 153,
+    "recovered_rows": 153,
+    "missing_rows": 0,
+    "unmatched_added_rows": 0,
+    "production_api_runs": 20,
+    "second_click_idempotent_recordings": 10,
+    "repaired_word_spans": 7,
+    "partial_repeat_review_count": 1,
+    "low_acoustic_confidence_rows": 104
+  },
+  "recording_results": [
+    {
+      "id": "6aa8539f54e8",
+      "passed": true,
+      "seconds": 67.98399999999992,
+      "checks": {
+        "expected_repeats": 33,
+        "recovered_repeats": 33,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 0,
+        "review_rows": 7,
+        "partial_repeat_review_count": 0,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true
+      },
+      "task_ids": [
+        "299d7426-ba07-4232-9372-29bbb90bbd73",
+        "de34b79a-3c74-4b30-9d61-f69fbf08f8e8"
+      ]
+    },
+    {
+      "id": "116e48f08000",
+      "passed": true,
+      "seconds": 44.266000000000076,
+      "checks": {
+        "expected_repeats": 22,
+        "recovered_repeats": 22,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 0,
+        "review_rows": 14,
+        "partial_repeat_review_count": 0,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true
+      },
+      "task_ids": [
+        "e4652fbb-9042-4325-9c41-d72c196da5a8",
+        "d090cfed-88b6-469b-9c65-72cbb055c0f3"
+      ]
+    },
+    {
+      "id": "c7f84cac1440",
+      "passed": true,
+      "seconds": 117.4849999999999,
+      "checks": {
+        "expected_repeats": 18,
+        "recovered_repeats": 18,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 1,
+        "review_rows": 18,
+        "partial_repeat_review_count": 0,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true
+      },
+      "task_ids": [
+        "b9b7b512-0e1a-46d9-a76d-332e129c8533",
+        "249dc3fd-3bfd-4f64-a44d-fa2a88b53962"
+      ]
+    },
+    {
+      "id": "cfd16ea83d14",
+      "passed": true,
+      "seconds": 77.125,
+      "checks": {
+        "expected_repeats": 17,
+        "recovered_repeats": 17,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 1,
+        "review_rows": 17,
+        "partial_repeat_review_count": 0,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true
+      },
+      "task_ids": [
+        "8716e78c-9075-4b62-912a-319916ae674d",
+        "593d8c01-f947-40c9-a236-7bf6d7d8cf57"
+      ]
+    },
+    {
+      "id": "6bb14adc986e",
+      "passed": true,
+      "seconds": 26.233999999999924,
+      "checks": {
+        "expected_repeats": 16,
+        "recovered_repeats": 16,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 1,
+        "review_rows": 7,
+        "partial_repeat_review_count": 0,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true
+      },
+      "task_ids": [
+        "9628856d-0b01-455f-bdf5-bf7d5c337d30",
+        "930b6e2d-8a83-4653-948b-2b04a45d9c93"
+      ]
+    },
+    {
+      "id": "17168fbfda57",
+      "passed": true,
+      "seconds": 23.53099999999995,
+      "checks": {
+        "expected_repeats": 20,
+        "recovered_repeats": 20,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 2,
+        "review_rows": 10,
+        "partial_repeat_review_count": 0,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true
+      },
+      "task_ids": [
+        "f206f425-7420-4882-848f-ae66cf55e3a9",
+        "196395a6-6aac-44c2-9879-48241c389b52"
+      ]
+    },
+    {
+      "id": "c4aae6d292eb",
+      "passed": true,
+      "seconds": 44.922000000000025,
+      "checks": {
+        "expected_repeats": 7,
+        "recovered_repeats": 7,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 2,
+        "review_rows": 7,
+        "partial_repeat_review_count": 0,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true
+      },
+      "task_ids": [
+        "6837f0e6-beed-4b72-933c-8729140831b4",
+        "c9d5e2f5-8609-4fde-849a-73482ddd1c3b"
+      ]
+    },
+    {
+      "id": "e61f98c53a21",
+      "passed": true,
+      "seconds": 37.38999999999987,
+      "checks": {
+        "expected_repeats": 7,
+        "recovered_repeats": 7,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 0,
+        "review_rows": 12,
+        "partial_repeat_review_count": 0,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true
+      },
+      "task_ids": [
+        "ee0a643d-a693-47c7-89cf-0d507c219740",
+        "45f504da-71f3-464f-9763-4ab43b1e5d70"
+      ]
+    },
+    {
+      "id": "0cf5ef730cb1",
+      "passed": true,
+      "seconds": 266.5,
+      "checks": {
+        "expected_repeats": 10,
+        "recovered_repeats": 10,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 0,
+        "review_rows": 1,
+        "partial_repeat_review_count": 0,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true
+      },
+      "task_ids": [
+        "4ea20072-56f5-4bf5-9126-2c8c81642f89",
+        "7cfb32e8-82f3-4002-8096-f7303ea3af54"
+      ]
+    },
+    {
+      "id": "c5f7f104f362",
+      "passed": true,
+      "seconds": 419.125,
+      "checks": {
+        "expected_repeats": 3,
+        "recovered_repeats": 3,
+        "missing_repeats": 0,
+        "unmatched_added_rows": 0,
+        "original_text_and_order_preserved": true,
+        "all_words_bound": true,
+        "repaired_word_spans": 0,
+        "review_rows": 11,
+        "partial_repeat_review_count": 1,
+        "second_click_idempotent": true,
+        "second_click_all_words_bound": true
+      },
+      "task_ids": [
+        "7739ce22-6baf-453a-884d-93592f04a4dd",
+        "0a43cf1c-ec55-4748-9e54-14dac245185c"
+      ]
+    }
   ],
-  "unit_tests_passed": 78,
-  "frontend_guard_tests_passed": true,
-  "complete_repeat_recovery_achieved": false,
+  "unit_tests_passed": 86,
+  "frontend_contract_suites_passed": 4,
   "production_build_passed": true,
   "typescript_passed": true,
-  "runtime_smoke": {
-    "frontend": true,
-    "backend_proxy": true
+  "negative_controls": {
+    "phase_cancellation_passed": true,
+    "silence_no_false_links_passed": true,
+    "silence_no_false_solo_passed": true
   },
-  "complete_lyrics_regression": {
-    "recordings": [
-      {
-        "id": "6aa8539f54e8",
-        "duration": 262.8498866213152,
-        "seconds": 23.10899999999674,
-        "passed": true,
-        "checks": {
-          "word_count": 193,
-          "solo_count": 4,
-          "review_rows": 7,
-          "supplied_text_preserved": true,
-          "all_words_bound": true,
-          "times_ordered_in_audio": true,
-          "solo_display_end_exact": true,
-          "no_unverified_video_gap_labels": true,
-          "no_solo_over_detected_voice": true,
-          "solo_inside_detected_accompaniment": true,
-          "repeat_labels_identical": true
-        },
-        "solo_intervals": [
-          {
-            "start": 6.904,
-            "end": 20.503999999999998,
-            "id": "auto-solo:32e702c2a29774f7"
-          },
-          {
-            "start": 122.552,
-            "end": 141.6,
-            "id": "auto-solo:a64f05dd3a43b4d8"
-          },
-          {
-            "start": 141.94,
-            "end": 148.472,
-            "id": "auto-solo:533195e9e1aa7679"
-          },
-          {
-            "start": 257.048,
-            "end": 260.66,
-            "id": "auto-solo:a8e4dcbed53857cd"
-          }
-        ]
-      },
-      {
-        "id": "116e48f08000",
-        "duration": 172.17596371882087,
-        "seconds": 12.5,
-        "passed": true,
-        "checks": {
-          "word_count": 196,
-          "solo_count": 3,
-          "review_rows": 14,
-          "supplied_text_preserved": true,
-          "all_words_bound": true,
-          "times_ordered_in_audio": true,
-          "solo_display_end_exact": true,
-          "no_unverified_video_gap_labels": true,
-          "no_solo_over_detected_voice": true,
-          "solo_inside_detected_accompaniment": true,
-          "repeat_labels_identical": true
-        },
-        "solo_intervals": [
-          {
-            "start": 0.7000000000000001,
-            "end": 14.200000000000001,
-            "id": "auto-solo:3ab34e3dfa558645"
-          },
-          {
-            "start": 110.808,
-            "end": 124.11999999999999,
-            "id": "auto-solo:589f9c35b758e529"
-          },
-          {
-            "start": 165.688,
-            "end": 169.70000000000002,
-            "id": "auto-solo:d545511c5c70911b"
-          }
-        ]
-      },
-      {
-        "id": "c7f84cac1440",
-        "duration": 258.4148752834467,
-        "seconds": 16.43800000002375,
-        "passed": true,
-        "checks": {
-          "word_count": 177,
-          "solo_count": 2,
-          "review_rows": 18,
-          "supplied_text_preserved": true,
-          "all_words_bound": true,
-          "times_ordered_in_audio": true,
-          "solo_display_end_exact": true,
-          "no_unverified_video_gap_labels": true,
-          "no_solo_over_detected_voice": true,
-          "solo_inside_detected_accompaniment": true,
-          "repeat_labels_identical": true
-        },
-        "solo_intervals": [
-          {
-            "start": 0.08,
-            "end": 24.023999999999997,
-            "id": "auto-solo:f75709d7a6d65d72"
-          },
-          {
-            "start": 135.128,
-            "end": 158.48,
-            "id": "auto-solo:7e6e9f911c316f81"
-          }
-        ]
-      },
-      {
-        "id": "cfd16ea83d14",
-        "duration": 298.3067573696145,
-        "seconds": 17.514999999955762,
-        "passed": true,
-        "checks": {
-          "word_count": 154,
-          "solo_count": 5,
-          "review_rows": 17,
-          "supplied_text_preserved": true,
-          "all_words_bound": true,
-          "times_ordered_in_audio": true,
-          "solo_display_end_exact": true,
-          "no_unverified_video_gap_labels": true,
-          "no_solo_over_detected_voice": true,
-          "solo_inside_detected_accompaniment": true,
-          "repeat_labels_identical": true
-        },
-        "solo_intervals": [
-          {
-            "start": 0.66,
-            "end": 28.48,
-            "id": "auto-solo:211408b60466f973"
-          },
-          {
-            "start": 38.760000000000005,
-            "end": 54.328,
-            "id": "auto-solo:fc10fec81d57185c"
-          },
-          {
-            "start": 151.128,
-            "end": 165.66,
-            "id": "auto-solo:238ec0c4171b3744"
-          },
-          {
-            "start": 166.22,
-            "end": 169.52,
-            "id": "auto-solo:4edbe79a169ef418"
-          },
-          {
-            "start": 288.376,
-            "end": 296.40000000000003,
-            "id": "auto-solo:de166d22a6696e06"
-          }
-        ]
-      },
-      {
-        "id": "6bb14adc986e",
-        "duration": 176.3787755102041,
-        "seconds": 11.76600000000326,
-        "passed": true,
-        "checks": {
-          "word_count": 103,
-          "solo_count": 1,
-          "review_rows": 7,
-          "supplied_text_preserved": true,
-          "all_words_bound": true,
-          "times_ordered_in_audio": true,
-          "solo_display_end_exact": true,
-          "no_unverified_video_gap_labels": true,
-          "no_solo_over_detected_voice": true,
-          "solo_inside_detected_accompaniment": true,
-          "repeat_labels_identical": true
-        },
-        "solo_intervals": [
-          {
-            "start": 96.16000000000001,
-            "end": 105.368,
-            "id": "auto-solo:a6dcac350e79cd69"
-          }
-        ]
-      },
-      {
-        "id": "17168fbfda57",
-        "duration": 266.0542403628118,
-        "seconds": 16.57800000003772,
-        "passed": true,
-        "checks": {
-          "word_count": 106,
-          "solo_count": 3,
-          "review_rows": 10,
-          "supplied_text_preserved": true,
-          "all_words_bound": true,
-          "times_ordered_in_audio": true,
-          "solo_display_end_exact": true,
-          "no_unverified_video_gap_labels": true,
-          "no_solo_over_detected_voice": true,
-          "solo_inside_detected_accompaniment": true,
-          "repeat_labels_identical": true
-        },
-        "solo_intervals": [
-          {
-            "start": 4.78,
-            "end": 9.540000000000001,
-            "id": "auto-solo:69ef9733d7dd583a"
-          },
-          {
-            "start": 55.42,
-            "end": 76.72,
-            "id": "auto-solo:47d2104ba5c804a5"
-          },
-          {
-            "start": 157.9,
-            "end": 182.58,
-            "id": "auto-solo:d20764a85b0a1c2d"
-          }
-        ]
-      },
-      {
-        "id": "c4aae6d292eb",
-        "duration": 274.64562358276646,
-        "seconds": 16.45299999997951,
-        "passed": true,
-        "checks": {
-          "word_count": 112,
-          "solo_count": 5,
-          "review_rows": 7,
-          "supplied_text_preserved": true,
-          "all_words_bound": true,
-          "times_ordered_in_audio": true,
-          "solo_display_end_exact": true,
-          "no_unverified_video_gap_labels": true,
-          "no_solo_over_detected_voice": true,
-          "solo_inside_detected_accompaniment": true,
-          "repeat_labels_identical": true
-        },
-        "solo_intervals": [
-          {
-            "start": 0.32,
-            "end": 15.9,
-            "id": "auto-solo:410e4401d315f6d5"
-          },
-          {
-            "start": 16.759999999999998,
-            "end": 52.64,
-            "id": "auto-solo:28d056057d16bb22"
-          },
-          {
-            "start": 95.8,
-            "end": 107.896,
-            "id": "auto-solo:4544fdc7cf46a560"
-          },
-          {
-            "start": 149.94,
-            "end": 170.12,
-            "id": "auto-solo:634c7e2cb4dc2aa4"
-          },
-          {
-            "start": 213.016,
-            "end": 224.952,
-            "id": "auto-solo:65647093c2770000"
-          }
-        ]
-      },
-      {
-        "id": "e61f98c53a21",
-        "duration": 142.40798185941043,
-        "seconds": 9.25,
-        "passed": true,
-        "checks": {
-          "word_count": 88,
-          "solo_count": 2,
-          "review_rows": 12,
-          "supplied_text_preserved": true,
-          "all_words_bound": true,
-          "times_ordered_in_audio": true,
-          "solo_display_end_exact": true,
-          "no_unverified_video_gap_labels": true,
-          "no_solo_over_detected_voice": true,
-          "solo_inside_detected_accompaniment": true,
-          "repeat_labels_identical": true
-        },
-        "solo_intervals": [
-          {
-            "start": 0.12,
-            "end": 0.664,
-            "id": "auto-solo:aead3555364185b4"
-          },
-          {
-            "start": 69.528,
-            "end": 87.72,
-            "id": "auto-solo:615c213822522a55"
-          }
-        ]
-      },
-      {
-        "id": "0cf5ef730cb1",
-        "duration": 271.4180498866213,
-        "seconds": 16.42200000002049,
-        "passed": true,
-        "checks": {
-          "word_count": 120,
-          "solo_count": 3,
-          "review_rows": 1,
-          "supplied_text_preserved": true,
-          "all_words_bound": true,
-          "times_ordered_in_audio": true,
-          "solo_display_end_exact": true,
-          "no_unverified_video_gap_labels": true,
-          "no_solo_over_detected_voice": true,
-          "solo_inside_detected_accompaniment": true,
-          "repeat_labels_identical": true
-        },
-        "solo_intervals": [
-          {
-            "start": 0.22,
-            "end": 3.24,
-            "id": "auto-solo:fc715745972d8d8e"
-          },
-          {
-            "start": 3.9,
-            "end": 35.352000000000004,
-            "id": "auto-solo:bb9cacf035814ac3"
-          },
-          {
-            "start": 115.22,
-            "end": 145.34,
-            "id": "auto-solo:ab7a8b10d8abcca3"
-          }
-        ]
-      },
-      {
-        "id": "c5f7f104f362",
-        "duration": 261.9675283446712,
-        "seconds": 17.48499999998603,
-        "passed": true,
-        "checks": {
-          "word_count": 98,
-          "solo_count": 3,
-          "review_rows": 11,
-          "supplied_text_preserved": true,
-          "all_words_bound": true,
-          "times_ordered_in_audio": true,
-          "solo_display_end_exact": true,
-          "no_unverified_video_gap_labels": true,
-          "no_solo_over_detected_voice": true,
-          "solo_inside_detected_accompaniment": true,
-          "repeat_labels_identical": true
-        },
-        "solo_intervals": [
-          {
-            "start": 0.48,
-            "end": 5.176,
-            "id": "auto-solo:f32531260b18d28c"
-          },
-          {
-            "start": 30.1,
-            "end": 48.504000000000005,
-            "id": "auto-solo:4e83b731d24df05a"
-          },
-          {
-            "start": 146.22,
-            "end": 165.816,
-            "id": "auto-solo:de5d1d5152009f0c"
-          }
-        ]
-      }
-    ],
-    "passed": 10,
-    "total": 10
+  "workflow": [
+    "User supplies lyrics; no new transcription text is inserted.",
+    "Only an explicit alignment-button click starts the operation.",
+    "Search each supplied phrase across the full recording and stereo channels before forced alignment.",
+    "Resolve overlapping phrase variants and original ordering jointly.",
+    "Verify weak passages locally; retain the original probability thresholds.",
+    "Insert copies with stable IDs, preserve supplied originals, then align the expanded transcript.",
+    "Repair abnormally long word spans only with compatible independent occurrence evidence.",
+    "Abstain on a recording cut inside a longer known phrase; show a review notice."
+  ],
+  "evaluation_scope": [
+    "The holdout removes later exact-text occurrences from ten saved lyric records, resets all timings, and processes complete original audio.",
+    "Correctness is checked against supplied text and earlier saved CTC timings, not independently human-annotated ground truth.",
+    "Matching uses normalized text and start-time difference below 0.5 seconds. If an old saved word stretches over a music break, at least 80% of comparable word boundaries must agree instead. This rule is applied uniformly.",
+    "The first and second production API results both pass word binding, finite in-range timing and preserved-row checks.",
+    "This establishes 153/153 recovery under this test protocol; it is not a universal zero-error or human-audited timing guarantee.",
+    "Low-confidence flags remain. No automatic manual approval is performed.",
+    "An independent Whisper probe on three short difficult excerpts returned unrelated subtitle phrases; it was inconclusive and was not treated as evidence of correctness.",
+    "Original recordings and saved user lyrics are not overwritten by the test runner."
+  ],
+  "research_reference": {
+    "title": "CTC-aligned Audio-Text Embedding for Streaming Open-vocabulary Keyword Spotting",
+    "url": "https://www.isca-archive.org/interspeech_2024/jin24d_interspeech.html",
+    "use": "Background on frame-wise text-enrolled CTC phrase alignment; implementation and results here are separate."
   }
 }

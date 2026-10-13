@@ -356,7 +356,7 @@ export const api = {
       if(!response.ok)throw Error('Senkron görevi sorgulanamadı; mevcut sözler korundu.');
       const task=await response.json();onProgress(task.message||'Senkronlanıyor…',Math.min(100,(Number(task.progress)||0)*100));
       if(task.status==='failed')throw Error(task.error||'Senkron tamamlanamadı.');
-      if(task.status==='completed')return task.result as {segments:LyricSegment[];alignment_report:{linked_words:number;target_words:number;review_rows:number[];preserved_rows:number;solo_count?:number;repeated_rows_added?:number}};
+      if(task.status==='completed')return task.result as {segments:LyricSegment[];alignment_report:{linked_words:number;target_words:number;review_rows:number[];preserved_rows:number;solo_count?:number;repeated_rows_added?:number;repeat_review_candidates?:{text:string;start:number;end:number;reason:string}[]}};
     }
     throw Error('Senkron bekleme süresi doldu; mevcut sözler korundu.');
   },

@@ -887,8 +887,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       validateSuppliedResult(snapshot,result.segments);
       loadSegments(result.segments);triggerAutoSave(result.segments);setBulkBindingProblems([]);setActiveTab('lyrics');
       const report=result.alignment_report;
-      onNotify(report.review_rows.length?'warning':'success','Otomatik senkron ve bağlama',
-        `${report.target_words?`${report.linked_words}/${report.target_words} kelime bağlı.`:'Mevcut doğrulanmış kelime bağlantıları korundu.'} ${report.repeated_rows_added||0} sesle doğrulanmış tekrar satırı eklendi. ${report.solo_count||0} müzik aralığına SOLO etiketi yerleştirildi. ${report.review_rows.length} satır dinleme kontrolü bekliyor. Tekrar taraması tüm dönüşleri bulmayı garanti etmez.`);
+      onNotify(report.review_rows.length||report.repeat_review_candidates?.length?'warning':'success','Otomatik senkron ve bağlama',
+        `${report.target_words?`${report.linked_words}/${report.target_words} kelime bağlı.`:'Mevcut doğrulanmış kelime bağlantıları korundu.'} ${report.repeated_rows_added||0} sesle doğrulanmış tekrar satırı eklendi. ${report.solo_count||0} müzik aralığına SOLO etiketi yerleştirildi. ${report.review_rows.length} satır dinleme kontrolü bekliyor. ${report.repeat_review_candidates?.length?`${report.repeat_review_candidates.length} kesilmiş dönüş otomatik eklenmedi; dinleyerek kontrol edin. `:''}Tekrar taraması tüm dönüşleri bulmayı garanti etmez.`);
     }catch(error){if(requestId===lyricsRequestRef.current)onNotify('warning','Senkron tamamlanamadı',(error as Error).message);}
     finally{if(requestId===lyricsRequestRef.current)setLoadingLyrics(false);}
   };

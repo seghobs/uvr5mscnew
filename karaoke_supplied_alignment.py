@@ -100,19 +100,23 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     import torchaudio.functional as AF
     from transformers import Wav2Vec2ForCTC,Wav2Vec2FeatureExtractor
     from karaoke_ctc import MODEL_DIR,MODEL_ID,MODEL_REVISION,normalized_words,words_from_spans
-    import json
     from karaoke_interludes import generated,music_evidence,place_interludes,regions
-    rows=[r for r in rows if not generated(r)]
+    from karaoke_repeat_spotting import expand_supplied_rows,local_verifier
+    import json
+    rows=[copy.deepcopy(r) for r in rows if not generated(r)]
+    original_rows=rows
     info=sf.info(str(audio_path));duration=info.frames/info.samplerate
     blocks=alignment_blocks(rows,duration)
     music_regions,voice_regions,available=music_evidence(audio_path,instrumental_path)
+    repeat_report={'repeated_rows_added':0,'repeat_candidates':0,
+                   'repeat_method':'supplied_text_ctc_occurrence_graph','repeat_accuracy_guaranteed':False,'repeat_review_candidates':[],'repaired_word_spans':0}
+    last_progress=0.
+    def emit(value,message):
+        nonlocal last_progress
+        last_progress=max(last_progress,min(.99,value));progress(last_progress,message)
     def finish(completed):
         result,report=assemble(rows,completed,duration)
-        from karaoke_repeats import expand_repeats
-        result,repeat_report=expand_repeats(result,audio_path,verify_repeat if blocks else None)
         report.update(repeat_report)
-        extra_words=sum(len(r.get('words') or []) for r in result if r.get('id','').startswith('auto-repeat:') and r.get('id') not in {x.get('id') for x in rows})
-        report['target_words']+=extra_words;report['linked_words']+=extra_words
         result,solo_report=place_interludes(result,duration,voice_regions,music_regions,available)
         for row in result:row['alignment_mode']='supplied_ctc'
         report.update(solo_report)
@@ -124,7 +128,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     if not blocks:return finish([])
     if not (MODEL_DIR/'pytorch_model.bin').is_file():
         from huggingface_hub import snapshot_download
-        progress(0,'Türkçe hizalama modeli indiriliyor…')
+        emit(0,'Türkçe hizalama modeli indiriliyor…')
         snapshot_download(MODEL_ID,revision=MODEL_REVISION,local_dir=str(MODEL_DIR),
             allow_patterns=['config.json','preprocessor_config.json','vocab.json','pytorch_model.bin'])
     vocab=json.loads((MODEL_DIR/'vocab.json').read_text(encoding='utf8'))
@@ -133,58 +137,56 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     extractor=Wav2Vec2FeatureExtractor.from_pretrained(MODEL_DIR,local_files_only=True)
     hop=math.prod(model.config.conv_stride)
     if hop!=320:raise ValueError('Türkçe modelin zaman çözünürlüğü değişmiş.')
-    def verify_repeat(row,a,b):
-        progress(.98,'Verdiğiniz satırların dönüşleri sesle doğrulanıyor…')
-        if any(not spoken(t) for t in row['text'].split()):return None
-        from difflib import SequenceMatcher
-        words=[{'word':t} for t in row['text'].split() if spoken(t)]
-        normalized=normalized_words(words,vocab);targets=[vocab[c] for c in '|'.join(normalized)]
-        clip,rate=sf.read(str(audio_path),start=max(0,round((a-.15)*info.samplerate)),
-                          stop=min(info.frames,round((b+.15)*info.samplerate)),dtype='float32',always_2d=True)
-        wave=AF.resample(torch.from_numpy(alignment_mono(clip).copy()),rate,16000)
-        if len(wave)<400:return None
-        inputs=extractor(wave.numpy(),sampling_rate=16000,return_tensors='pt')
-        with torch.inference_mode():
-            emission=model(**{k:v.to(device) for k,v in inputs.items()}).logits.log_softmax(-1).cpu()
-        ids=emission[0].argmax(-1).tolist();inverse={v:k for k,v in vocab.items()}
-        decoded=''.join(inverse.get(t,'') for i,t in enumerate(ids) if t!=vocab.get('[PAD]',0) and (i==0 or t!=ids[i-1]))
-        if SequenceMatcher(None,decoded.replace('|',''),''.join(normalized)).ratio()<.80:return None
-        try:
-            path,scores=AF.forced_align(emission,torch.tensor([targets],dtype=torch.int32),blank=vocab.get('[PAD]',0))
-            spans=AF.merge_tokens(path[0],scores[0].exp(),blank=vocab.get('[PAD]',0))
-            verified=words_from_spans(words,normalized,spans,targets,.02,max(0,a-.15))
-        except (ValueError,RuntimeError):return None
-        if min(w['probability'] for w in verified)<.35 or sum(w['probability'] for w in verified)/len(verified)<.65:return None
-        if any(w['end']<=w['start'] for w in verified):return None
-        return verified
-    completed=[]
+    before={};after={};replacements={};local_completed=[]
     try:
         for block_index,(indices,start,end) in enumerate(blocks):
-            words=[{'word':t} for i in indices for t in rows[i]['text'].split() if spoken(t)]
-            normalized=normalized_words(words,vocab)
-            targets=[vocab[c] for c in '|'.join(normalized)]
-            if not targets:continue
             audio,rate=sf.read(str(audio_path),start=round(start*info.samplerate),stop=round(end*info.samplerate),
                                dtype='float32',always_2d=True)
-            wave=AF.resample(torch.from_numpy(alignment_mono(audio).copy()),rate,16000)
-            emissions=[];offset=0;core=16*16000;context=16000
-            # Bounded GPU memory; overlap supplies context, but every frame is
-            # included exactly once on the full-song timeline.
-            while offset<len(wave):
-                left=max(0,offset-context);right=min(len(wave),offset+core+context)
-                progress(.85*((block_index+(offset/max(1,len(wave))))/len(blocks)),
-                    f'Sözler sesle eşleştiriliyor · {start+offset/16000:.0f}/{duration:.0f} sn')
-                clip=wave[left:right]
-                if len(clip)<400:break
-                inputs=extractor(clip.numpy(),sampling_rate=16000,return_tensors='pt')
-                with torch.inference_mode():
-                    logits=model(**{k:v.to(device) for k,v in inputs.items()}).logits.log_softmax(-1).cpu()
-                first=(offset-left)//hop
-                last=first+core//hop if offset+core<len(wave) else logits.shape[1]
-                emissions.append(logits[:,first:last]);offset+=core
-            if not emissions:raise ValueError('Ses hizalama için çok kısa.')
-            emission=torch.cat(emissions,dim=1).contiguous()
-            progress(.85*((block_index+.99)/len(blocks)),'Kelimelerin başlangıç ve bitişleri bağlanıyor…')
+            views=[alignment_mono(audio)]
+            if audio.shape[1]>1 and float(((audio[:,0]-audio[:,-1])**2).mean())>1e-10:
+                views.append(audio[:,-1])
+            emissions=[];core=16*16000;context=16000
+            for view_index,view in enumerate(views):
+                wave=AF.resample(torch.from_numpy(view.copy()),rate,16000)
+                chunks=[]
+                for offset in range(0,len(wave),core):
+                    left=max(0,offset-context);right=min(len(wave),offset+core+context)
+                    emit(.96*(block_index+.68*(view_index+offset/max(1,len(wave)))/len(views))/len(blocks),
+                         f'Ses kanalı {view_index+1}/{len(views)} kontrol ediliyor · {start+offset/16000:.0f}/{duration:.0f} sn')
+                    clip=wave[left:right]
+                    if len(clip)<400:break
+                    inputs=extractor(clip.numpy(),sampling_rate=16000,return_tensors='pt')
+                    with torch.inference_mode():
+                        logits=model(**{k:v.to(device) for k,v in inputs.items()}).logits.log_softmax(-1).cpu()
+                    first=(offset-left)//hop
+                    last=first+core//hop if offset+core<len(wave) else logits.shape[1]
+                    chunks.append(logits[:,first:last])
+                if not chunks:raise ValueError('Ses hizalama için çok kısa.')
+                emissions.append(torch.cat(chunks,dim=1).contiguous())
+            local_rows=[{**rows[i],'_original_index':i} for i in indices]
+            verifier=local_verifier(audio,rate,model,extractor,vocab,device,
+                       lambda p,message:emit(.96*(block_index+.85)/len(blocks),message))
+            verified_cache={}
+            def verify(row,a,b):
+                key=(row['text'],round(a,2),round(b,2))
+                if key not in verified_cache:verified_cache[key]=verifier(row,a,b)
+                return verified_cache[key]
+            expanded,report,hits=expand_supplied_rows(local_rows,[e[0].numpy() for e in emissions],vocab,
+                lambda p,message:emit(.96*(block_index+.68+.17*p)/len(blocks),message),rescue=verify)
+            repeat_report['repeated_rows_added']+=report['repeated_rows_added']
+            repeat_report['repeat_candidates']+=report['repeat_candidates']
+            repeat_report['repeat_review_candidates'].extend({**item,'start':start+item['start'],'end':start+item['end']} for item in report['repeat_review_candidates'])
+            existing_ids={r.get('id') for r in local_rows}
+            pending=[]
+            for row in expanded:
+                if (row.get('id') or '').startswith('auto-repeat:') and row.get('id') not in existing_ids:
+                    pending.append(row);continue
+                index=row['_original_index'];before[index]=pending;pending=[];replacements[index]=row
+            if pending:after[indices[-1]]=pending
+            words=[{'word':t} for row in expanded for t in row['text'].split() if spoken(t)]
+            normalized=normalized_words(words,vocab);targets=[vocab[c] for c in '|'.join(normalized)]
+            emission=emissions[0]
+            emit(.96*(block_index+.90)/len(blocks),'Tüm dönüşler yerleştirildi; kelimeler bağlanıyor…')
             evidence=(1-emission[0,:,vocab.get('[PAD]',0)].exp()).numpy()>.35
             voice_regions.extend([start+a,start+b] for a,b in regions(evidence,min_length=.02,bridge=.45))
             path,scores=AF.forced_align(emission,torch.tensor([targets],dtype=torch.int32),blank=vocab.get('[PAD]',0))
@@ -192,9 +194,17 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
             aligned=words_from_spans(words,normalized,spans,targets,hop/16000,start)
             for word in aligned:word['end']=min(end,word['end'])
             rescue_weak_words(audio,rate,start,end,aligned,model,extractor,vocab,device,
-                lambda p,message:progress(.85*(block_index+.995)/len(blocks),message))
-            completed.append((indices,aligned))
-        progress(.98,'Satır sırası ve ara müzikler kontrol ediliyor…')
+                lambda p,message:emit(.96*(block_index+.95)/len(blocks),message))
+            repeat_report['repaired_word_spans']+=repair_anomalous_words(aligned,expanded,vocab,start,end)
+            local_completed.append((expanded,aligned))
+        rows=[]
+        for i,row in enumerate(original_rows):
+            rows.extend(before.get(i,[]));rows.append(replacements.get(i,row));rows.extend(after.get(i,[]))
+        if len(rows)>500:raise ValueError('Tekrarlarla birlikte 500 satır sınırı aşıldı; mevcut sözler korundu.')
+        positions={id(row):index for index,row in enumerate(rows)}
+        completed=[([positions[id(row)] for row in expanded],aligned) for expanded,aligned in local_completed]
+        for row in rows:row.pop('_original_index',None);row.pop('_occurrence_words',None)
+        emit(.98,'Satır sırası, dönüşler ve ara müzikler kontrol ediliyor…')
         return finish(completed)
     finally:
         del model
@@ -234,3 +244,31 @@ def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,pr
             if lower<=candidate['start']<candidate['end']<=upper and candidate['probability']>best['probability']:
                 best={**candidate,'recovery_channel':channel}
         words[index]=best
+
+
+def repair_anomalous_words(aligned,rows,vocab,start,end):
+    """An independent occurrence window may repair a word stretched over a break."""
+    from karaoke_ctc import normalized_words
+    cursor=0;repaired=0
+    for row in rows:
+        tokens=[t for t in row['text'].split() if spoken(t)]
+        proposal=row.get('_occurrence_words') or []
+        original=row.get('words') or []
+        if len(proposal)!=len(tokens):cursor+=len(tokens);continue
+        if normalized_words([{'word':t} for t in tokens],vocab)!=normalized_words(proposal,vocab):
+            cursor+=len(tokens);continue
+        for index,alternative in enumerate(proposal):
+            word=aligned[cursor+index]
+            manual=next((w for w in original if w.get('word')==tokens[index] and w.get('timing_source')=='manual'
+                         and not w.get('needs_review') and w['end']>w['start']),None)
+            if manual:continue
+            if word['end']-word['start']<=6:continue
+            a=start+alternative['start'];b=start+alternative['end']
+            lower=aligned[cursor+index-1]['end'] if cursor+index else start
+            upper=aligned[cursor+index+1]['start'] if cursor+index+1<len(aligned) else end
+            if lower<=a<b<=upper and b-a<(word['end']-word['start'])*.6 and alternative['probability']>=.1:
+                aligned[cursor+index]={**word,'start':a,'end':b,'probability':alternative['probability'],
+                                      'needs_review':alternative['probability']<.5,'timing_source':'ctc'}
+                repaired+=1
+        cursor+=len(tokens)
+    return repaired

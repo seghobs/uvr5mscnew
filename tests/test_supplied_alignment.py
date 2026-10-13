@@ -1,6 +1,6 @@
 import copy
 import unittest
-from karaoke_supplied_alignment import alignment_blocks,assemble
+from karaoke_supplied_alignment import alignment_blocks,assemble,repair_anomalous_words
 
 
 class SuppliedAlignmentTests(unittest.TestCase):
@@ -50,6 +50,26 @@ class SuppliedAlignmentTests(unittest.TestCase):
         self.assertEqual(result[0]['words'][0],manual)
         aligned[1].update(start=2.5,end=4)
         with self.assertRaises(ValueError):assemble([row],[([0],aligned)],10)
+
+    def test_independent_occurrence_repairs_word_stretched_over_music(self):
+        vocab={c:i for i,c in enumerate('eskive')}
+        proposal=[{'word':'ESKİ','start':18,'end':19,'probability':.9},{'word':'VE','start':20,'end':21,'probability':.8}]
+        rows=[{'text':'ESKİ VE','_occurrence_words':proposal}]
+        words=[{'word':'ESKİ','start':1,'end':19,'probability':.8},{'word':'VE','start':20,'end':21,'probability':.8}]
+        self.assertEqual(repair_anomalous_words(words,rows,{**vocab,'i':9},0,30),1)
+        self.assertEqual((words[0]['start'],words[0]['end']),(18,19))
+        self.assertFalse(words[0]['needs_review'])
+    def test_occurrence_repair_preserves_manual_words_and_rejects_overlap(self):
+        vocab={c:i for i,c in enumerate('eskive')};vocab['i']=9
+        manual={'word':'ESKİ','start':1,'end':19,'timing_source':'manual','needs_review':False}
+        rows=[{'text':'ESKİ VE','words':[manual],'_occurrence_words':[
+            {'word':'ESKİ','start':18,'end':22,'probability':.9},{'word':'VE','start':20,'end':21,'probability':.8}]}]
+        words=[{'word':'ESKİ','start':1,'end':19,'probability':.8},{'word':'VE','start':20,'end':21,'probability':.8}]
+        before=copy.deepcopy(words)
+        self.assertEqual(repair_anomalous_words(words,rows,vocab,0,30),0)
+        self.assertEqual(words,before)
+        rows[0]['words']=[]
+        self.assertEqual(repair_anomalous_words(words,rows,vocab,0,30),0)
 
 
 if __name__=='__main__':unittest.main()
