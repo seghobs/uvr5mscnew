@@ -13,6 +13,11 @@ if not exist "%~dp0env\python.exe" goto needs_setup
 if not exist "%~dp0frontend\node_modules\next\package.json" goto needs_setup
 where node >nul 2>nul
 if errorlevel 1 goto needs_setup
+if /i "%~1"=="--owned" goto launch_owned
+call "%~dp0env\python.exe" "%~dp0service_control.py" frontend-launch
+exit %errorlevel%
+
+:launch_owned
 cd /d "%~dp0frontend"
 call "%~dp0env\python.exe" "%~dp0service_control.py" frontend-check
 if errorlevel 11 goto launch_failed
@@ -31,18 +36,15 @@ cls
 echo Uygulama uretim modunda aciliyor...
 call npm run start
 set "uvr_exit_code=%errorlevel%"
-echo.
-echo Uygulama durdu. Pencereyi kapatmak icin bir tusa basin.
-pause >nul
-exit /b %uvr_exit_code%
+exit %uvr_exit_code%
 
 :already_running
 call node scripts\ensure-backend.js --no-browser --quiet
 if errorlevel 1 goto launch_failed
 echo Uygulama zaten acik. Mevcut pencere tarayicida aciliyor...
 call "%~dp0env\python.exe" "%~dp0service_control.py" frontend-focus
-start "" "http://localhost:3000"
-exit /b 0
+call node scripts\open-browser.js
+exit 0
 
 :launch_failed
 echo.

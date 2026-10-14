@@ -1,7 +1,7 @@
 'use client';
 
 import { EditHistory, protectLockedRows, segmentSignature } from '@/lib/edit-history';
-import { registerProjectFlusher, projectStorage } from '@/lib/project-storage';
+import { registerProjectFlusher, projectStorage, flushProjects } from '@/lib/project-storage';
 
 import {StudioSelect} from './StudioSelect';
 import {updateLyricInput} from '@/lib/lyric-input';
@@ -910,6 +910,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       projectStorage.removeItem('uvr-history:'+file);
       const prefixes=['uvr-passages-v2:','uvr-passages-v3:'].map(prefix=>prefix+file+':');
       for(const key of projectStorage.keys())if(prefixes.some(prefix=>key.startsWith(prefix)))projectStorage.removeItem(key);
+      // A success message must mean both the lyric DB and draft/history outbox
+      // are on disk, so an immediate reload cannot recover the old draft.
+      await flushProjects();
       if(requestId!==lyricsRequestRef.current)return;
       loadSegments([]);setLiveLyricsSegments([]);setBulkBindingProblems([]);setPassageRow(null);
       setLastSavedTime(new Date().toLocaleTimeString());setShowClearLyrics(false);

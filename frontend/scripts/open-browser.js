@@ -1,5 +1,22 @@
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const root = path.resolve(__dirname, '../..');
+
+function claimBrowserOpen(token, directory = path.join(root, '.runtime', 'browser-open')) {
+  fs.mkdirSync(directory, { recursive: true });
+  const marker = path.join(directory, crypto.createHash('sha256').update(token).digest('hex') + '.lock');
+  try { const handle = fs.openSync(marker, 'wx'); fs.closeSync(handle); return true; }
+  catch (error) { if (error.code === 'EEXIST') return false; throw error; }
+}
+
+function frontendToken() {
+  const python = path.join(root, 'env', process.platform === 'win32' ? 'python.exe' : 'bin/python');
+  const result = spawnSync(python, [path.join(root, 'service_control.py'), 'frontend-token'],
+    { cwd: root, encoding: 'utf8', windowsHide: false });
+  return result.status === 0 ? result.stdout.trim() : null;
+}
 
 const CHROME_PATHS = [
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -33,6 +50,9 @@ async function openBrowser() {
     await new Promise((r) => setTimeout(r, 500));
     const isReady = await checkFrontend();
     if (isReady) {
+      const token = frontendToken();
+      if (!token) continue;
+      if (!claimBrowserOpen(token)) return;
       if (process.platform === 'win32') {
         const chromeExe = findChromeExe();
         if (chromeExe) {
@@ -63,4 +83,5 @@ async function openBrowser() {
   }
 }
 
-openBrowser().catch(() => {});
+module.exports = { claimBrowserOpen };
+if (require.main === module) openBrowser().catch(() => {});

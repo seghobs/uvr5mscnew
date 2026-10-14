@@ -89,6 +89,46 @@ def focus_frontend_console():
                 kernel.FreeConsole()
             return
 
+
+def frontend_generation():
+    if not frontend_running():return None
+    for connection in psutil.net_connections(kind='tcp'):
+        if connection.status=='LISTEN' and connection.laddr.port==3000 and connection.pid:
+            process=psutil.Process(connection.pid)
+            if owns_frontend(process):return f'{process.pid}:{process.create_time():.6f}'
+    return None
+
+
+def launch_frontend():
+    """Serialize complete batch launches, including the build, in one console."""
+    import msvcrt
+    print('UVR5: Başlatma durumu kontrol ediliyor…',flush=True)
+    folder=ROOT/'.runtime';folder.mkdir(exist_ok=True)
+    with (folder/'frontend-launch.lock').open('a+b') as handle:
+        handle.write(b'0');handle.flush()
+        deadline=time.monotonic()+600
+        announced_wait=False
+        while True:
+            if frontend_running():
+                print('UVR5 zaten açık: http://localhost:3000 · Mevcut sunucuya bağlanılıyor.',flush=True)
+                focus_frontend_console()
+                subprocess.call(['node',str(ROOT/'frontend/scripts/open-browser.js')],cwd=ROOT/'frontend')
+                return 0
+            try:
+                handle.seek(0);msvcrt.locking(handle.fileno(),msvcrt.LK_NBLCK,1)
+                break
+            except OSError:
+                if not announced_wait:
+                    print('Başka bir başlatma devam ediyor; derleme ve sunucu bekleniyor…',flush=True)
+                    announced_wait=True
+                if time.monotonic()>deadline:raise RuntimeError('Önceki başlatma tamamlanamadı.')
+                time.sleep(.5)
+        try:
+            print('UVR5: Backend hazırlanacak, ardından derleme ve uygulama başlatılacak.',flush=True)
+            return subprocess.call(f'cmd.exe /d /s /c ""{ROOT / "start.bat"}" --owned"',cwd=ROOT)
+        finally:
+            handle.seek(0);msvcrt.locking(handle.fileno(),msvcrt.LK_UNLCK,1)
+
 def terminate_tree(process):
     # A management helper spawned by the backend must survive its parent's shutdown.
     children=[p for p in process.children(recursive=True) if p.pid!=os.getpid()]
@@ -169,11 +209,16 @@ def start(reuse_busy=False):
 if __name__=='__main__':
     try:
         action=sys.argv[1] if len(sys.argv)>1 else 'ensure'
+        if action=='frontend-launch':sys.exit(launch_frontend())
         with management_lock():
             if action=='frontend-check':
                 if frontend_running():
                     print('UVR5 zaten çalışıyor: http://localhost:3000')
                     sys.exit(10)
+            elif action=='frontend-token':
+                token=frontend_generation()
+                if not token:sys.exit(1)
+                print(token);sys.exit(0)
             elif action=='frontend-focus':focus_frontend_console()
             elif action=='stop':
                 if len(sys.argv)>2:stop_generation(int(sys.argv[2]))

@@ -20,6 +20,7 @@ async function check(fail=false,switchSong=false){
     stopWordPreview(){},setClearingLyrics(){},setIsLiveSyncMode(){},setIsSpacePressed(){},
     flushPendingSave(){events.push('flush');},
     async enqueueLyricsSave(fn){events.push('queue');return fn();},
+    async flushProjects(){events.push('disk');assert(!storage.has('uvr-lyrics-draft:current.wav'));},
     api:{async saveLyrics(file,rows){saved.push({file,rows});if(fail)throw Error('save failed');if(switchSong)context.lyricsRequestRef.current++;}},
     projectStorage:{removeItem:k=>storage.delete(k),keys:()=>[...storage.keys()]},
     loadSegments:rows=>loaded.push(rows),setLiveLyricsSegments(){},setBulkBindingProblems(){},
@@ -33,6 +34,6 @@ async function check(fail=false,switchSong=false){
   assert.equal(storage.get('uvr-passages-v3:other.wav:row'),'keep');
   if(fail){assert.equal(loaded.length,0);assert.equal(storage.get('uvr-lyrics-draft:current.wav'),'old');}
   else {assert(!storage.has('uvr-lyrics-draft:current.wav'));assert.equal(loaded.length,switchSong?0:1);}
-  assert.deepEqual(events,['flush','queue','queue']);
+  assert.deepEqual(events,fail?['flush','queue','queue']:['flush','queue','queue','disk']);
 }
 (async()=>{await check();await check(true);await check(false,true);console.log('PASS clear current song only: ordered save, scoped caches, failed save preserves rows, switched song untouched');})().catch(e=>{console.error(e);process.exitCode=1});

@@ -89,6 +89,28 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.ns['get_saved_lyrics']('second_Vocals.wav')['segments'],[self.seg])
         self.assertEqual(audio.read_bytes(),b'original audio')
 
+    def test_global_cleanup_can_remove_nested_atlas_directory(self):
+        from types import SimpleNamespace
+        root=self.ns['OUTPUT_DIR']
+        directories=[root/name for name in ('outputs','ytdl','uploads')]
+        for directory in directories:directory.mkdir()
+        nested=directories[0]/'atlas_bx90q1q9';nested.mkdir();(nested/'temporary.wav').write_bytes(b'test')
+        sentinel=root/'untouched.txt';sentinel.write_text('keep',encoding='utf8')
+        self.ns['save_lyrics_db']('sample.wav','tr',[self.seg])
+        self.ns.update(__file__=str(root/'api_modern.py'),OUTPUT_DIR=directories[0],YTL_DIR=directories[1],UPLOAD_DIR=directories[2],
+                       prepare_service_stop=lambda:None,audio_jobs=SimpleNamespace(clear_cache_and_history=lambda:None))
+        source=ast.parse(Path('api_modern.py').read_text(encoding='utf8'))
+        nodes=[n for n in source.body if (isinstance(n,ast.Import) and any(a.name=='shutil' for a in n.names))
+               or (isinstance(n,ast.AsyncFunctionDef) and n.name=='clear_karaoke_data_endpoint')]
+        for node in nodes:
+            if isinstance(node,ast.AsyncFunctionDef):node.decorator_list=[]
+        exec(compile(ast.Module(body=nodes,type_ignores=[]),'cleanup_under_test','exec'),self.ns)
+        result=asyncio.run(self.ns['clear_karaoke_data_endpoint']())
+        self.assertEqual(result['status'],'success');self.assertFalse(nested.exists())
+        self.assertTrue(all(d.is_dir() for d in directories));self.assertEqual(sentinel.read_text(encoding='utf8'),'keep')
+        with closing(sqlite3.connect(self.ns['FAVORITES_DB_PATH'])) as conn:
+            self.assertEqual(conn.execute('SELECT COUNT(*) FROM lyrics').fetchone()[0],0)
+
     def test_render_rejects_overlap_before_creating_task(self):
         self.seg['words'][1]['start'] = 1.5
         req = self.ns['KaraokeVideoRequest'](inst_file='sample.wav', segments=[self.seg])

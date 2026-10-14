@@ -7,7 +7,7 @@ const source = fs.readFileSync(path.join(__dirname, '../frontend/scripts/start-p
 function simulate(statuses) {
   const calls = [], process = { platform: 'win32', execPath: 'node.exe' };
   const req = name => name === 'child_process' ? {
-    spawnSync(command, args) { calls.push(['sync', command, args]); return { status: statuses.shift() }; },
+    spawnSync(command, args, options) { calls.push(['sync', command, args, options]); return { status: statuses.shift() }; },
     spawn(command, args) { calls.push(['spawn', command, args]); return { once() {}, unref() {} }; },
   } : require(name);
   req.resolve = () => 'next/dist/bin/next';
@@ -31,7 +31,20 @@ test('owned server reused without another Next process', () => {
 });
 test('backend ready before production and browser starts', () => {
   const result = simulate([0, 0]);
+  assert.equal(result.calls[0][3].windowsHide, false);
+  assert.equal(result.calls[1][3].windowsHide, false);
   assert.ok(result.calls[1][2].includes('--no-browser'));
   assert.equal(result.calls[2][2][1], 'start');
   assert.match(result.calls[3][2][0], /open-browser/);
+});
+
+test('launcher exits its console without a pause after shutdown or reuse',()=>{
+  const batch=fs.readFileSync(path.join(__dirname,'../start.bat'),'utf8');
+  const shutdown=batch.slice(batch.indexOf('call npm run start'),batch.indexOf(':already_running'));
+  assert(!shutdown.includes('pause'));
+  assert.match(shutdown,/exit %uvr_exit_code%/);
+  const reuse=batch.slice(batch.indexOf(':already_running'),batch.indexOf(':launch_failed'));
+  assert.match(reuse,/call node scripts\\open-browser\.js/);
+  assert.match(reuse,/exit 0/);
+  assert(!reuse.includes('pause'));
 });

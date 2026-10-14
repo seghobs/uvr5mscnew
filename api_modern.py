@@ -1,5 +1,6 @@
 import sys
 import os
+import shutil
 from local_runtime import configure_local_runtime
 configure_local_runtime()
 from karaoke_ctc import refine_turkish

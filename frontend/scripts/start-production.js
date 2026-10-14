@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '../..');
 const python = path.join(root, 'env', process.platform === 'win32' ? 'python.exe' : 'bin/python');
 
 function run(command, args, cwd = root) {
-  const result = spawnSync(command, args, { cwd, stdio: 'inherit', windowsHide: true });
+  const result = spawnSync(command, args, { cwd, stdio: 'inherit', windowsHide: false });
   if (result.error) throw result.error;
   return result.status;
 }
