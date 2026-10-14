@@ -177,6 +177,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const [clearingLyrics, setClearingLyrics] = useState(false);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
   const [lyricsProgress,setLyricsProgress] = useState('Vokal ve sözler kontrol ediliyor...');
+  const [alignmentError,setAlignmentError] = useState('');
   const [lyricsProgressPercent,setLyricsProgressPercent] = useState(0);
   const [lyricsQueue,setLyricsQueue] = useState({position:1,total:1,ahead:0,remaining:0});
   const [liveLyricsSegments,setLiveLyricsSegments] = useState<LyricSegment[]>([]);
@@ -900,6 +901,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     if(loadingLyrics||bulkBindingStatus||!segmentsRef.current.some(s=>s.text.trim()&&!isInstrumentalRow(s)))return;
     const requestId=++lyricsRequestRef.current;
     const snapshot=JSON.parse(JSON.stringify(segmentsRef.current)) as LyricSegment[];
+    setAlignmentError('');
     setLoadingLyrics(true);setLyricsProgress('Verdiğiniz sözler senkronlanıyor…');setLyricsProgressPercent(0);
     setLiveLyricsSegments([]);setLyricsQueue({position:1,total:1,ahead:0,remaining:0});
     audioRef.current?.pause();stopWordPreview();liveCaptureRef.current=null;setIsLiveSyncMode(false);
@@ -915,7 +917,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       const report=result.alignment_report;
       onNotify(report.review_rows.length||report.repeat_review_candidates?.length?'warning':'success','Otomatik senkron ve bağlama',
         `${report.target_words?`${report.linked_words}/${report.target_words} kelime bağlı.`:'Mevcut doğrulanmış kelime bağlantıları korundu.'} ${report.repeated_rows_added||0} sesle doğrulanmış tekrar satırı eklendi. ${report.terminal_repeats_added?`${report.terminal_repeats_added} kesilmiş dönüşün tamamlanan ifadesi eklendi; duyulmayan devamı eklenmedi. `:''}${report.solo_count||0} müzik aralığına SOLO etiketi yerleştirildi. ${report.review_rows.length} satır dinleme kontrolü bekliyor. ${report.repeat_review_candidates?.length?`${report.repeat_review_candidates.length} kesilmiş dönüş otomatik eklenmedi; dinleyerek kontrol edin. `:''}Tekrar taraması tüm dönüşleri bulmayı garanti etmez.`);
-    }catch(error){if(requestId===lyricsRequestRef.current)onNotify('warning','Senkron tamamlanamadı',(error as Error).message);}
+    }catch(error){if(requestId===lyricsRequestRef.current){setAlignmentError((error as Error).message);onNotify('warning','Senkron tamamlanamadı',(error as Error).message);}}
     finally{if(requestId===lyricsRequestRef.current)setLoadingLyrics(false);}
   };
 
@@ -1706,6 +1708,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             <button aria-expanded={showAdvancedTools} aria-controls="karaoke-tools" onClick={() => setShowAdvancedTools(!showAdvancedTools)} className={cn("rounded-lg border px-3 py-2 text-sm transition-colors", showAdvancedTools ? "border-indigo-400/30 bg-indigo-400/10 text-indigo-200" : "border-white/10 text-zinc-200 hover:bg-white/5")}>Diğer araçlar <ChevronDown className={cn("ml-1 inline h-3 w-3 transition-transform", showAdvancedTools && "rotate-180")}/></button>
           </div>
         </div>}
+        {alignmentError&&<div role="alert" className="shrink-0 border-b border-rose-400/20 bg-rose-400/10 px-6 py-3 text-sm text-rose-200">Senkron tamamlanamadı: {alignmentError}</div>}
         {activeTab === 'lyrics' && (renderErrors.length > 0 || syncIssues.length > 0) && <div role="status" className="flex items-center justify-between gap-3 border-b border-white/5 bg-amber-400/5 px-6 py-2 text-xs text-amber-200">
           <span>{renderErrors.length ? `${renderErrors.length} zamanlama sorunu · ${renderErrors[0]}` : `${syncIssues.length} zamanlama uyarısı var; bağlı olup dinleme kontrolü bekleyen kelimeler de bu sayıya dahildir. Eksik süreli satırlar videoda satır olarak gösterilir.`}</span>
           <div className="flex shrink-0 items-center gap-3"><button className="rounded border border-emerald-300/40 bg-emerald-400/10 px-2 py-1 font-semibold text-emerald-100 hover:bg-emerald-400/20" onClick={approveAllTimedWords}>Tümünü onayla</button><button className="underline underline-offset-4" onClick={() => {

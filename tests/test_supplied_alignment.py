@@ -10,6 +10,7 @@ class SuppliedAlignmentTests(unittest.TestCase):
               {'id':'auto-repeat:test','text':'HEY GÖNÜL','words':[{'word':'HEY','start':9,'end':9,'timing_source':'estimated','needs_review':True},{'word':'GÖNÜL','start':10.2,'end':11}]}]
         self.assertEqual(trim_unvoiced_repeat_prefixes(rows),1)
         self.assertEqual(rows[1]['text'],'GÖNÜL')
+        self.assertEqual(rows[1]['repeat_prefix_repair'],{'word':'HEY','start':9,'end':9})
         self.assertEqual(rows[0]['words'][0]['end'],10)
         self.assertEqual(trim_unvoiced_repeat_prefixes(rows),0)
 

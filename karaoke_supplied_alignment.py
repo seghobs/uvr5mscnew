@@ -57,6 +57,7 @@ def trim_unvoiced_repeat_prefixes(rows):
         if (prefix['word'].strip().casefold()==last['word'].strip().casefold()
                 and prefix['end']<=prefix['start'] and last['end']>last['start']
                 and last['start']-.05<=prefix['start']<=last['end']+.05):
+            row['repeat_prefix_repair']={'word':prefix['word'],'start':prefix['start'],'end':prefix['end']}
             row['words']=words[1:];row['text']=' '.join(w['word'] for w in words[1:]);count+=1
     return count
 

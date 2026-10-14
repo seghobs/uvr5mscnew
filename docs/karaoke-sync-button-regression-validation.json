@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-14",
+  "recording": "Kara Yazı (Ahmet Kaya)",
+  "regression": "Frontend repeat validation rejected the audio-verified removal of a zero-duration duplicate HEY prefix, discarding the entire completed alignment.",
+  "fix": "Persist bounded prefix evidence; accept only exact one-token suffix repairs with a matching preceding measured word. Keep original rows, voiced prefixes and manual locks protected. Display persistent alignment failures.",
+  "validation": {
+    "python_tests_passed": 59,
+    "supplied_alignment_frontend": "passed including rejection of missing/voiced/unrelated evidence",
+    "production_build": "passed",
+    "live_button_completed": true,
+    "saved_rows": 29,
+    "saved_words_and_labels": 93,
+    "timing_warnings": 0,
+    "saved_acoustic_signature_matches_job": true,
+    "page_reload_preserves_links": true
+  }
+}

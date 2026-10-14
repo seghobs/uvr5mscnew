@@ -30,6 +30,21 @@ assert.throws(()=>guardContext.exports.validateSuppliedResult([...before,repeate
 const locked=[{id:'lock',text:'SOLO...',start:0,end:20,locked:true}];
 assert.throws(()=>guardContext.exports.validateSuppliedResult(locked,[{...locked[0],end:30}]));
 
+const repairSource={id:'source',text:'HEY GÖNÜL GENE',start:0,end:0};
+const previousSource={id:'previous',text:'YAZIMIZ HEY',start:0,end:0};
+const alignedSource={...repairSource,start:10,end:12};
+const preceding={...previousSource,start:19,end:20,words:[{word:'HEY',start:19.5,end:20}]};
+const repaired={id:'auto-repeat:repair',repeat_source_id:'source',text:'GÖNÜL GENE',start:20.2,end:22,
+  words:[{word:'GÖNÜL',start:20.2,end:21},{word:'GENE',start:21,end:22}],
+  repeat_prefix_repair:{word:'HEY',start:19.5,end:19.5}};
+const validateRepair=row=>guardContext.exports.validateSuppliedResult([repairSource,previousSource],[alignedSource,preceding,row]);
+validateRepair(repaired);
+assert.throws(()=>validateRepair({...repaired,repeat_prefix_repair:null}),'unverified text removal must fail');
+assert.throws(()=>validateRepair({...repaired,repeat_prefix_repair:{word:'HEY',start:19.5,end:19.8}}),'a voiced prefix must be preserved');
+assert.throws(()=>validateRepair({...repaired,repeat_prefix_repair:{word:'HEY',start:18,end:18}}),'unrelated preceding sound must fail');
+assert.throws(()=>validateRepair({...repaired,text:'GENE'}),'only the proven single duplicated token can be removed');
+assert.throws(()=>validateRepair({...repaired,locked:true}),'locked rows must be preserved');
+
 (async()=>{
   const progress=[];
   const actual=await context.exports.api.alignSuppliedLyrics('vocal.wav',segments,(message,p)=>progress.push(p));

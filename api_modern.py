@@ -1709,12 +1709,14 @@ class LyricSegmentModel(BaseModel):
     text: str
     words: Optional[List[WordModel]] = None
     repeat_source_id: Optional[str] = None
+    repeat_prefix_repair: Optional[dict] = None
     alignment_mode: Optional[str] = None
 
     def model_dump(self,*args,**kwargs):
         result=super().model_dump(*args,**kwargs)
         if result.get('alignment_mode') is None:result.pop('alignment_mode',None)
         if result.get('repeat_source_id') is None:result.pop('repeat_source_id',None)
+        if result.get('repeat_prefix_repair') is None:result.pop('repeat_prefix_repair',None)
         return result
 
 class LyricsRequest(BaseModel):
