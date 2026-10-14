@@ -22,28 +22,40 @@ def progress_events(duration, width, theme='gold'):
     return events
 
 
-def soft_word_events(segment, display_end, width, height, baseline, font_size, theme):
+def row_motion(segment, last=False, next_start=float('inf')):
+    from karaoke_timing import is_music_label
+    start,end=segment['start'],segment['end']
+    leave=max(start,min(end+(0 if is_music_label(segment['text']) else 2 if last else .35),next_start)-.24)
+    fade=max(end,leave+.24)
+    return dict(enter=max(0,start-.24),leave=leave,fade=fade,end=fade+.12)
+
+
+def soft_word_events(segment, display_end, width, height, baseline, font_size, theme, motion=None):
     """Horizontal feathered sweep on measured media times, with a white base."""
     from PIL import ImageFont
     from karaoke_timing import ass_time,escape_ass
     font_path=Path(os.environ.get('WINDIR','C:/Windows'))/'Fonts/segoeuib.ttf'
     if not font_path.is_file():return None
     font=ImageFont.truetype(str(font_path),font_size)
-    words=segment.get('words') or []
-    if not words:return None
+    words=segment.get('words') or [{'word':segment['text'],'start':segment['start'],'end':segment['end'],'timing_source':'estimated'}]
     pieces=[w['word']+(' ' if i<len(words)-1 else '') for i,w in enumerate(words)]
-    lengths=[font.getlength(p) for p in pieces];total=sum(lengths)
+    # libass normalizes font size to ascent + descent, whereas Pillow uses em.
+    metric_scale=font_size/sum(font.getmetrics())
+    lengths=[font.getlength(p)*metric_scale for p in pieces];total=sum(lengths)
     scale=min(1,(width-120)/max(total,1));x=(width-total*scale)/2
-    color={'gold':'ACF1FF','neon':'F1FFB0','cyberpunk':'EDB2FF','emerald':'E2FFC4'}.get(theme,'ACF1FF')
+    color={'gold':'00C8FF','neon':'FFE606','cyberpunk':'E040FF','emerald':'70EA20'}.get(theme,'00C8FF')
+    if motion:display_end=motion['end']
     events=[];row_start=ass_time(segment['start']);row_end=ass_time(display_end)
+    pos=f'\\an2\\pos({width/2:.3f},{baseline})\\fscx{scale*100:.4f}\\q2\\bord1\\shad0'
+    label=escape_ass(''.join(pieces))
+    # All layers draw ONE centered line. Glyph spacing is owned by libass,
+    # never by a separately positioned dialogue for each individual word.
+    events.append(f'Dialogue: 1,{row_start},{row_end},Active,,0,0,0,,{{{pos}\\1c&HC6B9B4&}}{label}')
     for word,piece,length in zip(words,pieces,lengths):
-        right=x+font.getlength(word['word'])*scale
-        pos=f'\\an1\\pos({x:.3f},{baseline})\\fscx{scale*100:.4f}\\q2\\bord0\\shad0'
-        label=escape_ass(piece)
-        events.append(f'Dialogue: 1,{row_start},{row_end},Active,,0,0,0,,{{{pos}\\1c&HFFFFFF&}}{label}')
+        right=x+font.getlength(word['word'])*metric_scale*scale
         start,end=word['start'],word['end']
         if end>start and word.get('timing_source')!='estimated':
-            duration=max(1,round((end-start)*1000));feather=min(12,(right-x)*.15)
+            duration=max(1,round((end-start)*1000));feather=min(8,(right-x)*.10)
             intervals=[(x-feather,x-feather, x,right-feather,0)]
             # Each translucent band follows the same acoustic sweep front.
             for band in range(6):
@@ -55,8 +67,29 @@ def soft_word_events(segment, display_end, width, height, baseline, font_size, t
                 final=f'\\clip({round(left1)},0,{round(max(left1,right1))},{height})'
                 events.append(f'Dialogue: 2,{ass_time(start)},{ass_time(min(end,display_end))},Active,,0,0,0,,{{{pos}\\1c&H{color}&\\alpha&H{alpha:02X}&{initial}\\t(0,{duration},{final})}}{label}')
             if display_end>end:
-                events.append(f'Dialogue: 2,{ass_time(end)},{row_end},Active,,0,0,0,,{{{pos}\\1c&H{color}&}}{label}')
+                events.append(f'Dialogue: 2,{ass_time(end)},{row_end},Active,,0,0,0,,{{{pos}\\1c&H{color}&\\clip({round(x)},0,{round(right)},{height})}}{label}')
         x+=length*scale
+    if motion:
+        # Every overlay uses offsets from its own event start to the SAME
+        # media-time handoff, including a syllable still filling during exit.
+        distance=180 if height>width else 160
+        animated=[]
+        for event in events:
+            fields=event.split(',',9)
+            h,m,s=fields[1].split(':');at=int(h)*3600+int(m)*60+float(s)
+            move_start=max(0,round((motion['leave']-at)*1000))
+            move_end=max(0,round((motion['leave']+.24-at)*1000))
+            fraction=max(0,min(1,(at-motion['leave'])/.24))
+            position=(f'\\move({width/2:.3f},{baseline+distance*fraction:.3f},{width/2:.3f},{baseline+distance},{move_start},{move_end})'
+                      if move_end else f'\\pos({width/2:.3f},{baseline+distance})')
+            event=event.replace(f'\\pos({width/2:.3f},{baseline})',position)
+            fade_start=max(0,round((motion['fade']-at)*1000));fade_end=max(1,round((motion['end']-at)*1000))
+            event=event.replace('}',f'\\t({fade_start},{fade_end},\\alpha&HFF&)'+ '}',1)
+            animated.append(event)
+        if segment['start']>motion['enter']:
+            milliseconds=round((segment['start']-motion['enter'])*1000)
+            animated.insert(0,f'Dialogue: 1,{ass_time(motion["enter"])},{row_start},Active,,0,0,0,,{{\\an2\\move({width/2},{baseline-distance},{width/2},{baseline},0,{milliseconds})\\fs{font_size*.4:.3f}\\fscx{scale*100:.4f}\\t(0,{milliseconds},\\fs{font_size})\\fad(80,0)\\q2\\bord1\\shad0\\1c&HC6B9B4&}}{label}')
+        return animated
     return events
 
 
@@ -92,7 +125,7 @@ def studio_background(directory, theme='gold', vertical=False):
     palette = {'gold': (243, 187, 91), 'neon': (91, 208, 234),
                'cyberpunk': (220, 105, 241), 'emerald': (87, 218, 172)}
     accent = palette.get(theme, palette['gold'])
-    path = Path(directory) / f'studio_editorial_v3_{theme if theme in palette else "gold"}_{"portrait" if vertical else "landscape"}.png'
+    path = Path(directory) / f'studio_editorial_v4_{theme if theme in palette else "gold"}_{"portrait" if vertical else "landscape"}.png'
     if path.exists():
         return path
     width, height = (1080, 1920) if vertical else (1920, 1080)
@@ -116,7 +149,7 @@ def studio_background(directory, theme='gold', vertical=False):
     for i in range(18):
         draw.line((80+i*18,height-470,80+i*18,height-340+(i%3)*8),fill=(156,144,210,12),width=1)
     draw.rounded_rectangle((110,202,width-390,208),radius=3,fill=(215,211,234,28))
-    label_y=1120 if vertical else 645
+    label_y=745 if vertical else 300
     draw.rounded_rectangle((width/2-82,label_y,width/2+82,label_y+38),radius=19,fill=(*accent,14),outline=(*accent,40),width=1)
     try:
         font=ImageFont.truetype('C:/Windows/Fonts/segoeuib.ttf',16)

@@ -2632,7 +2632,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         margin_v_upcoming = 700 if is_vertical else 310
         x_center = res_x // 2
         y_active = 1010 if is_vertical else 550
-        y_upcoming = 1260 if is_vertical else 750
+        y_upcoming = 830 if is_vertical else 390
 
         ass_lines = [
             "[Script Info]",
@@ -2681,7 +2681,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         # Rendering is read-only: presentation fallbacks must never overwrite
         # the saved acoustic word links or review flags.
 
-        windows = render_windows([s.model_dump() for s in segments_to_use],lead=.12)
+        windows = render_windows([s.model_dump() for s in segments_to_use])
         segments_to_use = [LyricSegmentModel(**s) for s, _ in windows]
         from karaoke_timing import solo_windows,is_music_label
         import soundfile as sf
@@ -2692,7 +2692,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             first_seg = segments_to_use[0]
             first_text = escape_ass(first_seg.text.strip())
             if first_text:
-                ass_lines.append(f"Dialogue: 0,0:00:00.00,{to_ass_time(first_seg.start)},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{first_text}")
+                ass_lines.append(f"Dialogue: 0,0:00:00.00,{to_ass_time(max(0,first_seg.start-.24))},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{first_text}")
 
         for idx, seg in enumerate(segments_to_use):
             raw_text = escape_ass(seg.text.strip())
@@ -2709,8 +2709,9 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             else:
                 active_anim = f"{{\\pos({x_center}, {y_active})\\fad(0, 200)}}"
 
-            from karaoke_design import gradient_masks,soft_word_events
-            soft=soft_word_events(seg.model_dump(),act_end_sec,res_x,res_y,y_active,font_size_active,req.theme)
+            from karaoke_design import gradient_masks,soft_word_events,row_motion
+            motion=row_motion(seg.model_dump(),idx==len(segments_to_use)-1,segments_to_use[idx+1].start if idx+1<len(segments_to_use) else float('inf'))
+            soft=soft_word_events(seg.model_dump(),act_end_sec,res_x,res_y,y_active,font_size_active,req.theme,motion=motion)
             masks = gradient_masks(req.theme, res_x, res_y, y_active, font_size_active) if seg.words else ['']
             if soft is not None:
                 ass_lines.extend(soft)
@@ -2721,7 +2722,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
                 next_seg = segments_to_use[idx + 1]
                 next_text = escape_ass(next_seg.text.strip())
                 if next_text and next_seg.start > seg.start and not is_music_label(next_seg.text):
-                    ass_lines.append(f"Dialogue: 0,{st},{to_ass_time(next_seg.start)},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{next_text}")
+                    ass_lines.append(f"Dialogue: 0,{st},{to_ass_time(max(seg.start,next_seg.start-.24))},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{next_text}")
 
         from karaoke_design import ambient_events, progress_events
         import soundfile as sf

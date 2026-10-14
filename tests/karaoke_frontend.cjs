@@ -11,8 +11,22 @@ function load(file, extras = {}) {
 
 async function main() {
   const timing = load('frontend/src/lib/karaoke-timing.ts');
+  const handoff={start:160.98,end:163.78,text:'GÖNÜL',words:[{word:'GÖNÜL',start:160.98,end:161.52,timing_source:'ctc'}]};
+  const motion=timing.rowMotion(handoff,true);
+  assert.ok(Math.abs(motion.enter-160.74)<1e-8);
+  assert.equal(timing.rowPose(handoff,motion,160.98).offset,0);
+  assert.equal(timing.rowPose(handoff,motion,160.98).opacity,1);
+  assert.equal(timing.wordFillWithNeighbors(handoff.words[0],160.90),0);
+  assert.ok(timing.rowPose(handoff,motion,160.85).offset<0);
+  assert.equal(timing.rowPose(handoff,motion,motion.end),null);
+  const metadata=load('frontend/src/lib/song-metadata.ts');
+  assert.equal(metadata.parseSongMetadata('Kara Yazı (Ahmet Kaya)').artist,'Ahmet Kaya');
+  assert.equal(metadata.parseSongMetadata('Kara Yazı (Ahmet Kaya)').title,'Kara Yazı');
+  assert.equal(JSON.stringify(metadata.parseSongMetadata('Ahmet Kaya - Kara Yazı (Official Audio)')),JSON.stringify({artist:'Ahmet Kaya',title:'Kara Yazı'}));
+  assert.equal(metadata.parseSongMetadata('Gözleri Fettan Güzel (Müslüm Gürses) Official Audio #müzik').artist,'Müslüm Gürses');
   assert.equal(timing.preferLyricDraft({segments:[{}]}, {segments:[{}]}),false);
   assert.equal(timing.preferLyricDraft({segments:[{}]},null),true);
+  assert.equal(timing.preferLyricDraft({segments:[{}]},{segments:[],updated_at:'2026-10-14T00:00:00Z'}),false);
   assert.equal(timing.preferLyricDraft({segments:[{}],modifiedAt:2000},{segments:[{}],updated_at:'1970-01-01T00:00:01Z'}),true);
   assert.equal(timing.preferLyricDraft({segments:[{}],modifiedAt:500},{segments:[{}],updated_at:'1970-01-01T00:00:01Z'}),false);
   const partial={start:1,end:4,text:'HEY GÖNÜL GENE',words:[{word:'HEY',start:1,end:1,timing_source:'estimated',needs_review:true},{word:'GÖNÜL',start:2,end:3,timing_source:'ctc'},{word:'GENE',start:3.2,end:4,timing_source:'ctc'}]};

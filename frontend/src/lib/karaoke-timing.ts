@@ -4,7 +4,7 @@ export type TimedWord = NonNullable<LyricSegment['words']>[number];
 
 export function preferLyricDraft(draft:{segments:LyricSegment[];modifiedAt?:number}|null,saved:{segments:LyricSegment[];updated_at?:string}|null):boolean {
   if(!draft?.segments.length)return false;
-  if(!saved?.segments.length)return true;
+  if(!saved)return true;
   if(!draft.modifiedAt)return false; // Legacy drafts cannot supersede a persisted project.
   const value=saved.updated_at;
   const savedAt=value?Date.parse(/[zZ]|[+-]\d\d:\d\d$/.test(value)?value:value+'Z'):0;
@@ -193,4 +193,19 @@ export function isInstrumentalText(text:string):boolean {
 export function rowDisplayEnd(row:LyricSegment,last:boolean,nextStart=Infinity):number {
   const music=isInstrumentalText(row.text);
   return Math.min(row.end+(music?0:last?2:.35),nextStart);
+}
+
+/** Presentation moves around the acoustic clock; it never delays that clock. */
+export function rowMotion(row:LyricSegment,last:boolean,nextStart=Infinity) {
+  const enter=Math.max(0,row.start-.24);
+  const leave=Math.max(row.start,Math.min(row.end+(isInstrumentalText(row.text)?0:last?2:.35),nextStart)-.24);
+  const fade=Math.max(row.end,leave+.24);
+  return {enter,leave,fade,end:fade+.12};
+}
+
+export function rowPose(row:LyricSegment,motion:ReturnType<typeof rowMotion>,time:number) {
+  if(time<motion.enter||time>=motion.end)return null;
+  if(time<row.start){const p=(time-motion.enter)/Math.max(.001,row.start-motion.enter);return {offset:p-1,opacity:Math.min(1,p*3),scale:.4+.6*p};}
+  const p=Math.max(0,Math.min(1,(time-motion.leave)/.24));
+  return {offset:p,opacity:time<motion.fade?1:Math.max(0,1-(time-motion.fade)/.12),scale:1};
 }

@@ -2,6 +2,13 @@ import unittest
 from karaoke_timing import render_windows, centiseconds
 
 class RenderWindowsTests(unittest.TestCase):
+    def test_lead_does_not_cut_the_previous_measured_word(self):
+        rows=[{'start':1,'end':2.95,'text':'A','words':[{'word':'A','start':1,'end':2.95}]},
+              {'start':3,'end':4,'text':'B','words':[{'word':'B','start':3,'end':4}]}]
+        windows=render_windows(rows,lead=.12)
+        self.assertEqual(windows[0][1],2.95)
+        self.assertEqual(windows[1][0]['start'],2.95)
+
     def test_lead_is_display_only_and_follows_earlier_measured_word(self):
         row={'start':2,'end':4,'text':'GEL','words':[{'word':'GEL','start':1.8,'end':3.9}]}
         window=render_windows([row],lead=.12)[0]

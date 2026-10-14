@@ -17,6 +17,10 @@ function client(){
 }
 (async()=>{
  const first=client();await first.initializeProjects();
+ first.projectStorage.setItem('uvr-video-heading:song',JSON.stringify({artist:'Ahmet Kaya',title:'Kara Yazı'}));
+ await first.flushProjects();
+ assert.equal(JSON.parse(disk['uvr-video-heading:song']).title,'Kara Yazı');
+ assert.equal(JSON.parse((await (async()=>{const fresh=client();await fresh.initializeProjects();return fresh.projectStorage.getItem('uvr-video-heading:song');})())).artist,'Ahmet Kaya');
  let unblock;delayed=new Promise(resolve=>unblock=resolve);
  first.projectStorage.setItem('uvr-stem-settings:song','old');
  const saving=first.flushProjects();await new Promise(r=>setTimeout(r,10));

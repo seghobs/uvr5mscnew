@@ -4,6 +4,7 @@ import { EditHistory, protectLockedRows, segmentSignature } from '@/lib/edit-his
 import { registerProjectFlusher, projectStorage, flushProjects } from '@/lib/project-storage';
 
 import {StudioSelect} from './StudioSelect';
+import {parseSongMetadata} from '@/lib/song-metadata';
 import {updateLyricInput} from '@/lib/lyric-input';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -250,6 +251,18 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     return clean || 'Karaoke Track';
   });
   const [artist, setArtist] = useState('UVR5 AI Studio');
+  useEffect(()=>{
+    if(!isOpen)return;
+    const file=vocalStem||instStem;
+    let entries:Array<{filename:string;stems:string[]}>=[];
+    try{entries=JSON.parse(projectStorage.getItem('uvr_library')||'[]');}catch{}
+    const source=entries.find(item=>item.stems?.includes(file))?.filename;
+    let saved:{artist:string;title:string}|null=null;
+    try{saved=JSON.parse(projectStorage.getItem('uvr-video-heading:'+file)||'null');}catch{}
+    const metadata=saved||(source?parseSongMetadata(source):null);
+    if(metadata){setArtist(metadata.artist);setTitle(metadata.title);}
+  },[isOpen,instStem,vocalStem]);
+  const saveHeading=(nextArtist:string,nextTitle:string)=>projectStorage.setItem('uvr-video-heading:'+(vocalStem||instStem),JSON.stringify({artist:nextArtist,title:nextTitle}));
   const [activeTab, setActiveTab] = useState<'verify' | 'lyrics' | 'video'>('verify');
   const [showAdvancedTools, setShowAdvancedTools] = useState(false);
   const [selectedWordIndex, setSelectedWordIndex] = useState(0);
@@ -2859,7 +2872,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       <input
                         type="text"
                         value={artist}
-                        onChange={(e) => setArtist(e.target.value)}
+                        onChange={(e) => {setArtist(e.target.value);saveHeading(e.target.value,title);}}
                         className="w-full p-2.5 rounded-xl bg-[#262230] border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
                         placeholder="Sanatçı..."
                       />
@@ -2869,7 +2882,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       <input
                         type="text"
                         value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                        onChange={(e) => {setTitle(e.target.value);saveHeading(artist,e.target.value);}}
                         className="w-full p-2.5 rounded-xl bg-[#262230] border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
                         placeholder="Şarkı Adı..."
                       />

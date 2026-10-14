@@ -1,0 +1,611 @@
+{
+  "scope": "Kara Yazı full 183.066-second recording",
+  "duration": 183.0661224489796,
+  "fps": 60,
+  "warnings_before": 7,
+  "warnings_after": 0,
+  "supplied_rows": 20,
+  "aligned_rows": 29,
+  "word_fills": [
+    {
+      "row": 1,
+      "word": 1,
+      "at": 12.4482,
+      "fill_pixels": 2210
+    },
+    {
+      "row": 2,
+      "word": 1,
+      "at": 19.937,
+      "fill_pixels": 3026
+    },
+    {
+      "row": 2,
+      "word": 2,
+      "at": 21.385,
+      "fill_pixels": 1582
+    },
+    {
+      "row": 2,
+      "word": 3,
+      "at": 22.717,
+      "fill_pixels": 3543
+    },
+    {
+      "row": 3,
+      "word": 1,
+      "at": 26.7966,
+      "fill_pixels": 2213
+    },
+    {
+      "row": 4,
+      "word": 1,
+      "at": 29.189,
+      "fill_pixels": 3217
+    },
+    {
+      "row": 4,
+      "word": 2,
+      "at": 30.632,
+      "fill_pixels": 1859
+    },
+    {
+      "row": 4,
+      "word": 3,
+      "at": 32.012,
+      "fill_pixels": 3599
+    },
+    {
+      "row": 5,
+      "word": 1,
+      "at": 36.1388,
+      "fill_pixels": 2200
+    },
+    {
+      "row": 6,
+      "word": 1,
+      "at": 38.088,
+      "fill_pixels": 1665
+    },
+    {
+      "row": 6,
+      "word": 2,
+      "at": 39.399,
+      "fill_pixels": 3322
+    },
+    {
+      "row": 6,
+      "word": 3,
+      "at": 41.373,
+      "fill_pixels": 3211
+    },
+    {
+      "row": 7,
+      "word": 1,
+      "at": 43.123,
+      "fill_pixels": 3640
+    },
+    {
+      "row": 7,
+      "word": 2,
+      "at": 44.446,
+      "fill_pixels": 1815
+    },
+    {
+      "row": 7,
+      "word": 3,
+      "at": 45.8945,
+      "fill_pixels": 2734
+    },
+    {
+      "row": 7,
+      "word": 4,
+      "at": 46.835,
+      "fill_pixels": 1325
+    },
+    {
+      "row": 8,
+      "word": 1,
+      "at": 49.527,
+      "fill_pixels": 1574
+    },
+    {
+      "row": 8,
+      "word": 2,
+      "at": 50.933,
+      "fill_pixels": 3344
+    },
+    {
+      "row": 8,
+      "word": 3,
+      "at": 52.877,
+      "fill_pixels": 3192
+    },
+    {
+      "row": 9,
+      "word": 1,
+      "at": 54.662,
+      "fill_pixels": 3662
+    },
+    {
+      "row": 9,
+      "word": 2,
+      "at": 55.993,
+      "fill_pixels": 1851
+    },
+    {
+      "row": 9,
+      "word": 3,
+      "at": 57.521,
+      "fill_pixels": 2755
+    },
+    {
+      "row": 9,
+      "word": 4,
+      "at": 58.44,
+      "fill_pixels": 1271
+    },
+    {
+      "row": 10,
+      "word": 1,
+      "at": 61.62,
+      "fill_pixels": 3052
+    },
+    {
+      "row": 10,
+      "word": 2,
+      "at": 63.271,
+      "fill_pixels": 2874
+    },
+    {
+      "row": 10,
+      "word": 3,
+      "at": 64.482,
+      "fill_pixels": 1627
+    },
+    {
+      "row": 11,
+      "word": 1,
+      "at": 66.221,
+      "fill_pixels": 3395
+    },
+    {
+      "row": 11,
+      "word": 2,
+      "at": 67.925,
+      "fill_pixels": 2580
+    },
+    {
+      "row": 11,
+      "word": 3,
+      "at": 69.014,
+      "fill_pixels": 1705
+    },
+    {
+      "row": 12,
+      "word": 1,
+      "at": 70.521,
+      "fill_pixels": 1178
+    },
+    {
+      "row": 12,
+      "word": 2,
+      "at": 71.294,
+      "fill_pixels": 1683
+    },
+    {
+      "row": 12,
+      "word": 3,
+      "at": 72.678,
+      "fill_pixels": 2752
+    },
+    {
+      "row": 12,
+      "word": 4,
+      "at": 73.699,
+      "fill_pixels": 1658
+    },
+    {
+      "row": 13,
+      "word": 1,
+      "at": 75.416,
+      "fill_pixels": 3664
+    },
+    {
+      "row": 13,
+      "word": 2,
+      "at": 76.745,
+      "fill_pixels": 1836
+    },
+    {
+      "row": 13,
+      "word": 3,
+      "at": 78.255,
+      "fill_pixels": 2742
+    },
+    {
+      "row": 13,
+      "word": 4,
+      "at": 79.112,
+      "fill_pixels": 1253
+    },
+    {
+      "row": 14,
+      "word": 1,
+      "at": 93.29,
+      "fill_pixels": 2214
+    },
+    {
+      "row": 15,
+      "word": 1,
+      "at": 100.724,
+      "fill_pixels": 2041
+    },
+    {
+      "row": 15,
+      "word": 2,
+      "at": 101.375,
+      "fill_pixels": 1658
+    },
+    {
+      "row": 15,
+      "word": 3,
+      "at": 102.597,
+      "fill_pixels": 1323
+    },
+    {
+      "row": 15,
+      "word": 4,
+      "at": 103.488,
+      "fill_pixels": 3338
+    },
+    {
+      "row": 16,
+      "word": 1,
+      "at": 107.3744,
+      "fill_pixels": 2203
+    },
+    {
+      "row": 17,
+      "word": 1,
+      "at": 109.693,
+      "fill_pixels": 2138
+    },
+    {
+      "row": 17,
+      "word": 2,
+      "at": 110.237,
+      "fill_pixels": 1439
+    },
+    {
+      "row": 17,
+      "word": 3,
+      "at": 110.721,
+      "fill_pixels": 1312
+    },
+    {
+      "row": 17,
+      "word": 4,
+      "at": 111.717,
+      "fill_pixels": 1854
+    },
+    {
+      "row": 17,
+      "word": 5,
+      "at": 112.849,
+      "fill_pixels": 3277
+    },
+    {
+      "row": 18,
+      "word": 1,
+      "at": 118.933,
+      "fill_pixels": 524
+    },
+    {
+      "row": 18,
+      "word": 2,
+      "at": 119.397,
+      "fill_pixels": 1489
+    },
+    {
+      "row": 18,
+      "word": 3,
+      "at": 120.602,
+      "fill_pixels": 2659
+    },
+    {
+      "row": 18,
+      "word": 4,
+      "at": 121.968,
+      "fill_pixels": 3324
+    },
+    {
+      "row": 19,
+      "word": 1,
+      "at": 123.883,
+      "fill_pixels": 3635
+    },
+    {
+      "row": 19,
+      "word": 2,
+      "at": 125.205,
+      "fill_pixels": 1852
+    },
+    {
+      "row": 19,
+      "word": 3,
+      "at": 126.592,
+      "fill_pixels": 2750
+    },
+    {
+      "row": 19,
+      "word": 4,
+      "at": 127.736,
+      "fill_pixels": 1338
+    },
+    {
+      "row": 20,
+      "word": 1,
+      "at": 130.093,
+      "fill_pixels": 931
+    },
+    {
+      "row": 20,
+      "word": 2,
+      "at": 130.855,
+      "fill_pixels": 1467
+    },
+    {
+      "row": 20,
+      "word": 3,
+      "at": 132.08,
+      "fill_pixels": 2642
+    },
+    {
+      "row": 20,
+      "word": 4,
+      "at": 133.52,
+      "fill_pixels": 3348
+    },
+    {
+      "row": 21,
+      "word": 1,
+      "at": 135.448,
+      "fill_pixels": 3615
+    },
+    {
+      "row": 21,
+      "word": 2,
+      "at": 136.813,
+      "fill_pixels": 1820
+    },
+    {
+      "row": 21,
+      "word": 3,
+      "at": 138.279,
+      "fill_pixels": 2746
+    },
+    {
+      "row": 21,
+      "word": 4,
+      "at": 139.263,
+      "fill_pixels": 1216
+    },
+    {
+      "row": 22,
+      "word": 1,
+      "at": 141.782,
+      "fill_pixels": 1297
+    },
+    {
+      "row": 22,
+      "word": 2,
+      "at": 142.866,
+      "fill_pixels": 2549
+    },
+    {
+      "row": 22,
+      "word": 3,
+      "at": 143.861,
+      "fill_pixels": 1798
+    },
+    {
+      "row": 22,
+      "word": 4,
+      "at": 144.432,
+      "fill_pixels": 996
+    },
+    {
+      "row": 22,
+      "word": 5,
+      "at": 145.181,
+      "fill_pixels": 1465
+    },
+    {
+      "row": 23,
+      "word": 1,
+      "at": 146.908,
+      "fill_pixels": 3226
+    },
+    {
+      "row": 23,
+      "word": 2,
+      "at": 148.228,
+      "fill_pixels": 3129
+    },
+    {
+      "row": 23,
+      "word": 3,
+      "at": 149.685,
+      "fill_pixels": 1520
+    },
+    {
+      "row": 24,
+      "word": 1,
+      "at": 150.769,
+      "fill_pixels": 1361
+    },
+    {
+      "row": 24,
+      "word": 2,
+      "at": 151.849,
+      "fill_pixels": 2912
+    },
+    {
+      "row": 24,
+      "word": 3,
+      "at": 154.152,
+      "fill_pixels": 4164
+    },
+    {
+      "row": 25,
+      "word": 1,
+      "at": 156.228,
+      "fill_pixels": 3629
+    },
+    {
+      "row": 25,
+      "word": 2,
+      "at": 157.56,
+      "fill_pixels": 1853
+    },
+    {
+      "row": 25,
+      "word": 3,
+      "at": 158.899,
+      "fill_pixels": 2743
+    },
+    {
+      "row": 25,
+      "word": 4,
+      "at": 159.9725,
+      "fill_pixels": 1276
+    },
+    {
+      "row": 26,
+      "word": 1,
+      "at": 161.279,
+      "fill_pixels": 2449
+    },
+    {
+      "row": 26,
+      "word": 2,
+      "at": 162.281,
+      "fill_pixels": 1808
+    },
+    {
+      "row": 26,
+      "word": 3,
+      "at": 162.872,
+      "fill_pixels": 1189
+    },
+    {
+      "row": 26,
+      "word": 4,
+      "at": 163.584,
+      "fill_pixels": 1656
+    },
+    {
+      "row": 27,
+      "word": 1,
+      "at": 165.24,
+      "fill_pixels": 3232
+    },
+    {
+      "row": 27,
+      "word": 2,
+      "at": 166.636,
+      "fill_pixels": 3169
+    },
+    {
+      "row": 27,
+      "word": 3,
+      "at": 168.127,
+      "fill_pixels": 1371
+    },
+    {
+      "row": 28,
+      "word": 1,
+      "at": 169.41,
+      "fill_pixels": 1355
+    },
+    {
+      "row": 28,
+      "word": 2,
+      "at": 170.378,
+      "fill_pixels": 2908
+    },
+    {
+      "row": 28,
+      "word": 3,
+      "at": 172.559,
+      "fill_pixels": 4130
+    },
+    {
+      "row": 29,
+      "word": 1,
+      "at": 174.696,
+      "fill_pixels": 3645
+    },
+    {
+      "row": 29,
+      "word": 2,
+      "at": 176.149,
+      "fill_pixels": 1809
+    },
+    {
+      "row": 29,
+      "word": 3,
+      "at": 177.7975,
+      "fill_pixels": 2701
+    },
+    {
+      "row": 29,
+      "word": 4,
+      "at": 179.054,
+      "fill_pixels": 1276
+    }
+  ],
+  "solo_centers": [
+    959.5,
+    959.5,
+    959.5,
+    959.5,
+    959.5
+  ],
+  "handoff": [
+    {
+      "at": 160.79,
+      "gray_pixels": 3085,
+      "gray_bottom": 421
+    },
+    {
+      "at": 160.85,
+      "gray_pixels": 5145,
+      "gray_bottom": 453
+    },
+    {
+      "at": 160.94,
+      "gray_pixels": 9795,
+      "gray_bottom": 516
+    },
+    {
+      "at": 161.03,
+      "gray_pixels": 11818,
+      "gray_bottom": 535
+    }
+  ],
+  "entry_lead_seconds": 0.24,
+  "fill_clock": "canonical acoustic word intervals; no animation delay",
+  "unit_tests_passed": 59,
+  "frontend_contract": "passed",
+  "project_disk_contract": "passed",
+  "production_build": "passed",
+  "header_auto_fill": {
+    "artist": "Ahmet Kaya",
+    "title": "Kara Yazı",
+    "manual_edit_survives_reload": true
+  },
+  "review_recovery": "Bounded CTC and independent channel/repetition evidence; full neighboring-line retry",
+  "limitations": "Timing warnings and rendered pixels are not an independent human ground-truth timing score."
+}

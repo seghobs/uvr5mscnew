@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {Play,Pause,RotateCcw,RotateCw,Volume2,VolumeX,Maximize,Minimize,Clapperboard} from 'lucide-react';
 import type {LyricSegment} from '@/lib/types';
-import {videoSegments,wordFillWithNeighbors,soloWindows,rowDisplayEnd,isInstrumentalText} from '@/lib/karaoke-timing';
+import {videoSegments,wordFillWithNeighbors,soloWindows,rowMotion,rowPose,isInstrumentalText} from '@/lib/karaoke-timing';
 
 export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPlay}:{onPlay:()=>void;file:string;segments:LyricSegment[];theme:string;aspectRatio:string;header:string}) {
   const canvas=useRef<HTMLCanvasElement>(null),audio=useRef<HTMLAudioElement>(null);
@@ -21,7 +21,7 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
     setError(code===3?'Tarayıcı sesi çözemedi. Ses dosyasını yeniden yükleyin.':code===4?'Ses kaynağı açılamadı veya biçimi desteklenmiyor. Yeniden yüklemeyi deneyin.':'Ses bağlantısı kesildi. Kaldığınız süreyi koruyarak yeniden yükleyebilirsiniz.');
   };
   const backdrop=useRef<HTMLImageElement|null>(null);
-  useEffect(()=>{const image=new Image();let active=true;image.onload=()=>{if(active)backdrop.current=image;};image.src=`/api/karaoke/background?v=3&theme=${encodeURIComponent(theme)}&vertical=${aspectRatio==='9:16'}`;return()=>{active=false;};},[theme,aspectRatio]);
+  useEffect(()=>{const image=new Image();let active=true;image.onload=()=>{if(active)backdrop.current=image;};image.src=`/api/karaoke/background?v=4&theme=${encodeURIComponent(theme)}&vertical=${aspectRatio==='9:16'}`;return()=>{active=false;};},[theme,aspectRatio]);
   const shell=useRef<HTMLElement>(null);
   const [playing,setPlaying]=useState(false),[position,setPosition]=useState(0),[duration,setDuration]=useState(0),[volume,setVolume]=useState(1),[fullscreen,setFullscreen]=useState(false);
   const clock=(t:number)=>`${Math.floor(t/60).toString().padStart(2,'0')}:${Math.floor(t%60).toString().padStart(2,'0')}`;
@@ -31,8 +31,8 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
   useEffect(()=>{const update=()=>setFullscreen(document.fullscreenElement===shell.current);document.addEventListener('fullscreenchange',update);return()=>document.removeEventListener('fullscreenchange',update);},[]);
   const toggleFullscreen=async()=>{try{if(document.fullscreenElement===shell.current)await document.exitFullscreen();else await shell.current?.requestFullscreen();}catch{setError('Bu tarayıcı tam ekranı açamadı.');}};
   const schedule=useMemo(()=>{
-    const rows=videoSegments(segments).filter(s=>s.text.trim()).map(row=>({...row,start:Math.max(0,row.start-(isInstrumentalText(row.text)?0:.12))})).sort((a,b)=>a.start-b.start);
-    return rows.map((row,i)=>({row,end:rowDisplayEnd(row,i===rows.length-1,rows[i+1]?.start)})).filter(s=>s.end>s.row.start);
+    const source=videoSegments(segments).filter(s=>s.text.trim()).slice().sort((a,b)=>a.start-b.start);
+    return source.map((row,i)=>({row,motion:rowMotion(row,i===source.length-1,source[i+1]?.start)}));
   },[segments]);
   const solos=useMemo(()=>soloWindows(videoSegments(segments),duration),[segments,duration]);
   const analyser=useRef<AnalyserNode|null>(null),context=useRef<AudioContext|null>(null);
@@ -88,11 +88,13 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
         c.fillText(`${Math.floor(remaining/60).toString().padStart(2,'0')}:${(remaining%60).toString().padStart(2,'0')} KALDI`,right+24,205);c.restore();
       }
       for(let i=0;i<14;i++){const elapsed=time-i*.65;if(elapsed<0)continue;const phase=(elapsed%12)/12;const x=i%2===0?24+(i*13)%32:width-24-(i*13)%32;c.fillStyle='rgba(187,204,221,'+(.43*Math.min(1,phase*6,(1-phase)*6))+')';c.fillRect(x+phase*12,(height-70)+(170-height+70)*phase,3,3);}
-      const index=schedule.findIndex(s=>time>=s.row.start&&time<s.end);
-      const active=index>=0?schedule[index]:undefined;
-      const upcoming=active?schedule[index+1]:schedule.find(s=>s.row.start>time);
-      const y=vertical?1010:550,size=vertical?70:76;
-      if(active){
+      const visible=schedule.map(s=>({...s,pose:rowPose(s.row,s.motion,time)})).filter(s=>s.pose!==null);
+      const upcoming=schedule.find((s,i)=>s.motion.enter>time&&(i===0||schedule[i-1].row.start<=time));
+      const baseline=vertical?1010:550,size=vertical?70:76,distance=vertical?180:160;
+      for(const active of visible){
+        const pose=active.pose!;const y=baseline+pose.offset*distance;
+        c.save();c.globalAlpha=pose.opacity;
+        if(time<active.row.start){text(active.row.text,y,size*pose.scale,'#b4b9c6');c.restore();continue;}
         const row=active.row;const words=row.words||[];
         if(!words.length)text(row.text,y,size,'white');
         if(words.length){
@@ -104,14 +106,15 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
           // Draw base and fill from the same measured layout, including silent gaps.
 
           c.save();c.translate((width-total*scale)/2,0);c.scale(scale,1);c.textAlign='left';let x=0;
-          const stops:Record<string,[string,string]>={gold:['#fff1ac','#f49a55'],neon:['#b0fff1','#6699ff'],cyberpunk:['#ffb2ed','#aa79ff'],emerald:['#c4ffe2','#3fbca9']};
+          const stops:Record<string,[string,string]>={gold:['#ffc800','#ff9800'],neon:['#06e6ff','#00b8e6'],cyberpunk:['#ff40e0','#d800bd'],emerald:['#20ea70','#00bb50']};
           const [light,dark]=stops[theme]||stops.gold;
           const fill=c.createLinearGradient(0,y-size,0,y);fill.addColorStop(0,light);fill.addColorStop(1,dark);
-          words.forEach((word,i)=>{c.fillStyle='white';c.strokeText(pieces[i],x,y);c.fillText(pieces[i],x,y);const fraction=wordFillWithNeighbors(word,time,words[i-1],words[i+1]);if(fraction>0){const wordWidth=wordWidths[i];const sweep=c.createLinearGradient(x,0,x+wordWidth,0);sweep.addColorStop(0,light);sweep.addColorStop(Math.max(0,fraction-.04),light);sweep.addColorStop(Math.min(1,fraction+.04),fraction>=1?light:'white');sweep.addColorStop(1,fraction>=1?light:'white');c.fillStyle=sweep;c.fillText(pieces[i],x,y);}x+=widths[i];});c.restore();
+          words.forEach((word,i)=>{c.fillStyle='#b4b9c6';c.strokeText(pieces[i],x,y);c.fillText(pieces[i],x,y);const fraction=wordFillWithNeighbors(word,time,words[i-1],words[i+1]);if(fraction>0){const wordWidth=wordWidths[i];const sweep=c.createLinearGradient(x,0,x+wordWidth,0);sweep.addColorStop(0,light);sweep.addColorStop(Math.max(0,fraction-.04),light);sweep.addColorStop(Math.min(1,fraction+.04),fraction>=1?light:'#b4b9c6');sweep.addColorStop(1,fraction>=1?light:'#b4b9c6');c.fillStyle=sweep;c.fillText(pieces[i],x,y);}x+=widths[i];});c.restore();
         }
+        c.restore();
       }
-      if(!active&&solos.some(([start,end])=>time>=start&&time<end))text('Solo...',y,44,'#d0c4ed',false);
-      if(upcoming&&!isInstrumentalText(upcoming.row.text))text(upcoming.row.text,vertical?1260:750,vertical?34:30,'#95959c',false);
+      if(!visible.length&&solos.some(([start,end])=>time>=start&&time<end))text('Solo...',baseline,44,'#d0c4ed',false);
+      if(upcoming&&!isInstrumentalText(upcoming.row.text))text(upcoming.row.text,baseline-distance,size*.4,'#95959c',false);
       frame=requestAnimationFrame(draw);
     };draw();return ()=>cancelAnimationFrame(frame);
   },[schedule,solos,theme,aspectRatio,header]);

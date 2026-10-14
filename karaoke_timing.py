@@ -16,7 +16,10 @@ def render_windows(segments, lead=0.0):
         if not is_music_label(row.get('text','')):
             good=[w for w in row.get('words',[]) if w.get('end',0)>w.get('start',0)]
             if good:row['start']=min(row['start'],min(w['start'] for w in good));row['end']=max(row['end'],max(w['end'] for w in good))
-            row['start']=max(0,row['start']-lead)
+    for index,row in enumerate(ordered):
+        if not is_music_label(row.get('text','')):
+            original=row['start']
+            row['start']=max(0,original-lead,min(original,ordered[index-1]['end']) if index else 0)
     result = []
     for index, segment in enumerate(ordered):
         music=is_music_label(segment.get('text',''))

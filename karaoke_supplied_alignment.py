@@ -134,6 +134,8 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         last_progress=max(last_progress,min(.99,value));progress(last_progress,message)
     def finish(completed):
         result,report=assemble(rows,completed,duration)
+        from karaoke_review_recovery import recover_row_reviews
+        report['full_row_review_repairs']=recover_row_reviews(audio_path,result,emit)
         report.update(repeat_report)
         result,solo_report=place_interludes(result,duration,voice_regions,music_regions,available)
         for row in result:row['alignment_mode']='supplied_ctc'
@@ -252,19 +254,25 @@ def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,pr
     import torchaudio.functional as AF
     from karaoke_ctc import normalized_words,words_from_spans
     repaired=0
+    feature_cache={}
     for index,word in enumerate(words):
         if word.get('timing_source')=='manual' and not word.get('needs_review'):continue
+        if threshold>.1 and not word.get('needs_review'):continue
         if word['probability']>=threshold and not (threshold>.1 and word.get('needs_review')):continue
         progress(.86,'Belirsiz kelime, komşularıyla ve ses kanallarıyla kontrol ediliyor…')
-        first=max(0,index-1);last=min(len(words),index+2)
+        first=max(0,index-2);last=min(len(words),index+2)
+        if index+1<len(words) and words[index+1]['start']-word['end']>.35:last=index+1
         phrase=words[first:last]
-        a=max(start,phrase[0]['start']-.25);b=min(end,phrase[-1]['end']+.35)
-        if b<=a:continue
         original=copy.deepcopy(word);best=original;candidates=[]
         lower=words[index-1]['end'] if index else start
         upper=words[index+1]['start'] if index+1<len(words) else end
         normalized=normalized_words(phrase,vocab);targets=[vocab[c] for c in '|'.join(normalized)]
-        for channel in ('mix','left','right'):
+        for padding,channel in ((p,c) for p in (.15,.35,.7) for c in ('mix','left','right')):
+            # The context must exclude the next sung word outside the target
+            # phrase; otherwise CTC stretches a held final syllable over it.
+            a=max(start,phrase[0]['start']-padding,words[first-1]['end'] if first else start)
+            b=min(end,phrase[-1]['end']+padding,words[last]['start'] if last<len(words) else end)
+            if b<=a:continue
             clip=audio[round((a-start)*rate):round((b-start)*rate)]
             if not len(clip):continue
             mono=clip.mean(axis=1) if channel=='mix' else clip[:,0 if channel=='left' else min(1,clip.shape[1]-1)]
@@ -280,11 +288,15 @@ def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,pr
             except (ValueError,RuntimeError):continue
             lower=words[index-1]['end'] if index else start
             upper=words[index+1]['start'] if index+1<len(words) else end
-            candidates.append({**candidate,'recovery_channel':channel})
+            candidates.append({**candidate,'recovery_channel':channel,'context_padding':padding})
             if lower<=candidate['start']<candidate['end']<=upper and candidate['probability']>best['probability']:
                 best={**candidate,'recovery_channel':channel}
         if threshold>.1:
             best=choose_boundary_candidate(original,candidates,lower,upper)
+            if best==original:
+                from karaoke_review_recovery import repeated_audio_support,repeat_boundary_candidate
+                same,other=repeated_audio_support(audio,rate,start,words,index,feature_cache)
+                best=repeat_boundary_candidate(original,candidates,lower,upper,same,other)
         if best!=original:repaired+=1
         words[index]=best
     return repaired
