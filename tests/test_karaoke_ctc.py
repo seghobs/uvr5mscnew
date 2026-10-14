@@ -4,6 +4,52 @@ from karaoke_ctc import normalized_words, words_from_spans
 
 
 class CharacterAlignmentTests(unittest.TestCase):
+    def vocab(self):
+        return {c:i for i,c in enumerate('|abcdefghijklmnopqrstuvwxyzçöüğış')}
+
+    def test_mixed_script_copy_paste_is_repaired_without_changing_lyrics(self):
+        words=[{'word':'DİĞERİNDЕ'},{'word':'KЕNDİNCE'},{'word':'KΑHVE'},{'word':'КAHVE'}]
+        original=[dict(w) for w in words]
+        self.assertEqual(normalized_words(words,self.vocab()),['diğerinde','kendince','kahve','kahve'])
+        self.assertEqual(words,original)
+
+    def test_typographic_forms_accents_and_invisible_formatting(self):
+        words=[{'word':s} for s in ['ＫＡＨＶＥ','ka\u200bhve','kah\u00adve','âşık','İYİ','IŞIK','ÖZÜ','ŞE\u0301KER']]
+        self.assertEqual(normalized_words(words,self.vocab()),['kahve','kahve','kahve','aşık','iyi','ışık','özü','şeker'])
+
+    def test_foreign_words_are_not_guessed_or_partially_erased(self):
+        for text in ['СОН','世界','kara2','KЖHVE']:
+            with self.assertRaises(ValueError):normalized_words([{'word':text}],self.vocab())
+
+    def test_unsupported_word_preserves_positions_and_known_alignment(self):
+        from karaoke_ctc import supported_targets,restore_unsupported_words
+        from karaoke_supplied_alignment import assemble
+        words=[{'word':s} for s in ['GEL','KЖHVE','GEL']]
+        indices,targets=supported_targets(words,self.vocab())
+        self.assertEqual(indices,[0,2]);self.assertEqual(targets,['gel','gel'])
+        aligned=[dict(word='GEL',start=t,end=t+.5,probability=.9,timing_source='ctc',needs_review=False) for t in [1,4]]
+        restored=restore_unsupported_words(words,indices,aligned,0)
+        result,report=assemble([dict(text='GEL KЖHVE GEL',start=0,end=5)], [([0],restored)],5)
+        self.assertEqual([w['word'] for w in result[0]['words']],['GEL','KЖHVE','GEL'])
+        self.assertEqual(result[0]['words'][0],aligned[0]);self.assertEqual(result[0]['words'][2],aligned[1])
+        self.assertTrue(result[0]['words'][1]['needs_review']);self.assertEqual(report['linked_words'],2)
+        self.assertEqual(report['review_rows'],[1])
+        missing=restore_unsupported_words([{'word':'世界'}],[],[],0)
+        self.assertEqual(missing[0]['start'],missing[0]['end'])
+
+    def test_repeat_scan_skips_unknown_text_without_aborting_other_rows(self):
+        import numpy as np
+        from karaoke_repeat_spotting import find_occurrences,text_key,expand_supplied_rows
+        vocab=self.vocab();vocab['[PAD]']=len(vocab)
+        emission=np.full((30,len(vocab)),-10,dtype=np.float32);emission[:,vocab['[PAD]']]=0
+        row=dict(id='unknown',text='KЖHVE',start=0,end=0,words=[])
+        self.assertEqual(find_occurrences(emission,row,vocab),[])
+        self.assertTrue(text_key(row,vocab).startswith('\0unsupported:'))
+        self.assertEqual(text_key({'text':'KЕNDİNCE'},vocab),text_key({'text':'KENDİNCE'},vocab))
+        rows=[row,dict(id='normal',text='GEL BANA',start=0,end=0,words=[])]
+        expanded,_,_=expand_supplied_rows(rows,emission,vocab)
+        self.assertEqual([r['text'] for r in expanded],[r['text'] for r in rows])
+
     def test_stereo_retries_preserve_channel_evidence_and_support_mono(self):
         import numpy as np
         from karaoke_ctc import alignment_mono

@@ -1,0 +1,53 @@
+{
+  "recording": "Tuzlu Kahve",
+  "file": "AtlasStudio_Vocals_50750552e791.wav",
+  "input_rows": 40,
+  "input_words": 170,
+  "full_song_api_status": "completed",
+  "automatic_character_repair": {
+    "character": "CYRILLIC CAPITAL LETTER IE (U+0415)",
+    "latin_target": "E",
+    "input_rows": [
+      26,
+      28
+    ]
+  },
+  "corrected_words_acoustically_aligned": [
+    {
+      "word": "DİĞERİNDЕ",
+      "start": 93.62,
+      "end": 94.4,
+      "probability": 0.7889373203118643,
+      "timing_source": "ctc",
+      "needs_review": false
+    },
+    {
+      "word": "KЕNDİNCE",
+      "start": 97.66,
+      "end": 98.46000000000001,
+      "probability": 0.8494236394762993,
+      "timing_source": "ctc",
+      "needs_review": false
+    }
+  ],
+  "supplied_text_preserved": true,
+  "live_saved_result_verified": true,
+  "other_lyrics_records_unchanged": 16,
+  "python_regression_tests_passed": 85,
+  "render_validation_issues": [],
+  "remaining_review_rows": [
+    3,
+    9,
+    17,
+    20,
+    23,
+    24,
+    30,
+    38,
+    39,
+    40,
+    41
+  ],
+  "remaining_review_word_count": 18,
+  "note": "Character-encoding failure fixed. Remaining acoustic review warnings are not claimed as verified timings."
+}

@@ -118,7 +118,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     import torch
     import torchaudio.functional as AF
     from transformers import Wav2Vec2ForCTC,Wav2Vec2FeatureExtractor
-    from karaoke_ctc import MODEL_DIR,MODEL_ID,MODEL_REVISION,normalized_words,words_from_spans
+    from karaoke_ctc import MODEL_DIR,MODEL_ID,MODEL_REVISION,words_from_spans,supported_targets,restore_unsupported_words
     from karaoke_interludes import generated,music_evidence,place_interludes,regions
     from karaoke_repeat_spotting import expand_supplied_rows,local_verifier
     import json
@@ -208,14 +208,17 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
                 index=row['_original_index'];before[index]=pending;pending=[];replacements[index]=row
             if pending:after[indices[-1]]=pending
             words=[{'word':t} for row in expanded for t in row['text'].split() if spoken(t)]
-            normalized=normalized_words(words,vocab);targets=[vocab[c] for c in '|'.join(normalized)]
+            supported,normalized=supported_targets(words,vocab);targets=[vocab[c] for c in '|'.join(normalized)]
             emission=emissions[0]
             emit(.96*(block_index+.90)/len(blocks),'Tüm dönüşler yerleştirildi; kelimeler bağlanıyor…')
             evidence=(1-emission[0,:,vocab.get('[PAD]',0)].exp()).numpy()>.35
             voice_regions.extend([start+a,start+b] for a,b in regions(evidence,min_length=.02,bridge=.45))
-            path,scores=AF.forced_align(emission,torch.tensor([targets],dtype=torch.int32),blank=vocab.get('[PAD]',0))
-            spans=AF.merge_tokens(path[0],scores[0].exp(),blank=vocab.get('[PAD]',0))
-            aligned=words_from_spans(words,normalized,spans,targets,hop/16000,start)
+            aligned=[]
+            if targets:
+                path,scores=AF.forced_align(emission,torch.tensor([targets],dtype=torch.int32),blank=vocab.get('[PAD]',0))
+                spans=AF.merge_tokens(path[0],scores[0].exp(),blank=vocab.get('[PAD]',0))
+                aligned=words_from_spans([words[i] for i in supported],normalized,spans,targets,hop/16000,start)
+            aligned=restore_unsupported_words(words,supported,aligned,start)
             for word in aligned:word['end']=min(end,word['end'])
             rescue_weak_words(audio,rate,start,end,aligned,model,extractor,vocab,device,
                 lambda p,message:emit(.96*(block_index+.95)/len(blocks),message))
@@ -269,7 +272,9 @@ def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,pr
         original=copy.deepcopy(word);best=original;candidates=[]
         lower=words[index-1]['end'] if index else start
         upper=words[index+1]['start'] if index+1<len(words) else end
-        normalized=normalized_words(phrase,vocab);targets=[vocab[c] for c in '|'.join(normalized)]
+        try:normalized=normalized_words(phrase,vocab)
+        except ValueError:continue
+        targets=[vocab[c] for c in '|'.join(normalized)]
         for padding,channel in ((p,c) for p in (.15,.35,.7) for c in ('mix','left','right')):
             # The context must exclude the next sung word outside the target
             # phrase; otherwise CTC stretches a held final syllable over it.
@@ -314,7 +319,9 @@ def repair_anomalous_words(aligned,rows,vocab,start,end):
         proposal=row.get('_occurrence_words') or []
         original=row.get('words') or []
         if len(proposal)!=len(tokens):cursor+=len(tokens);continue
-        if normalized_words([{'word':t} for t in tokens],vocab)!=normalized_words(proposal,vocab):
+        try:matching=normalized_words([{'word':t} for t in tokens],vocab)==normalized_words(proposal,vocab)
+        except ValueError:matching=False
+        if not matching:
             cursor+=len(tokens);continue
         for index,alternative in enumerate(proposal):
             word=aligned[cursor+index]

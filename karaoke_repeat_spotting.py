@@ -30,7 +30,8 @@ def find_occurrences(emission,row,vocab,threshold=-3.0,rescue=None):
     from karaoke_ctc import normalized_words,words_from_spans
     from karaoke_supplied_alignment import spoken
     words=[{'word':t} for t in row['text'].split() if spoken(t)]
-    normalized=normalized_words(words,vocab)
+    try:normalized=normalized_words(words,vocab)
+    except ValueError:return []
     targets=np.asarray([vocab[c] for c in '|'.join(normalized)],np.int32)
     if len(targets)<5:return []
     scores,starts=phrase_paths(emission,targets,vocab.get('[PAD]',0))
@@ -80,7 +81,8 @@ def find_occurrences(emission,row,vocab,threshold=-3.0,rescue=None):
 def text_key(row,vocab):
     from karaoke_ctc import normalized_words
     from karaoke_supplied_alignment import spoken
-    return ''.join(normalized_words([{'word':t} for t in row['text'].split() if spoken(t)],vocab))
+    try:return ''.join(normalized_words([{'word':t} for t in row['text'].split() if spoken(t)],vocab))
+    except ValueError:return '\0unsupported:'+row['text']
 
 
 def bound_terminal_phrase(hit,rows,views,vocab):
@@ -98,7 +100,8 @@ def bound_terminal_phrase(hit,rows,views,vocab):
     contexts=[]
     for row in rows:
         tokens=[t for t in row['text'].split() if spoken(t)]
-        keys=normalized_words([{'word':t} for t in tokens],vocab)
+        try:keys=normalized_words([{'word':t} for t in tokens],vocab)
+        except ValueError:continue
         if len(keys)>len(normalized) and keys[:len(normalized)]==normalized:
             contexts.append(prefix+[tokens[len(prefix)]])
     if len(views)<2:return None
@@ -267,7 +270,9 @@ def local_verifier(audio,rate,model,extractor,vocab,device,progress=lambda *args
         from karaoke_ctc import normalized_words,words_from_spans
         from karaoke_supplied_alignment import spoken,alignment_mono,rescue_weak_words
         words=[{'word':t} for t in row['text'].split() if spoken(t)]
-        normalized=normalized_words(words,vocab);targets=[vocab[c] for c in '|'.join(normalized)]
+        try:normalized=normalized_words(words,vocab)
+        except ValueError:return None
+        targets=[vocab[c] for c in '|'.join(normalized)]
         left=max(0,a-.1);right=min(len(audio)/rate,b+.1)
         if right-left>.02*max(500,len(targets)*40):return None
         clip=audio[round(left*rate):round(right*rate)]

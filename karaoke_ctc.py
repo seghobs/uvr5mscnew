@@ -12,6 +12,34 @@ MODEL_ID = 'mpoyraz/wav2vec2-xls-r-300m-cv7-turkish'
 MODEL_REVISION = '708639f50559d7970f462e13ec64d3f059ca89f6'
 MODEL_DIR = Path(__file__).resolve().parent / 'models/alignment/turkish-ctc'
 
+# Copy/paste can mix scripts that render identically. This is visual repair,
+# not transliteration: require Latin context (or a single lookalike letter).
+LOOKALIKE_LETTERS = str.maketrans({
+    'А':'A','В':'B','С':'C','Е':'E','Н':'H','І':'I','Ј':'J','К':'K',
+    'М':'M','О':'O','Р':'P','Ѕ':'S','Т':'T','Х':'X','У':'Y',
+    'а':'a','с':'c','е':'e','і':'i','ј':'j','о':'o','р':'p','ѕ':'s','х':'x','у':'y',
+    'Α':'A','Β':'B','Ε':'E','Ζ':'Z','Η':'H','Ι':'I','Κ':'K','Μ':'M',
+    'Ν':'N','Ο':'O','Ρ':'P','Τ':'T','Υ':'Y','Χ':'X','ο':'o',
+})
+
+
+def acoustic_text(text, vocab):
+    text = unicodedata.normalize('NFKC', text)
+    letters = [c for c in text if c.isalpha()]
+    if len(letters)==1 or any('LATIN' in unicodedata.name(c,'') for c in letters):
+        text = text.translate(LOOKALIKE_LETTERS)
+    text = text.replace('I','ı').replace('İ','i').lower()
+    result=[]
+    for char in text:
+        category=unicodedata.category(char)
+        if category.startswith('P') or category=='Cf' or '\ufe00'<=char<='\ufe0f':continue
+        if char not in vocab and 'LATIN' in unicodedata.name(char,''):
+            # Preserve Turkish letters present in the model; fold only other
+            # Latin accents such as circumflexes and imported acute accents.
+            char=''.join(c for c in unicodedata.normalize('NFD',char) if unicodedata.category(c)!='Mn')
+        result.append(char)
+    return ''.join(result)
+
 
 def alignment_mono(audio, channel):
     if channel not in ('mix', 'left', 'right'):
@@ -32,13 +60,32 @@ def clamp_sample_start(aligned, start, rate):
 def normalized_words(words, vocab):
     result = []
     for word in words:
-        text = unicodedata.normalize('NFC', word['word']).replace('I', 'ı').replace('İ', 'i').lower()
-        # Fold unsupported circumflexes only in the acoustic target, not lyrics.
-        text = ''.join({'â':'a','î':'i','û':'u'}.get(c,c) if c not in vocab else c for c in text)
-        text = ''.join(c for c in text if not unicodedata.category(c).startswith('P'))
+        text = acoustic_text(word['word'], vocab)
         if not text or any(c not in vocab or c.isspace() for c in text):
             raise ValueError('Kelimenin tüm harfleri hizalama modelinde temsil edilemiyor.')
         result.append(text)
+    return result
+
+
+def supported_targets(words, vocab):
+    """Keep a one-to-one index map; never truncate an unsupported word."""
+    indices=[];normalized=[]
+    for index,word in enumerate(words):
+        try:target=normalized_words([word],vocab)[0]
+        except ValueError:continue
+        indices.append(index);normalized.append(target)
+    return indices,normalized
+
+
+def restore_unsupported_words(words, indices, aligned, start):
+    """An unrepresentable word stays visible and unbound, not falsely timed."""
+    known=dict(zip(indices,aligned));result=[];previous=start
+    for index,word in enumerate(words):
+        if index in known:
+            result.append(known[index]);previous=known[index]['end']
+        else:
+            result.append({**word,'start':previous,'end':previous,'probability':0.,
+                           'timing_source':'estimated','needs_review':True})
     return result
 
 
@@ -121,10 +168,9 @@ def refine_turkish(audio_path, segments, language, progress=None, include_syllab
                 for word in words:
                     word['needs_review'] = True
                 continue
-            try:
-                normalized = normalized_words(words, vocab)
-                target_ids = [vocab[c] for c in '|'.join(normalized)]
-            except ValueError:
+            indices,normalized = supported_targets(words, vocab)
+            target_ids = [vocab[c] for c in '|'.join(normalized)]
+            if not target_ids:
                 for word in words:
                     word['needs_review'] = True
                 continue
@@ -141,8 +187,9 @@ def refine_turkish(audio_path, segments, language, progress=None, include_syllab
             try:
                 path, scores = AF.forced_align(emissions, targets, blank=0)
                 spans = AF.merge_tokens(path[0], scores[0].exp(), blank=0)
-                aligned = words_from_spans(words, normalized, spans, target_ids,
+                aligned = words_from_spans([words[i] for i in indices], normalized, spans, target_ids,
                                            len(audio) / rate / emissions.shape[1], offset, include_syllables)
+                aligned = restore_unsupported_words(words, indices, aligned, start)
                 # Reading starts at floor(start * rate). Clamp only the sub-sample
                 # rounding residue, never a genuinely out-of-range occurrence.
                 clamp_sample_start(aligned, start, rate)
