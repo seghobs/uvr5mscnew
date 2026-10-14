@@ -17,7 +17,7 @@ function main() {
   if (backend !== 0) return backend || 1;
   if (existing === 10) {
     run(python, [path.join(root, 'service_control.py'), 'frontend-focus']);
-    const browser = spawn(process.execPath, [path.join(__dirname, 'open-browser.js')], { detached: true, stdio: 'ignore', windowsHide: true });
+    const browser = spawn(process.execPath, [path.join(__dirname, 'open-browser.js')], { stdio: 'ignore', windowsHide: false });
     browser.unref();
     return 0;
   }
@@ -25,7 +25,7 @@ function main() {
   server.once('error', error => { console.error(error.message); process.exitCode = 1; });
   server.once('exit', code => { process.exitCode = code === null ? 1 : code; });
   // The watcher opens the browser only after production responds successfully.
-  const browser = spawn(process.execPath, [path.join(__dirname, 'open-browser.js')], { detached: true, stdio: 'ignore', windowsHide: true });
+  const browser = spawn(process.execPath, [path.join(__dirname, 'open-browser.js')], { stdio: 'ignore', windowsHide: false });
   browser.unref();
 }
 

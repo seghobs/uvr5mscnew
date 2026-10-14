@@ -92,9 +92,8 @@ function spawnBrowserWatcher() {
   const browserScript = path.join(__dirname, 'open-browser.js');
   const watcher = spawn(process.execPath, [browserScript], {
     cwd: __dirname,
-    detached: true,
     stdio: 'ignore',
-    windowsHide: true,
+    windowsHide: false,
   });
   watcher.unref();
 }

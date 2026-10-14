@@ -33,7 +33,7 @@ echo [Backend] Hazir: http://127.0.0.1:8000
 echo [Derleme] Uretim derlemesi tamamlandi.
 echo [Frontend] Baslatiliyor: http://localhost:3000
 echo Uygulama uretim modunda aciliyor...
-call npm run start
+node scripts\start-production.js
 set "uvr_exit_code=%errorlevel%"
 exit %uvr_exit_code%
 

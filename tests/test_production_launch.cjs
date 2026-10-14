@@ -8,7 +8,7 @@ function simulate(statuses) {
   const calls = [], process = { platform: 'win32', execPath: 'node.exe' };
   const req = name => name === 'child_process' ? {
     spawnSync(command, args, options) { calls.push(['sync', command, args, options]); return { status: statuses.shift() }; },
-    spawn(command, args) { calls.push(['spawn', command, args]); return { once() {}, unref() {} }; },
+    spawn(command, args, options) { calls.push(['spawn', command, args, options]); return { once() {}, unref() {} }; },
   } : require(name);
   req.resolve = () => 'next/dist/bin/next';
   vm.runInNewContext(source, { require: req, __dirname: path.join(__dirname, '../frontend/scripts'), process, console });
@@ -36,11 +36,14 @@ test('backend ready before production and browser starts', () => {
   assert.ok(result.calls[1][2].includes('--no-browser'));
   assert.equal(result.calls[2][2][1], 'start');
   assert.match(result.calls[3][2][0], /open-browser/);
+  assert.notEqual(result.calls[3][3].detached, true);
 });
 
 test('launcher uses one console and closes it after shutdown or reuse',()=>{
   const batch=fs.readFileSync(path.join(__dirname,'../start.bat'),'utf8');
-  const shutdown=batch.slice(batch.indexOf('call npm run start'),batch.indexOf(':already_running'));
+  assert.match(batch,/node scripts\\start-production\.js/);
+  assert(!batch.includes('call npm run start'));
+  const shutdown=batch.slice(batch.indexOf('node scripts\\start-production.js'),batch.indexOf(':already_running'));
   assert(!shutdown.includes('pause'));
   assert.match(shutdown,/exit %uvr_exit_code%/);
   assert(!batch.includes('cmd /d /k'));
