@@ -4,15 +4,18 @@ import tempfile
 from unittest.mock import patch
 from types import SimpleNamespace
 import service_control as service
+import io
 
 
 class LaunchTests(unittest.TestCase):
     def test_batch_launch_keeps_output_in_invoking_console(self):
-        with tempfile.TemporaryDirectory() as directory,patch.object(service,'ROOT',Path(directory)),patch.object(service,'frontend_running',return_value=False),patch.object(service.subprocess,'call',return_value=0) as call:
+        output=io.BytesIO()
+        child=SimpleNamespace(stdout=io.BytesIO(b'[Backend] ready\n[Frontend] ready\n'),wait=lambda:0)
+        with tempfile.TemporaryDirectory() as directory,patch.object(service,'ROOT',Path(directory)),patch.object(service,'frontend_running',return_value=False),patch.object(service.subprocess,'Popen',return_value=child) as call,patch.object(service.sys,'stdout',SimpleNamespace(buffer=output,write=lambda text:None,flush=lambda:None)):
             self.assertEqual(service.launch_frontend(),0)
             self.assertEqual(call.call_args.args[0],['cmd.exe','/d','/c','call',str(Path(directory)/'start.bat'),'--owned'])
-            self.assertIs(call.call_args.kwargs['stdout'],service.sys.stdout)
-            self.assertIs(call.call_args.kwargs['stderr'],service.sys.stderr)
+            self.assertEqual(call.call_args.kwargs['stdout'],service.subprocess.PIPE)
+            self.assertEqual(output.getvalue(),b'[Backend] ready\n[Frontend] ready\n')
 
     def test_old_shutdown_does_not_stop_new_server(self):
         with patch.object(service,'service_info',return_value={'pid':456}),patch.object(service,'stop') as stop:

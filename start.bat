@@ -15,7 +15,10 @@ where node >nul 2>nul
 if errorlevel 1 goto needs_setup
 if /i "%~1"=="--owned" goto launch_owned
 call "%~dp0env\python.exe" "%~dp0service_control.py" frontend-launch
-exit %errorlevel%
+echo.
+echo Baslatma islemi sonlandi. Bu pencere acik kalacak.
+cmd /d /k
+exit /b
 
 :launch_owned
 echo [Frontend] Baslatma kontrolu: http://localhost:3000
@@ -40,7 +43,7 @@ echo [Frontend] Baslatiliyor: http://localhost:3000
 echo Uygulama uretim modunda aciliyor...
 call npm run start
 set "uvr_exit_code=%errorlevel%"
-exit %uvr_exit_code%
+exit /b %uvr_exit_code%
 
 :already_running
 call node scripts\ensure-backend.js --no-browser --quiet
@@ -48,7 +51,7 @@ if errorlevel 1 goto launch_failed
 echo Uygulama zaten acik. Mevcut pencere tarayicida aciliyor...
 call "%~dp0env\python.exe" "%~dp0service_control.py" frontend-focus
 call node scripts\open-browser.js
-exit 0
+exit /b 0
 
 :launch_failed
 echo.

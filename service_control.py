@@ -128,8 +128,13 @@ def launch_frontend():
         try:
             print('UVR5: Backend hazırlanacak, ardından derleme ve uygulama başlatılacak.',flush=True)
             # CALL avoids CMD's outer-quote stripping when invoking a batch file.
-            return subprocess.call(['cmd.exe','/d','/c','call',str(ROOT/'start.bat'),'--owned'],cwd=ROOT,
-                                   stdin=sys.stdin,stdout=sys.stdout,stderr=sys.stderr)
+            process=subprocess.Popen(['cmd.exe','/d','/c','call',str(ROOT/'start.bat'),'--owned'],cwd=ROOT,
+                                     stdin=sys.stdin,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+            # Relay every child line explicitly; inherited console handles can be
+            # redirected by a Windows terminal host or an invoking launcher.
+            for line in iter(process.stdout.readline,b''):
+                sys.stdout.buffer.write(line);sys.stdout.buffer.flush()
+            return process.wait()
         finally:
             handle.seek(0);msvcrt.locking(handle.fileno(),msvcrt.LK_UNLCK,1)
 
