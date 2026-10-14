@@ -1708,6 +1708,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             <h4 className="text-xs font-semibold text-zinc-400">Canlı zamanlama</h4>
             <button onClick={() => isLiveSyncMode ? setIsLiveSyncMode(false) : (setShowAdvancedTools(false), setActiveTab('lyrics'), startLiveSyncMode(liveSyncIndex))} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-200">{isLiveSyncMode ? 'Canlı senkronu kapat' : 'Boşluk tuşuyla canlı senkron'}</button>
             {segments.length > 0 && <button onClick={undoAllLiveSync} className="block rounded-lg border border-rose-400/20 px-3 py-2 text-xs text-rose-200 hover:bg-rose-400/10">Tüm zamanlamaları temizle</button>}
+            <button onClick={()=>setShowClearLyrics(true)} disabled={!segments.length||loadingLyrics||!!bulkBindingStatus||clearingLyrics} className="block rounded-lg border border-rose-400/40 bg-rose-400/10 px-3 py-2 text-xs font-bold text-rose-200 hover:bg-rose-400/20 disabled:opacity-30">Tüm söz satırlarını sil</button>
             </div>
             {/* Left Group: Whisper AI Controls */}
             <div className="flex content-start items-center flex-wrap gap-2">

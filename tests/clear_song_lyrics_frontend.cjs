@@ -5,6 +5,8 @@ const handler=source.slice(source.indexOf('  const clearSongLyrics=async()=>{'),
 assert(handler.includes('api.saveLyrics(file,[],selectedLyricsLang)'));
 assert(!handler.includes('cancelAllTasks')&&!handler.includes('clearKaraokeData'));
 assert(source.includes('aria-labelledby="clear-lyrics-title"'));
+const tools=source.slice(source.indexOf("{activeTab !== 'video' && showAdvancedTools"),source.indexOf('Smule Canlı Space Senkronizasyonu'));
+assert(tools.includes('Tüm söz satırlarını sil'),'Clear button must appear in the normal advanced tools, not only Space sync');
 async function check(fail=false,switchSong=false){
   const saved=[],loaded=[],events=[];
   const storage=new Map([
