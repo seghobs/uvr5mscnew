@@ -197,15 +197,15 @@ export function rowDisplayEnd(row:LyricSegment,last:boolean,nextStart=Infinity):
 
 /** Presentation moves around the acoustic clock; it never delays that clock. */
 export function rowMotion(row:LyricSegment,last:boolean,nextStart=Infinity) {
-  const enter=Math.max(0,row.start-.24);
-  const leave=Math.max(row.start,Math.min(row.end+(isInstrumentalText(row.text)?0:last?2:.35),nextStart)-.24);
-  const fade=Math.max(row.end,leave+.24);
-  return {enter,leave,fade,end:fade+.12};
+  const enter=Math.max(0,row.start-.48);
+  const leave=Math.max(row.start,Math.min(row.end+(isInstrumentalText(row.text)?0:last?2:.35),nextStart)-.48);
+  const fade=Math.max(row.end,leave+.48);
+  return {enter,leave,fade,end:fade+.36};
 }
 
 export function rowPose(row:LyricSegment,motion:ReturnType<typeof rowMotion>,time:number) {
   if(time<motion.enter||time>=motion.end)return null;
-  if(time<row.start){const p=(time-motion.enter)/Math.max(.001,row.start-motion.enter);return {offset:p-1,opacity:Math.min(1,p*3),scale:.4+.6*p};}
-  const p=Math.max(0,Math.min(1,(time-motion.leave)/.24));
-  return {offset:p,opacity:time<motion.fade?1:Math.max(0,1-(time-motion.fade)/.12),scale:1};
+  if(time<row.start){const p=(time-motion.enter)/Math.max(.001,row.start-motion.enter);return {offset:p-1,opacity:Math.min(1,p*2),scale:.4+.6*p};}
+  const p=Math.max(0,Math.min(1,(time-motion.leave)/.48));
+  return {offset:p,opacity:time<motion.fade?1:Math.max(0,1-(time-motion.fade)/.36),scale:1};
 }

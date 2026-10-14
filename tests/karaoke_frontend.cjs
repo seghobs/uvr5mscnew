@@ -13,7 +13,7 @@ async function main() {
   const timing = load('frontend/src/lib/karaoke-timing.ts');
   const handoff={start:160.98,end:163.78,text:'GÖNÜL',words:[{word:'GÖNÜL',start:160.98,end:161.52,timing_source:'ctc'}]};
   const motion=timing.rowMotion(handoff,true);
-  assert.ok(Math.abs(motion.enter-160.74)<1e-8);
+  assert.ok(Math.abs(motion.enter-160.50)<1e-8);
   assert.equal(timing.rowPose(handoff,motion,160.98).offset,0);
   assert.equal(timing.rowPose(handoff,motion,160.98).opacity,1);
   assert.equal(timing.wordFillWithNeighbors(handoff.words[0],160.90),0);

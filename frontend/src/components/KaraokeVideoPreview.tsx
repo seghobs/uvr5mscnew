@@ -94,7 +94,13 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
       for(const active of visible){
         const pose=active.pose!;const y=baseline+pose.offset*distance;
         c.save();c.globalAlpha=pose.opacity;
-        if(time<active.row.start){text(active.row.text,y,size*pose.scale,'#b4b9c6');c.restore();continue;}
+        if(time<active.row.start){
+          if(!isInstrumentalText(active.row.text)){
+            c.save();c.globalAlpha=Math.max(0,1-(time-active.motion.enter)/.24);
+            text(active.row.text,baseline-distance,size*.4,'#95959c',false);c.restore();
+          }
+          text(active.row.text,y,size*pose.scale,'#b4b9c6');c.restore();continue;
+        }
         const row=active.row;const words=row.words||[];
         if(!words.length)text(row.text,y,size,'white');
         if(words.length){
@@ -109,12 +115,20 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
           const stops:Record<string,[string,string]>={gold:['#ffc800','#ff9800'],neon:['#06e6ff','#00b8e6'],cyberpunk:['#ff40e0','#d800bd'],emerald:['#20ea70','#00bb50']};
           const [light,dark]=stops[theme]||stops.gold;
           const fill=c.createLinearGradient(0,y-size,0,y);fill.addColorStop(0,light);fill.addColorStop(1,dark);
-          words.forEach((word,i)=>{c.fillStyle='#b4b9c6';c.strokeText(pieces[i],x,y);c.fillText(pieces[i],x,y);const fraction=wordFillWithNeighbors(word,time,words[i-1],words[i+1]);if(fraction>0){const wordWidth=wordWidths[i];const sweep=c.createLinearGradient(x,0,x+wordWidth,0);sweep.addColorStop(0,light);sweep.addColorStop(Math.max(0,fraction-.04),light);sweep.addColorStop(Math.min(1,fraction+.04),fraction>=1?light:'#b4b9c6');sweep.addColorStop(1,fraction>=1?light:'#b4b9c6');c.fillStyle=sweep;c.fillText(pieces[i],x,y);}x+=widths[i];});c.restore();
+          words.forEach((word,i)=>{c.fillStyle='#b4b9c6';c.strokeText(pieces[i],x,y);c.fillText(pieces[i],x,y);const fraction=wordFillWithNeighbors(word,time,words[i-1],words[i+1]);if(fraction>0){const wordWidth=wordWidths[i];const feather=Math.min(48/Math.max(wordWidth,1),.35)*2*Math.min(fraction,1-fraction);const rgb=(hex:string)=>[1,3,5].map(at=>parseInt(hex.slice(at,at+2),16));const a=rgb(light),b=rgb(dark);const tone=`rgb(${a.map((n,j)=>Math.round(n+(b[j]-n)*fraction)).join(',')})`;const sweep=c.createLinearGradient(x,0,x+wordWidth,0);sweep.addColorStop(0,tone);sweep.addColorStop(Math.max(0,fraction-feather/2),tone);sweep.addColorStop(Math.min(1,fraction+feather/2),fraction>=1?tone:'#b4b9c6');sweep.addColorStop(1,fraction>=1?tone:'#b4b9c6');c.fillStyle=sweep;c.fillText(pieces[i],x,y);}x+=widths[i];});c.restore();
         }
         c.restore();
       }
       if(!visible.length&&solos.some(([start,end])=>time>=start&&time<end))text('Solo...',baseline,44,'#d0c4ed',false);
-      if(upcoming&&!isInstrumentalText(upcoming.row.text))text(upcoming.row.text,baseline-distance,size*.4,'#95959c',false);
+      if(upcoming&&!isInstrumentalText(upcoming.row.text)){
+        const upper=baseline-distance; text(upcoming.row.text,upper,size*.4,'#95959c',false);
+        const remaining=upcoming.row.start-time;
+        if(remaining<=3){
+          c.save();c.globalAlpha=Math.min(1,(upcoming.motion.enter-time)/.15);
+          text(`${Math.ceil(remaining)} sn · HAZIRLAN`,upper+48,18,'#b4b9c6',false);
+          c.fillStyle=color;c.fillRect(width/2-70,upper+62,140*Math.max(0,1-remaining/3),3);c.restore();
+        }
+      }
       frame=requestAnimationFrame(draw);
     };draw();return ()=>cancelAnimationFrame(frame);
   },[schedule,solos,theme,aspectRatio,header]);

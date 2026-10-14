@@ -239,7 +239,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   // Video Customization & Header Banner
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
   const [theme, setTheme] = useState<'gold' | 'neon' | 'cyberpunk' | 'emerald'>('gold');
-  const [headerPrefix, setHeaderPrefix] = useState('KARAOKE STUDIO');
+  const [headerPrefix, setHeaderPrefix] = useState('orjinal karaoke');
   const [showHeader, setShowHeader] = useState(true);
   const [title, setTitle] = useState(() => {
     const clean = instStem
@@ -258,12 +258,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     let entries:Array<{filename:string;stems:string[]}>=[];
     try{entries=JSON.parse(projectStorage.getItem('uvr_library')||'[]');}catch{}
     const source=entries.find(item=>item.stems?.includes(file))?.filename;
-    let saved:{artist:string;title:string}|null=null;
+    let saved:{artist:string;title:string;tag?:string}|null=null;
     try{saved=JSON.parse(projectStorage.getItem('uvr-video-heading:'+file)||'null');}catch{}
     const metadata=saved||(source?parseSongMetadata(source):null);
     if(metadata){setArtist(metadata.artist);setTitle(metadata.title);}
+    setHeaderPrefix(saved?.tag??'orjinal karaoke');
   },[isOpen,instStem,vocalStem]);
-  const saveHeading=(nextArtist:string,nextTitle:string)=>projectStorage.setItem('uvr-video-heading:'+(vocalStem||instStem),JSON.stringify({artist:nextArtist,title:nextTitle}));
+  const saveHeading=(nextArtist:string,nextTitle:string,tag=headerPrefix)=>projectStorage.setItem('uvr-video-heading:'+(vocalStem||instStem),JSON.stringify({artist:nextArtist,title:nextTitle,tag}));
   const [activeTab, setActiveTab] = useState<'verify' | 'lyrics' | 'video'>('verify');
   const [showAdvancedTools, setShowAdvancedTools] = useState(false);
   const [selectedWordIndex, setSelectedWordIndex] = useState(0);
@@ -2895,7 +2896,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       <input
                         type="text"
                         value={headerPrefix}
-                        onChange={(e) => setHeaderPrefix(e.target.value)}
+                        onChange={(e) => {setHeaderPrefix(e.target.value);saveHeading(artist,title,e.target.value);}}
                         className="w-full p-2.5 rounded-xl bg-[#262230] border border-white/10 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
                         placeholder="Örn: Orjinal Karaoke"
                       />

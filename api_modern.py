@@ -2691,10 +2691,12 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             ass_lines.append(f"Dialogue: 0,{to_ass_time(solo_start)},{to_ass_time(solo_end)},BreakNotice,,0,0,0,,{{\\pos({x_center}, {y_active})}}Solo...")
 
         if segments_to_use and segments_to_use[0].start >= 1.5 and not is_music_label(segments_to_use[0].text):
+            from karaoke_design import lead_cue_events
             first_seg = segments_to_use[0]
+            ass_lines.extend(lead_cue_events(0,first_seg.start,res_x,y_upcoming,req.theme))
             first_text = escape_ass(first_seg.text.strip())
             if first_text:
-                ass_lines.append(f"Dialogue: 0,0:00:00.00,{to_ass_time(max(0,first_seg.start-.24))},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{first_text}")
+                ass_lines.append(f"Dialogue: 0,0:00:00.00,{to_ass_time(max(0,first_seg.start-.48))},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{first_text}")
 
         for idx, seg in enumerate(segments_to_use):
             raw_text = escape_ass(seg.text.strip())
@@ -2711,7 +2713,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             else:
                 active_anim = f"{{\\pos({x_center}, {y_active})\\fad(0, 200)}}"
 
-            from karaoke_design import gradient_masks,soft_word_events,row_motion
+            from karaoke_design import gradient_masks,soft_word_events,row_motion,lead_cue_events
             motion=row_motion(seg.model_dump(),idx==len(segments_to_use)-1,segments_to_use[idx+1].start if idx+1<len(segments_to_use) else float('inf'))
             soft=soft_word_events(seg.model_dump(),act_end_sec,res_x,res_y,y_active,font_size_active,req.theme,motion=motion)
             masks = gradient_masks(req.theme, res_x, res_y, y_active, font_size_active) if seg.words else ['']
@@ -2724,7 +2726,8 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
                 next_seg = segments_to_use[idx + 1]
                 next_text = escape_ass(next_seg.text.strip())
                 if next_text and next_seg.start > seg.start and not is_music_label(next_seg.text):
-                    ass_lines.append(f"Dialogue: 0,{st},{to_ass_time(max(seg.start,next_seg.start-.24))},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{next_text}")
+                    ass_lines.extend(lead_cue_events(seg.start,next_seg.start,res_x,y_upcoming,req.theme))
+                    ass_lines.append(f"Dialogue: 0,{st},{to_ass_time(max(seg.start,next_seg.start-.48))},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{next_text}")
 
         from karaoke_design import ambient_events, progress_events
         import soundfile as sf

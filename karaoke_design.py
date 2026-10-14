@@ -25,9 +25,26 @@ def progress_events(duration, width, theme='gold'):
 def row_motion(segment, last=False, next_start=float('inf')):
     from karaoke_timing import is_music_label
     start,end=segment['start'],segment['end']
-    leave=max(start,min(end+(0 if is_music_label(segment['text']) else 2 if last else .35),next_start)-.24)
-    fade=max(end,leave+.24)
-    return dict(enter=max(0,start-.24),leave=leave,fade=fade,end=fade+.12)
+    leave=max(start,min(end+(0 if is_music_label(segment['text']) else 2 if last else .35),next_start)-.48)
+    fade=max(end,leave+.48)
+    return dict(enter=max(0,start-.48),leave=leave,fade=fade,end=fade+.36)
+
+
+def lead_cue_events(show_start, spoken_start, width, baseline, theme):
+    """A visible three-second preparation clock, independent of lyric fill."""
+    from karaoke_timing import ass_time
+    start=max(show_start,spoken_start-3);end=spoken_start-.48
+    if end<=start:return []
+    color={'gold':'00C8FF','neon':'FFE606','cyberpunk':'E040FF','emerald':'70EA20'}.get(theme,'00C8FF')
+    left,right,y=width/2-70,width/2+70,baseline+62
+    fraction=max(0,min(1,(start-spoken_start+3)/3));initial=left+(right-left)*fraction
+    final=left+(right-left)*(1-.48/3)
+    drawing=f'm {left} {y} l {right} {y} {right} {y+3} {left} {y+3}'
+    events=[f'Dialogue: 0,{ass_time(start)},{ass_time(end)},Active,,0,0,0,,{{\\an7\\pos(0,0)\\bord0\\shad0\\1c&H{color}&\\fad(120,150)\\clip({left},0,{initial},{y+4})\\t(0,{round((end-start)*1000)},\\clip({left},0,{final},{y+4}))\\p1}}{drawing}']
+    for remaining in (3,2,1):
+        a=max(start,spoken_start-remaining);b=min(end,spoken_start-remaining+1)
+        if b>a:events.append(f'Dialogue: 0,{ass_time(a)},{ass_time(b)},Active,,0,0,0,,{{\\an2\\pos({width/2},{baseline+48})\\fs18\\b0\\bord0\\shad0\\1c&HC6B9B4&}}{remaining} sn · HAZIRLAN')
+    return events
 
 
 def soft_word_events(segment, display_end, width, height, baseline, font_size, theme, motion=None):
@@ -44,6 +61,7 @@ def soft_word_events(segment, display_end, width, height, baseline, font_size, t
     lengths=[font.getlength(p)*metric_scale for p in pieces];total=sum(lengths)
     scale=min(1,(width-120)/max(total,1));x=(width-total*scale)/2
     color={'gold':'00C8FF','neon':'FFE606','cyberpunk':'E040FF','emerald':'70EA20'}.get(theme,'00C8FF')
+    settled={'gold':'0098FF','neon':'E6B800','cyberpunk':'BD00D8','emerald':'50BB00'}.get(theme,'0098FF')
     if motion:display_end=motion['end']
     events=[];row_start=ass_time(segment['start']);row_end=ass_time(display_end)
     pos=f'\\an2\\pos({width/2:.3f},{baseline})\\fscx{scale*100:.4f}\\q2\\bord1\\shad0'
@@ -55,19 +73,23 @@ def soft_word_events(segment, display_end, width, height, baseline, font_size, t
         right=x+font.getlength(word['word'])*metric_scale*scale
         start,end=word['start'],word['end']
         if end>start and word.get('timing_source')!='estimated':
-            duration=max(1,round((end-start)*1000));feather=min(8,(right-x)*.10)
-            intervals=[(x-feather,x-feather, x,right-feather,0)]
-            # Each translucent band follows the same acoustic sweep front.
-            for band in range(6):
-                a=-feather+band*feather/6;b=a+feather/6
-                intervals.append((x+a,x+b,right+a,right+b,round(255*(band+.5)/6)))
-            for left0,right0,left1,right1,alpha in intervals:
-                if alpha==0:left0=x;right0=x-feather;left1=x
-                initial=f'\\clip({round(left0)},0,{round(max(left0,right0))},{height})'
-                final=f'\\clip({round(left1)},0,{round(max(left1,right1))},{height})'
-                events.append(f'Dialogue: 2,{ass_time(start)},{ass_time(min(end,display_end))},Active,,0,0,0,,{{{pos}\\1c&H{color}&\\alpha&H{alpha:02X}&{initial}\\t(0,{duration},{final})}}{label}')
+            duration=max(1,round((end-start)*1000));half=max(1,round(duration/2))
+            feather=min(48,(right-x)*.35);middle=(x+right)/2
+            intervals=[(x,middle-feather/2,0)]
+            # The feather expands through the word and contracts to zero at
+            # completion, so the last letters never jump to a solid color.
+            for band in range(16):
+                alpha=(band+.5)/16
+                alpha=alpha*alpha*(3-2*alpha)
+                intervals.append((middle-feather/2+band*feather/16,middle-feather/2+(band+1)*feather/16,round(255*alpha)))
+            for band,(left_mid,right_mid,alpha) in enumerate(intervals):
+                left_end=x if band==0 else right
+                initial=f'\\clip({round(x)},0,{round(x)},{height})'
+                midway=f'\\clip({round(left_mid)},0,{round(right_mid)},{height})'
+                final=f'\\clip({round(left_end)},0,{round(right)},{height})'
+                events.append(f'Dialogue: 2,{ass_time(start)},{ass_time(min(end,display_end))},Active,,0,0,0,,{{{pos}\\1c&H{color}&\\t(0,{duration},\\1c&H{settled}&)\\alpha&H{alpha:02X}&{initial}\\t(0,{half},{midway})\\t({half},{duration},{final})}}{label}')
             if display_end>end:
-                events.append(f'Dialogue: 2,{ass_time(end)},{row_end},Active,,0,0,0,,{{{pos}\\1c&H{color}&\\clip({round(x)},0,{round(right)},{height})}}{label}')
+                events.append(f'Dialogue: 2,{ass_time(end)},{row_end},Active,,0,0,0,,{{{pos}\\1c&H{settled}&\\clip({round(x)},0,{round(right)},{height})}}{label}')
         x+=length*scale
     if motion:
         # Every overlay uses offsets from its own event start to the SAME
@@ -78,8 +100,8 @@ def soft_word_events(segment, display_end, width, height, baseline, font_size, t
             fields=event.split(',',9)
             h,m,s=fields[1].split(':');at=int(h)*3600+int(m)*60+float(s)
             move_start=max(0,round((motion['leave']-at)*1000))
-            move_end=max(0,round((motion['leave']+.24-at)*1000))
-            fraction=max(0,min(1,(at-motion['leave'])/.24))
+            move_end=max(0,round((motion['leave']+.48-at)*1000))
+            fraction=max(0,min(1,(at-motion['leave'])/.48))
             position=(f'\\move({width/2:.3f},{baseline+distance*fraction:.3f},{width/2:.3f},{baseline+distance},{move_start},{move_end})'
                       if move_end else f'\\pos({width/2:.3f},{baseline+distance})')
             event=event.replace(f'\\pos({width/2:.3f},{baseline})',position)
@@ -88,7 +110,11 @@ def soft_word_events(segment, display_end, width, height, baseline, font_size, t
             animated.append(event)
         if segment['start']>motion['enter']:
             milliseconds=round((segment['start']-motion['enter'])*1000)
-            animated.insert(0,f'Dialogue: 1,{ass_time(motion["enter"])},{row_start},Active,,0,0,0,,{{\\an2\\move({width/2},{baseline-distance},{width/2},{baseline},0,{milliseconds})\\fs{font_size*.4:.3f}\\fscx{scale*100:.4f}\\t(0,{milliseconds},\\fs{font_size})\\fad(80,0)\\q2\\bord1\\shad0\\1c&HC6B9B4&}}{label}')
+            animated.insert(0,f'Dialogue: 1,{ass_time(motion["enter"])},{row_start},Active,,0,0,0,,{{\\an2\\move({width/2},{baseline-distance},{width/2},{baseline},0,{milliseconds})\\fs{font_size*.4:.3f}\\fscx{scale*100:.4f}\\t(0,{milliseconds},\\fs{font_size})\\fad(240,0)\\q2\\bord1\\shad0\\1c&HC6B9B4&}}{label}')
+            from karaoke_timing import is_music_label
+            if not is_music_label(segment['text']):
+                ghost_end=min(segment['start'],motion['enter']+.24)
+                animated.append(f'Dialogue: 0,{ass_time(motion["enter"])},{ass_time(ghost_end)},Upcoming,,0,0,0,,{{\\an2\\pos({width/2},{baseline-distance})\\fs{font_size*.4:.3f}\\b0\\q2\\bord0\\shad0\\1c&H9C9595&\\fad(0,{round((ghost_end-motion["enter"])*1000)})}}{label}')
         return animated
     return events
 
