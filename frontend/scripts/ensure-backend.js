@@ -126,12 +126,13 @@ async function waitForBackendRoutes() {
 async function main() {
   if (!process.argv.includes('--quiet')) printBanner();
   const pythonExe = getPythonExe().replace(/pythonw(?=\.exe$)/i, 'python');
-  console.log('Yerel servis ve sürüm kontrol ediliyor…');
+  console.log('[Backend] Bağlantı ve sürüm kontrol ediliyor: http://127.0.0.1:8000');
   const { spawnSync } = require('child_process');
   const result = spawnSync(pythonExe, [path.join(rootDir,'service_control.py'),'launch'], {cwd:rootDir,stdio:'inherit',windowsHide:false});
   if(result.error)throw result.error;
   if(result.status!==0)throw new Error('Sunucu hazırlanamadı; yukarıdaki açıklamayı kontrol edin.');
   await waitForBackendRoutes();
+  console.log('[Backend] Çalışıyor · Ses işlemleri ve kayıt API’leri hazır: http://127.0.0.1:8000');
   if (!process.argv.includes('--no-browser')) spawnBrowserWatcher();
 }
 main().catch(error=>{console.error(error.message);process.exitCode=1;});

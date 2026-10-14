@@ -7,6 +7,13 @@ import service_control as service
 
 
 class LaunchTests(unittest.TestCase):
+    def test_batch_launch_keeps_output_in_invoking_console(self):
+        with tempfile.TemporaryDirectory() as directory,patch.object(service,'ROOT',Path(directory)),patch.object(service,'frontend_running',return_value=False),patch.object(service.subprocess,'call',return_value=0) as call:
+            self.assertEqual(service.launch_frontend(),0)
+            self.assertEqual(call.call_args.args[0],['cmd.exe','/d','/c','call',str(Path(directory)/'start.bat'),'--owned'])
+            self.assertIs(call.call_args.kwargs['stdout'],service.sys.stdout)
+            self.assertIs(call.call_args.kwargs['stderr'],service.sys.stderr)
+
     def test_old_shutdown_does_not_stop_new_server(self):
         with patch.object(service,'service_info',return_value={'pid':456}),patch.object(service,'stop') as stop:
             service.stop_generation(123)

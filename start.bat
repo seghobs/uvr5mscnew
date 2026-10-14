@@ -18,6 +18,7 @@ call "%~dp0env\python.exe" "%~dp0service_control.py" frontend-launch
 exit %errorlevel%
 
 :launch_owned
+echo [Frontend] Baslatma kontrolu: http://localhost:3000
 cd /d "%~dp0frontend"
 call "%~dp0env\python.exe" "%~dp0service_control.py" frontend-check
 if errorlevel 11 goto launch_failed
@@ -33,6 +34,9 @@ call npm run build
 if errorlevel 1 goto launch_failed
 
 cls
+echo [Backend] Hazir: http://127.0.0.1:8000
+echo [Derleme] Uretim derlemesi tamamlandi.
+echo [Frontend] Baslatiliyor: http://localhost:3000
 echo Uygulama uretim modunda aciliyor...
 call npm run start
 set "uvr_exit_code=%errorlevel%"

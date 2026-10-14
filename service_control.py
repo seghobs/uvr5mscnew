@@ -111,6 +111,8 @@ def launch_frontend():
         while True:
             if frontend_running():
                 print('UVR5 zaten açık: http://localhost:3000 · Mevcut sunucuya bağlanılıyor.',flush=True)
+                backend_status=subprocess.call(['node',str(ROOT/'frontend/scripts/ensure-backend.js'),'--no-browser','--quiet'],cwd=ROOT/'frontend')
+                if backend_status:return backend_status
                 focus_frontend_console()
                 subprocess.call(['node',str(ROOT/'frontend/scripts/open-browser.js')],cwd=ROOT/'frontend')
                 return 0
@@ -125,7 +127,9 @@ def launch_frontend():
                 time.sleep(.5)
         try:
             print('UVR5: Backend hazırlanacak, ardından derleme ve uygulama başlatılacak.',flush=True)
-            return subprocess.call(f'cmd.exe /d /s /c ""{ROOT / "start.bat"}" --owned"',cwd=ROOT)
+            # CALL avoids CMD's outer-quote stripping when invoking a batch file.
+            return subprocess.call(['cmd.exe','/d','/c','call',str(ROOT/'start.bat'),'--owned'],cwd=ROOT,
+                                   stdin=sys.stdin,stdout=sys.stdout,stderr=sys.stderr)
         finally:
             handle.seek(0);msvcrt.locking(handle.fileno(),msvcrt.LK_UNLCK,1)
 
