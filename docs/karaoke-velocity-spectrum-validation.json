@@ -1,0 +1,99 @@
+{
+  "recording": "Kara Yazı (Ahmet Kaya)",
+  "duration_seconds": 183.06666666666666,
+  "bands": 80,
+  "frequency_range_hz": [
+    0,
+    8000
+  ],
+  "leading_bands": [
+    {
+      "band": 1,
+      "min_height": 1,
+      "max_height": 45,
+      "std": 6.65,
+      "distinct_heights": 42
+    },
+    {
+      "band": 2,
+      "min_height": 1,
+      "max_height": 44,
+      "std": 4.27,
+      "distinct_heights": 38
+    },
+    {
+      "band": 3,
+      "min_height": 1,
+      "max_height": 51,
+      "std": 5.36,
+      "distinct_heights": 44
+    },
+    {
+      "band": 4,
+      "min_height": 1,
+      "max_height": 49,
+      "std": 6.86,
+      "distinct_heights": 47
+    },
+    {
+      "band": 5,
+      "min_height": 1,
+      "max_height": 47,
+      "std": 5.54,
+      "distinct_heights": 44
+    },
+    {
+      "band": 6,
+      "min_height": 1,
+      "max_height": 50,
+      "std": 5.5,
+      "distinct_heights": 48
+    },
+    {
+      "band": 7,
+      "min_height": 1,
+      "max_height": 42,
+      "std": 5.31,
+      "distinct_heights": 39
+    },
+    {
+      "band": 8,
+      "min_height": 1,
+      "max_height": 49,
+      "std": 5.49,
+      "distinct_heights": 44
+    },
+    {
+      "band": 9,
+      "min_height": 1,
+      "max_height": 36,
+      "std": 4.19,
+      "distinct_heights": 34
+    },
+    {
+      "band": 10,
+      "min_height": 1,
+      "max_height": 49,
+      "std": 5.16,
+      "distinct_heights": 45
+    },
+    {
+      "band": 11,
+      "min_height": 1,
+      "max_height": 45,
+      "std": 4.74,
+      "distinct_heights": 42
+    },
+    {
+      "band": 12,
+      "min_height": 1,
+      "max_height": 41,
+      "std": 4.99,
+      "distinct_heights": 37
+    }
+  ],
+  "all_bands_peak_pixels": 51,
+  "ceiling_fraction": 0.0,
+  "soundtrack_modified": false,
+  "preview_band_independence_tests": "passed at 44100 and 48000 Hz"
+}

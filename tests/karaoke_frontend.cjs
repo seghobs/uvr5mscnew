@@ -10,6 +10,22 @@ function load(file, extras = {}) {
 }
 
 async function main() {
+  const spectrum=load('frontend/src/lib/karaoke-spectrum.ts');
+  for(const rate of [44100,48000]) {
+    const bins=new Float32Array(1024).fill(-Infinity);
+    bins[0]=0; // DC must never light the leading bars.
+    assert.ok(spectrum.velocityLevels(bins,rate,2048).every(v=>v===0));
+    for(let band=0;band<12;band++) {
+      bins.fill(-Infinity);
+      bins[Math.ceil(Math.max(40,band*100)/(rate/2048))]=-30;
+      const quiet=spectrum.velocityLevels(bins,rate,2048);
+      assert.equal(quiet.filter(v=>v>0).length,1);
+      assert.ok(quiet[band]>0 && quiet[band]<1);
+      bins[Math.ceil(Math.max(40,band*100)/(rate/2048))]=-20;
+      const loud=spectrum.velocityLevels(bins,rate,2048);
+      assert.ok(loud[band]>quiet[band] && loud[band]<1);
+    }
+  }
   const timing = load('frontend/src/lib/karaoke-timing.ts');
   const handoff={start:160.98,end:163.78,text:'GÖNÜL',words:[{word:'GÖNÜL',start:160.98,end:161.52,timing_source:'ctc'}]};
   const motion=timing.rowMotion(handoff,true);
@@ -19,6 +35,8 @@ async function main() {
   assert.equal(timing.wordFillWithNeighbors(handoff.words[0],160.90),0);
   assert.ok(timing.rowPose(handoff,motion,160.85).offset<0);
   assert.equal(timing.rowPose(handoff,motion,motion.end),null);
+  assert.equal(timing.rowPose(handoff,motion,handoff.end-.01).scale,1);
+  assert.ok(timing.rowPose(handoff,motion,Math.max(handoff.end,motion.leave)+.24).scale<1);
   const metadata=load('frontend/src/lib/song-metadata.ts');
   assert.equal(metadata.parseSongMetadata('Kara Yazı (Ahmet Kaya)').artist,'Ahmet Kaya');
   assert.equal(metadata.parseSongMetadata('Kara Yazı (Ahmet Kaya)').title,'Kara Yazı');

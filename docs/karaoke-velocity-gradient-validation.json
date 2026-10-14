@@ -1,0 +1,36 @@
+{
+  "recording": "Kara Yazı (Ahmet Kaya)",
+  "real_audio_excerpt_seconds": [
+    169,
+    177
+  ],
+  "vertical_gradient_per_row": true,
+  "gradient_direction": "light top, dark bottom",
+  "upper_rgb": [
+    233.79805491990848,
+    213.28604118993135,
+    139.59725400457666
+  ],
+  "lower_rgb": [
+    198.14112903225808,
+    144.7894265232975,
+    56.132616487455195
+  ],
+  "outgoing_line": [
+    {
+      "time": 3.9,
+      "width": 648,
+      "center_y": 515.0
+    },
+    {
+      "time": 4.5,
+      "width": 508,
+      "center_y": 684.5
+    }
+  ],
+  "outgoing_line_cleared_after_fade": true,
+  "stored_word_times": "unchanged",
+  "python_tests_passed": 65,
+  "production_build": "passed",
+  "velocity_full_song_report": "karaoke-velocity-spectrum-validation.json"
+}

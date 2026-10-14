@@ -2698,6 +2698,8 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             if first_text:
                 ass_lines.append(f"Dialogue: 0,0:00:00.00,{to_ass_time(max(0,first_seg.start-.48))},Upcoming,,0,0,0,,{{\\pos({x_center}, {y_upcoming})}}{first_text}")
 
+        from karaoke_design import prepare_word_geometry
+        word_geometries=prepare_word_geometry([s.model_dump() for s in segments_to_use],res_x,res_y,y_active,font_size_active)
         for idx, seg in enumerate(segments_to_use):
             raw_text = escape_ass(seg.text.strip())
             if not raw_text:
@@ -2715,7 +2717,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
 
             from karaoke_design import gradient_masks,soft_word_events,row_motion,lead_cue_events
             motion=row_motion(seg.model_dump(),idx==len(segments_to_use)-1,segments_to_use[idx+1].start if idx+1<len(segments_to_use) else float('inf'))
-            soft=soft_word_events(seg.model_dump(),act_end_sec,res_x,res_y,y_active,font_size_active,req.theme,motion=motion)
+            soft=soft_word_events(seg.model_dump(),act_end_sec,res_x,res_y,y_active,font_size_active,req.theme,motion=motion,geometry=word_geometries[idx])
             masks = gradient_masks(req.theme, res_x, res_y, y_active, font_size_active) if seg.words else ['']
             if soft is not None:
                 ass_lines.extend(soft)
@@ -2749,11 +2751,12 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         from karaoke_design import studio_background
         backdrop = studio_background(OUTPUT_DIR, req.theme, is_vertical)
         freq_w = 840 if is_vertical else 1600
-        freq_h = 64 if is_vertical else 48
-        freq_y = 1760 if is_vertical else 920
+        freq_h = 112 if is_vertical else 80
+        freq_y = 1720 if is_vertical else 904
 
+        from karaoke_spectrum import velocity_filter
         filter_complex = (
-            f"[0:a]aformat=channel_layouts=mono,showwaves=s={freq_w}x{freq_h}:r=60:mode=line:draw=full:scale=sqrt:colors={wave_color},format=rgba,colorkey=0x000000:0.1:0.1,gblur=sigma=0.7,split[sharp][soft];"
+            f"[0:a]{velocity_filter(freq_h, wave_color)},scale={freq_w}:{freq_h}:flags=neighbor,drawgrid=w={freq_w//80}:h={freq_h}:t=4:c=black,format=rgba,colorkey=0x000000:0.1:0.1,gblur=sigma=0.7,split[sharp][soft];"
             f"[soft]gblur=sigma=7[glow];[glow][sharp]overlay=0:0[freqs];"
             f"[1:v]fps=60,format=rgba[stage];"
             f"[stage][freqs]overlay=(W-w)/2:{freq_y}:shortest=1[v_raw];"

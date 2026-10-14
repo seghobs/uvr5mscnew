@@ -207,5 +207,5 @@ export function rowPose(row:LyricSegment,motion:ReturnType<typeof rowMotion>,tim
   if(time<motion.enter||time>=motion.end)return null;
   if(time<row.start){const p=(time-motion.enter)/Math.max(.001,row.start-motion.enter);return {offset:p-1,opacity:Math.min(1,p*2),scale:.4+.6*p};}
   const p=Math.max(0,Math.min(1,(time-motion.leave)/.48));
-  return {offset:p,opacity:time<motion.fade?1:Math.max(0,1-(time-motion.fade)/.36),scale:1};
+  return {offset:p,opacity:time<motion.fade?1:Math.max(0,1-(time-motion.fade)/.36),scale:1-.35*Math.max(0,Math.min(1,(time-Math.max(row.end,motion.leave))/.48))};
 }

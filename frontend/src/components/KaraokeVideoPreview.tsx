@@ -2,6 +2,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {Play,Pause,RotateCcw,RotateCw,Volume2,VolumeX,Maximize,Minimize,Clapperboard} from 'lucide-react';
 import type {LyricSegment} from '@/lib/types';
+import {velocityLevels} from '@/lib/karaoke-spectrum';
 import {videoSegments,wordFillWithNeighbors,soloWindows,rowMotion,rowPose,isInstrumentalText} from '@/lib/karaoke-timing';
 
 export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPlay}:{onPlay:()=>void;file:string;segments:LyricSegment[];theme:string;aspectRatio:string;header:string}) {
@@ -42,15 +43,15 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
     if(cleanupTimer.current)clearTimeout(cleanupTimer.current);
     if(!context.current){
       const ctx=new AudioContext();context.current=ctx;
-      const source=ctx.createMediaElementSource(media),meter=ctx.createAnalyser();meter.fftSize=2048;
+      const source=ctx.createMediaElementSource(media),meter=ctx.createAnalyser();meter.fftSize=2048;meter.smoothingTimeConstant=.35;
       source.connect(meter);meter.connect(ctx.destination);analyser.current=meter;
     }
     return ()=>{media.pause();cleanupTimer.current=setTimeout(()=>{void context.current?.close();context.current=null;analyser.current=null;},0);};
   },[file]);
   useEffect(()=>{
     let frame=0;
-    let meterData=new Uint8Array(2048);
-    const layouts=new Map<LyricSegment,{pieces:string[];widths:number[];wordWidths:number[];total:number}>();
+    let meterData=new Float32Array(1024);
+    const layouts=new Map<LyricSegment,{pieces:string[];widths:number[];wordWidths:number[];total:number;colored:HTMLCanvasElement;mask:HTMLCanvasElement;output:HTMLCanvasElement}>();
     const draw=()=>{
       const el=canvas.current,c=el?.getContext('2d');if(!el||!c)return;
       const vertical=aspectRatio==='9:16',width=vertical?1080:1920,height=vertical?1920:1080;
@@ -67,15 +68,14 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
       c.save();c.shadowBlur=16;c.shadowColor=color;
       const meter=analyser.current;
       if(meter){
-        if(meterData.length!==meter.fftSize)meterData=new Uint8Array(meter.fftSize);
-        const data=meterData;meter.getByteTimeDomainData(data);
-        const w=vertical?840:1600,x=(width-w)/2,y=vertical?1792:944;
-        c.strokeStyle=color;c.lineWidth=2.5;c.lineCap='round';c.lineJoin='round';c.beginPath();
-        // Average neighboring samples and interpolate a smooth continuous contour.
-        const points=Array.from({length:240},(_,i)=>{const n=Math.floor(i*(data.length-8)/239);let sum=0;for(let j=0;j<8;j++)sum+=data[n+j]-128;return {x:x+i*w/239,y:y+(sum/8/128)*(vertical?30:22)};});
-        c.moveTo(points[0].x,points[0].y);
-        for(let i=1;i<points.length-1;i++)c.quadraticCurveTo(points[i].x,points[i].y,(points[i].x+points[i+1].x)/2,(points[i].y+points[i+1].y)/2);
-        c.lineTo(points[239].x,points[239].y);c.stroke();
+        if(meterData.length!==meter.frequencyBinCount)meterData=new Float32Array(meter.frequencyBinCount);
+        meter.getFloatFrequencyData(meterData);
+        const levels=velocityLevels(meterData,meter.context.sampleRate,meter.fftSize);
+        const w=vertical?840:1600,x=(width-w)/2,bottom=vertical?1832:984,maxHeight=vertical?112:80;
+        const bars=80,step=w/bars;
+        for(let i=0;i<bars;i++){
+          const h=Math.max(2,maxHeight*levels[i]);c.fillStyle=color;c.fillRect(x+i*step,bottom-h,step-4,h);
+        }
       }
       c.restore();
       const total=audio.current?.duration||0;
@@ -107,15 +107,35 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
           c.font=`bold ${size}px Segoe UI`;
           c.textBaseline='bottom';
           let layout=layouts.get(row);
-          if(!layout){const pieces=words.map((w,i)=>w.word+(i<words.length-1?' ':''));const widths=pieces.map(p=>c.measureText(p).width);layout={pieces,widths,wordWidths:words.map(w=>c.measureText(w.word).width),total:widths.reduce((a,b)=>a+b,0)};layouts.set(row,layout);}
-          const {pieces,widths,total,wordWidths}=layout;const scale=Math.min(1,(width-120)/total);
-          // Draw base and fill from the same measured layout, including silent gaps.
-
-          c.save();c.translate((width-total*scale)/2,0);c.scale(scale,1);c.textAlign='left';let x=0;
-          const stops:Record<string,[string,string]>={gold:['#ffc800','#ff9800'],neon:['#06e6ff','#00b8e6'],cyberpunk:['#ff40e0','#d800bd'],emerald:['#20ea70','#00bb50']};
-          const [light,dark]=stops[theme]||stops.gold;
-          const fill=c.createLinearGradient(0,y-size,0,y);fill.addColorStop(0,light);fill.addColorStop(1,dark);
-          words.forEach((word,i)=>{c.fillStyle='#b4b9c6';c.strokeText(pieces[i],x,y);c.fillText(pieces[i],x,y);const fraction=wordFillWithNeighbors(word,time,words[i-1],words[i+1]);if(fraction>0){const wordWidth=wordWidths[i];const feather=Math.min(48/Math.max(wordWidth,1),.35)*2*Math.min(fraction,1-fraction);const rgb=(hex:string)=>[1,3,5].map(at=>parseInt(hex.slice(at,at+2),16));const a=rgb(light),b=rgb(dark);const tone=`rgb(${a.map((n,j)=>Math.round(n+(b[j]-n)*fraction)).join(',')})`;const sweep=c.createLinearGradient(x,0,x+wordWidth,0);sweep.addColorStop(0,tone);sweep.addColorStop(Math.max(0,fraction-feather/2),tone);sweep.addColorStop(Math.min(1,fraction+feather/2),fraction>=1?tone:'#b4b9c6');sweep.addColorStop(1,fraction>=1?tone:'#b4b9c6');c.fillStyle=sweep;c.fillText(pieces[i],x,y);}x+=widths[i];});c.restore();
+          if(!layout){
+            const pieces=words.map((w,i)=>w.word+(i<words.length-1?' ':'')),widths=pieces.map(p=>c.measureText(p).width),total=widths.reduce((a,b)=>a+b,0);
+            const make=()=>{const layer=document.createElement('canvas');layer.width=Math.ceil(total)+2;layer.height=size+20;return layer;};
+            const colored=make(),mask=make(),output=make(),ink=colored.getContext('2d')!;
+            const palettes:Record<string,[string,string]>={gold:['#c97700','#fff6a3'],neon:['#008db9','#b7fbff'],cyberpunk:['#931a98','#ffc1f2'],emerald:['#00804b','#b4ffd3']};
+            const [dark,light]=palettes[theme]||palettes.gold;
+            ink.font=c.font;ink.textBaseline='bottom';const metrics=ink.measureText(pieces.join(''));
+            const gradient=ink.createLinearGradient(0,size+10-metrics.actualBoundingBoxAscent,0,size+10+metrics.actualBoundingBoxDescent);gradient.addColorStop(0,light);gradient.addColorStop(1,dark);
+            ink.fillStyle=gradient;ink.fillText(pieces.join(''),0,size+10);
+            layout={pieces,widths,wordWidths:words.map(w=>c.measureText(w.word).width),total,colored,mask,output};layouts.set(row,layout);
+          }
+          const {pieces,widths,total,wordWidths,colored,mask,output}=layout;
+          const alpha=mask.getContext('2d')!,ink=output.getContext('2d')!;alpha.clearRect(0,0,mask.width,mask.height);
+          let x=0;
+          words.forEach((word,i)=>{
+            const fraction=wordFillWithNeighbors(word,time,words[i-1],words[i+1]);
+            if(fraction>0){
+              const wordWidth=wordWidths[i],feather=Math.min(48/Math.max(wordWidth,1),.35)*2*Math.min(fraction,1-fraction);
+              const sweep=alpha.createLinearGradient(x,0,x+wordWidth,0);
+              sweep.addColorStop(0,'white');sweep.addColorStop(Math.max(0,fraction-feather/2),'white');
+              sweep.addColorStop(Math.min(1,fraction+feather/2),fraction>=1?'white':'transparent');sweep.addColorStop(1,fraction>=1?'white':'transparent');
+              alpha.fillStyle=sweep;alpha.fillRect(x,0,wordWidth,mask.height);
+            }
+            x+=widths[i];
+          });
+          ink.clearRect(0,0,output.width,output.height);ink.drawImage(colored,0,0);ink.globalCompositeOperation='destination-in';ink.drawImage(mask,0,0);ink.globalCompositeOperation='source-over';
+          c.save();c.translate(width/2,y);c.scale(Math.min(1,(width-120)/total)*pose.scale,pose.scale);c.translate(-total/2,0);c.textAlign='left';
+          x=0;pieces.forEach((piece,i)=>{c.fillStyle='#b4b9c6';c.strokeText(piece,x,0);c.fillText(piece,x,0);x+=widths[i];});
+          c.drawImage(output,0,-size-10);c.restore();
         }
         c.restore();
       }
