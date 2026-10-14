@@ -10,6 +10,13 @@ from pydantic import BaseModel,Field
 
 
 class SuppliedApiTests(unittest.TestCase):
+    def test_inferred_word_provenance_survives_save_model(self):
+        reference={'row_ids':['earlier'],'anchor_words':5,'method':'matching_verse_tempo'}
+        word=self.ns['WordModel'](word='SON',start=10,end=11,timing_source='repeat_inferred',timing_reference=reference)
+        self.assertEqual(word.model_dump()['timing_reference'],reference)
+        self.assertEqual(word.model_dump()['timing_source'],'repeat_inferred')
+        self.assertIsNone(word.probability)
+
     def setUp(self):
         names={'WordModel','LyricSegmentModel','SaveLyricsRequest','SuppliedAlignmentRequest',
                'supplied_alignment_endpoint','run_supplied_alignment'}

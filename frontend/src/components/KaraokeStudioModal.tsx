@@ -2382,12 +2382,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       </div>
                       {activeTab === 'lyrics' && <div className="relative z-10 flex flex-wrap gap-x-2.5 gap-y-2 mb-5" onClick={e => e.stopPropagation()}>
                         {getSegmentWords(seg).map((w, wi) => (
-                          <button key={wi} type="button" onClick={() => {if(isLiveSyncMode){resumeLiveSyncFromRow(idx);return;}setExpandedWordRow(idx); setSelectedWordIndex(wi); void playWord(idx, wi);}} title={`${w.start.toFixed(3)}–${w.end.toFixed(3)} s${w.needs_review ? ' · Zamanlama kontrol edilmeli' : ''}`}
+                          <button key={wi} type="button" onClick={() => {if(isLiveSyncMode){resumeLiveSyncFromRow(idx);return;}setExpandedWordRow(idx); setSelectedWordIndex(wi); void playWord(idx, wi);}} title={`${w.start.toFixed(3)}–${w.end.toFixed(3)} s${w.timing_source==='repeat_inferred' ? ' · Tahmini: kısık/kesilmiş kapanış için önceki tekrarın süresi kullanıldı; sesle doğrulanmadı.' : w.needs_review ? ' · Zamanlama kontrol edilmeli' : ''}`}
                             className={cn('inline-flex items-baseline rounded-sm text-left text-xl sm:text-2xl leading-relaxed font-semibold text-zinc-200', expandedWordRow === idx && selectedWordIndex === wi && 'underline decoration-amber-400/60 underline-offset-8')} disabled={loadingLyrics}>
                             <span className="relative inline-block whitespace-pre">
                               <span>{w.word}</span>
                               <span aria-hidden ref={node=>{if(node)fillNodes.current.set(node,{word:w,previous:seg.words?.[wi-1]??segments[idx-1]?.words?.at(-1),next:seg.words?.[wi+1]??nextSeg?.words?.[0]});}} className="pointer-events-none absolute inset-0 text-amber-400" style={{maskImage:'linear-gradient(transparent,transparent)'}}>{w.word}</span>
                             </span>
+                            {w.timing_source==='repeat_inferred' && <span className="ml-1 rounded border border-sky-300/25 bg-sky-400/10 px-1.5 py-0.5 text-[10px] font-medium text-sky-200">Tahmini</span>}
                           </button>
                         ))}
                       </div>}

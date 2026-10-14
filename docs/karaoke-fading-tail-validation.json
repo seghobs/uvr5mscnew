@@ -1,0 +1,67 @@
+{
+  "recording": "Yavuz Bingöl - Yemin",
+  "duration_seconds": 323.059,
+  "analysis": "quiet ending then digital silence from approximately 320.5 seconds",
+  "recovered_from_audio": [
+    "kokunu"
+  ],
+  "repeat_inferred_words": [
+    {
+      "word": "rüzgara",
+      "start": 320.0322159002244,
+      "end": 320.6403018482896,
+      "timing_source": "repeat_inferred",
+      "probability": null,
+      "timing_reference": {
+        "row_ids": [
+          "3d17c703-fbb9-4c8f-91aa-37724ee61f6b",
+          "a7d272c9-86d8-4da2-9c20-7299b09fb05a",
+          "492f4ed9-2e01-4d4f-91b7-495c3d2fba20",
+          "02bd767f-6cdb-4773-a38f-21fb3c9b895e"
+        ],
+        "anchor_words": 5,
+        "method": "matching_verse_tempo"
+      }
+    },
+    {
+      "word": "verdim",
+      "start": 320.7203027222079,
+      "end": 321.9044205455907,
+      "timing_source": "repeat_inferred",
+      "probability": null,
+      "timing_reference": {
+        "row_ids": [
+          "3d17c703-fbb9-4c8f-91aa-37724ee61f6b",
+          "a7d272c9-86d8-4da2-9c20-7299b09fb05a",
+          "492f4ed9-2e01-4d4f-91b7-495c3d2fba20",
+          "02bd767f-6cdb-4773-a38f-21fb3c9b895e"
+        ],
+        "anchor_words": 5,
+        "method": "matching_verse_tempo"
+      }
+    }
+  ],
+  "references": 4,
+  "existing_confirmed_tail_words_preserved": true,
+  "other_rows_unchanged_in_targeted_repair": true,
+  "lyric_text_preserved": true,
+  "render_validation_issues": [],
+  "actual_mp4_excerpt_seconds": [
+    314,
+    323
+  ],
+  "estimated_not_acoustically_verified": true,
+  "python_regression_tests_passed": 66,
+  "production_build": "passed",
+  "full_song_api_test": "completed",
+  "full_song_rows": 30,
+  "full_song_remaining_review_rows": [
+    11,
+    12
+  ],
+  "other_song_records_unchanged": 10,
+  "isolated_test_result_not_applied_to_live_project": true,
+  "inferred_badges_visible_in_live_editor": 2,
+  "save_reload_preserves_provenance": true,
+  "concurrent_edit_guard": "rejected stale result without replacing current text"
+}

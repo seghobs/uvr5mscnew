@@ -137,6 +137,8 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         result,report=assemble(rows,completed,duration)
         from karaoke_review_recovery import recover_row_reviews
         report['full_row_review_repairs']=recover_row_reviews(audio_path,result,emit)
+        from karaoke_tail_recovery import recover_fading_tail
+        report.update(recover_fading_tail(audio_path,result,emit))
         report.update(repeat_report)
         result,solo_report=place_interludes(result,duration,voice_regions,music_regions,available)
         for row in result:row['alignment_mode']='supplied_ctc'

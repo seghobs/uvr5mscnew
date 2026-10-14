@@ -27,6 +27,12 @@ async function main() {
     }
   }
   const timing = load('frontend/src/lib/karaoke-timing.ts');
+  const inferred={word:'SON',start:3,end:4,timing_source:'repeat_inferred',probability:null,needs_review:false,timing_reference:{row_ids:['earlier'],anchor_words:3,method:'matching_verse_tempo'}};
+  const inferredRow={text:'SON',start:3,end:4,words:[inferred]};
+  assert.equal(timing.timingIssues([inferredRow]).length,0);
+  assert.equal(timing.wordFillWithNeighbors(inferred,3.5),.5);
+  assert.equal(timing.videoSegments([inferredRow])[0].words[0].timing_source,'repeat_inferred');
+  assert.equal(JSON.stringify(timing.importProject(timing.serializeProject([inferredRow]))[0].words[0]),JSON.stringify(inferred));
   const handoff={start:160.98,end:163.78,text:'GÖNÜL',words:[{word:'GÖNÜL',start:160.98,end:161.52,timing_source:'ctc'}]};
   const motion=timing.rowMotion(handoff,true);
   assert.ok(Math.abs(motion.enter-160.50)<1e-8);

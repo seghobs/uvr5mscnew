@@ -1700,6 +1700,7 @@ class WordModel(BaseModel):
     probability: Optional[float] = None
     timing_source: Optional[str] = None
     needs_review: bool = False
+    timing_reference: Optional[dict] = None
 
 class LyricSegmentModel(BaseModel):
     id: Optional[str] = None

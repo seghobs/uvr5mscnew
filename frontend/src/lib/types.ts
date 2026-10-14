@@ -111,7 +111,7 @@ export interface LyricSegment {
   start: number;
   end: number;
   text: string;
-  words?: Array<{ word: string; start: number; end: number; probability?: number | null; timing_source?: 'aligned' | 'ctc' | 'manual' | 'estimated'; needs_review?: boolean }>;
+  words?: Array<{ word: string; start: number; end: number; probability?: number | null; timing_source?: 'aligned' | 'ctc' | 'manual' | 'estimated' | 'repeat_inferred'; needs_review?: boolean; timing_reference?: {row_ids:string[];anchor_words:number;method:string}|null }>;
 }
 
 export interface LyricsResponse {

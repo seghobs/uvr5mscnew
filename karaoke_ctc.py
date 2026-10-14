@@ -63,7 +63,16 @@ def words_from_spans(words, normalized, spans, targets, scale, offset, include_s
     return result
 
 
-def refine_turkish(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix'):
+def normalize_fading_audio(audio, rate):
+    """Bounded local gain for analysis only; never change the saved soundtrack."""
+    import numpy as np
+    from scipy.ndimage import uniform_filter1d
+    power=uniform_filter1d(np.asarray(audio,dtype='float32')**2,max(1,round(rate*.30)))
+    gain=np.minimum(50.,.08/np.maximum(np.sqrt(np.maximum(power,0)),.00001))
+    return audio*gain
+
+
+def refine_turkish(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix', normalize_fade=False):
     if channel not in ('mix', 'left', 'right'):
         raise ValueError('Geçersiz ses kanalı')
     if language != 'tr':
@@ -123,6 +132,7 @@ def refine_turkish(audio_path, segments, language, progress=None, include_syllab
             offset = first_sample / info.samplerate
             audio, rate = sf.read(audio_path, start=first_sample, stop=int(end * info.samplerate), dtype='float32')
             audio = alignment_mono(audio, channel)
+            if normalize_fade:audio=normalize_fading_audio(audio,rate)
             wave = AF.resample(torch.from_numpy(audio), rate, 16000)
             inputs = extractor(wave.numpy(), sampling_rate=16000, return_tensors='pt')
             with torch.inference_mode():
