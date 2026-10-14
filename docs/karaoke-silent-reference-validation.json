@@ -1,0 +1,36 @@
+{
+  "recording": "Enis Arıkan - Lafı Mı Olur",
+  "duration_seconds": 187.54757369614512,
+  "reproduced_before_fix": {
+    "exception": "librosa.util.exceptions.ParameterError",
+    "message": "DTW cost matrix C has NaN values.",
+    "target_word": "YA",
+    "target_start": 54.8,
+    "reference_word": "SEVDALARDAYIM",
+    "reference_interval": [
+      172.74,
+      179.82
+    ],
+    "near_silent_interval": [
+      176.7,
+      177.7
+    ],
+    "invalid_cost_cells": 1470
+  },
+  "actual_target_features_usable": true,
+  "actual_silent_reference_rejected": true,
+  "full_song_api_status": "completed",
+  "linked_words": 182,
+  "target_words": 182,
+  "remaining_review_rows": [
+    25,
+    28,
+    32
+  ],
+  "remaining_review_word_count": 3,
+  "render_validation_issues": [],
+  "supplied_text_preserved": true,
+  "live_saved_result_verified": true,
+  "other_lyrics_records_unchanged": 19,
+  "python_regression_tests_passed": 51
+}

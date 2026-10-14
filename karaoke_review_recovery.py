@@ -30,7 +30,8 @@ def recover_row_reviews(audio_path,rows,progress=lambda *args:None):
 
 
 def repeat_boundary_candidate(original,candidates,lower,upper,same_distance,other_distance):
-    if not (math.isfinite(same_distance) and same_distance<.20 and same_distance<other_distance*.75):return original
+    if not (math.isfinite(same_distance) and math.isfinite(other_distance) and
+            0<=same_distance<.20 and same_distance<other_distance*.75):return original
     usable=[c for c in candidates if c.get('probability',0)>=.30 and lower<=c['start']<c['end']<=upper
             and abs(c['start']-original['start'])<=.25 and abs(c['end']-original['end'])<=.25]
     pairs=[(a,b) for i,a in enumerate(usable) for b in usable[i+1:]
@@ -42,10 +43,34 @@ def repeat_boundary_candidate(original,candidates,lower,upper,same_distance,othe
             'probability':min(a['probability'],b['probability']),'timing_source':'ctc','needs_review':False}
 
 
-def repeated_audio_support(audio,rate,offset,words,index,cache):
+def repeat_features(clip,rate):
+    """Reject silent/invalid references without compressing gaps into speech."""
     import numpy as np
     import librosa
     from karaoke_supplied_alignment import alignment_mono
+    if not len(clip) or not np.isfinite(clip).all():return None
+    wave=librosa.resample(alignment_mono(clip),orig_sr=rate,target_sr=16000)
+    if len(wave)<400 or not np.isfinite(wave).all():return None
+    # A word stretched over an instrumental break is not a trustworthy
+    # repetition reference, even when its CTC average score looks plausible.
+    rms=librosa.feature.rms(y=wave,frame_length=400,hop_length=160)[0]
+    if not len(rms) or rms.max()<1e-5:return None
+    quiet=rms<max(1e-5,float(rms.max())*.01)
+    run=0
+    for frame in quiet:
+        run=run+1 if frame else 0
+        if run>=12:return None  # 120 ms of near-silence; do not splice it out.
+    mfcc=librosa.feature.mfcc(y=wave,sr=16000,n_mfcc=16,n_fft=400,hop_length=160)[2:]
+    norm=np.linalg.norm(mfcc,axis=0,keepdims=True)
+    # Adding epsilon to a zero vector still leaves it zero. Cosine distance
+    # would divide by zero again inside DTW, so such evidence must be rejected.
+    if not np.isfinite(mfcc).all() or not np.isfinite(norm).all() or np.any(norm<=1e-8):return None
+    return mfcc/norm
+
+
+def repeated_audio_support(audio,rate,offset,words,index,cache):
+    import librosa
+    from librosa.util.exceptions import ParameterError
     target=words[index]
     references=[(i,w) for i,w in enumerate(words) if i!=index and not w.get('needs_review')
                 and (w.get('probability') or 0)>=.5 and w['end']-w['start']>=.08]
@@ -54,12 +79,12 @@ def repeated_audio_support(audio,rate,offset,words,index,cache):
     def features(w):
         span=(w['start'],w['end'])
         if span not in cache:
-            clip=audio[max(0,round((w['start']-offset)*rate)):round((w['end']-offset)*rate)]
-            clip=alignment_mono(clip)
-            wave=librosa.resample(clip,orig_sr=rate,target_sr=16000)
-            if len(wave)<400:return None
-            mfcc=librosa.feature.mfcc(y=wave,sr=16000,n_mfcc=16,n_fft=400,hop_length=160)[2:]
-            cache[span]=mfcc/(np.linalg.norm(mfcc,axis=0,keepdims=True)+1e-6)
+            cache[span]=None
+            if not all(math.isfinite(t) for t in span) or span[1]<=span[0]:return None
+            first=max(0,round((w['start']-offset)*rate));last=min(len(audio),round((w['end']-offset)*rate))
+            if last<=first:return None
+            try:cache[span]=repeat_features(audio[first:last],rate)
+            except (ParameterError,ValueError,FloatingPointError):pass
         return cache[span]
     source=features(target)
     if source is None:return math.inf,math.inf
@@ -68,8 +93,10 @@ def repeated_audio_support(audio,rate,offset,words,index,cache):
         reference=features(word)
         if reference is None:continue
         try:distances,path=librosa.sequence.dtw(X=source,Y=reference,metric='cosine')
-        except ValueError:continue
+        except (ParameterError,ValueError,FloatingPointError):continue
+        if not len(path):continue
         score=float(distances[-1,-1]/len(path))
+        if not math.isfinite(score) or score<0:continue
         if key(word)==key(target):same=min(same,score)
         else:other=min(other,score)
     return same,other
