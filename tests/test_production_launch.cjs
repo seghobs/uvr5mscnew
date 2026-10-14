@@ -38,14 +38,16 @@ test('backend ready before production and browser starts', () => {
   assert.match(result.calls[3][2][0], /open-browser/);
 });
 
-test('launcher keeps the outer console open after shutdown or reuse',()=>{
+test('launcher uses one console and closes it after shutdown or reuse',()=>{
   const batch=fs.readFileSync(path.join(__dirname,'../start.bat'),'utf8');
   const shutdown=batch.slice(batch.indexOf('call npm run start'),batch.indexOf(':already_running'));
   assert(!shutdown.includes('pause'));
-  assert.match(shutdown,/exit \/b %uvr_exit_code%/);
-  assert.match(batch,/cmd \/d \/k/);
+  assert.match(shutdown,/exit %uvr_exit_code%/);
+  assert(!batch.includes('cmd /d /k'));
+  assert(!batch.includes('frontend-launch'));
+  assert(!batch.includes('--owned'));
   const reuse=batch.slice(batch.indexOf(':already_running'),batch.indexOf(':launch_failed'));
   assert.match(reuse,/call node scripts\\open-browser\.js/);
-  assert.match(reuse,/exit \/b 0/);
+  assert.match(reuse,/exit 0/);
   assert(!reuse.includes('pause'));
 });
