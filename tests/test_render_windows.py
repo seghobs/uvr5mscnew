@@ -2,6 +2,13 @@ import unittest
 from karaoke_timing import render_windows, centiseconds
 
 class RenderWindowsTests(unittest.TestCase):
+    def test_lead_is_display_only_and_follows_earlier_measured_word(self):
+        row={'start':2,'end':4,'text':'GEL','words':[{'word':'GEL','start':1.8,'end':3.9}]}
+        window=render_windows([row],lead=.12)[0]
+        self.assertAlmostEqual(window[0]['start'],1.68)
+        self.assertEqual(window[0]['words'][0]['start'],1.8)
+        self.assertEqual(row['start'],2)
+
     def test_overlap_and_out_of_order(self):
         rows=[dict(start=241.65,end=246.47,text='A'),dict(start=246.47,end=251.59,text='B'),dict(start=243.92,end=246.92,text='C')]
         windows=render_windows(rows)

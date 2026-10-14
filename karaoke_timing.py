@@ -9,9 +9,14 @@ def is_music_label(text):
     return bool(re.fullmatch(r'\s*(solo|enstr[üu]mantal|instrumental)[.\s…!]*',text,re.I))
 
 
-def render_windows(segments):
+def render_windows(segments, lead=0.0):
     """One active display slot; clip display tails, never rewrite saved timings."""
-    ordered = sorted((s for s in segments if s.get('text', '').strip()), key=lambda s: s['start'])
+    ordered = sorted((copy.deepcopy(s) for s in segments if s.get('text', '').strip()), key=lambda s: s['start'])
+    for row in ordered:
+        if not is_music_label(row.get('text','')):
+            good=[w for w in row.get('words',[]) if w.get('end',0)>w.get('start',0)]
+            if good:row['start']=min(row['start'],min(w['start'] for w in good));row['end']=max(row['end'],max(w['end'] for w in good))
+            row['start']=max(0,row['start']-lead)
     result = []
     for index, segment in enumerate(ordered):
         music=is_music_label(segment.get('text',''))
@@ -116,8 +121,25 @@ def escape_ass(text):
     return str(text).replace("\\", "＼").replace("{", "｛").replace("}", "｝").replace("\n", " ").replace("\r", " ")
 
 
+def render_timing_issues(segments):
+    checked=copy.deepcopy(segments)
+    for row in checked:
+        words=row.get('words') or []
+        if words and ' '.join(w['word'].strip() for w in words)!=' '.join(row.get('text','').split()):
+            return ['Metin ve kelime bağlantıları uyuşmuyor']
+        for w in words:
+            if not all(isinstance(w.get(k),(int,float)) and math.isfinite(w[k]) for k in ('start','end')) or w['start']<0 or w['end']<w['start']:
+                return ['Geçersiz kelime süresi']
+            if w['end']==w['start'] and not (w.get('timing_source')=='estimated' and w.get('needs_review')):
+                return ['Geçersiz kelime süresi']
+        row['words']=[w for w in words if w.get('end',0)>w.get('start',0)]
+        row['text']=' '.join(w['word'] for w in row['words']) if row['words'] else row['text']
+    return timing_issues(checked,require_words=False,include_review=False)
+
+
 def ass_word_tags(segment):
-    errors = timing_issues([segment], require_words=False, include_review=False)
+    # Missing placeholders remain white; valid neighbours keep their sweep.
+    errors = render_timing_issues([segment])
     if errors:
         raise ValueError("; ".join(errors[:4]))
     if not segment.get("words"):
@@ -126,6 +148,9 @@ def ass_word_tags(segment):
     cursor = centiseconds(segment["start"])
     tags = []
     for i, word in enumerate(segment["words"]):
+        if word['end']<=word['start']:
+            tags.append(r"{\1c&HFFFFFF&\kf0}"+escape_ass(word['word'].strip())+r"{\1c}"+' ')
+            continue
         start, end = centiseconds(word["start"]), centiseconds(word["end"])
         # Explicit empty karaoke syllables preserve initial and inter-word silence.
         if start > cursor:

@@ -31,7 +31,7 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
   useEffect(()=>{const update=()=>setFullscreen(document.fullscreenElement===shell.current);document.addEventListener('fullscreenchange',update);return()=>document.removeEventListener('fullscreenchange',update);},[]);
   const toggleFullscreen=async()=>{try{if(document.fullscreenElement===shell.current)await document.exitFullscreen();else await shell.current?.requestFullscreen();}catch{setError('Bu tarayıcı tam ekranı açamadı.');}};
   const schedule=useMemo(()=>{
-    const rows=videoSegments(segments).filter(s=>s.text.trim()).slice().sort((a,b)=>a.start-b.start);
+    const rows=videoSegments(segments).filter(s=>s.text.trim()).map(row=>({...row,start:Math.max(0,row.start-(isInstrumentalText(row.text)?0:.12))})).sort((a,b)=>a.start-b.start);
     return rows.map((row,i)=>({row,end:rowDisplayEnd(row,i===rows.length-1,rows[i+1]?.start)})).filter(s=>s.end>s.row.start);
   },[segments]);
   const solos=useMemo(()=>soloWindows(videoSegments(segments),duration),[segments,duration]);
@@ -49,6 +49,8 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
   },[file]);
   useEffect(()=>{
     let frame=0;
+    let meterData=new Uint8Array(2048);
+    const layouts=new Map<LyricSegment,{pieces:string[];widths:number[];wordWidths:number[];total:number}>();
     const draw=()=>{
       const el=canvas.current,c=el?.getContext('2d');if(!el||!c)return;
       const vertical=aspectRatio==='9:16',width=vertical?1080:1920,height=vertical?1920:1080;
@@ -65,7 +67,8 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
       c.save();c.shadowBlur=16;c.shadowColor=color;
       const meter=analyser.current;
       if(meter){
-        const data=new Uint8Array(meter.fftSize);meter.getByteTimeDomainData(data);
+        if(meterData.length!==meter.fftSize)meterData=new Uint8Array(meter.fftSize);
+        const data=meterData;meter.getByteTimeDomainData(data);
         const w=vertical?840:1600,x=(width-w)/2,y=vertical?1792:944;
         c.strokeStyle=color;c.lineWidth=2.5;c.lineCap='round';c.lineJoin='round';c.beginPath();
         // Average neighboring samples and interpolate a smooth continuous contour.
@@ -95,15 +98,16 @@ export function KaraokeVideoPreview({file,segments,theme,aspectRatio,header,onPl
         if(words.length){
           c.font=`bold ${size}px Segoe UI`;
           c.textBaseline='bottom';
-          const pieces=words.map((w,i)=>w.word+(i<words.length-1?' ':''));
-          const widths=pieces.map(p=>c.measureText(p).width);const total=widths.reduce((a,b)=>a+b,0);const scale=Math.min(1,(width-120)/total);
+          let layout=layouts.get(row);
+          if(!layout){const pieces=words.map((w,i)=>w.word+(i<words.length-1?' ':''));const widths=pieces.map(p=>c.measureText(p).width);layout={pieces,widths,wordWidths:words.map(w=>c.measureText(w.word).width),total:widths.reduce((a,b)=>a+b,0)};layouts.set(row,layout);}
+          const {pieces,widths,total,wordWidths}=layout;const scale=Math.min(1,(width-120)/total);
           // Draw base and fill from the same measured layout, including silent gaps.
 
           c.save();c.translate((width-total*scale)/2,0);c.scale(scale,1);c.textAlign='left';let x=0;
           const stops:Record<string,[string,string]>={gold:['#fff1ac','#f49a55'],neon:['#b0fff1','#6699ff'],cyberpunk:['#ffb2ed','#aa79ff'],emerald:['#c4ffe2','#3fbca9']};
           const [light,dark]=stops[theme]||stops.gold;
           const fill=c.createLinearGradient(0,y-size,0,y);fill.addColorStop(0,light);fill.addColorStop(1,dark);
-          words.forEach((word,i)=>{c.fillStyle='white';c.strokeText(pieces[i],x,y);c.fillText(pieces[i],x,y);const fraction=wordFillWithNeighbors(word,time,words[i-1],words[i+1]);if(fraction>0){c.save();c.beginPath();c.rect(x,y-size*1.5,c.measureText(word.word).width*fraction,size*2);c.clip();c.fillStyle=fill;c.fillText(pieces[i],x,y);c.restore();}x+=widths[i];});c.restore();
+          words.forEach((word,i)=>{c.fillStyle='white';c.strokeText(pieces[i],x,y);c.fillText(pieces[i],x,y);const fraction=wordFillWithNeighbors(word,time,words[i-1],words[i+1]);if(fraction>0){const wordWidth=wordWidths[i];const sweep=c.createLinearGradient(x,0,x+wordWidth,0);sweep.addColorStop(0,light);sweep.addColorStop(Math.max(0,fraction-.04),light);sweep.addColorStop(Math.min(1,fraction+.04),fraction>=1?light:'white');sweep.addColorStop(1,fraction>=1?light:'white');c.fillStyle=sweep;c.fillText(pieces[i],x,y);}x+=widths[i];});c.restore();
         }
       }
       if(!active&&solos.some(([start,end])=>time>=start&&time<end))text('Solo...',y,44,'#d0c4ed',false);

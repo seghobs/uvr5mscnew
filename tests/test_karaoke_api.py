@@ -18,7 +18,7 @@ from fastapi import BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from local_projects import ProjectStore
-from karaoke_timing import repair_timing, timing_issues
+from karaoke_timing import repair_timing, timing_issues, render_timing_issues
 
 
 class ApiTests(unittest.TestCase):
@@ -127,6 +127,8 @@ class ApiTests(unittest.TestCase):
         self.assertFalse(bg.tasks)
 
     def test_render_accepts_confidence_warning(self):
+        self.seg['text']='HEY Bir iki'
+        self.seg['words'].insert(0,{'word':'HEY','start':1.,'end':1.,'timing_source':'estimated','needs_review':True})
         self.seg['words'][0]['needs_review'] = True
         req = self.ns['KaraokeVideoRequest'](inst_file='sample.wav', segments=[self.seg])
         bg = BackgroundTasks()

@@ -1,0 +1,56 @@
+{
+  "song_id": "67a5c65d3ee3",
+  "rows": 29,
+  "recovered_row": 26,
+  "recovered_measured_words": 4,
+  "duplicate_generated_unvoiced_prefixes_removed": 1,
+  "display_lead_seconds": 0.12,
+  "export_fps": 60,
+  "unit_tests_passed": 53,
+  "frontend_contract": "passed",
+  "production_build": "passed",
+  "live_ui": {
+    "rows": 29,
+    "gradient_mask_observed": true,
+    "completed_fill_observed": true
+  },
+  "real_clip": {
+    "color_pixel_counts": [
+      [
+        5.4,
+        0
+      ],
+      [
+        5.6,
+        288
+      ],
+      [
+        5.75,
+        675
+      ],
+      [
+        5.92,
+        905
+      ],
+      [
+        6.1,
+        905
+      ],
+      [
+        6.4,
+        905
+      ],
+      [
+        6.7,
+        1236
+      ],
+      [
+        7.0,
+        1587
+      ]
+    ],
+    "fps": 60,
+    "result": "No early fill; increasing sweep; held steady in silence; recovered next word fills."
+  },
+  "remaining_confidence_warnings": "Preserved; no acoustic correctness claim is inferred from visual fill."
+}

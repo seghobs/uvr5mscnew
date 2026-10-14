@@ -11,6 +11,14 @@ function load(file, extras = {}) {
 
 async function main() {
   const timing = load('frontend/src/lib/karaoke-timing.ts');
+  assert.equal(timing.preferLyricDraft({segments:[{}]}, {segments:[{}]}),false);
+  assert.equal(timing.preferLyricDraft({segments:[{}]},null),true);
+  assert.equal(timing.preferLyricDraft({segments:[{}],modifiedAt:2000},{segments:[{}],updated_at:'1970-01-01T00:00:01Z'}),true);
+  assert.equal(timing.preferLyricDraft({segments:[{}],modifiedAt:500},{segments:[{}],updated_at:'1970-01-01T00:00:01Z'}),false);
+  const partial={start:1,end:4,text:'HEY GÖNÜL GENE',words:[{word:'HEY',start:1,end:1,timing_source:'estimated',needs_review:true},{word:'GÖNÜL',start:2,end:3,timing_source:'ctc'},{word:'GENE',start:3.2,end:4,timing_source:'ctc'}]};
+  const shown=timing.videoSegments([partial])[0];
+  assert.equal(shown.words.length,3);
+  assert.equal(timing.wordFillWithNeighbors(shown.words[1],2.5,shown.words[0],shown.words[2]),.5);
   assert.equal(JSON.stringify(timing.soloWindows([
     {start:5,end:10,text:'Bir'}, {start:20,end:25,text:'İki'},
   ],35)), JSON.stringify([[0,5],[10.35,20],[27,35]]));

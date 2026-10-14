@@ -37,7 +37,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict
 import core
-from karaoke_timing import repair_timing, timing_issues, ass_time, ass_word_tags, escape_ass, align_lyrics, render_windows
+from karaoke_timing import repair_timing, timing_issues, render_timing_issues, ass_time, ass_word_tags, escape_ass, align_lyrics, render_windows
 
 import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
@@ -2590,7 +2590,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             source_info, target_info = sf.info(str(timing_path)), sf.info(str(inst_path))
             if abs(source_info.duration - target_info.duration) > 0.02:
                 raise ValueError("Vokal ve enstrümantal süreleri farklı. Aynı ayrıştırmanın eşleşen dosyalarını kullanın.")
-        issues = timing_issues([s.model_dump() for s in req.segments], require_words=False, include_review=False)
+        issues = render_timing_issues([s.model_dump() for s in req.segments])
         if issues:
             raise ValueError(" / ".join(issues[:5]))
         
@@ -2678,10 +2678,10 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             cached = get_saved_lyrics(req.inst_file)
             if cached and cached.get("segments"):
                 segments_to_use = [LyricSegmentModel(**s) for s in cached["segments"]]
-        elif segments_to_use and len(segments_to_use) > 0:
-            save_lyrics_db(req.inst_file, "tr", [s.model_dump() for s in segments_to_use], is_edited=True)
+        # Rendering is read-only: presentation fallbacks must never overwrite
+        # the saved acoustic word links or review flags.
 
-        windows = render_windows([s.model_dump() for s in segments_to_use])
+        windows = render_windows([s.model_dump() for s in segments_to_use],lead=.12)
         segments_to_use = [LyricSegmentModel(**s) for s, _ in windows]
         from karaoke_timing import solo_windows,is_music_label
         import soundfile as sf
@@ -2709,10 +2709,14 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             else:
                 active_anim = f"{{\\pos({x_center}, {y_active})\\fad(0, 200)}}"
 
-            from karaoke_design import gradient_masks
+            from karaoke_design import gradient_masks,soft_word_events
+            soft=soft_word_events(seg.model_dump(),act_end_sec,res_x,res_y,y_active,font_size_active,req.theme)
             masks = gradient_masks(req.theme, res_x, res_y, y_active, font_size_active) if seg.words else ['']
-            for mask in masks:
-                ass_lines.append(f"Dialogue: 1,{st},{en},Active,,0,0,0,,{active_anim}{mask}{active_karaoke_text}")
+            if soft is not None:
+                ass_lines.extend(soft)
+            else:
+                for mask in masks:
+                    ass_lines.append(f"Dialogue: 1,{st},{en},Active,,0,0,0,,{active_anim}{mask}{active_karaoke_text}")
             if idx + 1 < len(segments_to_use):
                 next_seg = segments_to_use[idx + 1]
                 next_text = escape_ass(next_seg.text.strip())
@@ -2743,9 +2747,9 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         freq_y = 1760 if is_vertical else 920
 
         filter_complex = (
-            f"[0:a]aformat=channel_layouts=mono,showwaves=s={freq_w}x{freq_h}:r=30:mode=line:draw=full:scale=sqrt:colors={wave_color},format=rgba,colorkey=0x000000:0.1:0.1,gblur=sigma=0.7,split[sharp][soft];"
+            f"[0:a]aformat=channel_layouts=mono,showwaves=s={freq_w}x{freq_h}:r=60:mode=line:draw=full:scale=sqrt:colors={wave_color},format=rgba,colorkey=0x000000:0.1:0.1,gblur=sigma=0.7,split[sharp][soft];"
             f"[soft]gblur=sigma=7[glow];[glow][sharp]overlay=0:0[freqs];"
-            f"[1:v]fps=30,format=rgba[stage];"
+            f"[1:v]fps=60,format=rgba[stage];"
             f"[stage][freqs]overlay=(W-w)/2:{freq_y}:shortest=1[v_raw];"
             f"[v_raw]subtitles=filename={ass_filename}[v]"
         )
@@ -2763,9 +2767,9 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
             "-preset", "veryfast",
             "-threads", "0",
             "-crf", "22",
-            "-r", "30",
+            "-r", "60",
             "-profile:v", "main",
-            "-level:v", "4.0",
+            "-level:v", "4.2",
             "-g", "30",
             "-keyint_min", "30",
             "-sc_threshold", "0",
@@ -2802,7 +2806,7 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
 @app.post("/generate_karaoke_video")
 async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest, background_tasks: BackgroundTasks):
     req.segments = [LyricSegmentModel(**s) for s in repair_timing([s.model_dump() for s in req.segments])]
-    issues = timing_issues([s.model_dump() for s in req.segments], require_words=False, include_review=False)
+    issues = render_timing_issues([s.model_dump() for s in req.segments])
     if not req.segments or issues:
         raise HTTPException(status_code=422, detail=" / ".join(issues[:5]) or "Sözler eksik")
     task_id = _create_task({"message": "Karaoke Videosu Hazırlanıyor...", "model_type": "karaoke_video"})

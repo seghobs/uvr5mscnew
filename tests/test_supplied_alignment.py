@@ -4,6 +4,22 @@ from karaoke_supplied_alignment import alignment_blocks,assemble,repair_anomalou
 
 
 class SuppliedAlignmentTests(unittest.TestCase):
+    def test_generated_duplicate_prefix_without_audio_is_removed(self):
+        from karaoke_supplied_alignment import trim_unvoiced_repeat_prefixes
+        rows=[{'text':'YAZIMIZ HEY','words':[{'word':'HEY','start':9,'end':10}]},
+              {'id':'auto-repeat:test','text':'HEY GÖNÜL','words':[{'word':'HEY','start':9,'end':9,'timing_source':'estimated','needs_review':True},{'word':'GÖNÜL','start':10.2,'end':11}]}]
+        self.assertEqual(trim_unvoiced_repeat_prefixes(rows),1)
+        self.assertEqual(rows[1]['text'],'GÖNÜL')
+        self.assertEqual(rows[0]['words'][0]['end'],10)
+        self.assertEqual(trim_unvoiced_repeat_prefixes(rows),0)
+
+    def test_user_prefix_and_voiced_repeat_are_preserved(self):
+        from karaoke_supplied_alignment import trim_unvoiced_repeat_prefixes
+        for identity,locked,end in [('user',False,9),('auto-repeat:test',True,9),('auto-repeat:test',False,9.5)]:
+            rows=[{'text':'HEY','words':[{'word':'HEY','start':9,'end':10}]},
+                  {'id':identity,'locked':locked,'text':'HEY','words':[{'word':'HEY','start':9,'end':end}]}]
+            self.assertEqual(trim_unvoiced_repeat_prefixes(rows),0)
+
     def test_local_uncertainty_retry_does_not_touch_confirmed_manual_word(self):
         from karaoke_supplied_alignment import rescue_weak_words
         word={'word':'GEL','start':1,'end':2,'probability':.2,'timing_source':'manual','needs_review':False}

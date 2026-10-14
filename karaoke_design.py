@@ -22,6 +22,44 @@ def progress_events(duration, width, theme='gold'):
     return events
 
 
+def soft_word_events(segment, display_end, width, height, baseline, font_size, theme):
+    """Horizontal feathered sweep on measured media times, with a white base."""
+    from PIL import ImageFont
+    from karaoke_timing import ass_time,escape_ass
+    font_path=Path(os.environ.get('WINDIR','C:/Windows'))/'Fonts/segoeuib.ttf'
+    if not font_path.is_file():return None
+    font=ImageFont.truetype(str(font_path),font_size)
+    words=segment.get('words') or []
+    if not words:return None
+    pieces=[w['word']+(' ' if i<len(words)-1 else '') for i,w in enumerate(words)]
+    lengths=[font.getlength(p) for p in pieces];total=sum(lengths)
+    scale=min(1,(width-120)/max(total,1));x=(width-total*scale)/2
+    color={'gold':'ACF1FF','neon':'F1FFB0','cyberpunk':'EDB2FF','emerald':'E2FFC4'}.get(theme,'ACF1FF')
+    events=[];row_start=ass_time(segment['start']);row_end=ass_time(display_end)
+    for word,piece,length in zip(words,pieces,lengths):
+        right=x+font.getlength(word['word'])*scale
+        pos=f'\\an1\\pos({x:.3f},{baseline})\\fscx{scale*100:.4f}\\q2\\bord0\\shad0'
+        label=escape_ass(piece)
+        events.append(f'Dialogue: 1,{row_start},{row_end},Active,,0,0,0,,{{{pos}\\1c&HFFFFFF&}}{label}')
+        start,end=word['start'],word['end']
+        if end>start and word.get('timing_source')!='estimated':
+            duration=max(1,round((end-start)*1000));feather=min(12,(right-x)*.15)
+            intervals=[(x-feather,x-feather, x,right-feather,0)]
+            # Each translucent band follows the same acoustic sweep front.
+            for band in range(6):
+                a=-feather+band*feather/6;b=a+feather/6
+                intervals.append((x+a,x+b,right+a,right+b,round(255*(band+.5)/6)))
+            for left0,right0,left1,right1,alpha in intervals:
+                if alpha==0:left0=x;right0=x-feather;left1=x
+                initial=f'\\clip({round(left0)},0,{round(max(left0,right0))},{height})'
+                final=f'\\clip({round(left1)},0,{round(max(left1,right1))},{height})'
+                events.append(f'Dialogue: 2,{ass_time(start)},{ass_time(min(end,display_end))},Active,,0,0,0,,{{{pos}\\1c&H{color}&\\alpha&H{alpha:02X}&{initial}\\t(0,{duration},{final})}}{label}')
+            if display_end>end:
+                events.append(f'Dialogue: 2,{ass_time(end)},{row_end},Active,,0,0,0,,{{{pos}\\1c&H{color}&}}{label}')
+        x+=length*scale
+    return events
+
+
 def gradient_masks(theme, width, height, baseline, font_size):
     """Disjoint ASS clips apply a vertical gradient to the timed primary fill."""
     colors={'gold':((255,241,172),(244,154,85)), 'neon':((176,255,241),(102,153,255)),

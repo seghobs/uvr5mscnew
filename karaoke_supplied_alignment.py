@@ -45,6 +45,22 @@ def alignment_blocks(rows,duration):
     return blocks
 
 
+def trim_unvoiced_repeat_prefixes(rows):
+    """Drop only generated duplicate prefixes with no independent acoustic span."""
+    count=0
+    for previous,row in zip(rows,rows[1:]):
+        if protected(row) or not str(row.get('id','')).startswith('auto-repeat:'):continue
+        words=row.get('words') or []
+        before=previous.get('words') or []
+        if not words or not before:continue
+        prefix=words[0];last=before[-1]
+        if (prefix['word'].strip().casefold()==last['word'].strip().casefold()
+                and prefix['end']<=prefix['start'] and last['end']>last['start']
+                and last['start']-.05<=prefix['start']<=last['end']+.05):
+            row['words']=words[1:];row['text']=' '.join(w['word'] for w in words[1:]);count+=1
+    return count
+
+
 def assemble(rows,aligned_blocks,duration):
     result=copy.deepcopy(rows);pending=[];linked=0;total=0
     for indices,words in aligned_blocks:
@@ -82,6 +98,8 @@ def assemble(rows,aligned_blocks,duration):
         if after>before:
             row.update(start=before,end=after,words=[{'word':row['text'].strip(),'start':before,'end':after,
                 'timing_source':'manual','needs_review':False}])
+    trimmed=trim_unvoiced_repeat_prefixes(result)
+    pending=[i+1 for i,row in enumerate(result) if any(w.get('needs_review') for w in row.get('words') or [])]
     previous=0.
     for row in result:
         for word in row.get('words') or []:
@@ -91,7 +109,7 @@ def assemble(rows,aligned_blocks,duration):
                 raise ValueError('Korunan elle bağlı kelimelerle çakışma bulundu; mevcut sözler değiştirilmedi.')
             previous=word['end']
     return result,{'method':'supplied_turkish_ctc','linked_words':linked,'target_words':total,
-                   'review_rows':pending,'preserved_rows':sum(bool(protected(r)) for r in rows)}
+                   'review_rows':pending,'trimmed_repeat_prefixes':trimmed,'preserved_rows':sum(bool(protected(r)) for r in rows)}
 
 
 def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=None,diagnostics=None):

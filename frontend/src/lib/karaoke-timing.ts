@@ -2,6 +2,15 @@ import type { LyricSegment } from './types';
 
 export type TimedWord = NonNullable<LyricSegment['words']>[number];
 
+export function preferLyricDraft(draft:{segments:LyricSegment[];modifiedAt?:number}|null,saved:{segments:LyricSegment[];updated_at?:string}|null):boolean {
+  if(!draft?.segments.length)return false;
+  if(!saved?.segments.length)return true;
+  if(!draft.modifiedAt)return false; // Legacy drafts cannot supersede a persisted project.
+  const value=saved.updated_at;
+  const savedAt=value?Date.parse(/[zZ]|[+-]\d\d:\d\d$/.test(value)?value:value+'Z'):0;
+  return draft.modifiedAt>=(Number.isFinite(savedAt)?savedAt:0);
+}
+
 // An instrumental label deliberately fills its whole display interval.
 export function instrumentalTiming(segment:LyricSegment):LyricSegment {
   if(!/^\s*solo[.\s…!]*$/i.test(segment.text)||![segment.start,segment.end].every(Number.isFinite)||segment.start<0||segment.end<=segment.start)return segment;
@@ -82,7 +91,13 @@ export function timingIssues(segments: LyricSegment[], includeReview = true, req
 
 // Export unaligned lyrics at their measured row interval without inventing word times.
 export function videoSegments(segments: LyricSegment[]): LyricSegment[] {
-  return segments.map(instrumentalTiming).map(seg => timingIssues([seg], false).length ? {...seg, words:[]} : seg);
+  return segments.map(instrumentalTiming).map(seg => {
+    const words=seg.words||[];
+    if(words.map(w=>w.word.trim()).join(' ')!==seg.text.trim().split(/\s+/).join(' '))return {...seg,words:[]};
+    // A missing word must not disable every correctly measured word in the row.
+    const valid=words.filter(w=>[w.start,w.end].every(Number.isFinite)&&w.start>=0&&w.end>w.start);
+    return valid.length?{...seg,start:Math.min(seg.start,...valid.map(w=>w.start)),end:Math.max(seg.end,...valid.map(w=>w.end))}:seg;
+  });
 }
 
 export function wordFill(word: TimedWord, time: number, previousEnd = 0, nextStart = Infinity): number {

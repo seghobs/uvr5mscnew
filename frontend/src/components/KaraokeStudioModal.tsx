@@ -52,7 +52,7 @@ import { Language, LyricSegment } from '@/lib/types';
 import { getTranslation } from '@/lib/translations';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { applyEditedWordTimes, instrumentalTiming, preserveWords, reconcileWords, uppercaseLyric, uppercaseLyrics, videoSegments, timingIssues, wordFillWithNeighbors, serializeProject, importProject, enqueueLyricsSave, rowPlaybackRange, repairTiming, TimedWord } from '@/lib/karaoke-timing';
+import { preferLyricDraft, applyEditedWordTimes, instrumentalTiming, preserveWords, reconcileWords, uppercaseLyric, uppercaseLyrics, videoSegments, timingIssues, wordFillWithNeighbors, serializeProject, importProject, enqueueLyricsSave, rowPlaybackRange, repairTiming, TimedWord } from '@/lib/karaoke-timing';
 import LyricsReferenceModal from './LyricsReferenceModal';
 import LyricsCatalogSearch from './LyricsCatalogSearch';
 import { WordPlayer, checkWordInterval } from '@/lib/word-player';
@@ -259,6 +259,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const displayTimeRef=useRef(currentTime);displayTimeRef.current=currentTime;
+  const fillNodes=useRef(new Map<HTMLElement,{word:TimedWord;previous?:TimedWord;next?:TimedWord}>());
   const [duration, setDuration] = useState(0);
   const [activeAudioSource, setActiveAudioSource] = useState<'vocal' | 'inst'>(vocalStem ? 'vocal' : 'inst');
   const [loopLineIndex, setLoopLineIndex] = useState<number | null>(null);
@@ -440,10 +442,17 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     let frame = 0;
+    let lastUi=0;
     const tick = () => {
       const precise = wordPlayerRef.current;
-      if (precise?.playing) setCurrentTime(precise.currentTime);
-      else if (audioRef.current && !audioRef.current.paused) setCurrentTime(audioRef.current.currentTime);
+      const time=precise?.playing?precise.currentTime:audioRef.current&&!audioRef.current.paused?audioRef.current.currentTime:displayTimeRef.current;
+      for(const [node,item] of fillNodes.current){
+        if(!node.isConnected){fillNodes.current.delete(node);continue;}
+        const progress=wordFillWithNeighbors(item.word,time,item.previous,item.next)*100;
+        node.style.maskImage=progress<=0?'linear-gradient(transparent,transparent)':progress>=100?'none':`linear-gradient(to right,#000 ${Math.max(0,progress-4)}%,transparent ${Math.min(100,progress+4)}%)`;
+      }
+      // Paint the word sweep every frame without re-rendering the entire editor.
+      if(performance.now()-lastUi>=100){setCurrentTime(time);lastUi=performance.now();}
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -475,15 +484,17 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     setLyricsProgress('Kayıtlı sözler kontrol ediliyor...');
     void (async()=>{
       try{
-        let draft:{segments:LyricSegment[]}|null=null;
+        let draft:{segments:LyricSegment[];modifiedAt?:number}|null=null;
         try{draft=JSON.parse(projectStorage.getItem('uvr-lyrics-draft:'+sourceFile)||'null');}catch{}
-        const res=draft?.segments?.length
+        const saved=await api.getSavedLyrics(sourceFile).catch(()=>null);
+        const useDraft=preferLyricDraft(draft,saved);
+        const res=useDraft&&draft
           ? {status:'success',cached:true,segments:draft.segments} as Awaited<ReturnType<typeof api.getSavedLyrics>>
-          : await api.getSavedLyrics(sourceFile);
+          : saved??{status:'success',segments:[],updated_at:undefined};
         if(requestId!==lyricsRequestRef.current)return;
         const syncedSegments=uppercaseLyrics(res.segments||[]).map(seg=>({...seg,words:reconcileWords(seg.words||[],seg.text,seg.start)}));
         loadSegments(syncedSegments);
-        if(draft?.segments?.length)onNotify('info','Bekleyen düzenlemeler geri yüklendi');
+        if(useDraft)onNotify('info','Bekleyen düzenlemeler geri yüklendi');
         if(res.updated_at)setLastSavedTime(new Date(res.updated_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
       }catch{
         if(requestId===lyricsRequestRef.current){loadSegments([]);setLastSavedTime('');}
@@ -780,7 +791,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   const triggerAutoSave = (newSegments: LyricSegment[], immediate = false) => {
     newSegments=protectLockedRows(committedSegments.current,newSegments);
-    projectStorage.setItem('uvr-lyrics-draft:'+(vocalStem||instStem),JSON.stringify({segments:newSegments,language:selectedLyricsLang}));
+    projectStorage.setItem('uvr-lyrics-draft:'+(vocalStem||instStem),JSON.stringify({segments:newSegments,language:selectedLyricsLang,modifiedAt:Date.now()}));
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     pendingSaveRef.current = { file: vocalStem || instStem, segments: structuredClone(newSegments), language: selectedLyricsLang };
     // Keep side effects outside React's state updater; the snapshot is the NEW value.
@@ -2358,7 +2369,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                             className={cn('inline-flex items-baseline rounded-sm text-left text-xl sm:text-2xl leading-relaxed font-semibold text-zinc-200', expandedWordRow === idx && selectedWordIndex === wi && 'underline decoration-amber-400/60 underline-offset-8')} disabled={loadingLyrics}>
                             <span className="relative inline-block whitespace-pre">
                               <span>{w.word}</span>
-                              <span aria-hidden className="pointer-events-none absolute inset-0 text-amber-400" style={{ clipPath: `inset(0 ${100 - wordFillWithNeighbors(w, currentTime, seg.words?.[wi - 1] ?? segments[idx - 1]?.words?.at(-1), seg.words?.[wi + 1] ?? nextSeg?.words?.[0]) * 100}% 0 0)` }}>{w.word}</span>
+                              <span aria-hidden ref={node=>{if(node)fillNodes.current.set(node,{word:w,previous:seg.words?.[wi-1]??segments[idx-1]?.words?.at(-1),next:seg.words?.[wi+1]??nextSeg?.words?.[0]});}} className="pointer-events-none absolute inset-0 text-amber-400" style={{maskImage:'linear-gradient(transparent,transparent)'}}>{w.word}</span>
                             </span>
                           </button>
                         ))}

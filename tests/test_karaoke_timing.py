@@ -26,6 +26,15 @@ def ass_intervals(seg):
 
 
 class TimingTests(unittest.TestCase):
+    def test_missing_placeholder_keeps_neighboring_measured_sweeps(self):
+        row=segment([('HEY',1,1),('GÖNÜL',2,3),('GENE',3.5,4)],start=1)
+        row['words'][0].update(timing_source='estimated',needs_review=True)
+        tags=ass_word_tags(row)
+        self.assertIn('GÖNÜL',tags)
+        self.assertIn(r'\kf100',tags)
+        self.assertIn(r'\1c&HFFFFFF&',tags)
+        self.assertEqual(ass_intervals(row)[-2:],[(200,300),(350,400)])
+
     def test_automatic_repair_is_bounded_lossless_and_idempotent(self):
         original = [segment([('DUR',85,91.6)]), segment([('AY',91.59997732426304,92)])]
         original[0]['words'][0]['needs_review'] = True
