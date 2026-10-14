@@ -99,6 +99,14 @@ def frontend_generation():
     return None
 
 
+def run_in_console(command,cwd):
+    process=subprocess.Popen(command,cwd=cwd,stdin=sys.stdin,
+                             stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    for line in iter(process.stdout.readline,b''):
+        sys.stdout.buffer.write(line);sys.stdout.buffer.flush()
+    return process.wait()
+
+
 def launch_frontend():
     """Serialize complete batch launches, including the build, in one console."""
     import msvcrt
@@ -111,10 +119,10 @@ def launch_frontend():
         while True:
             if frontend_running():
                 print('UVR5 zaten açık: http://localhost:3000 · Mevcut sunucuya bağlanılıyor.',flush=True)
-                backend_status=subprocess.call(['node',str(ROOT/'frontend/scripts/ensure-backend.js'),'--no-browser','--quiet'],cwd=ROOT/'frontend')
+                backend_status=run_in_console(['node',str(ROOT/'frontend/scripts/ensure-backend.js'),'--no-browser','--quiet'],ROOT/'frontend')
                 if backend_status:return backend_status
                 focus_frontend_console()
-                subprocess.call(['node',str(ROOT/'frontend/scripts/open-browser.js')],cwd=ROOT/'frontend')
+                run_in_console(['node',str(ROOT/'frontend/scripts/open-browser.js')],ROOT/'frontend')
                 return 0
             try:
                 handle.seek(0);msvcrt.locking(handle.fileno(),msvcrt.LK_NBLCK,1)
@@ -128,13 +136,7 @@ def launch_frontend():
         try:
             print('UVR5: Backend hazırlanacak, ardından derleme ve uygulama başlatılacak.',flush=True)
             # CALL avoids CMD's outer-quote stripping when invoking a batch file.
-            process=subprocess.Popen(['cmd.exe','/d','/c','call',str(ROOT/'start.bat'),'--owned'],cwd=ROOT,
-                                     stdin=sys.stdin,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-            # Relay every child line explicitly; inherited console handles can be
-            # redirected by a Windows terminal host or an invoking launcher.
-            for line in iter(process.stdout.readline,b''):
-                sys.stdout.buffer.write(line);sys.stdout.buffer.flush()
-            return process.wait()
+            return run_in_console(['cmd.exe','/d','/c','call',str(ROOT/'start.bat'),'--owned'],ROOT)
         finally:
             handle.seek(0);msvcrt.locking(handle.fileno(),msvcrt.LK_UNLCK,1)
 
