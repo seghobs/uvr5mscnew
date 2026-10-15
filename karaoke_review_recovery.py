@@ -3,17 +3,21 @@ import math
 import copy
 
 
-def recover_row_reviews(audio_path,rows,progress=lambda *args:None):
+def recover_row_reviews(audio_path,rows,progress=lambda *args:None,language='tr'):
     """A full-line acoustic retry complements the bounded local phrase retry."""
-    from karaoke_ctc import refine_turkish
+    from karaoke_ctc import refine_turkish,refine_ctc
+    refine=refine_turkish if language=='tr' else refine_ctc
     from karaoke_supplied_alignment import choose_boundary_candidate,protected,instrumental
     pending=[i for i,row in enumerate(rows) if not protected(row) and any(w.get('needs_review') for w in row.get('words') or [])]
     if not pending:return 0
     context=sorted({j for i in pending for j in range(max(0,i-1),min(len(rows),i+2)) if not instrumental(rows[j]) and rows[j].get('words')})
     candidates={};count=0
-    for padding,channel in ((p,c) for p in (.25,1.4) for c in ('mix','left','right')):
+    passes=([(p,c,False) for p in (.25,1.4) for c in ('mix','left','right')] if language=='tr' else
+            [(p,c,independent) for independent in (False,True) for p in (.25,.8,1.4) for c in ('left','right')])
+    for padding,channel,independent in passes:
         progress(.99,'Kalan belirsiz kelimeler tam satır bağlamıyla kontrol ediliyor…')
-        refined=refine_turkish(audio_path,[copy.deepcopy(rows[i]) for i in context],'tr',context_padding=padding,channel=channel)
+        options={} if language=='tr' else {'independent_rows':independent}
+        refined=refine(audio_path,[copy.deepcopy(rows[i]) for i in context],language,context_padding=padding,channel=channel,**options)
         for index,row in zip(context,refined):
             for j,word in enumerate(row.get('words') or []):candidates.setdefault((index,j),[]).append({**word,'recovery_channel':channel})
     for index in pending:
@@ -23,7 +27,11 @@ def recover_row_reviews(audio_path,rows,progress=lambda *args:None):
             lower=row['words'][j-1]['end'] if j else rows[index-1]['end'] if index else 0
             upper=row['words'][j+1]['start'] if j+1<len(row['words']) else rows[index+1]['start'] if index+1<len(rows) else math.inf
             selected=choose_boundary_candidate(word,candidates[(index,j)],lower,upper)
-            if selected is not word:row['words'][j]=selected;count+=1
+            if selected is not word:
+                if language=='kmr_mms':
+                    selected['timing_reference']={'method':'language_model_channel_consensus',
+                                                 'model':'facebook/mms-1b-all','adapter':'kmr-script_latin'}
+                row['words'][j]=selected;count+=1
         good=[w for w in row['words'] if w['end']>w['start']]
         if good:row['start']=min(row['start'],good[0]['start']);row['end']=max(row['end'],good[-1]['end'])
     return count

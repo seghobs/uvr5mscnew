@@ -1,0 +1,70 @@
+{
+  "supported_alignment_languages": [
+    "tr",
+    "kmr"
+  ],
+  "auto_detection_scope": "Conservative lyrics-based Turkish/Kurmanji selection; other languages require a separately validated model.",
+  "models": [
+    {
+      "role": "unchanged_turkish_and_crosscheck",
+      "id": "mpoyraz/wav2vec2-xls-r-300m-cv7-turkish",
+      "revision": "708639f50559d7970f462e13ec64d3f059ca89f6",
+      "license": "CC-BY-4.0"
+    },
+    {
+      "role": "kurmanji",
+      "id": "maniwebdev/xlsr_kurmanji_kurdish_custom",
+      "revision": "c171cb167646a94f29ec716b510c57e33eb15c3f",
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/maniwebdev/xlsr_kurmanji_kurdish_custom"
+    },
+    {
+      "role": "uncertain_kurmanji_boundaries",
+      "id": "facebook/mms-1b-all",
+      "revision": "3d33597edbdaaba14a8e858e2c8caa76e3cec0cd",
+      "adapter": "kmr-script_latin",
+      "license": "CC-BY-NC-4.0",
+      "source": "https://huggingface.co/facebook/mms-1b-all"
+    }
+  ],
+  "comparison_model_not_selected": {
+    "id": "infinitejoy/wav2vec2-large-xls-r-300m-kurdish",
+    "revision": "2e2d1551533f1397a25fe742049655d69fd55df5"
+  },
+  "requirements": {
+    "download_on_first_use": true,
+    "kurmanji_models_approx_gb": 5,
+    "weights_committed": false
+  },
+  "safeguards": [
+    "Retain supplied text and manual/locked words",
+    "Do not lower existing CTC acceptance or review thresholds",
+    "Only replace measured weak intervals with corroborated high-confidence candidates",
+    "Keep warnings for weak candidates",
+    "Require distinct audio channels for boundary confirmation",
+    "Compare recovered repetitions against both matching and different words",
+    "Never substitute a presumed vowel pronunciation for the supplied letter"
+  ],
+  "limitations": [
+    "A timestamp is not a guarantee of correct alignment",
+    "Kurdish support currently means Latin-script Kurmanji, not every Kurdish dialect or script",
+    "A confident model trained for read speech can still misalign singing",
+    "All-language support is not claimed",
+    "The conditional MMS fallback has a noncommercial model license; see its model card"
+  ],
+  "repeat_estimation": {
+    "trigger": "Only an explicit supplied-lyrics synchronization request",
+    "languages": "All enabled alignment languages",
+    "reference_scope": "Measured words in the same recording only",
+    "priority": [
+      "matching phrase with two neighbouring anchors",
+      "robust same-word durations adapted to local spacing and vocal energy"
+    ],
+    "label": "Tahmini",
+    "source": "repeat_inferred",
+    "probability": null,
+    "acoustically_verified": false,
+    "manual_and_locked_preserved": true,
+    "estimates_reused_as_references": false
+  }
+}

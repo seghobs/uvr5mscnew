@@ -345,9 +345,9 @@ export const api = {
     throw new Error('Hizalama bekleme süresi doldu; görev sunucuda devam ediyor olabilir.');
   },
 
-  async alignSuppliedLyrics(fileName:string,segments:LyricSegment[],onProgress:(message:string,progress:number)=>void,instrumentalFileName?:string) {
+  async alignSuppliedLyrics(fileName:string,segments:LyricSegment[],onProgress:(message:string,progress:number)=>void,instrumentalFileName?:string,language='auto') {
     const res=await safeFetch('/api/lyrics/align-supplied',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({file_name:fileName,segments,language:'tr',instrumental_file_name:instrumentalFileName})});
+      body:JSON.stringify({file_name:fileName,segments,language,instrumental_file_name:instrumentalFileName})});
     if(!res.ok){const error=await res.json().catch(()=>({}));throw Error(error.detail||'Senkron başlatılamadı.');}
     const {task_id}=await res.json();
     for(let attempt=0;attempt<3600;attempt++){

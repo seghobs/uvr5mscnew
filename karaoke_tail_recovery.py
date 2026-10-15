@@ -59,10 +59,11 @@ def infer_tail_from_repeats(rows,duration):
     return len(inferred)
 
 
-def recover_fading_tail(audio_path,rows,progress=lambda *args:None):
+def recover_fading_tail(audio_path,rows,progress=lambda *args:None,language='tr'):
     import numpy as np
     import soundfile as sf
-    from karaoke_ctc import refine_turkish
+    from karaoke_ctc import refine_turkish,refine_ctc
+    refine=refine_turkish if language=='tr' else refine_ctc
     from karaoke_supplied_alignment import instrumental,protected,choose_boundary_candidate
     indices=[i for i,r in enumerate(rows) if not instrumental(r) and r.get('words')]
     report={'quiet_tail_repaired_words':0,'repeat_inferred_words':0}
@@ -80,7 +81,7 @@ def recover_fading_tail(audio_path,rows,progress=lambda *args:None):
     context=copy.deepcopy(row);context['end']=duration
     candidates={j:[] for j in pending}
     for channel in ('mix','left','right'):
-        refined=refine_turkish(str(audio_path),[context],'tr',context_padding=.5,channel=channel,normalize_fade=True)[0]
+        refined=refine(str(audio_path),[context],language,context_padding=.5,channel=channel,normalize_fade=True)[0]
         for j in pending:candidates[j].append({**refined['words'][j],'recovery_channel':channel})
     for j in pending:
         lower=max((w['end'] for w in row['words'][:j] if confirmed(w)),default=row['start'])

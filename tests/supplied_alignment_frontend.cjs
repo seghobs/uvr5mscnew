@@ -52,5 +52,10 @@ assert.throws(()=>validateRepair({...repaired,locked:true}),'locked rows must be
   assert.equal(calls[0].options.method,'POST');
   assert.equal(actual,result);assert.equal(progress[0],50);
   assert.equal(calls.length,3,'one explicit job; no per-line requests or lyric discovery');
+  assert.equal(JSON.parse(calls[0].options.body).language,'auto');
+  await context.exports.api.alignSuppliedLyrics('vocal.wav',segments,()=>{},'instrumental.wav','kmr');
+  assert.equal(JSON.parse(calls[3].options.body).language,'kmr');
+  await context.exports.api.alignSuppliedLyrics('vocal.wav',segments,()=>{},'instrumental.wav','tr');
+  assert.equal(JSON.parse(calls[5].options.body).language,'tr');
   console.log('PASS explicit-only supplied lyric submission, no transcription, one whole-song request, progress and result');
 })().catch(error=>{console.error(error);process.exitCode=1});

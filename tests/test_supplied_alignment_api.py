@@ -61,6 +61,21 @@ class SuppliedApiTests(unittest.TestCase):
         self.assertEqual(self.tasks['test']['status'],'completed')
         self.assertEqual(self.tasks['test']['result']['segments'],rows)
         self.assertEqual(align.call_args.args[1][0]['text'],'VERDİĞİM SÖZ')
+        self.assertEqual(align.call_args.kwargs['language'],'tr')
+
+    def test_kurmanji_is_accepted_and_forwarded_without_forcing_turkish(self):
+        req=self.request();req.language='kmr'
+        background=BackgroundTasks()
+        self.ns['supplied_alignment_endpoint'](req,background)
+        with patch('karaoke_supplied_alignment.align_supplied',return_value=([],{})) as align:
+            self.ns['run_supplied_alignment']('test',req,'original')
+        self.assertEqual(align.call_args.kwargs['language'],'kmr')
+        self.assertEqual(self.tasks['test']['status'],'completed')
+
+    def test_unsupported_language_creates_no_task(self):
+        req=self.request();req.language='de'
+        with self.assertRaises(HTTPException):self.ns['supplied_alignment_endpoint'](req,BackgroundTasks())
+        self.assertEqual(self.created,[])
 
     def test_concurrent_edit_discards_result(self):
         self.tasks['test']={};self.ns['_lyrics_revision']=lambda _: 'edited'

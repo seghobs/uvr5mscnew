@@ -205,6 +205,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   // Whisper Language Selector State (Supports 99+ Languages & Auto Detect)
   const [selectedLyricsLang, setSelectedLyricsLang] = useState<string>('auto');
+  const [alignmentLanguage, setAlignmentLanguage] = useState('auto');
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [langSearchQuery, setLangSearchQuery] = useState('');
   const langMenuRef = useRef<HTMLDivElement>(null);
@@ -910,7 +911,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       flushPendingSave();await enqueueLyricsSave(()=>Promise.resolve());
       const result=await api.alignSuppliedLyrics(vocalStem||instStem,snapshot,(message,progress)=>{
         if(requestId===lyricsRequestRef.current){setLyricsProgress(message);setLyricsProgressPercent(progress);}
-      },instStem);
+      },instStem,alignmentLanguage);
       if(requestId!==lyricsRequestRef.current)return;
       if(JSON.stringify(segmentsRef.current)!==JSON.stringify(snapshot))throw Error('Sözler bu sırada değişti; yeni düzenlemelerin korundu.');
       validateSuppliedResult(snapshot,result.segments);
@@ -1647,6 +1648,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
 
   const syncIssues = timingIssues(segments);
+  const inferredWordCount = segments.reduce((count, row) => count + (row.words || []).filter(word => word.timing_source === 'repeat_inferred').length, 0);
   const renderErrors = timingIssues(videoSegments(segments), false, false);
 
   if (!isOpen || !mounted) return null;
@@ -1704,12 +1706,22 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           <div className="flex flex-wrap gap-2">
             <button disabled={cancellingAllTasks} onClick={()=>void cancelAllTasks()} className="rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-200 hover:bg-rose-500/20 disabled:opacity-40">{cancellingAllTasks?'Sonlandırılıyor…':'Tüm görevleri sonlandır'}</button>
             <button disabled={loadingLyrics || !!bulkBindingStatus || !segments.length} onClick={()=>void bindEveryRow()} className="rounded-lg border border-pink-400/30 bg-pink-400/10 px-3 py-2 text-sm font-semibold text-pink-200 hover:bg-pink-400/20 disabled:opacity-40">{bulkBindingStatus || 'Tüm satırların ses parçalarını bağla'}</button>
+            <label className="flex items-center gap-2 text-xs text-zinc-300">Senkron dili
+              <select aria-label="Senkron dili" value={alignmentLanguage} onChange={e=>setAlignmentLanguage(e.target.value)} disabled={loadingLyrics || !!bulkBindingStatus} className="rounded-lg border border-white/15 bg-[#211e2a] px-2 py-2 text-sm">
+                <option value="auto">Otomatik · TR / Kurmancî</option>
+                <option value="tr">Türkçe</option>
+                <option value="kmr">Kürtçe (Kurmancî)</option>
+              </select>
+            </label>
             <button disabled={loadingLyrics || !!bulkBindingStatus || !segments.some(s=>s.text.trim()&&!isInstrumentalRow(s))} onClick={()=>void alignSuppliedLyrics()} className="rounded-lg bg-amber-400 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-40">{loadingLyrics ? 'İşleniyor…' : 'Otomatik senkronla ve bağla'}</button>
             {activeTab==='verify'&&<button disabled={loadingLyrics} onClick={()=>setShowReferenceModal(true)} className="rounded-lg border border-white/15 px-3 py-2 text-sm disabled:opacity-40">Sözleri bul ve karşılaştır</button>}
             <button aria-expanded={showAdvancedTools} aria-controls="karaoke-tools" onClick={() => setShowAdvancedTools(!showAdvancedTools)} className={cn("rounded-lg border px-3 py-2 text-sm transition-colors", showAdvancedTools ? "border-indigo-400/30 bg-indigo-400/10 text-indigo-200" : "border-white/10 text-zinc-200 hover:bg-white/5")}>Diğer araçlar <ChevronDown className={cn("ml-1 inline h-3 w-3 transition-transform", showAdvancedTools && "rotate-180")}/></button>
           </div>
         </div>}
         {alignmentError&&<div role="alert" className="shrink-0 border-b border-rose-400/20 bg-rose-400/10 px-6 py-3 text-sm text-rose-200">Senkron tamamlanamadı: {alignmentError}</div>}
+        {activeTab === 'lyrics' && inferredWordCount > 0 && <div role="status" className="shrink-0 border-b border-sky-300/15 bg-sky-400/5 px-6 py-2 text-xs text-sky-200">
+          {inferredWordCount} kelimenin süresi aynı şarkıdaki tekrarlardan tahmin edildi. “Tahmini” etiketli kelimeler videoda renklenir; süreleri dinleyerek değiştirebilirsin.
+        </div>}
         {activeTab === 'lyrics' && (renderErrors.length > 0 || syncIssues.length > 0) && <div role="status" className="flex items-center justify-between gap-3 border-b border-white/5 bg-amber-400/5 px-6 py-2 text-xs text-amber-200">
           <span>{renderErrors.length ? `${renderErrors.length} zamanlama sorunu · ${renderErrors[0]}` : `${syncIssues.length} zamanlama uyarısı var; bağlı olup dinleme kontrolü bekleyen kelimeler de bu sayıya dahildir. Eksik süreli satırlar videoda satır olarak gösterilir.`}</span>
           <div className="flex shrink-0 items-center gap-3"><button className="rounded border border-emerald-300/40 bg-emerald-400/10 px-2 py-1 font-semibold text-emerald-100 hover:bg-emerald-400/20" onClick={approveAllTimedWords}>Tümünü onayla</button><button className="underline underline-offset-4" onClick={() => {
@@ -2382,7 +2394,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                       </div>
                       {activeTab === 'lyrics' && <div className="relative z-10 flex flex-wrap gap-x-2.5 gap-y-2 mb-5" onClick={e => e.stopPropagation()}>
                         {getSegmentWords(seg).map((w, wi) => (
-                          <button key={wi} type="button" onClick={() => {if(isLiveSyncMode){resumeLiveSyncFromRow(idx);return;}setExpandedWordRow(idx); setSelectedWordIndex(wi); void playWord(idx, wi);}} title={`${w.start.toFixed(3)}–${w.end.toFixed(3)} s${w.timing_source==='repeat_inferred' ? ' · Tahmini: kısık/kesilmiş kapanış için önceki tekrarın süresi kullanıldı; sesle doğrulanmadı.' : w.needs_review ? ' · Zamanlama kontrol edilmeli' : ''}`}
+                          <button key={wi} type="button" onClick={() => {if(isLiveSyncMode){resumeLiveSyncFromRow(idx);return;}setExpandedWordRow(idx); setSelectedWordIndex(wi); void playWord(idx, wi);}} title={`${w.start.toFixed(3)}–${w.end.toFixed(3)} s${w.timing_source==='repeat_inferred' ? ' · Tahmini: aynı şarkıdaki güvenilir kelime tekrarlarından, komşu sürelerine uyarlanarak hesaplandı; sesle kesin doğrulanmadı.' : w.needs_review ? ' · Zamanlama kontrol edilmeli' : ''}`}
                             className={cn('inline-flex items-baseline rounded-sm text-left text-xl sm:text-2xl leading-relaxed font-semibold text-zinc-200', expandedWordRow === idx && selectedWordIndex === wi && 'underline decoration-amber-400/60 underline-offset-8')} disabled={loadingLyrics}>
                             <span className="relative inline-block whitespace-pre">
                               <span>{w.word}</span>

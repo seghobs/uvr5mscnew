@@ -4,7 +4,6 @@ Model: mpoyraz/wav2vec2-xls-r-300m-cv7-turkish (CC BY 4.0).
 No duration splitting or repeated-word deduplication is performed.
 """
 import copy
-import json
 import unicodedata
 from pathlib import Path
 
@@ -28,7 +27,8 @@ def acoustic_text(text, vocab):
     letters = [c for c in text if c.isalpha()]
     if len(letters)==1 or any('LATIN' in unicodedata.name(c,'') for c in letters):
         text = text.translate(LOOKALIKE_LETTERS)
-    text = text.replace('I','ı').replace('İ','i').lower()
+    text = (text.replace('I','i').replace('İ','i') if getattr(vocab,'language','tr') == 'kmr'
+            else text.replace('I','ı').replace('İ','i')).lower()
     result=[]
     for char in text:
         category=unicodedata.category(char)
@@ -120,33 +120,33 @@ def normalize_fading_audio(audio, rate):
 
 
 def refine_turkish(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix', normalize_fade=False):
+    if channel not in ('mix','left','right'):raise ValueError('Geçersiz ses kanalı')
+    if language != 'tr': return segments
+    return refine_ctc(audio_path,segments,language,progress,include_syllables,context_padding,channel,normalize_fade)
+
+
+def refine_ctc(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix', normalize_fade=False,independent_rows=False):
     if channel not in ('mix', 'left', 'right'):
         raise ValueError('Geçersiz ses kanalı')
-    if language != 'tr':
-        return segments
     import soundfile as sf
     import torch
     import torchaudio.functional as AF
     from transformers import Wav2Vec2ForCTC, Wav2Vec2FeatureExtractor
 
-    if not (MODEL_DIR / 'pytorch_model.bin').is_file():
-        from huggingface_hub import snapshot_download
-        if progress:
-            progress(0, 'Türkçe harf hizalama modeli indiriliyor...')
-        snapshot_download(MODEL_ID, revision=MODEL_REVISION, local_dir=str(MODEL_DIR),
-                          allow_patterns=['config.json', 'preprocessor_config.json', 'vocab.json',
-                                          'pytorch_model.bin', 'README.md'])
-    vocab = json.loads((MODEL_DIR / 'vocab.json').read_text(encoding='utf-8'))
-    device = 'cuda' if torch.cuda.is_available() and torch.cuda.mem_get_info()[0] > 3 * 1024**3 else 'cpu'
-    model = Wav2Vec2ForCTC.from_pretrained(MODEL_DIR, local_files_only=True).eval().to(device)
-    extractor = Wav2Vec2FeatureExtractor.from_pretrained(MODEL_DIR, local_files_only=True)
+    from karaoke_alignment_models import ensure_model
+    model_dir,vocab = ensure_model(language,progress)
+    required_gb=5 if language=='kmr_mms' else 3
+    device = 'cuda' if torch.cuda.is_available() and torch.cuda.mem_get_info()[0] > required_gb * 1024**3 else 'cpu'
+    model_options={'target_lang':'kmr-script_latin'} if language=='kmr_mms' else {}
+    model = Wav2Vec2ForCTC.from_pretrained(model_dir, local_files_only=True,**model_options).eval().to(device)
+    extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_dir, local_files_only=True)
     result = copy.deepcopy(segments)
     info = sf.info(audio_path)
     # Align neighbouring lines together, so the same sound cannot be assigned
     # independently to the last word of one line and the first of the next.
     groups = []
     for segment in result:
-        if not groups or segment['end'] - groups[-1][0]['start'] > 18:
+        if not groups or independent_rows or segment['end'] - groups[-1][0]['start'] > 18:
             groups.append([])
         groups[-1].append(segment)
     boundaries = [(left[-1]['end'] + right[0]['start']) / 2 for left, right in zip(groups, groups[1:])]
@@ -185,8 +185,8 @@ def refine_turkish(audio_path, segments, language, progress=None, include_syllab
                 emissions = model(**{k: v.to(device) for k, v in inputs.items()}).logits.log_softmax(-1).cpu()
             targets = torch.tensor([target_ids], dtype=torch.int32)
             try:
-                path, scores = AF.forced_align(emissions, targets, blank=0)
-                spans = AF.merge_tokens(path[0], scores[0].exp(), blank=0)
+                path, scores = AF.forced_align(emissions, targets, blank=vocab['[PAD]'])
+                spans = AF.merge_tokens(path[0], scores[0].exp(), blank=vocab['[PAD]'])
                 aligned = words_from_spans([words[i] for i in indices], normalized, spans, target_ids,
                                            len(audio) / rate / emissions.shape[1], offset, include_syllables)
                 aligned = restore_unsupported_words(words, indices, aligned, start)

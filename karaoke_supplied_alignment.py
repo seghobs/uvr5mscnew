@@ -1,4 +1,4 @@
-"""Align user-supplied Turkish lyrics; never transcribe or replace their text."""
+"""Align supplied lyrics with language-specific models without replacing text."""
 import copy
 import math
 import re
@@ -113,16 +113,23 @@ def assemble(rows,aligned_blocks,duration):
                    'review_rows':pending,'trimmed_repeat_prefixes':trimmed,'preserved_rows':sum(bool(protected(r)) for r in rows)}
 
 
-def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=None,diagnostics=None):
+def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=None,diagnostics=None,language='tr',repeat_estimation=True):
     import soundfile as sf
     import torch
     import torchaudio.functional as AF
     from transformers import Wav2Vec2ForCTC,Wav2Vec2FeatureExtractor
-    from karaoke_ctc import MODEL_DIR,MODEL_ID,MODEL_REVISION,words_from_spans,supported_targets,restore_unsupported_words
+    from karaoke_ctc import words_from_spans,supported_targets,restore_unsupported_words
+    from karaoke_alignment_models import resolve_language,ensure_model,model_spec
     from karaoke_interludes import generated,music_evidence,place_interludes,regions
     from karaoke_repeat_spotting import expand_supplied_rows,local_verifier
-    import json
     rows=[copy.deepcopy(r) for r in rows if not generated(r)]
+    language=resolve_language(language,rows)
+    baseline=None
+    if language=='kmr':
+        baseline,baseline_report=align_supplied(audio_path,copy.deepcopy(rows),
+            lambda p,m:progress(p*.45,'Çapraz kontrol · '+m),instrumental_path=instrumental_path,language='tr',repeat_estimation=False)
+        original_progress=progress
+        progress=lambda p,m:original_progress(.45+p*.55,'Kurmancî · '+m)
     original_rows=rows
     info=sf.info(str(audio_path));duration=info.frames/info.samplerate
     blocks=alignment_blocks(rows,duration)
@@ -136,30 +143,45 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     def finish(completed):
         result,report=assemble(rows,completed,duration)
         from karaoke_review_recovery import recover_row_reviews
-        report['full_row_review_repairs']=recover_row_reviews(audio_path,result,emit)
+        report['full_row_review_repairs']=recover_row_reviews(audio_path,result,emit,language=language)
         from karaoke_tail_recovery import recover_fading_tail
-        report.update(recover_fading_tail(audio_path,result,emit))
+        report.update(recover_fading_tail(audio_path,result,emit,language=language))
         report.update(repeat_report)
         result,solo_report=place_interludes(result,duration,voice_regions,music_regions,available)
+        if baseline is not None:
+            from karaoke_language_consensus import merge_language_alignment,corroborate_recovered_repeats
+            result,report['language_repaired_words']=merge_language_alignment(baseline,result,model_spec(language)[1])
+            report['multilingual_review_repairs']=recover_row_reviews(audio_path,result,emit,language='kmr_mms')
+            report['repeat_corroborated_words']=corroborate_recovered_repeats(audio_path,result)
+            for key in ('repeated_rows_added','terminal_repeats_added','repeat_review_candidates',
+                        'repeat_candidates','solo_intervals','unplaced_solo_ids'):
+                solo_report[key]=baseline_report.get(key,solo_report.get(key))
+        if repeat_estimation:
+            from karaoke_repeat_inference import recover_from_song_repeats
+            emit(.995,'Eksik kelimeler, şarkının güvenilir tekrarlarından tahmini sürelerle tamamlanıyor…')
+            report['song_repeat_inferred_words']=recover_from_song_repeats(audio_path,result)
         for row in result:row['alignment_mode']='supplied_ctc'
         report.update(solo_report)
+        report.update(alignment_language=language,alignment_model=model_spec(language)[1])
+        words=[w for r in result if not instrumental(r) for w in r.get('words',[])]
+        report['linked_words']=sum(w['end']>w['start'] for w in words)
+        report['target_words']=len(words)
+        report['estimated_words']=sum(w.get('timing_source')=='repeat_inferred' for w in words)
+        if language!='tr':
+            report['method']='supplied_multilingual_ctc'
+            report['solo_count']=sum(instrumental(r) for r in result)
         report['review_rows']=[i+1 for i,r in enumerate(result) if not instrumental(r) and
                                any(w.get('needs_review') for w in r.get('words') or [])]
         if diagnostics is not None:
             diagnostics.update(raw_blocks=copy.deepcopy(completed),voice_regions=voice_regions,music_regions=music_regions)
         return result,report
     if not blocks:return finish([])
-    if not (MODEL_DIR/'pytorch_model.bin').is_file():
-        from huggingface_hub import snapshot_download
-        emit(0,'Türkçe hizalama modeli indiriliyor…')
-        snapshot_download(MODEL_ID,revision=MODEL_REVISION,local_dir=str(MODEL_DIR),
-            allow_patterns=['config.json','preprocessor_config.json','vocab.json','pytorch_model.bin'])
-    vocab=json.loads((MODEL_DIR/'vocab.json').read_text(encoding='utf8'))
+    model_dir,vocab=ensure_model(language,emit)
     device='cuda' if torch.cuda.is_available() and torch.cuda.mem_get_info()[0]>3*1024**3 else 'cpu'
-    model=Wav2Vec2ForCTC.from_pretrained(MODEL_DIR,local_files_only=True).eval().to(device)
-    extractor=Wav2Vec2FeatureExtractor.from_pretrained(MODEL_DIR,local_files_only=True)
+    model=Wav2Vec2ForCTC.from_pretrained(model_dir,local_files_only=True).eval().to(device)
+    extractor=Wav2Vec2FeatureExtractor.from_pretrained(model_dir,local_files_only=True)
     hop=math.prod(model.config.conv_stride)
-    if hop!=320:raise ValueError('Türkçe modelin zaman çözünürlüğü değişmiş.')
+    if hop!=320:raise ValueError('Hizalama modelinin zaman çözünürlüğü değişmiş.')
     before={};after={};replacements={};local_completed=[]
     try:
         for block_index,(indices,start,end) in enumerate(blocks):

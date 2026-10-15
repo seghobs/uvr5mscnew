@@ -2412,7 +2412,7 @@ def run_supplied_alignment(task_id,req,expected_revision):
             _update_task(task_id,progress=p,message=message)
         segments,report=align_supplied(_find_audio_file(req.file_name),
             [s.model_dump() for s in req.segments],progress,
-            instrumental_path=_find_audio_file(req.instrumental_file_name) if req.instrumental_file_name else None)
+            instrumental_path=_find_audio_file(req.instrumental_file_name) if req.instrumental_file_name else None,language=req.language)
         with _lyrics_data_lock:
             if _lyrics_revision(req.file_name)!=expected_revision:
                 raise ValueError('Bu sırada sözler değişti; yeni düzenlemeler korundu.')
@@ -2428,7 +2428,9 @@ def run_supplied_alignment(task_id,req,expected_revision):
 
 @app.post('/api/lyrics/align-supplied')
 def supplied_alignment_endpoint(req: SuppliedAlignmentRequest,background_tasks: BackgroundTasks):
-    if req.language not in ('tr','auto',None):raise HTTPException(422,'Bu hizalama modeli Türkçe sözler içindir.')
+    from karaoke_alignment_models import resolve_language
+    try:resolve_language(req.language,[{'text':s.text} for s in req.segments])
+    except ValueError as exc:raise HTTPException(422,str(exc))
     if not req.segments or len(req.segments)>500 or sum(len(s.text) for s in req.segments)>100000:
         raise HTTPException(422,'Önce 1–500 satır söz ekleyin.')
     if not any(s.text.strip() for s in req.segments):raise HTTPException(422,'Sözler boş olamaz.')

@@ -1,0 +1,140 @@
+{
+  "baseline_commit": "c7ea74ed9a43c583a96a40794894297e590afdc1",
+  "scope": "Complete 293.059-second Kurmanji song via production UI button; complete 187.548-second Turkish regression through production alignment function.",
+  "kurmanji": {
+    "recording": "AtlasStudio_Vocals_296713fabde8.wav",
+    "before": {
+      "words": 217,
+      "positive_duration": 210,
+      "estimated": 0,
+      "review_words": 32
+    },
+    "after": {
+      "words": 217,
+      "positive_duration": 217,
+      "estimated": 5,
+      "review_words": 0
+    },
+    "seconds": 234.6474301815033,
+    "structural_timing_issues": [],
+    "render_issues": [],
+    "original_seven_targets": [
+      {
+        "row": 2,
+        "word_index": 8,
+        "word": "VÊ",
+        "start": 51.726000000000006,
+        "end": 51.754,
+        "source": "repeat_inferred",
+        "estimated": true,
+        "needs_review": false
+      },
+      {
+        "row": 6,
+        "word_index": 5,
+        "word": "Lİ",
+        "start": 73.7970099315974,
+        "end": 73.92299006840263,
+        "source": "repeat_inferred",
+        "estimated": true,
+        "needs_review": false
+      },
+      {
+        "row": 6,
+        "word_index": 7,
+        "word": "XEW",
+        "start": 74.46000000000001,
+        "end": 74.7,
+        "source": "ctc",
+        "estimated": false,
+        "needs_review": false
+      },
+      {
+        "row": 12,
+        "word_index": 4,
+        "word": "Jİ",
+        "start": 108.38,
+        "end": 108.42,
+        "source": "ctc",
+        "estimated": false,
+        "needs_review": false
+      },
+      {
+        "row": 19,
+        "word_index": 5,
+        "word": "Û",
+        "start": 189.34827272727273,
+        "end": 189.37627272727275,
+        "source": "repeat_inferred",
+        "estimated": true,
+        "needs_review": false
+      },
+      {
+        "row": 22,
+        "word_index": 1,
+        "word": "TU",
+        "start": 204.10051886792454,
+        "end": 204.20075471698112,
+        "source": "ctc",
+        "estimated": false,
+        "needs_review": false
+      },
+      {
+        "row": 36,
+        "word_index": 4,
+        "word": "Jİ",
+        "start": 286.96,
+        "end": 287.0,
+        "source": "ctc",
+        "estimated": false,
+        "needs_review": false
+      }
+    ],
+    "lyrics_text_preserved": true
+  },
+  "turkish": {
+    "recording": "AtlasStudio_Vocals_4f5069edad66.wav",
+    "after": {
+      "words": 182,
+      "positive_duration": 182,
+      "estimated": 2,
+      "review_words": 1
+    },
+    "seconds": 52.09399999999914,
+    "previously_confirmed_lyric_word_times_unchanged": 179,
+    "new_repeat_estimates": [
+      "MI",
+      "BENİ"
+    ],
+    "remaining_review_word": "LAFI",
+    "render_issues": []
+  },
+  "verification": {
+    "python_tests": 86,
+    "frontend_timing_save_and_submission_tests": "passed",
+    "typescript": "passed",
+    "production_build": "passed",
+    "live_ui_button": "completed and saved",
+    "saved_estimates": 5,
+    "mp4_samples": [
+      "row 6: LI and XEW",
+      "row 22: leading TU"
+    ],
+    "browser_refresh_persistence": "passed: five Tahmini labels and saved word timings restored"
+  },
+  "release_gate": "User-authorized repeat estimates enabled; no unbound or structurally invalid words in the target Kurdish song. This is not a claim of perfect acoustic alignment.",
+  "limitations": [
+    "Five Kurdish words have estimated timing and are explicitly labelled Tahmini.",
+    "Inferred words never serve as measured references.",
+    "Silent/invalid references, long gaps, conflicting repeat anchors and manual/locked timings are protected.",
+    "The Turkish regression retains one low-confidence LAFI warning; no reliable reference was forced.",
+    "Current language-specific models cover Turkish and Latin-script Kurmanji, not every language."
+  ],
+  "local_artifacts": [
+    "cache/repeat-inference-kurmanji-full.json",
+    "cache/repeat-inference-turkish-full.json",
+    "cache/repeat-inference-live-proof.jpg",
+    "cache/repeat-proof-row-6.mp4",
+    "cache/repeat-proof-row-22.mp4"
+  ]
+}
