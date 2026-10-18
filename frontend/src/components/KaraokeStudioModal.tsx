@@ -60,7 +60,7 @@ import { WordPlayer, checkWordInterval } from '@/lib/word-player';
 import { AudioPassageEditor } from './AudioPassageEditor';
 import { fitPassageRow } from '@/lib/audio-passages';
 import { fullyBound, isSpokenToken, isInstrumentalRow, prepareBindingRows, smartBindRow } from '@/lib/smart-passage-binding';
-import {validateSuppliedResult} from '@/lib/supplied-alignment';
+import {validateSuppliedResult,restoreArchivedRepeats} from '@/lib/supplied-alignment';
 import {recordLiveRow, clearLiveTimings, clearRowTimings} from '@/lib/live-sync';
 import { preservePassages, poolKey, validRange, clearRowPassages } from '@/lib/audio-passages';
 
@@ -1649,6 +1649,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   const syncIssues = timingIssues(segments);
   const inferredWordCount = segments.reduce((count, row) => count + (row.words || []).filter(word => word.timing_source === 'repeat_inferred').length, 0);
+  const archivedRepeatCount = segments.reduce((count,row)=>count+(row.repeat_cleanup?.length||0),0);
   const renderErrors = timingIssues(videoSegments(segments), false, false);
 
   if (!isOpen || !mounted) return null;
@@ -1719,6 +1720,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           </div>
         </div>}
         {alignmentError&&<div role="alert" className="shrink-0 border-b border-rose-400/20 bg-rose-400/10 px-6 py-3 text-sm text-rose-200">Senkron tamamlanamadı: {alignmentError}</div>}
+        {archivedRepeatCount > 0 && <div role="status" className="shrink-0 border-b border-sky-300/15 bg-sky-400/5 px-6 py-2 text-xs text-sky-200 flex items-center justify-between gap-3">
+          <span>{archivedRepeatCount} fazladan tekrar satırı ayrıldı. Bu satırların arasında ayrı bir ses aralığı bulunamadı; eşleşen nakarat korundu.</span>
+          <button disabled={loadingLyrics||!!bulkBindingStatus} className="shrink-0 underline disabled:opacity-40" onClick={()=>{commitSegments(restoreArchivedRepeats(segmentsRef.current));setBulkBindingProblems([]);}}>Ayrılan tekrarları geri getir</button>
+        </div>}
         {activeTab === 'lyrics' && inferredWordCount > 0 && <div role="status" className="shrink-0 border-b border-sky-300/15 bg-sky-400/5 px-6 py-2 text-xs text-sky-200">
           {inferredWordCount} kelimenin süresi aynı şarkıdaki tekrarlardan tahmin edildi. “Tahmini” etiketli kelimeler videoda renklenir; süreleri dinleyerek değiştirebilirsin.
         </div>}

@@ -159,6 +159,7 @@ export function importProject(text: string): LyricSegment[] {
   return list.map((item: any) => ({
     ...(typeof item.id==='string'?{id:item.id}:{}),
     ...(typeof item.locked==='boolean'?{locked:item.locked}:{}),
+    ...(Array.isArray(item.repeat_cleanup)?{repeat_cleanup:item.repeat_cleanup}:{}),
     start: Number(item.start), end: Number(item.end), text: String(item.text || item.line || '').trim(),
     words: Array.isArray(item.words) ? item.words.map((w: any) => ({ ...w, word: String(w.word), start: Number(w.start), end: Number(w.end) })) : [],
   })).filter(s => s.text);

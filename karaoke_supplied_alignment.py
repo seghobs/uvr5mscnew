@@ -182,7 +182,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     extractor=Wav2Vec2FeatureExtractor.from_pretrained(model_dir,local_files_only=True)
     hop=math.prod(model.config.conv_stride)
     if hop!=320:raise ValueError('Hizalama modelinin zaman çözünürlüğü değişmiş.')
-    before={};after={};replacements={};local_completed=[]
+    before={};after={};replacements={};local_completed=[];removed_indices=set()
     try:
         for block_index,(indices,start,end) in enumerate(blocks):
             audio,rate=sf.read(str(audio_path),start=round(start*info.samplerate),stop=round(end*info.samplerate),
@@ -218,6 +218,8 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
                 return verified_cache[key]
             expanded,report,hits=expand_supplied_rows(local_rows,[e[0].numpy() for e in emissions],vocab,
                 lambda p,message:emit(.96*(block_index+.68+.17*p)/len(blocks),message),rescue=verify)
+            removed_indices.update(set(indices)-{r['_original_index'] for r in expanded if r.get('id') in {s.get('id') for s in local_rows}})
+            repeat_report['archived_duplicate_rows']=repeat_report.get('archived_duplicate_rows',0)+report.get('archived_duplicate_rows',0)
             repeat_report['repeated_rows_added']+=report['repeated_rows_added']
             repeat_report['terminal_repeats_added']+=report.get('terminal_repeats_added',0)
             repeat_report['repeat_candidates']+=report['repeat_candidates']
@@ -251,6 +253,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
             local_completed.append((expanded,aligned))
         rows=[]
         for i,row in enumerate(original_rows):
+            if i in removed_indices:continue
             rows.extend(before.get(i,[]));rows.append(replacements.get(i,row));rows.extend(after.get(i,[]))
         if len(rows)>500:raise ValueError('Tekrarlarla birlikte 500 satır sınırı aşıldı; mevcut sözler korundu.')
         positions={id(row):index for index,row in enumerate(rows)}

@@ -142,7 +142,7 @@ def bound_terminal_phrase(hit,rows,views,vocab):
 def select_occurrences(rows,hits,vocab):
     """Joint non-overlap and supplied-order decoder; repeats cannot skip originals."""
     import bisect
-    keys_by_text={r['text']:text_key(r,vocab) for r in rows}
+    keys_by_text={r['text']:text_key(r,vocab) for r in [*rows,*hits]}
     keys=[keys_by_text[r['text']] for r in rows]
     # Equivalent punctuation/spacing variants compete for the same sound.
     unique={}
@@ -219,7 +219,11 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
                 if confidence<.4 or min(w['probability'] for w in aligned)<.1:continue
                 hits.append({**hit,'text':row['text'],'row_id':row.get('id'),'start':aligned[0]['start'],
                              'end':aligned[-1]['end'],'words':aligned,'confidence':confidence,'recovery':'local_suffix'})
-    selected=select_occurrences(rows,hits,vocab);copies={};count=0;review=[];terminal_count=0
+    selected=select_occurrences(rows,hits,vocab)
+    from karaoke_duplicate_repeats import archive_excess_repeats
+    rows,archived_count=archive_excess_repeats(rows,selected,vocab)
+    if archived_count:selected=select_occurrences(rows,hits,vocab)
+    copies={};count=0;review=[];terminal_count=0
     for i,hit in enumerate(selected):
         key=text_key(hit,vocab)
         longer=[h for h in hits if text_key(h,vocab).startswith(key) and len(text_key(h,vocab))>len(key)/.8]
@@ -240,6 +244,7 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
             continue
 
         row=copy.deepcopy(source)
+        row.pop('repeat_cleanup',None)
         row['_occurrence_words']=copy.deepcopy(hit['words'])
         if hit.get('terminal_bounded'):
             row['_terminal_occurrence']=True;terminal_count+=1
@@ -258,7 +263,7 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
     result.extend(copies.get(len(rows),[]))
     return result,{'repeated_rows_added':count,'repeat_method':'supplied_text_ctc_occurrence_graph',
                    'repeat_accuracy_guaranteed':False,'repeat_candidates':len(hits),'repeat_review_candidates':review,
-                   'terminal_repeats_added':terminal_count},selected
+                   'terminal_repeats_added':terminal_count,'archived_duplicate_rows':archived_count},selected
 
 
 def local_verifier(audio,rate,model,extractor,vocab,device,progress=lambda *args:None):

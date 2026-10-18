@@ -30,6 +30,19 @@ assert.throws(()=>guardContext.exports.validateSuppliedResult([...before,repeate
 const locked=[{id:'lock',text:'SOLO...',start:0,end:20,locked:true}];
 assert.throws(()=>guardContext.exports.validateSuppliedResult(locked,[{...locked[0],end:30}]));
 
+const duplicate={id:'duplicate',text:'AYNI SÖZ',start:0,end:.5};
+const retained={id:'retained',text:'AYNI SÖZ',start:20,end:22};
+const archive={row:duplicate,matched_row_id:'retained',bounds:[19.9,20],reason:'duplicate_block_without_audio_gap'};
+const cleaned={...retained,repeat_cleanup:[archive]};
+guardContext.exports.validateSuppliedResult([duplicate,retained],[cleaned]);
+assert.equal(JSON.stringify(guardContext.exports.restoreArchivedRepeats([cleaned])),JSON.stringify([duplicate,retained]));
+guardContext.exports.validateSuppliedResult([cleaned],[cleaned]);
+for(const bad of [{...duplicate,locked:true},{...duplicate,words:[{word:'AYNI',start:1,end:2,timing_source:'manual'}]}]){
+  assert.throws(()=>guardContext.exports.validateSuppliedResult([bad,retained],[{...cleaned,repeat_cleanup:[{...archive,row:bad}]}]));
+}
+assert.throws(()=>guardContext.exports.validateSuppliedResult([duplicate,retained],[{...cleaned,repeat_cleanup:[{...archive,bounds:[10,20]}]}]));
+assert.throws(()=>guardContext.exports.validateSuppliedResult([duplicate,retained],[{...cleaned,repeat_cleanup:[{...archive,row:{...duplicate,text:'BAŞKA'}}]}]));
+
 const repairSource={id:'source',text:'HEY GÖNÜL GENE',start:0,end:0};
 const previousSource={id:'previous',text:'YAZIMIZ HEY',start:0,end:0};
 const alignedSource={...repairSource,start:10,end:12};

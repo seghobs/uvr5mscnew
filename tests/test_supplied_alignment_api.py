@@ -10,6 +10,14 @@ from pydantic import BaseModel,Field
 
 
 class SuppliedApiTests(unittest.TestCase):
+    def test_repeat_archive_survives_save_and_reload(self):
+        archive=[{'row':{'id':'duplicate','text':'AYNI','start':0,'end':1,'words':[]},
+                  'matched_row_id':'kept','bounds':[2,2.1],'reason':'duplicate_block_without_audio_gap'}]
+        row=self.ns['LyricSegmentModel'](id='kept',text='AYNI',start=2.1,end=3,repeat_cleanup=archive)
+        saved=row.model_dump()
+        self.assertEqual(saved['repeat_cleanup'],archive)
+        self.assertEqual(self.ns['LyricSegmentModel'](**saved).model_dump()['repeat_cleanup'],archive)
+
     def test_inferred_word_provenance_survives_save_model(self):
         reference={'row_ids':['earlier'],'anchor_words':5,'method':'matching_verse_tempo'}
         word=self.ns['WordModel'](word='SON',start=10,end=11,timing_source='repeat_inferred',timing_reference=reference)

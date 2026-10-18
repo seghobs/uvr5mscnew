@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-18",
+  "song": "Seyfi Doğanay - Ayrılık Treni",
+  "duration_seconds": 219.661,
+  "cause": "Four supplied chorus rows had no independent occurrence between touching acoustic anchors. Global forced alignment still consumed their tokens, compressing the surrounding lines. Later row retries encountered backwards neighbouring boundaries.",
+  "fix": {
+    "policy": "Archive only an unmatched block of 2-8 repeated rows inside an acoustically closed gap, with a distinct fully matched exact-text block elsewhere. Boundary word confidence >= 0.5; reference row confidence >= 0.5. No fuzzy text deletion, no manual/locked removal.",
+    "reversible": "Original row snapshots are retained in repeat_cleanup, saved in the project, and restored by the editor button. Restoration itself supports Undo.",
+    "duration_transfer": "Reference absolute timestamps are not copied. Inference is constrained by target word and neighbouring row boundaries. An inferred duration too long for the local gap is rejected rather than squeezed."
+  },
+  "live_test_after_user_cleared_timings": {
+    "entrypoint": "Otomatik senkronla ve bağla",
+    "input_rows": 34,
+    "input_times": "User reset all times during the first live test; the stale result was correctly rejected. Retried with the latest saved zero-time input.",
+    "output_rows": 30,
+    "archived_duplicate_rows": 4,
+    "linked_words": 129,
+    "total_words": 129,
+    "repeat_inferred_words": 10,
+    "structural_issues": 0,
+    "review_words": 6,
+    "review_words_detail": [
+      "ÖNCE",
+      "YARAMIZ",
+      "SEVDİM",
+      "TRENİ",
+      "SENİ",
+      "BİR"
+    ],
+    "renderable_rows": 30,
+    "restore_button_rows": 34,
+    "undo_restore_rows": 30,
+    "reload_verified": true,
+    "word_and_solo_fill_checks_passed": 131
+  },
+  "regressions": {
+    "python_tests_passed": 96,
+    "frontend_tests": [
+      "supplied_alignment_frontend",
+      "karaoke_frontend",
+      "smart_passage_binding",
+      "audio_passages"
+    ],
+    "typescript": "passed",
+    "production_build": "passed",
+    "cached_full_song_timing_and_actual_audio_inference_replay": {
+      "kurmanji": {
+        "linked_words": 217,
+        "inferred_words": 5,
+        "structural_issues": 0,
+        "measured_words_unchanged": true
+      },
+      "turkish": {
+        "linked_words": 182,
+        "inferred_words": 2,
+        "structural_issues": 0,
+        "measured_words_unchanged": true
+      }
+    },
+    "reference_clock_shift_test": "Moving a reference from 1s to 100s does not move the target at 200s or change its inferred duration."
+  },
+  "limitations": "Positive durations and zero overlap do not prove perceptually perfect phoneme boundaries. Ten timings remain explicitly estimated; six measured words in the reset-input live run retain review warnings. This is not a 100% acoustic accuracy claim or a new ten-song model benchmark.",
+  "initial_diagnostic_snapshot": {
+    "before_rows": 34,
+    "before_timing_issues": 26,
+    "before_structural_issues": 16,
+    "after_rows": 30,
+    "after_linked_words": 129,
+    "after_total_words": 129,
+    "after_structural_issues": 0,
+    "after_review_words": 1,
+    "manual_words_unchanged": true,
+    "note": "Diagnostic run before the additional duration guard; final shipped behavior is measured by live_test_after_user_cleared_timings."
+  }
+}

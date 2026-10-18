@@ -95,6 +95,10 @@ def infer_repeated_words(rows, duration, energy):
                 anchor_count = 2
             lower = left['end'] if left else max(previous_row_end, right['start']-min(.65, nominal*2+.2))
             upper = right['start'] if right else min(next_row_start, duration, left['end']+min(.65, nominal*2+.2))
+            # Borrow a duration, never a donor's position on the song clock.
+            # Also bound interior words by neighbouring rows, even in stale drafts.
+            lower = max(lower, previous_row_end)
+            upper = min(upper, next_row_start, duration)
             if not (0 <= lower < upper <= duration) or not .02 <= upper-lower <= 1.5:
                 continue
             proposals = []
@@ -138,6 +142,9 @@ def infer_repeated_words(rows, duration, energy):
                     ordered = sorted(lengths)
                     if ordered[int(.75*(len(ordered)-1))] > 3*max(.02, ordered[int(.25*(len(ordered)-1))]):
                         continue
+                # Do not squeeze a measured duration into an unrelated tiny gap.
+                if length > upper-lower+1e-7:
+                    continue
                 length = min(length, upper-lower)
                 if length < .019:
                     continue

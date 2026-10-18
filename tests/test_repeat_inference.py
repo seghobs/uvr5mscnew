@@ -19,6 +19,32 @@ def missing(word):
 
 
 class RepeatInferenceTests(unittest.TestCase):
+    def test_reference_clock_is_not_copied_only_relative_duration(self):
+        results=[]
+        for reference_start in (1,100):
+            rows=[row('reference',reference_start),row('target',200)]
+            missing(rows[1]['words'][1])
+            before=copy.deepcopy(rows)
+            self.assertEqual(infer_repeated_words(rows,220,lambda a,b:.1),1)
+            word=rows[1]['words'][1]
+            self.assertAlmostEqual(word['end']-word['start'],.35)
+            self.assertGreaterEqual(word['start'],rows[1]['words'][0]['end'])
+            self.assertLessEqual(word['end'],rows[1]['words'][2]['start'])
+            self.assertEqual(rows[0],before[0])
+            results.append((word['start'],word['end']))
+        self.assertAlmostEqual(results[0][0],results[1][0])
+        self.assertAlmostEqual(results[0][1],results[1][1])
+
+    def test_duration_cannot_be_squeezed_or_overlap_another_row(self):
+        for case in ('tiny_gap','next_row'):
+            rows=[row('reference',1,'BEN SENİ ÇOK SEVDİM'),row('target',20,'HEP SENİ ÇOK BEKLEDİM')]
+            missing(rows[1]['words'][1])
+            if case=='tiny_gap':rows[1]['words'][2]['start']=rows[1]['words'][0]['end']+.03
+            else:rows.append(row('overlapping',20.3,'BAŞKA BİR SATIR'))
+            before=copy.deepcopy(rows)
+            self.assertEqual(infer_repeated_words(rows,30,lambda a,b:.1),0)
+            self.assertEqual(rows,before)
+
     def test_matching_phrase_maps_local_tempo_without_changing_confirmed_words(self):
         rows=[row('reference',1),row('target',20)]
         for w in rows[1]['words']:

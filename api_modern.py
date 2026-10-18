@@ -1711,6 +1711,7 @@ class LyricSegmentModel(BaseModel):
     words: Optional[List[WordModel]] = None
     repeat_source_id: Optional[str] = None
     repeat_prefix_repair: Optional[dict] = None
+    repeat_cleanup: Optional[List[dict]] = None
     alignment_mode: Optional[str] = None
 
     def model_dump(self,*args,**kwargs):
@@ -1718,6 +1719,7 @@ class LyricSegmentModel(BaseModel):
         if result.get('alignment_mode') is None:result.pop('alignment_mode',None)
         if result.get('repeat_source_id') is None:result.pop('repeat_source_id',None)
         if result.get('repeat_prefix_repair') is None:result.pop('repeat_prefix_repair',None)
+        if result.get('repeat_cleanup') is None:result.pop('repeat_cleanup',None)
         return result
 
 class LyricsRequest(BaseModel):

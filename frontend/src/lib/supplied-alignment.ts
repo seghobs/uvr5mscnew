@@ -5,7 +5,20 @@ import {isInstrumentalRow} from './smart-passage-binding';
 export function validateSuppliedResult(before:LyricSegment[],after:LyricSegment[]):void {
   const existingIds=new Set(before.map(r=>r.id).filter(Boolean));
   const isNewRepeat=(row:LyricSegment)=>Boolean(row.id?.startsWith('auto-repeat:')&&!existingIds.has(row.id));
-  const source=before.filter(r=>!isInstrumentalRow(r)),result=after.filter(r=>!isInstrumentalRow(r)&&!isNewRepeat(r));
+  const archived=new Set<string>();
+  const key=(text:string)=>text.normalize('NFC').toLocaleLowerCase('tr-TR').replace(/[^\p{L}\p{N}\p{M}]/gu,'');
+  for(const target of after)for(const entry of target.repeat_cleanup||[]){
+    const original=before.find(r=>r.id===entry.row.id);
+    if(!original)continue; // Previously archived rows survive subsequent syncs.
+    const reference=after.find(r=>r.id===entry.matched_row_id);
+    if(!original.id||original.locked||original.words?.some(w=>w.timing_source==='manual'&&w.end>w.start)
+      ||!reference||key(reference.text)!==key(original.text)||entry.row.text!==original.text
+      ||entry.reason!=='duplicate_block_without_audio_gap'||entry.bounds.length!==2
+      ||!entry.bounds.every(Number.isFinite)||entry.bounds[1]-entry.bounds[0]>.25||entry.bounds[1]-entry.bounds[0]<-.4)
+      throw Error('Fazladan tekrarın ses kanıtı doğrulanamadı; sözler korundu.');
+    archived.add(original.id);
+  }
+  const source=before.filter(r=>!isInstrumentalRow(r)&&!archived.has(r.id||'')),result=after.filter(r=>!isInstrumentalRow(r)&&!isNewRepeat(r));
   const verifiedPrefixRepair=(row:LyricSegment,original:LyricSegment)=>{
     const proof=row.repeat_prefix_repair;
     if(!proof||!Number.isFinite(proof.start)||proof.end!==proof.start)return false;
@@ -37,4 +50,14 @@ export function validateSuppliedResult(before:LyricSegment[],after:LyricSegment[
       }
     });
   }
+}
+
+/** Restore the exact original text and timings, retaining the user's undo path. */
+export function restoreArchivedRepeats(rows:LyricSegment[]):LyricSegment[]{
+  const ids=new Set(rows.map(r=>r.id));
+  return rows.flatMap(row=>{
+    const restored=(row.repeat_cleanup||[]).filter(e=>!ids.has(e.row.id)).map(e=>{ids.add(e.row.id);return e.row;});
+    const {repeat_cleanup,...current}=row;
+    return [...restored,current];
+  });
 }
