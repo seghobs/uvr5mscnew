@@ -26,11 +26,14 @@ def resolve_language(language, rows):
 def model_spec(language):
     from karaoke_ctc import MODEL_DIR, MODEL_ID, MODEL_REVISION
     if language == 'tr': return MODEL_DIR, MODEL_ID, MODEL_REVISION
+    if language == 'tr_cv8':
+        return (Path(__file__).resolve().parent / 'models/alignment/turkish-cv8-ctc',
+                'mpoyraz/wav2vec2-xls-r-300m-cv8-turkish','bdd0bb878d8bf59509611631e334eb073ba57773')
     if language == 'kmr':
         return (Path(__file__).resolve().parent / 'models/alignment/kurmanji-cv8-ctc',
                 'maniwebdev/xlsr_kurmanji_kurdish_custom',
                 'c171cb167646a94f29ec716b510c57e33eb15c3f')
-    if language == 'kmr_mms':
+    if language in ('kmr_mms', 'tr_mms'):
         return (Path(__file__).resolve().parent / 'models/alignment/mms-ctc',
                 'facebook/mms-1b-all','3d33597edbdaaba14a8e858e2c8caa76e3cec0cd')
     raise ValueError('Desteklenmeyen hizalama dili: ' + str(language))
@@ -38,15 +41,16 @@ def model_spec(language):
 
 def ensure_model(language, progress=None):
     directory, repo, revision = model_spec(language)
-    weights='pytorch_model.bin' if language=='tr' else 'model.safetensors'
+    weights='pytorch_model.bin' if language in ('tr','tr_cv8') else 'model.safetensors'
     files=['config.json','preprocessor_config.json','vocab.json',weights,'README.md']
-    if language=='kmr_mms':files.append('adapter.kmr-script_latin.safetensors')
+    adapter={'kmr_mms':'kmr-script_latin','tr_mms':'tur'}.get(language)
+    if adapter:files.append(f'adapter.{adapter}.safetensors')
     if not all((directory / f).is_file() for f in files if f!='README.md'):
-        if progress: progress(0, f'{"Türkçe" if language == "tr" else "Kurmancî"} hizalama modeli indiriliyor…')
+        if progress: progress(0, f'{"Türkçe" if language.startswith("tr") else "Kurmancî"} hizalama modeli indiriliyor…')
         from huggingface_hub import snapshot_download
         snapshot_download(repo, revision=revision, local_dir=str(directory),
                           allow_patterns=files)
     vocab=json.loads((directory / 'vocab.json').read_text(encoding='utf-8'))
-    if language=='kmr_mms':
-        vocab=vocab['kmr-script_latin'];vocab['[PAD]']=vocab['<pad>']
-    return directory, AlignmentVocabulary(vocab, 'kmr' if language=='kmr_mms' else language)
+    if adapter:
+        vocab=vocab[adapter];vocab['[PAD]']=vocab['<pad>']
+    return directory, AlignmentVocabulary(vocab, {'kmr_mms':'kmr','tr_mms':'tr','tr_cv8':'tr'}.get(language,language))

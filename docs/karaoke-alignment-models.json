@@ -25,6 +25,21 @@
       "adapter": "kmr-script_latin",
       "license": "CC-BY-NC-4.0",
       "source": "https://huggingface.co/facebook/mms-1b-all"
+    },
+    {
+      "role": "uncertain_turkish_dual_audio_boundaries",
+      "id": "mpoyraz/wav2vec2-xls-r-300m-cv8-turkish",
+      "revision": "bdd0bb878d8bf59509611631e334eb073ba57773",
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/mpoyraz/wav2vec2-xls-r-300m-cv8-turkish"
+    },
+    {
+      "role": "uncertain_turkish_dual_audio_boundaries",
+      "id": "facebook/mms-1b-all",
+      "revision": "3d33597edbdaaba14a8e858e2c8caa76e3cec0cd",
+      "adapter": "tur",
+      "license": "CC-BY-NC-4.0",
+      "source": "https://huggingface.co/facebook/mms-1b-all"
     }
   ],
   "comparison_model_not_selected": {
@@ -57,14 +72,29 @@
     "languages": "All enabled alignment languages",
     "reference_scope": "Measured words in the same recording only",
     "priority": [
-      "matching phrase with two neighbouring anchors",
-      "robust same-word durations adapted to local spacing and vocal energy"
+      "Robust same-word measured duration, positioned only within the target recording interval"
     ],
     "label": "Tahmini",
     "source": "repeat_inferred",
     "probability": null,
     "acoustically_verified": false,
     "manual_and_locked_preserved": true,
-    "estimates_reused_as_references": false
+    "estimates_reused_as_references": false,
+    "duration_only": true,
+    "position": "Only the target word current interval, local vocal energy and neighbouring boundaries; donor positions and tempo scales are not copied"
+  },
+  "dual_audio_crosscheck": {
+    "trigger": "Explicit supplied-lyrics alignment; pending Turkish words only",
+    "source_mapping": "Exact stem membership in saved separation provenance; ambiguous or different-duration recordings are skipped",
+    "minimum_score_on_each_audio_view": 0.5,
+    "maximum_boundary_disagreement_seconds": 0.16,
+    "original_and_vocals_required": true,
+    "manual_and_locked_preserved": true,
+    "unavailable_optional_models": "Keep warnings and original timings; report the failure without aborting the completed base alignment"
+  },
+  "score_handling": {
+    "missing_null_nonfinite_invalid": "No usable acoustic evidence; never treat as confirmation or abort the remaining song",
+    "review_threshold": 0.5,
+    "acceptance_threshold": 0.1
   }
 }

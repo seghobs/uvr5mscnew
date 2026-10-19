@@ -35,7 +35,7 @@ def pace(words):
     return statistics.median(values) if values else None
 
 
-def infer_repeated_words(rows, duration, energy):
+def infer_repeated_words(rows, duration, energy, duration_only=False):
     """Mutate only uncertain isolated words; energy(a,b) returns vocal RMS.
 
     Same-phrase estimates use two measured neighbouring anchors. Otherwise use
@@ -99,11 +99,14 @@ def infer_repeated_words(rows, duration, energy):
             # Also bound interior words by neighbouring rows, even in stale drafts.
             lower = max(lower, previous_row_end)
             upper = min(upper, next_row_start, duration)
-            if not (0 <= lower < upper <= duration) or not .02 <= upper-lower <= 1.5:
+            max_gap = max(1.5, min(2., nominal*1.5)) if duration_only else 1.5
+            if not (0 <= lower < upper <= duration) or not .02 <= upper-lower <= max_gap:
                 continue
             proposals = []
             row_keys = [token_key(w['word']) for w in original]
             for r, j, ref in refs:
+                if duration_only:
+                    continue
                 ref_words = snapshot[r].get('words') or []
                 if (j != wi or [token_key(w['word']) for w in ref_words] != row_keys
                         or left is None or right is None
@@ -130,7 +133,7 @@ def infer_repeated_words(rows, duration, energy):
                 for r, j, ref in refs:
                     rw = snapshot[r]['words']
                     ref_pace = pace(rw[max(0, j-3):j+4])
-                    scale = max(.7, min(1.4, target_pace/ref_pace)) if target_pace and ref_pace else 1.
+                    scale = max(.7, min(1.4, target_pace/ref_pace)) if target_pace and ref_pace and not duration_only else 1.
                     lengths.append((ref['end']-ref['start'])*scale)
                     if 0 < j < len(rw)-1 and measured(rw[j-1]) and measured(rw[j+1]):
                         a, b = rw[j-1]['end'], rw[j+1]['start']
@@ -151,7 +154,7 @@ def infer_repeated_words(rows, duration, energy):
                 if lower <= word.get('start', -1) < word.get('end', -1) <= upper:
                     centre = (word['start']+word['end'])/2
                 else:
-                    fraction = statistics.median(positions) if positions else .5
+                    fraction = statistics.median(positions) if positions and not duration_only else .5
                     centre = lower+(upper-lower)*fraction
                 # Choose a voiced local window near the rhythmic prediction.
                 # This locates sound, not a phoneme: it remains labelled inferred.
@@ -179,6 +182,7 @@ def infer_repeated_words(rows, duration, energy):
                              'row_ids':list(dict.fromkeys(snapshot[r].get('id') or f'row:{r+1}' for r, _, _ in used)),
                              'bounds':[lower, upper], 'reference_count':len(used),
                              'acoustically_verified':False,
+                             'duration_only':duration_only, 'reference_duration_seconds':nominal,
                              'previous_start':word.get('start'), 'previous_end':word.get('end')}}
             count += 1
         valid = [w for w in words if w['end'] > w['start']]
@@ -188,7 +192,7 @@ def infer_repeated_words(rows, duration, energy):
     return count
 
 
-def recover_from_song_repeats(audio_path, rows):
+def recover_from_song_repeats(audio_path, rows, duration_only=True):
     import numpy as np
     import soundfile as sf
     audio, rate = sf.read(str(audio_path), dtype='float32', always_2d=True)
@@ -201,4 +205,4 @@ def recover_from_song_repeats(audio_path, rows):
         if b <= a or invalid[b] != invalid[a]:
             return math.nan
         return math.sqrt(max(0., (cumulative[b]-cumulative[a])/(b-a)))
-    return infer_repeated_words(rows, len(audio)/rate, energy)
+    return infer_repeated_words(rows, len(audio)/rate, energy, duration_only=duration_only)

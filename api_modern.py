@@ -2404,6 +2404,7 @@ class SuppliedAlignmentRequest(SaveLyricsRequest):
 @gpu_operation
 def run_supplied_alignment(task_id,req,expected_revision):
     from karaoke_supplied_alignment import align_supplied
+    from karaoke_model_crosscheck import original_for_stem
     acquired=False
     try:
         acquired=_lyrics_inference_lock.acquire(blocking=False)
@@ -2412,9 +2413,15 @@ def run_supplied_alignment(task_id,req,expected_revision):
             with tasks_lock:
                 if task_id not in tasks:raise ValueError('Görev iptal edildi.')
             _update_task(task_id,progress=p,message=message)
+        with separation_tasks.lock:
+            original=original_for_stem(req.file_name,separation_tasks.records)
+        if original is not None:
+            try:original=Path(_validate_audio_path(str(original)))
+            except HTTPException:original=None
         segments,report=align_supplied(_find_audio_file(req.file_name),
             [s.model_dump() for s in req.segments],progress,
-            instrumental_path=_find_audio_file(req.instrumental_file_name) if req.instrumental_file_name else None,language=req.language)
+            instrumental_path=_find_audio_file(req.instrumental_file_name) if req.instrumental_file_name else None,language=req.language,
+            original_path=original)
         with _lyrics_data_lock:
             if _lyrics_revision(req.file_name)!=expected_revision:
                 raise ValueError('Bu sırada sözler değişti; yeni düzenlemeler korundu.')

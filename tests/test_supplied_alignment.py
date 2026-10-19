@@ -4,6 +4,41 @@ from karaoke_supplied_alignment import alignment_blocks,assemble,repair_anomalou
 
 
 class SuppliedAlignmentTests(unittest.TestCase):
+    def test_local_retry_handles_unscored_empty_audio_without_changing_word(self):
+        import numpy as np
+        from karaoke_supplied_alignment import rescue_weak_words
+        for value in ('missing',None):
+            for threshold in (.1,.5):
+                word={'word':'AB','start':1,'end':1.5,'timing_source':'estimated','needs_review':True}
+                if value!='missing':word['probability']=value
+                words=[copy.deepcopy(word)]
+                count=rescue_weak_words(np.zeros((0,2),dtype='float32'),16000,0,3,words,
+                    None,None,{'a':1,'b':2,'|':3,'[PAD]':0},'cpu',lambda *args:None,threshold=threshold)
+                self.assertEqual(count,0)
+                self.assertEqual(words,[word])
+
+    def test_unscored_candidates_cannot_abort_or_confirm_alignment(self):
+        from karaoke_supplied_alignment import choose_boundary_candidate
+        original={'word':'XEW','start':0,'end':0,'timing_source':'estimated','needs_review':True}
+        for value in ('missing',None,float('nan'),float('inf'),-.1,1.1,True,'0.9'):
+            candidate={**original,'start':1,'end':2,'recovery_channel':'left'}
+            if value!='missing':candidate['probability']=value
+            self.assertIs(choose_boundary_candidate(original,[candidate],0,3),original)
+        left={**original,'start':1,'end':2,'probability':.8,'recovery_channel':'left'}
+        right={**left,'probability':.9,'recovery_channel':'right'}
+        fixed=choose_boundary_candidate(original,[original,left,right],0,3)
+        self.assertFalse(fixed['needs_review'])
+        self.assertEqual(fixed['probability'],.8)
+
+    def test_unscored_word_becomes_review_placeholder_not_exception(self):
+        for value in ('missing',None,float('nan')):
+            word={'word':'XEW','start':1,'end':2}
+            if value!='missing':word['probability']=value
+            result,report=assemble([{'text':'XEW','start':0,'end':.5}],[([0],[word])],10)
+            self.assertEqual(report['linked_words'],0)
+            self.assertTrue(result[0]['words'][0]['needs_review'])
+            self.assertEqual(result[0]['words'][0]['probability'],0)
+
     def test_generated_duplicate_prefix_without_audio_is_removed(self):
         from karaoke_supplied_alignment import trim_unvoiced_repeat_prefixes
         rows=[{'text':'YAZIMIZ HEY','words':[{'word':'HEY','start':9,'end':10}]},

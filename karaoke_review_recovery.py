@@ -1,6 +1,7 @@
 """Confirm weak CTC boundaries against a verified repetition in the same audio."""
 import math
 import copy
+from karaoke_ctc import acoustic_probability
 
 
 def recover_row_reviews(audio_path,rows,progress=lambda *args:None,language='tr'):
@@ -40,7 +41,7 @@ def recover_row_reviews(audio_path,rows,progress=lambda *args:None,language='tr'
 def repeat_boundary_candidate(original,candidates,lower,upper,same_distance,other_distance):
     if not (math.isfinite(same_distance) and math.isfinite(other_distance) and
             0<=same_distance<.20 and same_distance<other_distance*.75):return original
-    usable=[c for c in candidates if c.get('probability',0)>=.30 and lower<=c['start']<c['end']<=upper
+    usable=[c for c in candidates if acoustic_probability(c)>=.30 and lower<=c['start']<c['end']<=upper
             and abs(c['start']-original['start'])<=.25 and abs(c['end']-original['end'])<=.25]
     pairs=[(a,b) for i,a in enumerate(usable) for b in usable[i+1:]
            if a.get('recovery_channel')!=b.get('recovery_channel')

@@ -19,6 +19,42 @@ def missing(word):
 
 
 class RepeatInferenceTests(unittest.TestCase):
+    def test_duration_only_keeps_reference_length_when_target_tempo_changes(self):
+        rows=[row('reference',1),row('target',20)]
+        for w in rows[1]['words']:
+            w['start']=20+(w['start']-20)*1.15;w['end']=20+(w['end']-20)*1.15
+        rows[1]['end']=rows[1]['words'][-1]['end']
+        rows[1]['words'][1].update(needs_review=True,probability=.3)
+        self.assertEqual(infer_repeated_words(rows,30,lambda a,b:.1,duration_only=True),1)
+        self.assertAlmostEqual(rows[1]['words'][1]['end']-rows[1]['words'][1]['start'],.35)
+
+    def test_long_sung_word_can_fit_own_gap_without_copying_reference_clock(self):
+        rows=[]
+        for identity,spans in [('reference',[(1,1.6),(1.7,2.98),(3.16,3.56)]),
+                               ('target',[(100,100.6),(100.8,101.9),(102.26,102.66)])]:
+            words=[{'word':t,'start':a,'end':b,'probability':.9,'timing_source':'ctc','needs_review':False}
+                   for t,(a,b) in zip(['AYRILIK','TRENİ','GELİP'],spans)]
+            rows.append({'id':identity,'text':'AYRILIK TRENİ GELİP','start':spans[0][0],'end':spans[-1][1],'words':words})
+        rows[1]['words'][1].update(probability=.3,needs_review=True)
+        self.assertEqual(infer_repeated_words(rows,110,lambda a,b:.1,duration_only=True),1)
+        w=rows[1]['words'][1]
+        self.assertAlmostEqual(w['end']-w['start'],1.28)
+        self.assertTrue(100.6<=w['start']<w['end']<=102.26)
+        self.assertFalse(timing_issues(rows))
+
+    def test_duration_only_does_not_copy_reference_placement_in_phrase(self):
+        results=[]
+        for shift in (0,.2):
+            rows=[row('reference',1),row('target',20)]
+            rows[0]['words'][1]['start']+=shift;rows[0]['words'][1]['end']+=shift
+            rows[1]['words'][1].update(start=20.9,end=21.1,needs_review=True,probability=.3)
+            self.assertEqual(infer_repeated_words(rows,30,lambda a,b:.1,duration_only=True),1)
+            w=rows[1]['words'][1]
+            self.assertAlmostEqual(w['end']-w['start'],.35)
+            self.assertTrue(w['timing_reference']['duration_only'])
+            results.append((w['start'],w['end']))
+        self.assertEqual(results[0],results[1])
+
     def test_reference_clock_is_not_copied_only_relative_duration(self):
         results=[]
         for reference_start in (1,100):

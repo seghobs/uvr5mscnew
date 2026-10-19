@@ -4,12 +4,20 @@ Model: mpoyraz/wav2vec2-xls-r-300m-cv7-turkish (CC BY 4.0).
 No duration splitting or repeated-word deduplication is performed.
 """
 import copy
+import math
+from numbers import Real
 import unicodedata
 from pathlib import Path
 
 MODEL_ID = 'mpoyraz/wav2vec2-xls-r-300m-cv7-turkish'
 MODEL_REVISION = '708639f50559d7970f462e13ec64d3f059ca89f6'
 MODEL_DIR = Path(__file__).resolve().parent / 'models/alignment/turkish-ctc'
+
+
+def acoustic_probability(word):
+    """Unscored placeholders are not acoustic evidence or a fatal error."""
+    value = word.get('probability')
+    return float(value) if isinstance(value, Real) and not isinstance(value, bool) and math.isfinite(value) and 0 <= value <= 1 else 0.
 
 # Copy/paste can mix scripts that render identically. This is visual repair,
 # not transliteration: require Latin context (or a single lookalike letter).
@@ -135,9 +143,10 @@ def refine_ctc(audio_path, segments, language, progress=None, include_syllables=
 
     from karaoke_alignment_models import ensure_model
     model_dir,vocab = ensure_model(language,progress)
-    required_gb=5 if language=='kmr_mms' else 3
+    required_gb=5 if language in ('kmr_mms','tr_mms') else 3
     device = 'cuda' if torch.cuda.is_available() and torch.cuda.mem_get_info()[0] > required_gb * 1024**3 else 'cpu'
-    model_options={'target_lang':'kmr-script_latin'} if language=='kmr_mms' else {}
+    adapter={'kmr_mms':'kmr-script_latin','tr_mms':'tur'}.get(language)
+    model_options={'target_lang':adapter} if adapter else {}
     model = Wav2Vec2ForCTC.from_pretrained(model_dir, local_files_only=True,**model_options).eval().to(device)
     extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_dir, local_files_only=True)
     result = copy.deepcopy(segments)

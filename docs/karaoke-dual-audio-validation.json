@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-19",
+  "song": "Seyfi Doganay - Ayrilik Treni",
+  "scope": "Six previously weak words plus two newly edited KENDISINE occurrences",
+  "review_threshold_unchanged": 0.5,
+  "acceptance_threshold_unchanged": 0.1,
+  "minimum_crosscheck_views": "Original and vocals both >= 0.5, boundaries agree within 0.16 seconds",
+  "rows": 30,
+  "lyric_words": 126,
+  "word_and_solo_intervals": 128,
+  "whole_song_60fps_frames_checked": 13181,
+  "structural_and_review_issues": 0,
+  "dual_audio_confirmed_words": 5,
+  "duration_only_estimates_added": 2,
+  "user_listening_confirmations": 1,
+  "user_approved_text_correction": "Last chorus: KENDI SENI -> KENDISINE",
+  "other_song_lyric_records_unchanged": 31,
+  "details": [
+    {
+      "row": 2,
+      "word": "ÖNCE",
+      "start": 40.495155602470874,
+      "end": 40.84716937732948,
+      "score": 0.5025921853833779,
+      "timing_source": "ctc",
+      "method": "dual_audio_model_consensus"
+    },
+    {
+      "row": 4,
+      "word": "YARAMIZ",
+      "start": 52.88458333333333,
+      "end": 54.049416666666666,
+      "score": 0.7906385947551046,
+      "timing_source": "ctc",
+      "method": "dual_audio_model_consensus"
+    },
+    {
+      "row": 10,
+      "word": "KENDİSİNE",
+      "start": 79.03331950207469,
+      "end": 80.499377593361,
+      "score": 0.5030756009121736,
+      "timing_source": "ctc",
+      "method": "dual_audio_model_consensus"
+    },
+    {
+      "row": 14,
+      "word": "KENDİSİNE",
+      "start": 98.37362869198313,
+      "end": 99.79962025316456,
+      "score": 0.6089105504668422,
+      "timing_source": "ctc",
+      "method": "dual_audio_model_consensus"
+    },
+    {
+      "row": 18,
+      "word": "SEVDİM",
+      "start": 150.8,
+      "end": 151.26,
+      "score": 0.4023656827821469,
+      "timing_source": "manual",
+      "method": "user_listening_confirmation"
+    },
+    {
+      "row": 23,
+      "word": "TRENİ",
+      "start": 175.64,
+      "end": 176.92000000000002,
+      "score": null,
+      "timing_source": "repeat_inferred",
+      "method": "same_word_local_tempo"
+    },
+    {
+      "row": 29,
+      "word": "KENDİSİNE",
+      "start": 204.44336170212767,
+      "end": 205.55808510638298,
+      "score": 0.7286396020402511,
+      "timing_source": "ctc",
+      "method": "dual_audio_model_consensus"
+    },
+    {
+      "row": 29,
+      "word": "BİR",
+      "start": 205.82,
+      "end": 206.0,
+      "score": null,
+      "timing_source": "repeat_inferred",
+      "method": "same_word_local_tempo"
+    }
+  ],
+  "limitations": "SEVDIM model score remains below threshold; its 150.800-151.260 interval was explicitly confirmed by the user and remains manual. TRENİ and BİR are duration-only estimates, not acoustic verification. No perfect perceptual alignment claim."
+}

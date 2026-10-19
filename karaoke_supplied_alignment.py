@@ -3,6 +3,7 @@ import copy
 import math
 import re
 import unicodedata
+from karaoke_ctc import acoustic_probability
 
 
 def instrumental(row):
@@ -81,9 +82,9 @@ def assemble(rows,aligned_blocks,duration):
                    not manual.get('needs_review',False) and manual['end']>manual['start']:
                     updated.append(copy.deepcopy(manual));linked+=1;continue
                 # A forced path alone is not proof that an absent word was sung.
-                if word['probability']<.10 or word['end']<=word['start']:
+                if acoustic_probability(word)<.10 or word['end']<=word['start']:
                     word={'word':token,'start':row['start'],'end':row['start'],
-                          'timing_source':'estimated','needs_review':True}
+                          'timing_source':'estimated','needs_review':True,'probability':0.}
                 else:linked+=1
                 updated.append(word)
             row['words']=updated
@@ -113,7 +114,7 @@ def assemble(rows,aligned_blocks,duration):
                    'review_rows':pending,'trimmed_repeat_prefixes':trimmed,'preserved_rows':sum(bool(protected(r)) for r in rows)}
 
 
-def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=None,diagnostics=None,language='tr',repeat_estimation=True):
+def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=None,diagnostics=None,language='tr',repeat_estimation=True,original_path=None):
     import soundfile as sf
     import torch
     import torchaudio.functional as AF
@@ -144,6 +145,9 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         result,report=assemble(rows,completed,duration)
         from karaoke_review_recovery import recover_row_reviews
         report['full_row_review_repairs']=recover_row_reviews(audio_path,result,emit,language=language)
+        if language=='tr' and original_path is not None:
+            from karaoke_model_crosscheck import recover_model_reviews
+            report.update(recover_model_reviews(audio_path,original_path,result,emit,diagnostics=diagnostics))
         from karaoke_tail_recovery import recover_fading_tail
         report.update(recover_fading_tail(audio_path,result,emit,language=language))
         report.update(repeat_report)
@@ -268,7 +272,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
 
 def choose_boundary_candidate(original,candidates,lower,upper):
     """Require corroborated local boundaries before clearing an uncertainty flag."""
-    usable=[w for w in candidates if w['probability']>=.5 and lower<=w['start']<w['end']<=upper]
+    usable=[w for w in candidates if acoustic_probability(w)>=.5 and lower<=w['start']<w['end']<=upper]
     pairs=[(a,b) for i,a in enumerate(usable) for b in usable[i+1:]
            if a.get('recovery_channel')!=b.get('recovery_channel')
            and abs(a['start']-b['start'])<=.16 and abs(a['end']-b['end'])<=.16]
@@ -289,7 +293,7 @@ def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,pr
     for index,word in enumerate(words):
         if word.get('timing_source')=='manual' and not word.get('needs_review'):continue
         if threshold>.1 and not word.get('needs_review'):continue
-        if word['probability']>=threshold and not (threshold>.1 and word.get('needs_review')):continue
+        if acoustic_probability(word)>=threshold and not (threshold>.1 and word.get('needs_review')):continue
         progress(.86,'Belirsiz kelime, komşularıyla ve ses kanallarıyla kontrol ediliyor…')
         first=max(0,index-2);last=min(len(words),index+2)
         if index+1<len(words) and words[index+1]['start']-word['end']>.35:last=index+1
@@ -322,7 +326,7 @@ def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,pr
             lower=words[index-1]['end'] if index else start
             upper=words[index+1]['start'] if index+1<len(words) else end
             candidates.append({**candidate,'recovery_channel':channel,'context_padding':padding})
-            if lower<=candidate['start']<candidate['end']<=upper and candidate['probability']>best['probability']:
+            if lower<=candidate['start']<candidate['end']<=upper and acoustic_probability(candidate)>acoustic_probability(best):
                 best={**candidate,'recovery_channel':channel}
         if threshold>.1:
             best=choose_boundary_candidate(original,candidates,lower,upper)

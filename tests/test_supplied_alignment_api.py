@@ -33,6 +33,7 @@ class SuppliedApiTests(unittest.TestCase):
         self.tasks={};self.created=[]
         def create(extra):self.created.append(extra);self.tasks['test']={};return 'test'
         self.ns={**globals(),'_lyrics_inference_lock':threading.RLock(),'_lyrics_data_lock':threading.RLock(),
+            'separation_tasks':SimpleNamespace(lock=threading.RLock(),records={}),
             '_find_audio_file':lambda _:Path('audio.wav'),'_lyrics_revision':lambda _: 'original',
             '_create_task':create,'_update_task':lambda task,**data:self.tasks[task].update(data),
             'tasks':self.tasks,'tasks_lock':threading.Lock(),'audio_jobs':SimpleNamespace(list=lambda:[])}
