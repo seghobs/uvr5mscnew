@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-19",
+  "recording": "Beyto Can - Nabe Nabe",
+  "duration_seconds": 196.139,
+  "previous_result": {"timed_words": 140, "target_words": 147, "zero_duration_words": 7},
+  "primary_kurmanji_model": "facebook/mms-1b-all / kmr-script_latin",
+  "second_kurmanji_model": "maniwebdev/xlsr_kurmanji_kurdish_custom",
+  "original_audio": "Exact saved separation source, same duration as vocal stem",
+  "thresholds": {"minimum_crosscheck_score_each_audio_view": 0.5, "maximum_boundary_difference_seconds": 0.16},
+  "final_end_to_end_run": {
+    "input": "The original twelve untimed supplied rows",
+    "automatic_repeats_added": 20,
+    "repeat_candidates": 353,
+    "music_repeat_prefix_repairs": 1,
+    "review_rows": [],
+    "original_audio_crosscheck": true,
+    "duration_only_song_word_estimates": 6,
+    "duration_only_fading_tail_estimates": 3
+  },
+  "validated_saved_result": {
+    "lyric_rows": 32,
+    "music_captions": 2,
+    "timed_lyric_words": 171,
+    "target_lyric_words": 171,
+    "explicitly_estimated_words": 9,
+    "zero_duration_words": 0,
+    "timing_warnings": 0,
+    "overlaps": 0,
+    "original_supplied_rows_preserved": 12,
+    "other_lyric_records_unchanged": 34,
+    "frame_checks_at_60fps": 11770,
+    "automated_tests_passed": 114
+  },
+  "repairs": [
+    "Requested language owns repetition order; Turkish only supplements bounded missing words",
+    "MMS repetition evidence distinguishes the repeated first verse from the later EZ JI BO verses",
+    "Automatic repeat spilling into the instrumental break is shortened only to the prefix corroborated on both audio views; the full generated row is archived",
+    "MMS letter emissions on instruments cannot independently veto acoustic music-only evidence",
+    "Same-word estimates import measured durations only; target positions stay local and bounded",
+    "Fading-tail estimates use the target's own weak CTC positions, without donor offsets, rhythmic scales or inter-word gaps",
+    "Primary model and its verifier are released before supplementary model loading"
+  ],
+  "limits": [
+    "Nine estimates have null probability and remain labelled Tahmini; they are not claimed to be acoustically confirmed",
+    "Zero structural warnings is not a claim of manually verified phoneme-level timing or zero audible error on every recording",
+    "Audio, model weights, private database and raw diagnostic transcripts are not committed"
+  ]
+}

@@ -10,13 +10,15 @@ def confirmed(word):
             and 0<=word['start']<word['end'])
 
 
-def infer_tail_from_repeats(rows,duration):
+def infer_tail_from_repeats(rows,duration,duration_only=False):
     """Use only matching earlier verses with consistent measured anchor words.
 
     No equal-duration splitting, no invented acoustic confidence, and no changes
     to manual/locked words. The caller first establishes that the audio fades.
     """
     from karaoke_supplied_alignment import instrumental,protected
+    if duration_only:
+        return infer_tail_durations(rows,duration)
     import unicodedata
     def key(text):
         return ''.join(c for c in text.replace('I','ı').replace('İ','i').lower()
@@ -59,6 +61,43 @@ def infer_tail_from_repeats(rows,duration):
     return len(inferred)
 
 
+def infer_tail_durations(rows,duration):
+    """Use donor lengths only; placement comes from this tail's weak CTC path."""
+    from karaoke_supplied_alignment import instrumental,protected
+    from karaoke_repeat_inference import measured,token_key
+    candidates=[i for i,r in enumerate(rows) if not instrumental(r) and r.get('words')]
+    if not candidates:return 0
+    ri=candidates[-1];row=rows[ri];words=row['words']
+    pending=[i for i,w in enumerate(words) if not confirmed(w)]
+    if protected(row) or not pending or not 0<duration-row['start']<=20:return 0
+    first=pending[0]
+    if first<3 or pending!=list(range(first,len(words))):return 0
+    snapshot=copy.deepcopy(words);planned=[];lower=words[first-1]['end']
+    if any(w.get('timing_source')=='manual' for w in snapshot[first:]):return 0
+    upper=min([duration]+[r['start'] for r in rows[ri+1:]])
+    for wi in pending:
+        w=snapshot[wi];refs=[(r.get('id') or f'row:{j+1}',v) for j,r in enumerate(rows[:ri])
+            for v in r.get('words',[]) if measured(v) and token_key(v['word'])==token_key(w['word'])]
+        if not refs:return 0
+        length=statistics.median(v['end']-v['start'] for _,v in refs)
+        ref=w.get('timing_reference') or {}
+        a,b=(w['start'],w['end']) if w['end']>w['start'] else (ref.get('previous_start'),ref.get('previous_end'))
+        if not all(isinstance(t,(int,float)) and math.isfinite(t) for t in (a,b)) or not row['start']<=a<b<=upper:return 0
+        # Never import donor offsets or donor inter-word gaps.
+        start=max(lower,(a+b-length)/2);end=start+length
+        if not .019<=length<=3 or end>upper:return 0
+        planned.append((wi,{**w,'start':start,'end':end,'probability':None,'needs_review':False,
+            'timing_source':'repeat_inferred','timing_reference':{
+                'method':'same_word_tail_duration_only','row_ids':list(dict.fromkeys(k for k,_ in refs)),
+                'anchor_words':first,'duration_only':True,'reference_duration_seconds':length,
+                'acoustically_verified':False,'bounds':[lower,upper],
+                'previous_start':a,'previous_end':b}}))
+        lower=end
+    for wi,w in planned:words[wi]=w
+    row['end']=max(w['end'] for w in words)
+    return len(planned)
+
+
 def recover_fading_tail(audio_path,rows,progress=lambda *args:None,language='tr'):
     import numpy as np
     import soundfile as sf
@@ -92,7 +131,7 @@ def recover_fading_tail(audio_path,rows,progress=lambda *args:None,language='tr'
         # trailing intervals are replaced together by the repeat inference.
         if selected is not original:
             row['words'][j]=selected;report['quiet_tail_repaired_words']+=1
-    report['repeat_inferred_words']=infer_tail_from_repeats(rows,duration)
+    report['repeat_inferred_words']=infer_tail_from_repeats(rows,duration,duration_only=True)
     # If extrapolation was rejected, retain the original unresolved words and
     # do not introduce overlaps while repairing their neighbours.
     for j in pending:

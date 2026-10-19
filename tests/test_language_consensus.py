@@ -10,6 +10,19 @@ def word(text,start,end,p=.9,review=False,source='ctc'):
 
 
 class ConsensusTests(unittest.TestCase):
+    def test_supplement_cannot_replace_primary_repetition_order(self):
+        native=[dict(id='verse',text='EZ JI BO',start=48,end=48.7,
+                     words=[word('EZ',48,48.2),word('JI',48.3,48.4),word('BO',48.5,48.7)]),
+                dict(id='native-repeat',text='EZ JI BO',start=56,end=56.7,
+                     words=[word('EZ',56,56.2),word('JI',56.3,56.4),word('BO',56.5,56.7)])]
+        fallback=[dict(id='verse',text='EZ JI BO',start=40,end=51,
+                       words=[word('EZ',40,40.2),word('JI',41.3,41.4),word('BO',44.5,44.7)]),
+                  dict(id='false-repeat',text='YAR RADIZE LI',start=56,end=59,
+                       words=[word('YAR',56,56.2),word('RADIZE',56.3,58.4),word('LI',58.5,58.7)])]
+        result,n=merge_language_alignment(native,fallback,'fallback-model')
+        self.assertEqual(n,0)
+        self.assertEqual(result,native)
+
     def rows(self):
         return [dict(id='r',text='A B C',start=1,end=4,words=[word('A',1,2),word('B',0,0,None,True,'estimated'),word('C',3,4)])]
 

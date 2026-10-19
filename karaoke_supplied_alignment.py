@@ -84,7 +84,9 @@ def assemble(rows,aligned_blocks,duration):
                 # A forced path alone is not proof that an absent word was sung.
                 if acoustic_probability(word)<.10 or word['end']<=word['start']:
                     word={'word':token,'start':row['start'],'end':row['start'],
-                          'timing_source':'estimated','needs_review':True,'probability':0.}
+                          'timing_source':'estimated','needs_review':True,'probability':0.,
+                          'timing_reference':{'method':'rejected_ctc_candidate',
+                              'previous_start':word.get('start'),'previous_end':word.get('end')}}
                 else:linked+=1
                 updated.append(word)
             row['words']=updated
@@ -125,6 +127,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     from karaoke_repeat_spotting import expand_supplied_rows,local_verifier
     rows=[copy.deepcopy(r) for r in rows if not generated(r)]
     language=resolve_language(language,rows)
+    model_language='kmr_mms' if language=='kmr' else language
     baseline=None
     if language=='kmr':
         baseline,baseline_report=align_supplied(audio_path,copy.deepcopy(rows),
@@ -145,28 +148,33 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         result,report=assemble(rows,completed,duration)
         from karaoke_review_recovery import recover_row_reviews
         report['full_row_review_repairs']=recover_row_reviews(audio_path,result,emit,language=language)
-        if language=='tr' and original_path is not None:
-            from karaoke_model_crosscheck import recover_model_reviews
-            report.update(recover_model_reviews(audio_path,original_path,result,emit,diagnostics=diagnostics))
+        if language=='kmr' and original_path is not None:
+            from karaoke_generated_recovery import recover_music_repeat_prefixes
+            report['music_repeat_prefix_repairs']=recover_music_repeat_prefixes(
+                audio_path,original_path,result,voice_regions,music_regions,language)
         from karaoke_tail_recovery import recover_fading_tail
         report.update(recover_fading_tail(audio_path,result,emit,language=language))
         report.update(repeat_report)
         result,solo_report=place_interludes(result,duration,voice_regions,music_regions,available)
         if baseline is not None:
             from karaoke_language_consensus import merge_language_alignment,corroborate_recovered_repeats
-            result,report['language_repaired_words']=merge_language_alignment(baseline,result,model_spec(language)[1])
+            # The requested language owns the lyric order and repetitions.
+            # A Turkish fallback must not replace Kurmanji phrase occurrences.
+            result,report['language_repaired_words']=merge_language_alignment(result,baseline,model_spec('tr')[1])
             report['multilingual_review_repairs']=recover_row_reviews(audio_path,result,emit,language='kmr_mms')
             report['repeat_corroborated_words']=corroborate_recovered_repeats(audio_path,result)
-            for key in ('repeated_rows_added','terminal_repeats_added','repeat_review_candidates',
-                        'repeat_candidates','solo_intervals','unplaced_solo_ids'):
-                solo_report[key]=baseline_report.get(key,solo_report.get(key))
+        # Check the final multilingual result so language merging cannot
+        # overwrite corroborated repairs or introduce unchecked placeholders.
+        if original_path is not None:
+            from karaoke_model_crosscheck import recover_model_reviews
+            report.update(recover_model_reviews(audio_path,original_path,result,emit,diagnostics=diagnostics,language=language))
         if repeat_estimation:
             from karaoke_repeat_inference import recover_from_song_repeats
             emit(.995,'Eksik kelimeler, şarkının güvenilir tekrarlarından tahmini sürelerle tamamlanıyor…')
             report['song_repeat_inferred_words']=recover_from_song_repeats(audio_path,result)
         for row in result:row['alignment_mode']='supplied_ctc'
         report.update(solo_report)
-        report.update(alignment_language=language,alignment_model=model_spec(language)[1])
+        report.update(alignment_language=language,alignment_model=model_spec(model_language)[1])
         words=[w for r in result if not instrumental(r) for w in r.get('words',[])]
         report['linked_words']=sum(w['end']>w['start'] for w in words)
         report['target_words']=len(words)
@@ -180,9 +188,11 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
             diagnostics.update(raw_blocks=copy.deepcopy(completed),voice_regions=voice_regions,music_regions=music_regions)
         return result,report
     if not blocks:return finish([])
-    model_dir,vocab=ensure_model(language,emit)
-    device='cuda' if torch.cuda.is_available() and torch.cuda.mem_get_info()[0]>3*1024**3 else 'cpu'
-    model=Wav2Vec2ForCTC.from_pretrained(model_dir,local_files_only=True).eval().to(device)
+    model_dir,vocab=ensure_model(model_language,emit)
+    required_gb=5 if model_language=='kmr_mms' else 3
+    device='cuda' if torch.cuda.is_available() and torch.cuda.mem_get_info()[0]>required_gb*1024**3 else 'cpu'
+    model_options={'target_lang':'kmr-script_latin'} if model_language=='kmr_mms' else {}
+    model=Wav2Vec2ForCTC.from_pretrained(model_dir,local_files_only=True,**model_options).eval().to(device)
     extractor=Wav2Vec2FeatureExtractor.from_pretrained(model_dir,local_files_only=True)
     hop=math.prod(model.config.conv_stride)
     if hop!=320:raise ValueError('Hizalama modelinin zaman çözünürlüğü değişmiş.')
@@ -240,7 +250,10 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
             emission=emissions[0]
             emit(.96*(block_index+.90)/len(blocks),'Tüm dönüşler yerleştirildi; kelimeler bağlanıyor…')
             evidence=(1-emission[0,:,vocab.get('[PAD]',0)].exp()).numpy()>.35
-            voice_regions.extend([start+a,start+b] for a,b in regions(evidence,min_length=.02,bridge=.45))
+            # MMS emits letters on some instruments. Those letters alone
+            # cannot veto independently detected music-only intervals.
+            if model_language!='kmr_mms':
+                voice_regions.extend([start+a,start+b] for a,b in regions(evidence,min_length=.02,bridge=.45))
             aligned=[]
             if targets:
                 path,scores=AF.forced_align(emission,torch.tensor([targets],dtype=torch.int32),blank=vocab.get('[PAD]',0))
@@ -264,10 +277,13 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         completed=[([positions[id(row)] for row in expanded],aligned) for expanded,aligned in local_completed]
         for row in rows:row.pop('_original_index',None);row.pop('_occurrence_words',None);row.pop('_terminal_occurrence',None)
         emit(.98,'Satır sırası, dönüşler ve ara müzikler kontrol ediliyor…')
-        return finish(completed)
     finally:
+        # The local verifier closes over this model. Release both before
+        # loading supplementary models, especially the larger MMS adapter.
+        verifier=None
         del model
         if device=='cuda':torch.cuda.empty_cache()
+    return finish(completed)
 
 
 def choose_boundary_candidate(original,candidates,lower,upper):

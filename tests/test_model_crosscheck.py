@@ -10,6 +10,15 @@ from karaoke_model_crosscheck import apply_crosscheck, original_for_stem, recove
 
 
 class CrosscheckTests(unittest.TestCase):
+    def test_kurdish_crosscheck_uses_kurdish_models_and_preserves_failed_words(self):
+        with tempfile.TemporaryDirectory() as folder:
+            original=Path(folder)/'original.wav';original.touch();rows=self.rows();before=copy.deepcopy(rows)
+            with patch('soundfile.info',return_value=SimpleNamespace(duration=110)),patch('karaoke_ctc.refine_ctc',side_effect=RuntimeError('unavailable')) as model:
+                report=recover_model_reviews('vocals.wav',original,rows,language='kmr')
+            self.assertEqual([call.args[2] for call in model.call_args_list],['kmr_mms','kmr'])
+            self.assertEqual(rows,before)
+            self.assertEqual(report['dual_audio_repaired_words'],0)
+
     def test_optional_model_failure_preserves_timings_and_warnings(self):
         with tempfile.TemporaryDirectory() as folder:
             original=Path(folder)/'original.wav';original.touch();rows=self.rows();before=copy.deepcopy(rows)
@@ -41,13 +50,14 @@ class CrosscheckTests(unittest.TestCase):
         for i in (0,2):self.assertEqual(rows[0]['words'][i],before[0]['words'][i])
 
     def test_low_score_same_recording_disagreement_or_wrong_text_cannot_clear_review(self):
-        for kind in ('low','same_audio','disagree','wrong_word','nan'):
+        for kind in ('low','same_audio','disagree','wrong_word','nan','failed_alignment'):
             rows=self.rows();before=copy.deepcopy(rows);e=self.evidence();w=e[('r',1)][1]
             if kind=='low':w['probability']=.499999
             if kind=='same_audio':w['audio_source']='vocals'
             if kind=='disagree':w['start']+=.2
             if kind=='wrong_word':w['word']='YARIN'
             if kind=='nan':w['probability']=math.nan
+            if kind=='failed_alignment':w['needs_review']=True
             self.assertEqual(apply_crosscheck(rows,e,110),[],kind)
             self.assertEqual(rows,before,kind)
 

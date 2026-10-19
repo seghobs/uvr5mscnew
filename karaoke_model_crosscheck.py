@@ -38,7 +38,7 @@ def apply_crosscheck(rows, candidates, duration, targets=None, allow_manual=Fals
             usable = []
             for proposal in candidates.get(key, []):
                 a, b, p = proposal.get('start'), proposal.get('end'), proposal.get('probability')
-                if (proposal.get('word') == word['word'] and
+                if (proposal.get('word') == word['word'] and not proposal.get('needs_review') and
                     all(isinstance(t, (int, float)) and math.isfinite(t) for t in (a, b, p)) and
                     p >= .5 and lower <= a < b <= upper and b-a <= 3 and
                     proposal.get('audio_source') in ('vocals', 'original')):
@@ -68,7 +68,7 @@ def apply_crosscheck(rows, candidates, duration, targets=None, allow_manual=Fals
 
 
 def recover_model_reviews(vocal_path, original_path, rows, progress=lambda *args: None,
-                          targets=None, allow_manual=False, diagnostics=None):
+                          targets=None, allow_manual=False, diagnostics=None, language='tr'):
     import soundfile as sf
     from karaoke_ctc import refine_ctc
     from karaoke_alignment_models import model_spec
@@ -91,8 +91,9 @@ def recover_model_reviews(vocal_path, original_path, rows, progress=lambda *args
     for ri,row in enumerate(frozen):row['_crosscheck_row_key']=row.get('id') or f'row:{ri+1}'
     candidates = {}
     failed_models = set()
+    models = {'tr': ('tr_cv8', 'tr_mms'), 'kmr': ('kmr_mms', 'kmr')}[language]
     for local in (False, True):
-        for language in ('tr_cv8', 'tr_mms'):
+        for language in models:
             if language in failed_models:
                 continue
             for padding in ((.15, .35, .7) if local else (.25, 1.4)):
