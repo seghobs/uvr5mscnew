@@ -10,6 +10,7 @@ import {updateLyricInput} from '@/lib/lyric-input';
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {KaraokeVideoPreview} from './KaraokeVideoPreview';
+import {VideoCoverPicker} from './VideoCoverPicker';
 import { KaraokeToolPopover } from './KaraokeToolPopover';
 import {
   Video,
@@ -253,6 +254,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     return clean || 'Karaoke Track';
   });
   const [artist, setArtist] = useState('UVR5 AI Studio');
+  const [coverImage,setCoverImage]=useState('');
+  const [coverLoading,setCoverLoading]=useState(false);
   useEffect(()=>{
     if(!isOpen)return;
     const file=vocalStem||instStem;
@@ -264,6 +267,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     const metadata=saved||(source?parseSongMetadata(source):null);
     if(metadata){setArtist(metadata.artist);setTitle(metadata.title);}
     setHeaderPrefix(saved?.tag??'orjinal karaoke');
+    setCoverImage(projectStorage.getItem('uvr-video-cover:'+file)||'');
   },[isOpen,instStem,vocalStem]);
   const saveHeading=(nextArtist:string,nextTitle:string,tag=headerPrefix)=>projectStorage.setItem('uvr-video-heading:'+(vocalStem||instStem),JSON.stringify({artist:nextArtist,title:nextTitle,tag}));
   const [activeTab, setActiveTab] = useState<'verify' | 'lyrics' | 'video'>('verify');
@@ -1602,6 +1606,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
 
   const handleGenerateVideo = async () => {
+    if(coverLoading)return;
     if (segments.length === 0) {
       onNotify('warning', 'Söz Eksik', 'Lütfen en az bir şarkı sözü satırı ekleyin.');
       return;
@@ -1629,6 +1634,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         show_header: showHeader,
         aspect_ratio: aspectRatio,
         theme: theme,
+        cover_image: coverImage||undefined,
       }, (msg) => {
         setRenderStatusMsg(msg);
       });
@@ -2932,6 +2938,12 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                   </div>
                 </div>
               )}
+            <VideoCoverPicker key={vocalStem||instStem} value={coverImage} disabled={rendering} onBusyChange={setCoverLoading} onChange={image=>{
+              setCoverImage(image);
+              setVideoUrl(null);
+              const key='uvr-video-cover:'+(vocalStem||instStem);
+              if(image)projectStorage.setItem(key,image);else projectStorage.removeItem(key);
+            }}/>
             </div>
 
             {/* Video Preview Player (when rendered) */}
@@ -2953,7 +2965,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
                 </div>
 
                 <div className="rounded-2xl overflow-hidden border border-white/10 bg-black aspect-video max-h-64 flex items-center justify-center">
-                  <video src={videoUrl} controls className="w-full h-full object-contain" />
+                  <video src={videoUrl} poster={coverImage||undefined} controls className="w-full h-full object-contain" />
                 </div>
               </div>
             )}
@@ -2983,7 +2995,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
             <button
               onClick={() => activeTab === 'verify' ? setActiveTab('lyrics') : activeTab === 'lyrics' ? setActiveTab('video') : void handleGenerateVideo()}
-              disabled={rendering || loadingLyrics || segments.length === 0 || (activeTab === 'video' && renderErrors.length > 0)}
+              disabled={rendering || coverLoading || loadingLyrics || segments.length === 0 || (activeTab === 'video' && renderErrors.length > 0)}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 transition-all disabled:opacity-50"
             >
               {rendering ? (

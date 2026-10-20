@@ -430,6 +430,7 @@ export const api = {
       title?: string;
       artist?: string;
       header_text?: string;
+      cover_image?: string;
       show_header?: boolean;
       aspect_ratio?: '16:9' | '9:16';
       theme?: 'gold' | 'neon' | 'cyberpunk' | 'emerald';

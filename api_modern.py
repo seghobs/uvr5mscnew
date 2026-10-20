@@ -2582,6 +2582,7 @@ async def generate_visualizer_endpoint(req: VisualizerRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 class KaraokeVideoRequest(BaseModel):
+    cover_image: Optional[str] = Field(default=None,max_length=6_000_000)
     timing_file: Optional[str] = None
     inst_file: str = Field(..., min_length=1, max_length=256)
     segments: List[LyricSegmentModel]
@@ -2808,6 +2809,9 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
         if proc.returncode != 0:
             raise RuntimeError(f"FFmpeg render failed: {proc.stderr[-400:]}")
 
+        from video_cover import attach_cover
+        attach_cover(OUTPUT_DIR / out_video_name,req.cover_image)
+
         _update_task(
             task_id, 
             status="completed", 
@@ -2826,6 +2830,9 @@ def run_karaoke_video_task(task_id: str, req_data: dict):
 
 @app.post("/generate_karaoke_video")
 async def generate_karaoke_video_endpoint(req: KaraokeVideoRequest, background_tasks: BackgroundTasks):
+    from video_cover import cover_bytes
+    try:cover_bytes(req.cover_image)
+    except ValueError as exc:raise HTTPException(status_code=400,detail=str(exc))
     req.segments = [LyricSegmentModel(**s) for s in repair_timing([s.model_dump() for s in req.segments])]
     issues = render_timing_issues([s.model_dump() for s in req.segments])
     if not req.segments or issues:

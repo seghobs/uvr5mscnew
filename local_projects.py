@@ -19,7 +19,7 @@ class ProjectStore:
             return key[len('uvr-passages-v3:'):].rsplit(':',1)[0]
         if key.startswith('uvr-passages-v2:'):
             return key[len('uvr-passages-v2:'):].rsplit(':', 2)[0]
-        for prefix in ('uvr-stem-settings:', 'uvr-history:', 'uvr-lyrics-draft:', 'uvr-video-heading:', 'lyrics:', 'project:'):
+        for prefix in ('uvr-stem-settings:', 'uvr-history:', 'uvr-lyrics-draft:', 'uvr-video-heading:', 'uvr-video-cover:', 'lyrics:', 'project:'):
             if key.startswith(prefix): return key[len(prefix):]
         return '_workspace'
 
