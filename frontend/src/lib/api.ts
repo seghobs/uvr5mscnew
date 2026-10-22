@@ -2,10 +2,11 @@ import { AvailableModels, ModelStatus, SeparationParams, TaskStatus, SearchResul
 import {backendFetch as safeFetch,pollBackendTask} from './backend-fetch';
 
 export const api = {
-  async cancelAllTasks():Promise<{status:string;deleted_tasks:number;message:string}>{
+  async cancelAllTasks():Promise<{status:string;previous_pid?:number;deleted_tasks:number;message:string}>{
     const res=await safeFetch('/api/tasks/cancel-all',{method:'POST'});
     const data=await res.json().catch(()=>({}));
     if(!res.ok)throw new Error(data.detail||'Görevler sonlandırılamadı.');
+    if(typeof window!=='undefined')window.dispatchEvent(new Event('uvr-tasks-cancelled'));
     return data;
   },
   async getActiveLyricsTasks(fileName:string):Promise<{tasks:Array<{task_id:string;status:string;message:string;progress:number;queue_position:number;queue_total:number;queue_ahead:number;queue_remaining:number}>}>{
@@ -424,6 +425,7 @@ export const api = {
       for (let i = 0; i < maxAttempts; i++) {
         await new Promise((r) => setTimeout(r, 800));
         const statusRes = await safeFetch(`/status/${taskId}`);
+        if(statusRes.status===404)throw new Error('Görev sonlandırıldı.');
         if (statusRes.ok) {
           const taskData = await statusRes.json();
           if (onProgress && taskData.message) {
@@ -436,6 +438,7 @@ export const api = {
               download_url: taskData.download_url || `/output/${taskData.video_file}`,
             };
           }
+          if(['cancelled','interrupted'].includes(taskData.status))throw new Error('Görev sonlandırıldı.');
           if (taskData.status === 'failed') {
             throw new Error(taskData.error || taskData.message || 'Video render failed');
           }

@@ -491,6 +491,17 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   }, [isOpen, vocalStem, instStem]);
 
   const lyricsRequestRef = useRef(0);
+  const videoRequestRef = useRef(0);
+  useEffect(()=>{
+    const cancelled=()=>{
+      lyricsRequestRef.current++;videoRequestRef.current++;
+      setLoadingLyrics(false);setBackgroundLyricsTasks([]);setLiveLyricsSegments([]);
+      bulkBindingAbort.current?.abort();setBulkBindingStatus(null);
+      setIsAligningPasted(false);setRendering(false);
+    };
+    window.addEventListener('uvr-tasks-cancelled',cancelled);
+    return()=>window.removeEventListener('uvr-tasks-cancelled',cancelled);
+  },[]);
 
   // Opening the studio must never start an AI/GPU transcription by itself.
   // Restore only an existing draft or saved database record.
@@ -954,13 +965,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   };
 
   const cancelAllTasks=async()=>{
-    if(!window.confirm('Çalışan ve bekleyen TÜM görevler iptal edilip kalıcı görev kayıtları silinsin mi? Bu işlem geri alınamaz.'))return;
+    if(!window.confirm('Çalışan ve bekleyen tüm görevler sonlandırılsın mı? Kayıtlı sözler ve ses dosyaları korunur.'))return;
     setCancellingAllTasks(true);
     try{
       const result=await api.cancelAllTasks();
       lyricsRequestRef.current++;
       setLoadingLyrics(false);setBackgroundLyricsTasks([]);setLiveLyricsSegments([]);
-      onNotify('warning','Tüm görevler sonlandırıldı',`${result.deleted_tasks} görev iptal edilip silindi. GPU servisi temizleniyor.`);
+      onNotify('warning','Tüm görevler sonlandırıldı',`${result.deleted_tasks} tamamlanmamış görev sonlandırıldı. GPU servisi temizleniyor.`);
     }catch(error){onNotify('error','Görevler sonlandırılamadı',error instanceof Error?error.message:'Bilinmeyen hata');}
     finally{setCancellingAllTasks(false);}
   };
@@ -1619,11 +1630,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     setRendering(true);
     setRenderStatusMsg('Karaoke Altyazıları & Render Hazırlanıyor...');
     setVideoUrl(null);
+    const videoRequest=++videoRequestRef.current;
     try {
       const finalizedSegments = structuredClone(segments);
       flushPendingSave();
       await saveToDatabase(finalizedSegments, false);
 
+      if(videoRequest!==videoRequestRef.current)return;
       const res = await api.generateKaraokeVideo({
         inst_file: instStem,
         timing_file: vocalStem || instStem,
@@ -1636,9 +1649,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         theme: theme,
         cover_image: coverImage||undefined,
       }, (msg) => {
-        setRenderStatusMsg(msg);
+        if(videoRequest===videoRequestRef.current)setRenderStatusMsg(msg);
       });
 
+      if(videoRequest!==videoRequestRef.current)return;
       if (res.download_url) {
         setVideoUrl(res.download_url);
         setVideoFilename(res.video_file || 'karaoke_video_1080p.mp4');
@@ -1646,10 +1660,11 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         onNotify('success', '🎬 1080p Karaoke Videosu Hazır!', 'Videonuz başarıyla oluşturuldu.');
       }
     } catch (err: any) {
+      if(videoRequest!==videoRequestRef.current)return;
       onNotify('error', 'Render Başarısız', err.message || 'Karaoke videosu oluşturulamadı');
     } finally {
-      setRendering(false);
-      setRenderStatusMsg('FFmpeg 1080p Render Ediliyor...');
+      if(videoRequest===videoRequestRef.current)setRendering(false);
+      if(videoRequest===videoRequestRef.current)setRenderStatusMsg('FFmpeg 1080p Render Ediliyor...');
     }
   };
 

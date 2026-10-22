@@ -2897,14 +2897,15 @@ def restart_local_service(background_tasks: BackgroundTasks):
 
 @app.post('/api/tasks/cancel-all')
 def cancel_and_delete_all_tasks(background_tasks: BackgroundTasks):
-    """Emergency stop: erase every queue and kill active model work via a clean process restart."""
+    """Stop unfinished work; preserve completed history, source mappings and saved projects."""
     separation_tasks.cancel_all()
     with tasks_lock:
-        legacy_count=len(tasks)
-        tasks.clear()
+        active_ids=[key for key,value in tasks.items() if value.get('status') in ('queued','processing','cancelling')]
+        legacy_count=len(active_ids)
+        for key in active_ids: tasks.pop(key,None)
     with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
-        persisted_count=conn.execute('SELECT COUNT(*) FROM lyrics_jobs').fetchone()[0]
-        conn.execute('DELETE FROM lyrics_jobs')
+        persisted_count=conn.execute('SELECT COUNT(*) FROM lyrics_jobs WHERE status IN ("queued","processing","cancelling")').fetchone()[0]
+        conn.execute('DELETE FROM lyrics_jobs WHERE status IN ("queued","processing","cancelling")')
         conn.commit()
     audio_count=0
     for job in audio_jobs.list():
@@ -2912,8 +2913,8 @@ def cancel_and_delete_all_tasks(background_tasks: BackgroundTasks):
             try:audio_jobs.cancel(job['id']);audio_count+=1
             except Exception:pass
     background_tasks.add_task(_launch_service_control,'force-restart')
-    return {'status':'cancelled','deleted_tasks':max(legacy_count,persisted_count)+audio_count,
-            'message':'Tüm görevler iptal edildi ve silindi. Servis temizleniyor.'}
+    return {'status':'cancelled','previous_pid':os.getpid(),'deleted_tasks':max(legacy_count,persisted_count)+audio_count,
+            'message':'Çalışan ve bekleyen görevler sonlandırıldı. Kayıtlı projeler korundu. Servis temizleniyor.'}
 
 def _launch_service_control(action):
     time.sleep(.5)
