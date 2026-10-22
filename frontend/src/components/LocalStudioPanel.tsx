@@ -1,17 +1,19 @@
 'use client';
-import React,{useEffect,useState} from 'react';
+import React,{useEffect,useState,useRef} from 'react';
+import {backendFetch} from '@/lib/backend-fetch';
 import {flushProjects,flushAllProjects} from '@/lib/project-storage';
 import type {AudioJob} from '@/lib/audio-jobs';
 const labels:Record<string,string>={queued:'Sırada',processing:'Çalışıyor',cancelling:'Durduruluyor',cancelled:'İptal edildi',completed:'Tamamlandı',failed:'Hata',interrupted:'Yarıda kaldı'};
 export function LocalStudioPanel(){
+ const refreshing=useRef(false);
  const [restarting,setRestarting]=useState(false);
  const [open,setOpen]=useState(false),[jobs,setJobs]=useState<AudioJob[]>([]),[other,setOther]=useState<any[]>([]);
  const [cache,setCache]=useState({bytes:0,files:0,limit_bytes:0}),[save,setSave]=useState({pending:0,error:''}),[error,setError]=useState('');
- const refresh=async()=>{try{
-  const [jr,cr]=await Promise.all([fetch('/api/audio/jobs'),fetch('/api/audio/cache')]);
+ const refresh=async()=>{if(refreshing.current)return;refreshing.current=true;try{
+  const [jr,cr]=await Promise.all([backendFetch('/api/audio/jobs'),backendFetch('/api/audio/cache')]);
   if(!jr.ok||!cr.ok)throw Error('İşlem durumuna ulaşılamadı.');
-  const data=await jr.json();setError(previous=>previous==='İşlem durumuna ulaşılamadı.'?'':previous);setJobs(data.jobs);setOther(data.other_jobs||[]);setCache(await cr.json());
- }catch(e){setError((e as Error).message);}};
+  const data=await jr.json();setError(previous=>['İşlem durumuna ulaşılamadı.','Sunucu bağlantısı geçici olarak kesildi; yeniden deneniyor.'].includes(previous)?'':previous);setJobs(data.jobs);setOther(data.other_jobs||[]);setCache(await cr.json());
+ }catch{setError('Sunucu bağlantısı geçici olarak kesildi; yeniden deneniyor.');}finally{refreshing.current=false;}};
  useEffect(()=>{void refresh();const timer=setInterval(()=>void refresh(),3000);const listener=(e:Event)=>setSave((e as CustomEvent).detail);window.addEventListener('uvr-project-status',listener);return()=>{clearInterval(timer);window.removeEventListener('uvr-project-status',listener);};},[]);
  const action=async(url:string,method:string)=>{setError('');try{const r=await fetch(url,{method});if(!r.ok)throw Error('İşlem yapılamadı.');await refresh();}catch(e){setError((e as Error).message);}};
  const restart=async()=>{if(restarting)return;setRestarting(true);setError('');try{await flushAllProjects();const response=await fetch('/api/service/restart',{method:'POST'});if(!response.ok){const data=await response.json();throw Error(data.detail||'Yeniden başlatılamadı.');}const previous=(await response.json()).previous_pid;setError('Sunucu yeniden başlatılıyor…');for(let i=0;i<90;i++){await new Promise(r=>setTimeout(r,1000));try{const health=await fetch('/api/service');if(health.ok&&(await health.json()).pid!==previous){setError('');await refresh();return;}}catch{}}throw Error('Sunucu başlatılamadı; başlatıcıdaki hata kaydını kontrol edin.');}catch(e){setError((e as Error).message);}finally{setRestarting(false);}};

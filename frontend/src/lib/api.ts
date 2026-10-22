@@ -1,30 +1,5 @@
 import { AvailableModels, ModelStatus, SeparationParams, TaskStatus, SearchResult, EnsembleSlot, LyricSegment, LyricsResponse, RestoreAudioParams, RestoreAudioResponse } from './types';
-
-async function safeFetch(path: string, options?: RequestInit): Promise<Response> {
-  const isBrowser = typeof window !== 'undefined';
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  const canRetry = !options?.method || options.method === 'GET';
-
-  try {
-    const res = await fetch(cleanPath, options);
-    if (res.ok) return res;
-
-    // If proxy failed, retry directly against FastAPI backend port 8000
-    if (isBrowser && canRetry && (res.status === 404 || res.status === 405 || res.status >= 500)) {
-      const directUrl = `http://127.0.0.1:8000${cleanPath}`;
-      const directRes = await fetch(directUrl, options).catch(() => null);
-      if (directRes && directRes.ok) return directRes;
-    }
-    return res;
-  } catch (err) {
-    if (isBrowser && canRetry) {
-      const directUrl = `http://127.0.0.1:8000${cleanPath}`;
-      const directRes = await fetch(directUrl, options).catch(() => null);
-      if (directRes && directRes.ok) return directRes;
-    }
-    throw err;
-  }
-}
+import {backendFetch as safeFetch,pollBackendTask} from './backend-fetch';
 
 export const api = {
   async cancelAllTasks():Promise<{status:string;deleted_tasks:number;message:string}>{
@@ -350,15 +325,7 @@ export const api = {
       body:JSON.stringify({file_name:fileName,segments,language,instrumental_file_name:instrumentalFileName})});
     if(!res.ok){const error=await res.json().catch(()=>({}));throw Error(error.detail||'Senkron başlatılamadı.');}
     const {task_id}=await res.json();
-    for(let attempt=0;attempt<3600;attempt++){
-      await new Promise(resolve=>setTimeout(resolve,1000));
-      const response=await safeFetch(`/status/${encodeURIComponent(task_id)}`);
-      if(!response.ok)throw Error('Senkron görevi sorgulanamadı; mevcut sözler korundu.');
-      const task=await response.json();onProgress(task.message||'Senkronlanıyor…',Math.min(100,(Number(task.progress)||0)*100));
-      if(task.status==='failed')throw Error(task.error||'Senkron tamamlanamadı.');
-      if(task.status==='completed')return task.result as {segments:LyricSegment[];alignment_report:{linked_words:number;target_words:number;review_rows:number[];preserved_rows:number;solo_count?:number;repeated_rows_added?:number;terminal_repeats_added?:number;repeat_review_candidates?:{text:string;start:number;end:number;reason:string}[]}};
-    }
-    throw Error('Senkron bekleme süresi doldu; mevcut sözler korundu.');
+    return pollBackendTask<{segments:LyricSegment[];alignment_report:{linked_words:number;target_words:number;review_rows:number[];preserved_rows:number;solo_count?:number;repeated_rows_added?:number;terminal_repeats_added?:number;repeat_review_candidates?:{text:string;start:number;end:number;reason:string}[]}}>(task_id,onProgress);
   },
 
   async saveLyrics(
