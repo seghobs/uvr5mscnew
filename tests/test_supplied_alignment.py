@@ -4,6 +4,25 @@ from karaoke_supplied_alignment import alignment_blocks,assemble,repair_anomalou
 
 
 class SuppliedAlignmentTests(unittest.TestCase):
+    def test_automatic_copy_must_not_compress_and_steal_supplied_audio(self):
+        from karaoke_supplied_alignment import inconsistent_auto_repeats
+        rows=[{'id':'given','text':'TU HERE'},
+              {'id':'auto-repeat:test','text':'DÎLANA NAV','_occurrence_words':[
+                  {'start':245.78,'end':247.}, {'start':247.2,'end':249.8}]}]
+        aligned=[{'start':246.54,'end':247.1,'probability':.9},
+                 {'start':247.4,'end':249.24,'probability':.9},
+                 {'start':249.4,'end':249.64,'probability':.7},
+                 {'start':249.66,'end':250.46,'probability':.15}]
+        rejected=inconsistent_auto_repeats(rows,aligned,{'given'})
+        self.assertEqual([r['id'] for r in rejected],['auto-repeat:test'])
+        self.assertEqual(inconsistent_auto_repeats(rows,aligned,{'given','auto-repeat:test'}),[])
+        # A separate fast repeat keeps its own observed duration and position.
+        fast=copy.deepcopy(rows);fast[1]['_occurrence_words']=[{'start':249.4,'end':249.64},{'start':249.66,'end':250.46}]
+        self.assertEqual(inconsistent_auto_repeats(fast,aligned,{'given'}),[])
+        shifted=copy.deepcopy(aligned)
+        for word in shifted:word['start']+=100;word['end']+=100
+        self.assertEqual(inconsistent_auto_repeats(rows,shifted,{'given'},offset=100)[0]['start'],345.78)
+
     def test_local_retry_handles_unscored_empty_audio_without_changing_word(self):
         import numpy as np
         from karaoke_supplied_alignment import rescue_weak_words

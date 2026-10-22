@@ -23,7 +23,7 @@ def phrase_paths(emission,targets,blank=0):
         output[t]=score[-2]/max(1,len(targets));begins[t]=starts[-2]
     return output,begins
 
-def find_occurrences(emission,row,vocab,threshold=-3.0,rescue=None):
+def find_occurrences(emission,row,vocab,threshold=-3.0,rescue=None,progress=lambda *args:None):
     import torch
     import torchaudio.functional as AF
     from scipy.signal import find_peaks
@@ -37,7 +37,9 @@ def find_occurrences(emission,row,vocab,threshold=-3.0,rescue=None):
     scores,starts=phrase_paths(emission,targets,vocab.get('[PAD]',0))
     peaks,_=find_peaks(scores,height=threshold,distance=25)
     proposals=[]
-    for end in sorted(peaks,key=lambda t:scores[t],reverse=True):
+    ordered=sorted(peaks,key=lambda t:scores[t],reverse=True)
+    for candidate_index,end in enumerate(ordered):
+        progress(candidate_index/max(1,len(ordered)),f'Tekrar adayı {candidate_index+1}/{len(ordered)} · {end*.02:.2f} sn')
         start=int(starts[end]);a=max(0,start);b=min(len(emission),int(end)+1)
         if (end-start)<len(targets)*.9 or end-start>max(300,len(targets)*40):continue
         try:
@@ -202,12 +204,15 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
     for index,row in enumerate(rows):
         key=text_key(row,vocab)
         if key in seen:continue
-        seen.add(key);progress(index/max(1,len(rows)),'Satırların tüm dönüşleri kayıt boyunca aranıyor…')
+        seen.add(key);progress(.9*index/max(1,len(rows)),f'Tekrar araması · satır {index+1}/{len(rows)} · {row["text"]}')
         for channel,view in enumerate(views):
-            hits.extend({**hit,'channel':channel} for hit in find_occurrences(view,row,vocab,rescue=rescue))
+            hits.extend({**hit,'channel':channel} for hit in find_occurrences(view,row,vocab,rescue=rescue,
+                progress=lambda p,message:progress(.9*(index+(channel+p)/len(views))/max(1,len(rows)),
+                    f'Satır {index+1}/{len(rows)} · '+message)))
     # Verify truncated terminal repetitions locally; do not invent an unobserved suffix.
     if rescue is not None:
-        for row in rows:
+        for row_index,row in enumerate(rows):
+            progress(.9+.1*row_index/max(1,len(rows)),f'Eksik son kelime kontrolü · satır {row_index+1}/{len(rows)}')
             tokens=row['text'].split()
             if len(tokens)<3:continue
             prefix={**row,'text':' '.join(tokens[:-1])}
@@ -219,6 +224,7 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
                 if confidence<.4 or min(w['probability'] for w in aligned)<.1:continue
                 hits.append({**hit,'text':row['text'],'row_id':row.get('id'),'start':aligned[0]['start'],
                              'end':aligned[-1]['end'],'words':aligned,'confidence':confidence,'recovery':'local_suffix'})
+    progress(1.,'Bulunan tekrarların sırası ve çakışmaları kontrol ediliyor…')
     selected=select_occurrences(rows,hits,vocab)
     from karaoke_duplicate_repeats import archive_excess_repeats
     rows,archived_count=archive_excess_repeats(rows,selected,vocab)
@@ -266,8 +272,10 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
                    'terminal_repeats_added':terminal_count,'archived_duplicate_rows':archived_count},selected
 
 
-def local_verifier(audio,rate,model,extractor,vocab,device,progress=lambda *args:None):
+def local_verifier(audio,rate,model,extractor,vocab,device,progress=lambda *args:None,inference_cache=None):
     """Re-infer uncertain short passages, keeping the same acceptance thresholds."""
+    from karaoke_inference import EmissionCache
+    if inference_cache is None:inference_cache=EmissionCache(model,extractor,device)
     def verify(row,a,b):
         import torch
         import torchaudio.functional as AF
@@ -282,14 +290,11 @@ def local_verifier(audio,rate,model,extractor,vocab,device,progress=lambda *args
         if right-left>.02*max(500,len(targets)*40):return None
         clip=audio[round(left*rate):round(right*rate)]
         best=None;inverse={value:key for key,value in vocab.items()}
-        progress(0,'Zayıf dönüş, kısa ses aralığında tekrar doğrulanıyor…')
+        progress(0,f'Tekrar kontrolü · {a:.2f}–{b:.2f} sn · {row["text"]}')
         for channel in ('mix','left','right'):
             mono=alignment_mono(clip) if channel=='mix' else clip[:,0 if channel=='left' else -1]
-            wave=AF.resample(torch.from_numpy(mono.copy()),rate,16000)
-            if len(wave)<400:continue
-            inputs=extractor(wave.numpy(),sampling_rate=16000,return_tensors='pt')
-            with torch.inference_mode():
-                emission=model(**{k:v.to(device) for k,v in inputs.items()}).logits.log_softmax(-1).cpu()
+            emission=inference_cache.infer(mono,rate)
+            if emission is None:continue
             ids=emission[0].argmax(-1).tolist()
             decoded=''.join(inverse[t] for i,t in enumerate(ids) if t not in (vocab.get('[PAD]',0),vocab['|']) and (i==0 or ids[i-1]!=t))
             if SequenceMatcher(None,''.join(normalized),decoded).ratio()<.5:continue
@@ -298,7 +303,7 @@ def local_verifier(audio,rate,model,extractor,vocab,device,progress=lambda *args
                 spans=AF.merge_tokens(path[0],scores[0].exp(),blank=vocab.get('[PAD]',0))
                 aligned=words_from_spans(words,normalized,spans,targets,.02,left)
             except (ValueError,RuntimeError):continue
-            rescue_weak_words(clip,rate,left,right,aligned,model,extractor,vocab,device,progress)
+            rescue_weak_words(clip,rate,left,right,aligned,model,extractor,vocab,device,lambda p,message:progress(p,f'{a:.2f}–{b:.2f} sn · '+message),inference_cache=inference_cache)
             if min(w['probability'] for w in aligned)<.1:continue
             if sum(w['probability'] for w in aligned)/len(aligned)<.4:continue
             if any(w['end']<=w['start'] for w in aligned):continue

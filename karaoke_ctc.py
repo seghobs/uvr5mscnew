@@ -127,13 +127,13 @@ def normalize_fading_audio(audio, rate):
     return audio*gain
 
 
-def refine_turkish(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix', normalize_fade=False):
+def refine_turkish(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix', normalize_fade=False,session=None):
     if channel not in ('mix','left','right'):raise ValueError('Geçersiz ses kanalı')
     if language != 'tr': return segments
-    return refine_ctc(audio_path,segments,language,progress,include_syllables,context_padding,channel,normalize_fade)
+    return refine_ctc(audio_path,segments,language,progress,include_syllables,context_padding,channel,normalize_fade,session=session)
 
 
-def refine_ctc(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix', normalize_fade=False,independent_rows=False):
+def refine_ctc(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix', normalize_fade=False,independent_rows=False,session=None):
     if channel not in ('mix', 'left', 'right'):
         raise ValueError('Geçersiz ses kanalı')
     import soundfile as sf
@@ -141,14 +141,10 @@ def refine_ctc(audio_path, segments, language, progress=None, include_syllables=
     import torchaudio.functional as AF
     from transformers import Wav2Vec2ForCTC, Wav2Vec2FeatureExtractor
 
-    from karaoke_alignment_models import ensure_model
-    model_dir,vocab = ensure_model(language,progress)
-    required_gb=5 if language in ('kmr_mms','tr_mms') else 3
-    device = 'cuda' if torch.cuda.is_available() and torch.cuda.mem_get_info()[0] > required_gb * 1024**3 else 'cpu'
-    adapter={'kmr_mms':'kmr-script_latin','tr_mms':'tur'}.get(language)
-    model_options={'target_lang':adapter} if adapter else {}
-    model = Wav2Vec2ForCTC.from_pretrained(model_dir, local_files_only=True,**model_options).eval().to(device)
-    extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_dir, local_files_only=True)
+    from karaoke_inference import RefinementSession
+    owns_session=session is None
+    if session is None:session=RefinementSession()
+    inference_cache,vocab=session.load(language,progress)
     result = copy.deepcopy(segments)
     info = sf.info(audio_path)
     # Align neighbouring lines together, so the same sound cannot be assigned
@@ -188,10 +184,10 @@ def refine_ctc(audio_path, segments, language, progress=None, include_syllables=
             audio, rate = sf.read(audio_path, start=first_sample, stop=int(end * info.samplerate), dtype='float32')
             audio = alignment_mono(audio, channel)
             if normalize_fade:audio=normalize_fading_audio(audio,rate)
-            wave = AF.resample(torch.from_numpy(audio), rate, 16000)
-            inputs = extractor(wave.numpy(), sampling_rate=16000, return_tensors='pt')
-            with torch.inference_mode():
-                emissions = model(**{k: v.to(device) for k, v in inputs.items()}).logits.log_softmax(-1).cpu()
+            emissions=inference_cache.infer(audio,rate)
+            if emissions is None:
+                for word in words:word['needs_review']=True
+                continue
             targets = torch.tensor([target_ids], dtype=torch.int32)
             try:
                 path, scores = AF.forced_align(emissions, targets, blank=vocab['[PAD]'])
@@ -221,6 +217,5 @@ def refine_ctc(audio_path, segments, language, progress=None, include_syllables=
                 previous = word
         return result
     finally:
-        del model
-        if device == 'cuda':
-            torch.cuda.empty_cache()
+        inference_cache=None
+        if owns_session:session.close()

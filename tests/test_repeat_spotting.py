@@ -47,6 +47,20 @@ class RepeatSpottingTests(unittest.TestCase):
         again,report,_=expand_supplied_rows(result,audio,VOCAB)
         self.assertEqual(report['repeated_rows_added'],0)
         self.assertEqual([r['id'] for r in again],[r['id'] for r in result])
+    def test_candidate_progress_advances_inside_row_without_changing_hits(self):
+        from karaoke_repeat_spotting import find_occurrences
+        audio=evidence(['gel bana','gel bana','gel bana'])
+        row={'id':'a','text':'GEL BANA'};updates=[]
+        expected=find_occurrences(audio,row,VOCAB)
+        actual=find_occurrences(audio,row,VOCAB,progress=lambda p,m:updates.append((p,m)))
+        self.assertEqual(expected,actual)
+        self.assertGreater(len(updates),1)
+        self.assertTrue(all(0<=p<=1 for p,_ in updates))
+        self.assertGreater(updates[-1][0],updates[0][0])
+        overall=[]
+        expand_supplied_rows([row],audio,VOCAB,progress=lambda p,m:overall.append(p))
+        self.assertEqual(overall,sorted(overall));self.assertEqual(overall[-1],1.)
+
     def test_silence_does_not_create_repeat(self):
         frames=np.full((1000,len(VOCAB)),1e-8,dtype='float32');frames[:,0]=.999
         result,report,_=expand_supplied_rows([{'id':'a','text':'GEL BANA'}],np.log(frames),VOCAB)

@@ -15,18 +15,26 @@ def recover_row_reviews(audio_path,rows,progress=lambda *args:None,language='tr'
     candidates={};count=0
     passes=([(p,c,False) for p in (.25,1.4) for c in ('mix','left','right')] if language=='tr' else
             [(p,c,independent) for independent in (False,True) for p in (.25,.8,1.4) for c in ('left','right')])
-    for padding,channel,independent in passes:
-        progress(.99,'Kalan belirsiz kelimeler tam satır bağlamıyla kontrol ediliyor…')
-        options={} if language=='tr' else {'independent_rows':independent}
-        refined=refine(audio_path,[copy.deepcopy(rows[i]) for i in context],language,context_padding=padding,channel=channel,**options)
-        for index,row in zip(context,refined):
-            for j,word in enumerate(row.get('words') or []):candidates.setdefault((index,j),[]).append({**word,'recovery_channel':channel})
+    from karaoke_inference import RefinementSession
+    with RefinementSession() as session:
+        for pass_index,(padding,channel,independent) in enumerate(passes):
+            label=f'Tam satır kontrolü {pass_index+1}/{len(passes)} · {channel} · bağlam {padding:g} sn'
+            progress(.99,label)
+            options={'session':session}
+            if language!='tr':options['independent_rows']=independent
+            refined=refine(audio_path,[copy.deepcopy(rows[i]) for i in context],language,progress=lambda p,message:progress(.99,label+' · '+message),context_padding=padding,channel=channel,**options)
+            for index,row in zip(context,refined):
+                for j,word in enumerate(row.get('words') or []):candidates.setdefault((index,j),[]).append({**word,'recovery_channel':channel})
     for index in pending:
         row=rows[index]
         for j,word in enumerate(row.get('words') or []):
             if not word.get('needs_review'):continue
-            lower=row['words'][j-1]['end'] if j else rows[index-1]['end'] if index else 0
-            upper=row['words'][j+1]['start'] if j+1<len(row['words']) else rows[index+1]['start'] if index+1<len(rows) else math.inf
+            # Rejected words have zero-length placeholders, sometimes at an
+            # earlier row's old start. They are not boundary anchors.
+            lower=max([0.]+[r['end'] for r in rows[:index]]+
+                      [w['end'] for w in row['words'][:j] if w['end']>w['start']])
+            upper=min([math.inf]+[r['start'] for r in rows[index+1:]]+
+                      [w['start'] for w in row['words'][j+1:] if w['end']>w['start']])
             selected=choose_boundary_candidate(word,candidates[(index,j)],lower,upper)
             if selected is not word:
                 if language=='kmr_mms':

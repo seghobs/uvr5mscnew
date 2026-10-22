@@ -116,6 +116,37 @@ def assemble(rows,aligned_blocks,duration):
                    'review_rows':pending,'trimmed_repeat_prefixes':trimmed,'preserved_rows':sum(bool(protected(r)) for r in rows)}
 
 
+def inconsistent_auto_repeats(rows,aligned,existing_ids,offset=0.):
+    """Reject an automatic copy only when two acoustic placements contradict it.
+
+    The occurrence search must agree with the global path on phrase length.
+    A compressed path borrowing a supplied line's strong audio is not a repeat.
+    Supplied/locked rows and isolated fast phrases remain untouched.
+    """
+    packs=[];cursor=0
+    for row in rows:
+        count=sum(spoken(token) for token in row['text'].split())
+        packs.append((row,aligned[cursor:cursor+count]));cursor+=count
+    rejected=[]
+    for row,words in packs:
+        if row.get('id') in existing_ids or not str(row.get('id','')).startswith('auto-repeat:') or row.get('locked'):continue
+        reference=row.get('_occurrence_words') or []
+        if not reference or len(reference)!=len(words) or not words:continue
+        a,b=offset+reference[0]['start'],offset+reference[-1]['end']
+        span=words[-1]['end']-words[0]['start']
+        if b<=a or span>=.5*(b-a) or abs(words[0]['start']-a)<=.3:continue
+        if all(acoustic_probability(w)>=.5 for w in words):continue
+        conflict=False
+        for other,part in packs:
+            if other.get('id') not in existing_ids or other['text']==row['text']:continue
+            strong=[w for w in part if acoustic_probability(w)>=.5 and w['end']>w['start']]
+            if strong and min(b,strong[-1]['end'])-max(a,strong[0]['start'])>.25*(b-a):
+                conflict=True;break
+        if conflict:rejected.append({'id':row['id'],'text':row['text'],'start':a,'end':b,
+                                     'reason':'automatic_repeat_conflicts_with_supplied_audio'})
+    return rejected
+
+
 def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=None,diagnostics=None,language='tr',repeat_estimation=True,original_path=None):
     import soundfile as sf
     import torch
@@ -196,6 +227,8 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     extractor=Wav2Vec2FeatureExtractor.from_pretrained(model_dir,local_files_only=True)
     hop=math.prod(model.config.conv_stride)
     if hop!=320:raise ValueError('Hizalama modelinin zaman çözünürlüğü değişmiş.')
+    from karaoke_inference import EmissionCache
+    inference_cache=EmissionCache(model,extractor,device)
     before={};after={};replacements={};local_completed=[];removed_indices=set()
     try:
         for block_index,(indices,start,end) in enumerate(blocks):
@@ -223,15 +256,20 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
                 if not chunks:raise ValueError('Ses hizalama için çok kısa.')
                 emissions.append(torch.cat(chunks,dim=1).contiguous())
             local_rows=[{**rows[i],'_original_index':i} for i in indices]
+            search_fraction=0.
+            def search_progress(value,message):
+                nonlocal search_fraction
+                search_fraction=max(search_fraction,value)
+                emit(.96*(block_index+.68+.17*search_fraction)/len(blocks),message)
             verifier=local_verifier(audio,rate,model,extractor,vocab,device,
-                       lambda p,message:emit(.96*(block_index+.85)/len(blocks),message))
+                       lambda p,message:search_progress(search_fraction,message),inference_cache=inference_cache)
             verified_cache={}
             def verify(row,a,b):
                 key=(row['text'],round(a,2),round(b,2))
                 if key not in verified_cache:verified_cache[key]=verifier(row,a,b)
                 return verified_cache[key]
             expanded,report,hits=expand_supplied_rows(local_rows,[e[0].numpy() for e in emissions],vocab,
-                lambda p,message:emit(.96*(block_index+.68+.17*p)/len(blocks),message),rescue=verify)
+                search_progress,rescue=verify)
             removed_indices.update(set(indices)-{r['_original_index'] for r in expanded if r.get('id') in {s.get('id') for s in local_rows}})
             repeat_report['archived_duplicate_rows']=repeat_report.get('archived_duplicate_rows',0)+report.get('archived_duplicate_rows',0)
             repeat_report['repeated_rows_added']+=report['repeated_rows_added']
@@ -245,8 +283,6 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
                     pending.append(row);continue
                 index=row['_original_index'];before[index]=pending;pending=[];replacements[index]=row
             if pending:after[indices[-1]]=pending
-            words=[{'word':t} for row in expanded for t in row['text'].split() if spoken(t)]
-            supported,normalized=supported_targets(words,vocab);targets=[vocab[c] for c in '|'.join(normalized)]
             emission=emissions[0]
             emit(.96*(block_index+.90)/len(blocks),'Tüm dönüşler yerleştirildi; kelimeler bağlanıyor…')
             evidence=(1-emission[0,:,vocab.get('[PAD]',0)].exp()).numpy()>.35
@@ -254,19 +290,30 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
             # cannot veto independently detected music-only intervals.
             if model_language!='kmr_mms':
                 voice_regions.extend([start+a,start+b] for a,b in regions(evidence,min_length=.02,bridge=.45))
-            aligned=[]
-            if targets:
-                path,scores=AF.forced_align(emission,torch.tensor([targets],dtype=torch.int32),blank=vocab.get('[PAD]',0))
-                spans=AF.merge_tokens(path[0],scores[0].exp(),blank=vocab.get('[PAD]',0))
-                aligned=words_from_spans([words[i] for i in supported],normalized,spans,targets,hop/16000,start)
-            aligned=restore_unsupported_words(words,supported,aligned,start)
-            for word in aligned:word['end']=min(end,word['end'])
+            while True:
+                words=[{'word':t} for row in expanded for t in row['text'].split() if spoken(t)]
+                supported,normalized=supported_targets(words,vocab);targets=[vocab[c] for c in '|'.join(normalized)]
+                aligned=[]
+                if targets:
+                    path,scores=AF.forced_align(emission,torch.tensor([targets],dtype=torch.int32),blank=vocab.get('[PAD]',0))
+                    spans=AF.merge_tokens(path[0],scores[0].exp(),blank=vocab.get('[PAD]',0))
+                    aligned=words_from_spans([words[i] for i in supported],normalized,spans,targets,hop/16000,start)
+                aligned=restore_unsupported_words(words,supported,aligned,start)
+                for word in aligned:word['end']=min(end,word['end'])
+                rejected=inconsistent_auto_repeats(expanded,aligned,existing_ids,offset=start)
+                if not rejected:break
+                rejected_ids={r['id'] for r in rejected}
+                expanded=[r for r in expanded if r.get('id') not in rejected_ids]
+                for mapping in (before,after):
+                    for key in mapping:mapping[key]=[r for r in mapping[key] if r.get('id') not in rejected_ids]
+                repeat_report['repeated_rows_added']-=len(rejected)
+                repeat_report['repeat_review_candidates'].extend(rejected)
             rescue_weak_words(audio,rate,start,end,aligned,model,extractor,vocab,device,
-                lambda p,message:emit(.96*(block_index+.95)/len(blocks),message))
+                lambda p,message:emit(.96*(block_index+.90+.05*p)/len(blocks),message),inference_cache=inference_cache)
             repeat_report['repaired_word_spans']+=repair_anomalous_words(aligned,expanded,vocab,start,end)
             repeat_report['uncertain_word_repairs']=repeat_report.get('uncertain_word_repairs',0)+rescue_weak_words(
                 audio,rate,start,end,aligned,model,extractor,vocab,device,
-                lambda p,message:emit(.96*(block_index+.97)/len(blocks),message),threshold=.5)
+                lambda p,message:emit(.96*(block_index+.95+.02*p)/len(blocks),message),threshold=.5,inference_cache=inference_cache)
             local_completed.append((expanded,aligned))
         rows=[]
         for i,row in enumerate(original_rows):
@@ -281,6 +328,8 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         # The local verifier closes over this model. Release both before
         # loading supplementary models, especially the larger MMS adapter.
         verifier=None
+        repeat_report['local_inference']=inference_cache.stats()
+        inference_cache=None
         del model
         if device=='cuda':torch.cuda.empty_cache()
     return finish(completed)
@@ -299,18 +348,20 @@ def choose_boundary_candidate(original,candidates,lower,upper):
             'timing_source':'ctc','recovery_channel':'local_consensus'}
 
 
-def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,progress,threshold=.1):
+def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,progress,threshold=.1,inference_cache=None):
     """Retry only rejected words in a local phrase, never relaxing acceptance."""
     import torch
     import torchaudio.functional as AF
     from karaoke_ctc import normalized_words,words_from_spans
+    from karaoke_inference import EmissionCache
+    if inference_cache is None:inference_cache=EmissionCache(model,extractor,device)
     repaired=0
     feature_cache={}
     for index,word in enumerate(words):
         if word.get('timing_source')=='manual' and not word.get('needs_review'):continue
         if threshold>.1 and not word.get('needs_review'):continue
         if acoustic_probability(word)>=threshold and not (threshold>.1 and word.get('needs_review')):continue
-        progress(.86,'Belirsiz kelime, komşularıyla ve ses kanallarıyla kontrol ediliyor…')
+        progress(index/max(1,len(words)),f'Kelime kontrolü {index+1}/{len(words)} · {word["word"]}')
         first=max(0,index-2);last=min(len(words),index+2)
         if index+1<len(words) and words[index+1]['start']-word['end']>.35:last=index+1
         phrase=words[first:last]
@@ -320,7 +371,7 @@ def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,pr
         try:normalized=normalized_words(phrase,vocab)
         except ValueError:continue
         targets=[vocab[c] for c in '|'.join(normalized)]
-        for padding,channel in ((p,c) for p in (.15,.35,.7) for c in ('mix','left','right')):
+        for attempt,(padding,channel) in enumerate((p,c) for p in (.15,.35,.7) for c in ('mix','left','right')):
             # The context must exclude the next sung word outside the target
             # phrase; otherwise CTC stretches a held final syllable over it.
             a=max(start,phrase[0]['start']-padding,words[first-1]['end'] if first else start)
@@ -329,11 +380,9 @@ def rescue_weak_words(audio,rate,start,end,words,model,extractor,vocab,device,pr
             clip=audio[round((a-start)*rate):round((b-start)*rate)]
             if not len(clip):continue
             mono=clip.mean(axis=1) if channel=='mix' else clip[:,0 if channel=='left' else min(1,clip.shape[1]-1)]
-            wave=AF.resample(torch.from_numpy(mono.copy()),rate,16000)
-            if len(wave)<400:continue
-            inputs=extractor(wave.numpy(),sampling_rate=16000,return_tensors='pt')
-            with torch.inference_mode():
-                emission=model(**{k:v.to(device) for k,v in inputs.items()}).logits.log_softmax(-1).cpu()
+            progress((index+(attempt+1)/9)/max(1,len(words)),f'Kelime kontrolü {index+1}/{len(words)} · {word["word"]} · {channel} · bağlam {padding:g} sn')
+            emission=inference_cache.infer(mono,rate)
+            if emission is None:continue
             try:
                 path,scores=AF.forced_align(emission,torch.tensor([targets],dtype=torch.int32),blank=vocab.get('[PAD]',0))
                 spans=AF.merge_tokens(path[0],scores[0].exp(),blank=vocab.get('[PAD]',0))

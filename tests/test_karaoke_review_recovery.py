@@ -1,4 +1,5 @@
 import unittest
+import copy
 from unittest.mock import patch
 import math
 import numpy as np
@@ -24,6 +25,41 @@ class RepeatBoundaryTests(unittest.TestCase):
         candidates=[{**original,'probability':.4,'recovery_channel':c} for c in ['mix','left']]
         for same,other in [(math.inf,.4),(.1,math.inf),(math.nan,.4),(.1,math.nan),(-.1,.4)]:
             self.assertIs(repeat_boundary_candidate(original,candidates,0,3,same,other),original)
+
+
+class RowRecoveryBoundsTests(unittest.TestCase):
+    def recover(self,words,word,start,end,probability=.9):
+        from karaoke_review_recovery import recover_row_reviews
+        rows=[{'id':'row','text':' '.join(w['word'] for w in words),'start':249.4,'end':251.,'words':copy.deepcopy(words)}]
+        def proposal(path,selected,language,**kwargs):
+            result=copy.deepcopy(selected)
+            for row in result:
+                for w in row['words']:
+                    if w['word']==word:w.update(start=start,end=end,probability=probability,needs_review=False)
+            return result
+        with patch('karaoke_ctc.refine_ctc',side_effect=proposal):
+            count=recover_row_reviews('song.wav',rows,language='kmr_mms')
+        return count,rows[0]['words']
+
+    def test_zero_placeholders_cannot_allow_previous_word_to_be_reused(self):
+        words=[dict(word='DÎLANA',start=249.4,end=249.64,probability=.8),
+               dict(word='NAV',start=245.78,end=245.78,needs_review=True),
+               dict(word='WA',start=249.96,end=250.04,probability=.2,needs_review=True),
+               dict(word='WEYLO',start=250.08,end=250.2,probability=.8)]
+        count,result=self.recover(words,'WA',248.06,248.14)
+        self.assertEqual(count,0);self.assertEqual(result,words)
+
+    def test_zero_placeholder_cannot_hide_a_later_anchor(self):
+        words=[dict(word='WA',start=249.4,end=249.6,probability=.8),
+               dict(word='WEYLO',start=249.7,end=249.9,probability=.2,needs_review=True),
+               dict(word='DÎSA',start=0,end=0,needs_review=True),
+               dict(word='DÎLAN',start=250.2,end=250.5,probability=.8)]
+        count,result=self.recover(words,'WEYLO',250.3,250.6)
+        self.assertEqual(count,0);self.assertEqual(result,words)
+        count,result=self.recover(words,'WEYLO',249.7,250.1)
+        self.assertEqual(count,1);self.assertFalse(result[1]['needs_review'])
+        count,result=self.recover(words,'WEYLO',249.7,250.1,probability=.49)
+        self.assertEqual(count,0);self.assertTrue(result[1]['needs_review'])
 
 
 class RepeatEvidenceTests(unittest.TestCase):
