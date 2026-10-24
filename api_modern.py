@@ -1134,11 +1134,15 @@ class StemTransferRequest(BaseModel):
     start: float = Field(...,ge=0,allow_inf_nan=False)
     end: float = Field(...,gt=0,allow_inf_nan=False)
     amount: float = Field(default=1,gt=0,le=1,allow_inf_nan=False)
+    frequency_low: Optional[float] = Field(default=None,ge=20,allow_inf_nan=False)
+    frequency_high: Optional[float] = Field(default=None,gt=20,allow_inf_nan=False)
+    scope: str = Field(default='selected',pattern='^(selected|all)$')
 
 @app.post('/api/audio/transfer')
 def transfer_stem_selection(req: StemTransferRequest):
     from stem_transfer import transfer_pair
-    try:return transfer_pair(OUTPUT_DIR,req.vocal,req.instrumental,req.start,req.end,req.amount)
+    try:return transfer_pair(OUTPUT_DIR,req.vocal,req.instrumental,req.start,req.end,req.amount,
+                            req.frequency_low,req.frequency_high,req.scope)
     except ValueError as error:raise HTTPException(400,str(error))
 
 class AudioModRequest(BaseModel):

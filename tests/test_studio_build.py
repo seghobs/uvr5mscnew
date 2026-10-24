@@ -7,6 +7,18 @@ from studio_watch import QuietChanges
 
 
 class BuildCacheTests(TestCase):
+    def test_startup_build_releases_running_status_on_success_and_failure(self):
+        import studio_build as cache
+        import studio_restart as restart
+        from unittest.mock import patch
+        with patch.object(cache,'cached',return_value=None),patch.object(cache,'fingerprint',return_value='digest'),patch.object(cache,'record'):
+            with patch.object(restart,'build',return_value={'UVR_NEXT_DIST':'.next-test'}),patch.object(restart,'update') as update:
+                cache.ensure()
+                self.assertEqual(update.call_args.args[1],'completed')
+            with patch.object(restart,'build',side_effect=RuntimeError('failed')),patch.object(restart,'update') as update:
+                with self.assertRaises(RuntimeError):cache.ensure()
+                self.assertEqual(update.call_args.args[1],'failed')
+
     def project(self,root):
         (root/'frontend/src').mkdir(parents=True)
         (root/'frontend/src/page.tsx').write_text('original')

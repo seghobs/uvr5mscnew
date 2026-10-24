@@ -81,11 +81,16 @@ def record(environment,digest,root=ROOT):
 def ensure():
     if cached():
         print('Kodlar degismedi; build atlandi.',flush=True);return
-    from studio_restart import build
+    from studio_restart import build,update
     before=fingerprint()
-    environment=build('startup-'+uuid.uuid4().hex)
-    if fingerprint()!=before:raise RuntimeError('Derleme sirasinda kod degisti. Dosyalari kaydedip yeniden baslatin.')
-    record(environment,before)
+    identifier='startup-'+uuid.uuid4().hex
+    try:
+        environment=build(identifier)
+        if fingerprint()!=before:raise RuntimeError('Derleme sirasinda kod degisti. Dosyalari kaydedip yeniden baslatin.')
+        record(environment,before)
+        update(identifier,'completed','Güncel üretim derlemesi hazır.')
+    except Exception as error:
+        update(identifier,'failed',str(error));raise
     print('Yeni uretim derlemesi hazir.',flush=True)
 
 
