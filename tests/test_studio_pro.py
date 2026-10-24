@@ -50,6 +50,7 @@ class StudioProTests(unittest.TestCase):
             subprocess.run(merge_command([a,b],[.25,.75],out,4410),check=True,capture_output=True)
             result,rate=sf.read(out)
             self.assertEqual(result.shape,(4410,2))
+            self.assertEqual(sf.info(out).subtype,'FLOAT')
             self.assertTrue(np.allclose(result,.05,atol=1/32768))
 
     def test_pipeline_applies_settings_and_rejects_missing_stem(self):
@@ -66,6 +67,6 @@ class StudioProTests(unittest.TestCase):
             core=SimpleNamespace(roformer_separator=separate,mdxc_separator=separate,clear_gpu_and_ram_cache=lambda:None)
             with self.assertRaisesRegex(ValueError,'birlikte'):
                 run_studio_pro(core,source,PRESET['models'],'flac',tmp,lambda p,m:None)
-            self.assertEqual(calls[0][2:10],('flac',256,False,8,1,1.0,0.0,''))
+            self.assertEqual(calls[0][2:10],('wav',256,False,8,1,1.0,0.0,''))
 
 if __name__=='__main__': unittest.main()

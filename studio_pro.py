@@ -34,7 +34,7 @@ def merge_command(files, weights, target, frames):
     tags = ''.join(f'[{i}:a]' for i in range(len(files)))
     weights_text = ' '.join(str(w) for w in weights)
     graph = f"{tags}amix=inputs={len(files)}:weights='{weights_text}':normalize=1:duration=longest,apad=whole_len={frames},atrim=end_sample={frames}[out]"
-    encoding = ['-b:a','320k'] if Path(target).suffix.lower()=='.mp3' else []
+    encoding = ['-c:a','pcm_f32le'] if Path(target).suffix.lower()=='.wav' else ['-b:a','320k'] if Path(target).suffix.lower()=='.mp3' else []
     return args + ['-filter_complex',graph,'-map','[out]','-ar','44100'] + encoding + [str(target)]
 
 
@@ -65,8 +65,8 @@ def run_studio_pro(core, source, models, out_format, output_dir, progress):
             separator = core.roformer_separator if model['model_type']=='roformer' else core.mdxc_separator
             # Model-native context, overlap 8, sequential batch 1. No gain-up
             # of quiet leakage and no unrelated VR-only switches.
-            files = separator(str(prepared),model['model_key'],'flac',256,False,8,1,1.0,0.0,'',
-                              progress_callback=lambda p,m: progress((index+p)/4*.9,m))
+            files = separator(str(prepared),model['model_key'],'wav',256,False,8,1,1.0,0.0,'',
+                              progress_callback=lambda p,m: progress((index+p)/4*.9,m),float_output=True)
             pair = {}
             for file in files:
                 kind = classify_stem(file)

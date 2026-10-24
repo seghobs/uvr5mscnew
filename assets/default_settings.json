@@ -1,7 +1,7 @@
 {
     "Roformer": {
         "model": "BS-Roformer-Viperx-1297",
-        "output_format": "mp3",
+        "output_format": "wav",
         "segment_size": 256,
         "override_segment_size": false,
         "overlap": 8,
@@ -12,7 +12,7 @@
     },
     "MDX23C": {
         "model": "MDX23C-8KFFT-InstVoc_HQ.ckpt",
-        "output_format": "mp3",
+        "output_format": "wav",
         "segment_size": 256,
         "override_segment_size": false,
         "overlap": 8,
@@ -23,7 +23,7 @@
     },
     "MDX-NET": {
         "model": "UVR-MDX-NET-Inst_HQ_1.onnx",
-        "output_format": "mp3",
+        "output_format": "wav",
         "hop_length": 1024,
         "segment_size": 256,
         "denoise": true,
@@ -35,7 +35,7 @@
     },
     "VR Arch": {
         "model": "1_HP-UVR.pth",
-        "output_format": "mp3",
+        "output_format": "wav",
         "window_size": 512,
         "aggression": 5,
         "tta": true,
@@ -49,7 +49,7 @@
     },
     "Demucs": {
         "model": "htdemucs_ft.yaml",
-        "output_format": "mp3",
+        "output_format": "wav",
         "shifts": 2,
         "segment_size": 40,
         "segments_enabled": true,

@@ -211,8 +211,8 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
       onChangeParams({...params, ensemble_profile:'studio_pro', segment_size:256,
         override_segment_size:false, overlap:8, batch_size:1, normalization_threshold:1,
         amplification_threshold:0, single_stem:''});
-      onChangeOutputFormat('flac');
-      onNotify('success', 'Master Studio Pro hazır', '4 uzman model · vokal ve enstrüman için ayrı ağırlıklar · FLAC. İşlem daha uzun sürebilir.');
+      onChangeOutputFormat('wav');
+      onNotify('success', 'Master Studio Pro hazır', '4 uzman model · vokal ve enstrüman için ayrı ağırlıklar · 32-bit float WAV. İşlem daha uzun sürebilir.');
     } else if (presetType === 'zero_loss_exchange') {
       const s1 =
         availableModels.roformer?.find((m) => m.includes('1297')) ||
@@ -444,7 +444,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
             description: 'Davul, bas ve enstrüman için yumuşak frekans karışımı; 3 model',
             detail: `Float WAV · ${atlasStudioV2.models.length * atlasStudioV2.inference_passes.length + ('residual_cleanup' in atlasStudioV2 ? 1 : 0)} çıkarım · %87,5 örtüşme` },
           { key: 'studio_pro', title: 'Master Studio Pro', badge: 'YENİ · 4 MODEL', icon: ShieldCheck,
-            description: 'Doğal vokal ve temiz enstrüman için uzman karışımı', detail: 'FLAC · Daha uzun işlem · Sonuç şarkıya göre değişir' },
+            description: 'Doğal vokal ve temiz enstrüman için uzman karışımı', detail: '32-bit float WAV · Daha uzun işlem · Sonuç şarkıya göre değişir' },
         ] as const).map(({key, title, badge, icon: Icon, description, detail}) => (
           <button key={key} type="button" onClick={() => applyPreset(key)}
             className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-preset/15 via-slate-900/90 to-preset/5 border border-preset/25 hover:border-preset text-left transition-all active:scale-[0.99] shadow-lg shadow-preset/10 group relative overflow-hidden cursor-pointer">
@@ -771,6 +771,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
             </button>
           ))}
         </div>
+        {outputFormat==='wav'&&<p className="text-xs text-slate-400">32-bit float WAV · Kayıpsız, düzenleme için yüksek hassasiyet.</p>}
         {ensembleMode && params.ensemble_profile === 'atlas_studio' && <p className="text-[10px] text-slate-400">Atlas Studio: WAV veya FLAC. WAV ses seviyesini korur; FLAC’ta taşma olursa iki kanalın seviyesi birlikte azaltılır.</p>}
       </div>
 

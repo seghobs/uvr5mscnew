@@ -597,7 +597,7 @@ def generic_separator(audio, model_filename, params, progress_callback=None, wor
             if not getattr(instance, 'is_roformer', False):
                 raise ValueError('Bu kalite profili Roformer modeli gerektiriyor')
             instance.overlap = roformer_step_seconds(instance.model_data_cfgdict, overlap_factor)
-        if float_output:
+        if float_output or params.get('output_format') == 'wav':
             import numpy as np
             import soundfile as sf
             if params.get('output_format') != 'wav':

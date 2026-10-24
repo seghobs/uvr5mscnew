@@ -757,7 +757,7 @@ class SeparationRequest(BaseModel):
     model_type: str  # "roformer", "mdx23c", "mdxnet", "vrarch", "demucs"
     model_key: str = Field(..., min_length=1, max_length=256)
     audio_path: str = Field(..., min_length=1, max_length=1024)
-    out_format: str = Field(default="flac", max_length=10)
+    out_format: str = Field(default="wav", max_length=10)
     params: dict = Field(default_factory=dict)
 
     @field_validator("model_type")
@@ -1101,6 +1101,7 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str, profil
                 cmd = ["ffmpeg", "-y", "-i", str(valid_files[0])]
                 if out_format == "mp3":
                     cmd += ["-c:a", "libmp3lame", "-b:a", "320k"]
+                if out_format == "wav":cmd += ["-c:a", "pcm_f32le"]
                 cmd.append(str(out_path))
                 subprocess.run(cmd, check=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
                 return output_name
@@ -1111,6 +1112,7 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str, profil
             cmd = ["ffmpeg", "-y"] + inputs + ["-filter_complex", filter_complex, "-map", "[amixout]"]
             if out_format == "mp3":
                 cmd += ["-c:a", "libmp3lame", "-b:a", "320k"]
+            if out_format == "wav":cmd += ["-c:a", "pcm_f32le"]
             cmd.append(str(out_path))
             subprocess.run(cmd, check=True, capture_output=True, creationflags=SUBPROCESS_FLAGS)
             return output_name
@@ -1250,7 +1252,7 @@ async def start_ensemble(request: dict, background_tasks: BackgroundTasks):
     models = request.get("models", [])
     if not isinstance(models, list) or len(models) == 0:
         raise HTTPException(status_code=400, detail="models list required")
-    out_format = request.get("out_format", "flac")
+    out_format = request.get("out_format", "wav")
     if out_format not in core.output_format:
         raise HTTPException(status_code=400, detail="Invalid out_format")
     profile = (request.get('params') or {}).get('ensemble_profile')
@@ -1517,7 +1519,7 @@ class RemixRequest(BaseModel):
     inst_gain: float = Field(default=0, ge=-30, le=16)
     pitch_shift: float = Field(default=0, ge=-12, le=12)
     tempo_factor: float = Field(default=1.0, ge=0.5, le=2.0)
-    out_format: str = Field(default="flac", max_length=10)
+    out_format: str = Field(default="wav", max_length=10)
 
 @app.post("/remix")
 async def remix_audio(request: RemixRequest):
@@ -1615,7 +1617,7 @@ class BatchRequest(BaseModel):
     output_dir: str = Field(..., min_length=1, max_length=1024)
     model_type: str = Field(..., pattern="^(roformer|mdx23c|mdxnet|vrarch|demucs)$")
     model_key: str = Field(..., min_length=1, max_length=256)
-    out_format: str = Field(default="flac")
+    out_format: str = Field(default="wav")
     params: dict = Field(default_factory=dict)
 
 @gpu_operation
