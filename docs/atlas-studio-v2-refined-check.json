@@ -1,0 +1,2063 @@
+{
+  "acceptance_plan": {
+    "candidate": "bounded smooth frequency mixture from existing three experts",
+    "new_models": 0,
+    "inference_passes": 3,
+    "reference_acceptance": "Evaluation mean SDR increases and bass/body/attack complex error and flux error, spectral deficit/excess, vocal projection power, conditional artifact residual all decrease vs previous V2.",
+    "ezo_acceptance": "For the frozen 39 low-voice windows, bass/body/attack spectral deficit and flux error do not increase; full-record same-model residual voice RMS does not increase. No clipping or timebase change.",
+    "limits": "Reused local reference excerpts, proxy-biased Ezo selection, no subjective listening; cannot establish clear audible superiority or true Ezo zero-loss/leakage."
+  },
+  "checks": {
+    "reference_sdr_improves": true,
+    "reference_drum_gain_squared_error": true,
+    "reference_bass_gain_squared_error": true,
+    "reference_spectral_deficit": true,
+    "reference_spectral_excess": true,
+    "reference_vocal_leakage": true,
+    "reference_artifact_residual": true,
+    "reference_bass_complex_error": true,
+    "reference_bass_flux_error": true,
+    "reference_body_complex_error": true,
+    "reference_body_flux_error": true,
+    "reference_attack_complex_error": true,
+    "reference_attack_flux_error": true,
+    "ezo_(20, 250)_spectral_deficit": true,
+    "ezo_(20, 250)_flux_error": true,
+    "ezo_(250, 1000)_spectral_deficit": true,
+    "ezo_(250, 1000)_flux_error": true,
+    "ezo_(1000, 10000)_spectral_deficit": true,
+    "ezo_(1000, 10000)_flux_error": true,
+    "ezo_vocal_model_estimate_not_increased": true,
+    "ezo_no_peak_overload": true,
+    "ezo_pair_sum": true,
+    "asr_no_new_reference_matches": true
+  },
+  "accepted": true,
+  "isolated_reference_stems_available": false,
+  "zero_leakage_verified": false,
+  "true_instrumental_sdr_db": null,
+  "true_music_fidelity_improvement_verified": false,
+  "perceptual_listening_performed": false,
+  "distinct_separation_models": 3,
+  "full_inference_passes": 3,
+  "secondary_vocal_subtraction": false,
+  "reference": {
+    "frequency_weights": {
+      "anchors_hz": [
+        0,
+        80,
+        250,
+        1000,
+        4000,
+        10000,
+        22050
+      ],
+      "weights": [
+        [
+          0.5720475982101789,
+          0.5474283267030773,
+          0.5992941043084711,
+          0.5666553552413298,
+          0.5126262625848258,
+          0.5081780829839894,
+          0.508063224458009
+        ],
+        [
+          0.26259602129791737,
+          0.28044397564932333,
+          0.2635703661367964,
+          0.2279705164208016,
+          0.34884158164998985,
+          0.3632808737655938,
+          0.36357074240134485
+        ],
+        [
+          0.16535638049190376,
+          0.17212769764759936,
+          0.13713552955473263,
+          0.20537412833786856,
+          0.13853215576518432,
+          0.12854104325041674,
+          0.12836603314064607
+        ]
+      ]
+    },
+    "fit_split": "train",
+    "fit_used_test": false,
+    "development_constraints": "No increase in mean conditional artifact residual or mean vocal projection power against previous V2; simplex and smoothness regularization.",
+    "scope": "Previously reused local 8-development/8-evaluation seven-second pool; not a fresh unseen-song result.",
+    "models_used": [
+      0,
+      2,
+      4
+    ],
+    "new_models": 0,
+    "trials": [
+      {
+        "name": "Night Panther - Fire",
+        "split": "train",
+        "systems": {
+          "v1": {
+            "sdr_db": 12.891761703977792,
+            "si_sdr_db": 12.664115494232925,
+            "spectral_deficit": 0.018903032043325402,
+            "spectral_excess": 0.007212878098321378,
+            "instrument_gain": 0.951220085494279,
+            "vocal_leakage": 0.006733053904749615,
+            "artifact_residual": 0.043987461913522694,
+            "bass_complex_error": 0.0004588242981835545,
+            "bass_flux_error": 0.00016422291726119446,
+            "body_complex_error": 0.10787910456636556,
+            "body_flux_error": 0.1525831994675876,
+            "attack_complex_error": 0.10252139929784347,
+            "attack_flux_error": 0.08031695339067027
+          },
+          "previous_v2": {
+            "sdr_db": 12.926617924526983,
+            "si_sdr_db": 12.700726967584501,
+            "spectral_deficit": 0.018936723000360978,
+            "spectral_excess": 0.007096949111621319,
+            "instrument_gain": 0.9513527998336267,
+            "vocal_leakage": 0.006130189305363941,
+            "artifact_residual": 0.04403921064800448,
+            "bass_complex_error": 0.00045860008173691106,
+            "bass_flux_error": 0.00016449113267595424,
+            "body_complex_error": 0.10694558322903834,
+            "body_flux_error": 0.15147244559546105,
+            "attack_complex_error": 0.10178215286315986,
+            "attack_flux_error": 0.07898108027124272
+          },
+          "frequency_candidate": {
+            "sdr_db": 12.954997003038509,
+            "si_sdr_db": 12.730555025750128,
+            "spectral_deficit": 0.01890719244541086,
+            "spectral_excess": 0.007011723213129274,
+            "instrument_gain": 0.9515085040828399,
+            "vocal_leakage": 0.00575933253446506,
+            "artifact_residual": 0.04399887161358508,
+            "bass_complex_error": 0.00045637328763388653,
+            "bass_flux_error": 0.00016421329411230045,
+            "body_complex_error": 0.1064288031761606,
+            "body_flux_error": 0.15070016460015628,
+            "attack_complex_error": 0.10090784661471489,
+            "attack_flux_error": 0.07856997107506672
+          }
+        }
+      },
+      {
+        "name": "Auctioneer - Our Future Faces",
+        "split": "train",
+        "systems": {
+          "v1": {
+            "sdr_db": 12.158444012736753,
+            "si_sdr_db": 11.886997680515098,
+            "spectral_deficit": 0.024482787296930045,
+            "spectral_excess": 0.007413421172040016,
+            "instrument_gain": 0.9426759232063529,
+            "vocal_leakage": 0.01860176418113212,
+            "artifact_residual": 0.04861632978793144,
+            "bass_complex_error": 0.018177014220377746,
+            "bass_flux_error": 0.056416116344895476,
+            "body_complex_error": 0.1401147672393897,
+            "body_flux_error": 0.20189801473428076,
+            "attack_complex_error": 0.21392191416490036,
+            "attack_flux_error": 0.12977183879341345
+          },
+          "previous_v2": {
+            "sdr_db": 12.194183103710778,
+            "si_sdr_db": 11.924919539159088,
+            "spectral_deficit": 0.02457546673165653,
+            "spectral_excess": 0.007259656269021462,
+            "instrument_gain": 0.9429570098428651,
+            "vocal_leakage": 0.017183026366248657,
+            "artifact_residual": 0.04883199182445477,
+            "bass_complex_error": 0.017978008600205715,
+            "bass_flux_error": 0.0554369012986271,
+            "body_complex_error": 0.13877378013158356,
+            "body_flux_error": 0.20205978008372377,
+            "attack_complex_error": 0.2131410853851132,
+            "attack_flux_error": 0.12893249605726542
+          },
+          "frequency_candidate": {
+            "sdr_db": 12.21333827982316,
+            "si_sdr_db": 11.945252957773079,
+            "spectral_deficit": 0.02458989545804468,
+            "spectral_excess": 0.007177464624664492,
+            "instrument_gain": 0.9431320756686384,
+            "vocal_leakage": 0.016371482804681363,
+            "artifact_residual": 0.048976544123520226,
+            "bass_complex_error": 0.017884289071506798,
+            "bass_flux_error": 0.05503702827827612,
+            "body_complex_error": 0.13798120426742308,
+            "body_flux_error": 0.20254102378543412,
+            "attack_complex_error": 0.2128349825356981,
+            "attack_flux_error": 0.12830717777249245
+          }
+        }
+      },
+      {
+        "name": "Clara Berry And Wooldog - Waltz For My Victims",
+        "split": "train",
+        "systems": {
+          "v1": {
+            "sdr_db": 21.43628574807542,
+            "si_sdr_db": 21.405098562391423,
+            "spectral_deficit": 0.002426278186457265,
+            "spectral_excess": 0.0013200274894774738,
+            "instrument_gain": 0.993258953027777,
+            "vocal_leakage": 0.000261883681164486,
+            "artifact_residual": 0.007047063382604994,
+            "bass_complex_error": 0.0014220180911828527,
+            "bass_flux_error": 0.001653469088217117,
+            "body_complex_error": 0.010313844438586177,
+            "body_flux_error": 0.004651952032246728,
+            "attack_complex_error": 0.026568434205443234,
+            "attack_flux_error": 0.016872076740151294
+          },
+          "previous_v2": {
+            "sdr_db": 21.516183817891907,
+            "si_sdr_db": 21.48561949889572,
+            "spectral_deficit": 0.002381557353238379,
+            "spectral_excess": 0.0012997814331131478,
+            "instrument_gain": 0.9934710194332628,
+            "vocal_leakage": 0.00020188135794923666,
+            "artifact_residual": 0.006939888777897318,
+            "bass_complex_error": 0.0014484899517627932,
+            "bass_flux_error": 0.001687852100049759,
+            "body_complex_error": 0.010080486610361393,
+            "body_flux_error": 0.004587227320249506,
+            "attack_complex_error": 0.026169066473615107,
+            "attack_flux_error": 0.01586932763220883
+          },
+          "frequency_candidate": {
+            "sdr_db": 21.567988714445963,
+            "si_sdr_db": 21.53785457088722,
+            "spectral_deficit": 0.0023522689999242886,
+            "spectral_excess": 0.0012919271448403758,
+            "instrument_gain": 0.9936425635873107,
+            "vocal_leakage": 0.00015521153585719885,
+            "artifact_residual": 0.0068747775878148405,
+            "bass_complex_error": 0.0014865930649137936,
+            "bass_flux_error": 0.0017500101470349849,
+            "body_complex_error": 0.00990351634612171,
+            "body_flux_error": 0.004547193680006203,
+            "attack_complex_error": 0.026106461650228566,
+            "attack_flux_error": 0.015603686319506748
+          }
+        }
+      },
+      {
+        "name": "Alexander Ross - Velvet Curtain",
+        "split": "train",
+        "systems": {
+          "v1": {
+            "sdr_db": 13.800142684296137,
+            "si_sdr_db": 13.617935848611264,
+            "spectral_deficit": 0.01332665101057062,
+            "spectral_excess": 0.007854352513747099,
+            "instrument_gain": 0.9637654715997965,
+            "vocal_leakage": 0.053341520380878325,
+            "artifact_residual": 0.028602434670106924,
+            "bass_complex_error": 0.010069921917686176,
+            "bass_flux_error": 0.00778809950917567,
+            "body_complex_error": 0.10745347287325531,
+            "body_flux_error": 0.11832302621718782,
+            "attack_complex_error": 0.0915527733899409,
+            "attack_flux_error": 0.047198287857642414
+          },
+          "previous_v2": {
+            "sdr_db": 13.852605382763748,
+            "si_sdr_db": 13.671727078244654,
+            "spectral_deficit": 0.013600265691889574,
+            "spectral_excess": 0.007490328062879651,
+            "instrument_gain": 0.9632036940936497,
+            "vocal_leakage": 0.04953116244366098,
+            "artifact_residual": 0.02889926522045952,
+            "bass_complex_error": 0.010034646882784697,
+            "bass_flux_error": 0.007689314447038448,
+            "body_complex_error": 0.10599016518922041,
+            "body_flux_error": 0.11764145343189499,
+            "attack_complex_error": 0.09027695133356349,
+            "attack_flux_error": 0.048425781696854575
+          },
+          "frequency_candidate": {
+            "sdr_db": 13.885353930518365,
+            "si_sdr_db": 13.70547525981693,
+            "spectral_deficit": 0.013741174344999614,
+            "spectral_excess": 0.007282100863743998,
+            "instrument_gain": 0.9629598151971994,
+            "vocal_leakage": 0.04725866703325405,
+            "artifact_residual": 0.029072051682850174,
+            "bass_complex_error": 0.009947213736026264,
+            "bass_flux_error": 0.007622658907894158,
+            "body_complex_error": 0.10510380769736678,
+            "body_flux_error": 0.11709515491887554,
+            "attack_complex_error": 0.08999956277024734,
+            "attack_flux_error": 0.048391743371112184
+          }
+        }
+      },
+      {
+        "name": "Johnny Lokke - Whisper To A Scream",
+        "split": "train",
+        "systems": {
+          "v1": {
+            "sdr_db": 16.56069425045487,
+            "si_sdr_db": 16.465893004635372,
+            "spectral_deficit": 0.006796324451300163,
+            "spectral_excess": 0.003840981354202032,
+            "instrument_gain": 0.981631853101457,
+            "vocal_leakage": 0.014891062159313103,
+            "artifact_residual": 0.018169322563912085,
+            "bass_complex_error": 0.0017295033678223987,
+            "bass_flux_error": 0.0010455360244658455,
+            "body_complex_error": 0.0434098550669445,
+            "body_flux_error": 0.10677302723607879,
+            "attack_complex_error": 0.10085755737147281,
+            "attack_flux_error": 0.047321119089935304
+          },
+          "previous_v2": {
+            "sdr_db": 16.613060708614146,
+            "si_sdr_db": 16.519388892709742,
+            "spectral_deficit": 0.0067473889060711625,
+            "spectral_excess": 0.0038101071014364006,
+            "instrument_gain": 0.9818264219055436,
+            "vocal_leakage": 0.013683815646484961,
+            "artifact_residual": 0.018200707385160882,
+            "bass_complex_error": 0.00172437640169171,
+            "bass_flux_error": 0.0010689635694475675,
+            "body_complex_error": 0.04259006952381617,
+            "body_flux_error": 0.10426688603409091,
+            "attack_complex_error": 0.10007272268564608,
+            "attack_flux_error": 0.046381885434820955
+          },
+          "frequency_candidate": {
+            "sdr_db": 16.64858075202996,
+            "si_sdr_db": 16.555643049136265,
+            "spectral_deficit": 0.006716137904720976,
+            "spectral_excess": 0.0037834681261578874,
+            "instrument_gain": 0.981940344522466,
+            "vocal_leakage": 0.013066112413630608,
+            "artifact_residual": 0.01817499214676279,
+            "bass_complex_error": 0.0017191991499991874,
+            "bass_flux_error": 0.0010775298622119464,
+            "body_complex_error": 0.04209640069315931,
+            "body_flux_error": 0.10297828207275718,
+            "attack_complex_error": 0.09946161155249876,
+            "attack_flux_error": 0.04591078992597451
+          }
+        }
+      },
+      {
+        "name": "Aimee Norwich - Child",
+        "split": "train",
+        "systems": {
+          "v1": {
+            "sdr_db": 23.893245321659357,
+            "si_sdr_db": 23.87662676412781,
+            "spectral_deficit": 0.0016775742989393486,
+            "spectral_excess": 0.00039689322190532235,
+            "instrument_gain": 0.9953134382105986,
+            "vocal_leakage": 0.0019186670733808782,
+            "artifact_residual": 0.0038770479108994967,
+            "bass_complex_error": 0.0002844640464386906,
+            "bass_flux_error": 0.00012248646564834035,
+            "body_complex_error": 0.05154792551798918,
+            "body_flux_error": 0.06579602119955706,
+            "attack_complex_error": 0.05621644276508201,
+            "attack_flux_error": 0.003933943234675263
+          },
+          "previous_v2": {
+            "sdr_db": 23.95050413011714,
+            "si_sdr_db": 23.934162334863313,
+            "spectral_deficit": 0.0016663059735794788,
+            "spectral_excess": 0.0003864506898208413,
+            "instrument_gain": 0.9953436571423132,
+            "vocal_leakage": 0.0016318488180194792,
+            "artifact_residual": 0.0038509772742306844,
+            "bass_complex_error": 0.0002824527620574938,
+            "bass_flux_error": 0.00012196547412088908,
+            "body_complex_error": 0.05081002571391564,
+            "body_flux_error": 0.0647599163977447,
+            "attack_complex_error": 0.05555241993118558,
+            "attack_flux_error": 0.003856220707787104
+          },
+          "frequency_candidate": {
+            "sdr_db": 23.987683974010782,
+            "si_sdr_db": 23.971512239806327,
+            "spectral_deficit": 0.001654054202502264,
+            "spectral_excess": 0.0003816535582030499,
+            "instrument_gain": 0.9953704991553274,
+            "vocal_leakage": 0.001424509064693965,
+            "artifact_residual": 0.00383648214951985,
+            "bass_complex_error": 0.0002805492178664822,
+            "bass_flux_error": 0.00012148973946550481,
+            "body_complex_error": 0.050316763150709695,
+            "body_flux_error": 0.0637970192314803,
+            "attack_complex_error": 0.0552215238530556,
+            "attack_flux_error": 0.003843014963941554
+          }
+        }
+      },
+      {
+        "name": "The Long Wait - Back Home To Blue",
+        "split": "train",
+        "systems": {
+          "v1": {
+            "sdr_db": 15.756424297049382,
+            "si_sdr_db": 15.641582826098508,
+            "spectral_deficit": 0.010725433603350782,
+            "spectral_excess": 0.003417127715809063,
+            "instrument_gain": 0.9755156196597462,
+            "vocal_leakage": 0.006951773351723955,
+            "artifact_residual": 0.022521279725037265,
+            "bass_complex_error": 0.005432819964925907,
+            "bass_flux_error": 0.004956196433291273,
+            "body_complex_error": 0.0727564466329257,
+            "body_flux_error": 0.10289445717534476,
+            "attack_complex_error": 0.11837214821863579,
+            "attack_flux_error": 0.03712313224181388
+          },
+          "previous_v2": {
+            "sdr_db": 15.84531419598216,
+            "si_sdr_db": 15.732564303278835,
+            "spectral_deficit": 0.010615847922506052,
+            "spectral_excess": 0.003315622430412056,
+            "instrument_gain": 0.9757133994652073,
+            "vocal_leakage": 0.006205602409089716,
+            "artifact_residual": 0.022361943667904755,
+            "bass_complex_error": 0.005348585772599005,
+            "bass_flux_error": 0.004866433934808102,
+            "body_complex_error": 0.07109548080607166,
+            "body_flux_error": 0.10036963847269337,
+            "attack_complex_error": 0.1169725848043574,
+            "attack_flux_error": 0.03557031017425718
+          },
+          "frequency_candidate": {
+            "sdr_db": 15.915906358284664,
+            "si_sdr_db": 15.804864324958722,
+            "spectral_deficit": 0.010500735218847524,
+            "spectral_excess": 0.003237065304286031,
+            "instrument_gain": 0.9758523814788611,
+            "vocal_leakage": 0.005611610190367951,
+            "artifact_residual": 0.022242976796870293,
+            "bass_complex_error": 0.005282164007804307,
+            "bass_flux_error": 0.00482390647321381,
+            "body_complex_error": 0.06972411370211519,
+            "body_flux_error": 0.09782214087440103,
+            "attack_complex_error": 0.1165173368702868,
+            "attack_flux_error": 0.035404719457932714
+          }
+        }
+      },
+      {
+        "name": "James May - If You Say",
+        "split": "train",
+        "systems": {
+          "v1": {
+            "sdr_db": 21.45354561715753,
+            "si_sdr_db": 21.42242098900116,
+            "spectral_deficit": 0.002224737671399576,
+            "spectral_excess": 0.0011169410002653632,
+            "instrument_gain": 0.9925701843450939,
+            "vocal_leakage": 0.00042094092886043965,
+            "artifact_residual": 0.006796547797876609,
+            "bass_complex_error": 0.003131020243088545,
+            "bass_flux_error": 0.002004826175054651,
+            "body_complex_error": 0.013020607983939666,
+            "body_flux_error": 0.014591836766607575,
+            "attack_complex_error": 0.02842214827857719,
+            "attack_flux_error": 0.014616904906506904
+          },
+          "previous_v2": {
+            "sdr_db": 21.591734587677017,
+            "si_sdr_db": 21.561576000105347,
+            "spectral_deficit": 0.0021614200858483053,
+            "spectral_excess": 0.0010889090315865761,
+            "instrument_gain": 0.9928567337296926,
+            "vocal_leakage": 0.0003069955855110292,
+            "artifact_residual": 0.006658920832593323,
+            "bass_complex_error": 0.0031540582885185493,
+            "bass_flux_error": 0.00196328884227135,
+            "body_complex_error": 0.01230002900132803,
+            "body_flux_error": 0.013386114080884984,
+            "attack_complex_error": 0.027804992166088154,
+            "attack_flux_error": 0.014251089298882438
+          },
+          "frequency_candidate": {
+            "sdr_db": 21.6603036977579,
+            "si_sdr_db": 21.630601194754675,
+            "spectral_deficit": 0.00211559930554926,
+            "spectral_excess": 0.0010810323762685513,
+            "instrument_gain": 0.9930986948828373,
+            "vocal_leakage": 0.00023433813461676934,
+            "artifact_residual": 0.00660620953033325,
+            "bass_complex_error": 0.0031971222909670844,
+            "bass_flux_error": 0.001955015082422099,
+            "body_complex_error": 0.011850916805372607,
+            "body_flux_error": 0.012338874140683834,
+            "attack_complex_error": 0.027705104083988952,
+            "attack_flux_error": 0.01424156609822421
+          }
+        }
+      },
+      {
+        "name": "Bobby Nobody - Stitch Up",
+        "split": "test",
+        "systems": {
+          "v1": {
+            "sdr_db": 18.59916205047093,
+            "si_sdr_db": 18.538888478315567,
+            "spectral_deficit": 0.00487701473112786,
+            "spectral_excess": 0.0019083550119777916,
+            "instrument_gain": 0.9856402266141848,
+            "vocal_leakage": 0.00419390371624791,
+            "artifact_residual": 0.01243916347424079,
+            "bass_complex_error": 0.0038770800185060988,
+            "bass_flux_error": 0.0037964120306588104,
+            "body_complex_error": 0.02732671024661082,
+            "body_flux_error": 0.008031650725223568,
+            "attack_complex_error": 0.07290343506748116,
+            "attack_flux_error": 0.014291515812507935
+          },
+          "previous_v2": {
+            "sdr_db": 18.69857536930596,
+            "si_sdr_db": 18.63968252637542,
+            "spectral_deficit": 0.004785809782908143,
+            "spectral_excess": 0.0018672217332609358,
+            "instrument_gain": 0.9859438403363819,
+            "vocal_leakage": 0.0036215443350357136,
+            "artifact_residual": 0.01229378224750912,
+            "bass_complex_error": 0.0037984483734401636,
+            "bass_flux_error": 0.0037956911165260092,
+            "body_complex_error": 0.02654027570867829,
+            "body_flux_error": 0.007799029175541524,
+            "attack_complex_error": 0.07170251913793309,
+            "attack_flux_error": 0.014126595072414566
+          },
+          "frequency_candidate": {
+            "sdr_db": 18.76911997567451,
+            "si_sdr_db": 18.71116010154932,
+            "spectral_deficit": 0.004697165627724096,
+            "spectral_excess": 0.0018500559568493148,
+            "instrument_gain": 0.9862306621511955,
+            "vocal_leakage": 0.003161159320195033,
+            "artifact_residual": 0.012211791124249463,
+            "bass_complex_error": 0.0037334505522331873,
+            "bass_flux_error": 0.0037917890072236005,
+            "body_complex_error": 0.02593473431726288,
+            "body_flux_error": 0.007614733565280863,
+            "attack_complex_error": 0.07116655733228477,
+            "attack_flux_error": 0.014106820414084459
+          }
+        }
+      },
+      {
+        "name": "Arise - Run Run Run",
+        "split": "test",
+        "systems": {
+          "v1": {
+            "sdr_db": 24.124683807906315,
+            "si_sdr_db": 24.108851284894513,
+            "spectral_deficit": 0.0013127805383938904,
+            "spectral_excess": 0.0006117266684367893,
+            "instrument_gain": 0.9951328970534009,
+            "vocal_leakage": 0.001039105314062464,
+            "artifact_residual": 0.003695638761949979,
+            "bass_complex_error": 0.002509076362528592,
+            "bass_flux_error": 0.0025547080563221745,
+            "body_complex_error": 0.021244548814931215,
+            "body_flux_error": 0.0039878736460900975,
+            "attack_complex_error": 0.0053107283851277194,
+            "attack_flux_error": 0.0005653915177991567
+          },
+          "previous_v2": {
+            "sdr_db": 24.25755634647213,
+            "si_sdr_db": 24.24178972682313,
+            "spectral_deficit": 0.0012431819766549604,
+            "spectral_excess": 0.0006078728839960514,
+            "instrument_gain": 0.9954871853115903,
+            "vocal_leakage": 0.0009227460361969823,
+            "artifact_residual": 0.0035990876047436167,
+            "bass_complex_error": 0.0024077608995821923,
+            "bass_flux_error": 0.002443622101007426,
+            "body_complex_error": 0.020911643951490595,
+            "body_flux_error": 0.003984505584988141,
+            "attack_complex_error": 0.005213072990077014,
+            "attack_flux_error": 0.000547454912644685
+          },
+          "frequency_candidate": {
+            "sdr_db": 24.335570259649,
+            "si_sdr_db": 24.31985798376344,
+            "spectral_deficit": 0.001200102311667123,
+            "spectral_excess": 0.0006083508601223765,
+            "instrument_gain": 0.9957138131921793,
+            "vocal_leakage": 0.000829485259862689,
+            "artifact_residual": 0.0035476685457721366,
+            "bass_complex_error": 0.002350601582342559,
+            "bass_flux_error": 0.0023892648613885238,
+            "body_complex_error": 0.02071592508188147,
+            "body_flux_error": 0.0040114019781550036,
+            "attack_complex_error": 0.005154082606701797,
+            "attack_flux_error": 0.000545039953398554
+          }
+        }
+      },
+      {
+        "name": "Moosmusic - Big Dummy Shake",
+        "split": "test",
+        "systems": {
+          "v1": {
+            "sdr_db": 19.421519477596178,
+            "si_sdr_db": 19.371737843981542,
+            "spectral_deficit": 0.00378475317546966,
+            "spectral_excess": 0.0020712061058978273,
+            "instrument_gain": 0.9890319366356164,
+            "vocal_leakage": 0.0009263719881747595,
+            "artifact_residual": 0.010846173431417748,
+            "bass_complex_error": 0.002078917940466896,
+            "bass_flux_error": 0.0010878561055488523,
+            "body_complex_error": 0.025604623707571567,
+            "body_flux_error": 0.012177977349356155,
+            "attack_complex_error": 0.05635531583257036,
+            "attack_flux_error": 0.032663084844165934
+          },
+          "previous_v2": {
+            "sdr_db": 19.477103494366755,
+            "si_sdr_db": 19.427983164076558,
+            "spectral_deficit": 0.003762063434467822,
+            "spectral_excess": 0.0020366182686772797,
+            "instrument_gain": 0.9892434550973165,
+            "vocal_leakage": 0.0007975738908011006,
+            "artifact_residual": 0.010769277780423943,
+            "bass_complex_error": 0.0020746162707736136,
+            "bass_flux_error": 0.0010729002093956158,
+            "body_complex_error": 0.025066728140305174,
+            "body_flux_error": 0.011768197953621396,
+            "attack_complex_error": 0.0557678550185529,
+            "attack_flux_error": 0.0326554048198958
+          },
+          "frequency_candidate": {
+            "sdr_db": 19.509360334892676,
+            "si_sdr_db": 19.460605955451268,
+            "spectral_deficit": 0.0037562765495591146,
+            "spectral_excess": 0.00201344313844149,
+            "instrument_gain": 0.9893320299875652,
+            "vocal_leakage": 0.000728455089783735,
+            "artifact_residual": 0.010721947459291243,
+            "bass_complex_error": 0.0020787416726485157,
+            "bass_flux_error": 0.0010620266961342078,
+            "body_complex_error": 0.024803888632932355,
+            "body_flux_error": 0.011568784439681243,
+            "attack_complex_error": 0.05532683358624106,
+            "attack_flux_error": 0.032653478306065783
+          }
+        }
+      },
+      {
+        "name": "Ben Carrigan - We'll Talk About It All Tonight",
+        "split": "test",
+        "systems": {
+          "v1": {
+            "sdr_db": 16.154901270787107,
+            "si_sdr_db": 16.051317089181055,
+            "spectral_deficit": 0.007640154086112832,
+            "spectral_excess": 0.004611824569184495,
+            "instrument_gain": 0.9796373086483802,
+            "vocal_leakage": 0.028625684620000518,
+            "artifact_residual": 0.017843088319999215,
+            "bass_complex_error": 0.00605672583961202,
+            "bass_flux_error": 0.002916031252545801,
+            "body_complex_error": 0.09049976784491276,
+            "body_flux_error": 0.024981656298011804,
+            "attack_complex_error": 0.0830148328065207,
+            "attack_flux_error": 0.012785106025985232
+          },
+          "previous_v2": {
+            "sdr_db": 16.252130499785192,
+            "si_sdr_db": 16.15061452189098,
+            "spectral_deficit": 0.007516816829625779,
+            "spectral_excess": 0.00448681685506361,
+            "instrument_gain": 0.9799183702810758,
+            "vocal_leakage": 0.026350747221591534,
+            "artifact_residual": 0.01779328638912484,
+            "bass_complex_error": 0.005892097430813604,
+            "bass_flux_error": 0.002838981719659397,
+            "body_complex_error": 0.08801460210101404,
+            "body_flux_error": 0.024461128353145394,
+            "attack_complex_error": 0.08195566178630613,
+            "attack_flux_error": 0.012780348325185294
+          },
+          "frequency_candidate": {
+            "sdr_db": 16.311578910928276,
+            "si_sdr_db": 16.211352087540078,
+            "spectral_deficit": 0.007437766733618434,
+            "spectral_excess": 0.004423046489959549,
+            "instrument_gain": 0.9801176256027929,
+            "vocal_leakage": 0.024952877984321276,
+            "artifact_residual": 0.017771155911523333,
+            "bass_complex_error": 0.005801104549866724,
+            "bass_flux_error": 0.0028052820088724354,
+            "body_complex_error": 0.08642315027250638,
+            "body_flux_error": 0.02404864835809055,
+            "attack_complex_error": 0.08138641430315281,
+            "attack_flux_error": 0.01284927331556224
+          }
+        }
+      },
+      {
+        "name": "The Long Wait - Dark Horses",
+        "split": "test",
+        "systems": {
+          "v1": {
+            "sdr_db": 16.090723113539745,
+            "si_sdr_db": 15.983493967565485,
+            "spectral_deficit": 0.01031411859951687,
+            "spectral_excess": 0.002797571631594914,
+            "instrument_gain": 0.9736364029383086,
+            "vocal_leakage": 0.00526535516970983,
+            "artifact_residual": 0.021700441956212534,
+            "bass_complex_error": 0.004061621500154429,
+            "bass_flux_error": 0.0025820026679346693,
+            "body_complex_error": 0.11781201364374688,
+            "body_flux_error": 0.03663261292962626,
+            "attack_complex_error": 0.1626239659342338,
+            "attack_flux_error": 0.028880870346151145
+          },
+          "previous_v2": {
+            "sdr_db": 16.19386393994946,
+            "si_sdr_db": 16.089247804654104,
+            "spectral_deficit": 0.010097255166393603,
+            "spectral_excess": 0.002725424845746808,
+            "instrument_gain": 0.9741365505268345,
+            "vocal_leakage": 0.004540452855097566,
+            "artifact_residual": 0.021453013833614292,
+            "bass_complex_error": 0.003865314615357783,
+            "bass_flux_error": 0.002534222405809959,
+            "body_complex_error": 0.11520637147490592,
+            "body_flux_error": 0.035606754309431735,
+            "attack_complex_error": 0.16099949780162282,
+            "attack_flux_error": 0.027691378672503014
+          },
+          "frequency_candidate": {
+            "sdr_db": 16.268699654019027,
+            "si_sdr_db": 16.165862669369435,
+            "spectral_deficit": 0.009884774208343963,
+            "spectral_excess": 0.0027070493935900546,
+            "instrument_gain": 0.9746306352455882,
+            "vocal_leakage": 0.003983928861598936,
+            "artifact_residual": 0.021301115790245788,
+            "bass_complex_error": 0.003716569947355396,
+            "bass_flux_error": 0.0025038242941501005,
+            "body_complex_error": 0.11330887660004293,
+            "body_flux_error": 0.03466333235937541,
+            "attack_complex_error": 0.16037782923845545,
+            "attack_flux_error": 0.027299589858439242
+          }
+        }
+      },
+      {
+        "name": "Timboz - Pony",
+        "split": "test",
+        "systems": {
+          "v1": {
+            "sdr_db": 15.81904922051265,
+            "si_sdr_db": 15.708246624411712,
+            "spectral_deficit": 0.009305075788495607,
+            "spectral_excess": 0.0037045753168322257,
+            "instrument_gain": 0.9787052934908489,
+            "vocal_leakage": 0.05716541070875694,
+            "artifact_residual": 0.01830158158433613,
+            "bass_complex_error": 0.0036828139325841788,
+            "bass_flux_error": 0.006575769396394109,
+            "body_complex_error": 0.11222080161054655,
+            "body_flux_error": 0.04030742661845829,
+            "attack_complex_error": 0.13189343428393052,
+            "attack_flux_error": 0.06796593883963317
+          },
+          "previous_v2": {
+            "sdr_db": 15.839012041725427,
+            "si_sdr_db": 15.727999942575803,
+            "spectral_deficit": 0.009515875684708427,
+            "spectral_excess": 0.0035959941348867753,
+            "instrument_gain": 0.9783721225943629,
+            "vocal_leakage": 0.05414520284060095,
+            "artifact_residual": 0.01856006196923938,
+            "bass_complex_error": 0.0036664980206518715,
+            "bass_flux_error": 0.006555975855499707,
+            "body_complex_error": 0.11067655120430517,
+            "body_flux_error": 0.0403722075188662,
+            "attack_complex_error": 0.13211910534975208,
+            "attack_flux_error": 0.06791895863045673
+          },
+          "frequency_candidate": {
+            "sdr_db": 15.858662894781103,
+            "si_sdr_db": 15.747882841758285,
+            "spectral_deficit": 0.009565235066710028,
+            "spectral_excess": 0.003535182596037308,
+            "instrument_gain": 0.9782945113031779,
+            "vocal_leakage": 0.052708724797819045,
+            "artifact_residual": 0.018625857468235134,
+            "bass_complex_error": 0.0036496912394262254,
+            "bass_flux_error": 0.0065417380502142,
+            "body_complex_error": 0.1095129398009381,
+            "body_flux_error": 0.04036174914806389,
+            "attack_complex_error": 0.13206435269084416,
+            "attack_flux_error": 0.0675580479446439
+          }
+        }
+      },
+      {
+        "name": "Louis Cressy Band - Good Time",
+        "split": "test",
+        "systems": {
+          "v1": {
+            "sdr_db": 18.754448528831116,
+            "si_sdr_db": 18.696657010561207,
+            "spectral_deficit": 0.0042448230587643285,
+            "spectral_excess": 0.002244629432172542,
+            "instrument_gain": 0.987407727820227,
+            "vocal_leakage": 0.004283270576598553,
+            "artifact_residual": 0.012101892211721841,
+            "bass_complex_error": 0.002146136846328945,
+            "bass_flux_error": 0.0015403363883225033,
+            "body_complex_error": 0.014643039037890772,
+            "body_flux_error": 0.013872297560812997,
+            "attack_complex_error": 0.0528126165827415,
+            "attack_flux_error": 0.04218205413757239
+          },
+          "previous_v2": {
+            "sdr_db": 18.824298656785302,
+            "si_sdr_db": 18.76744962436655,
+            "spectral_deficit": 0.004202312145676688,
+            "spectral_excess": 0.0022007959097688086,
+            "instrument_gain": 0.9876463072660207,
+            "vocal_leakage": 0.00381871491351789,
+            "artifact_residual": 0.012010804860626136,
+            "bass_complex_error": 0.0020732419921240404,
+            "bass_flux_error": 0.0014864096265611102,
+            "body_complex_error": 0.014269269521738627,
+            "body_flux_error": 0.013701219437584154,
+            "attack_complex_error": 0.0523955399731203,
+            "attack_flux_error": 0.042302862578990255
+          },
+          "frequency_candidate": {
+            "sdr_db": 18.871104827578925,
+            "si_sdr_db": 18.814951179268768,
+            "spectral_deficit": 0.004153899711312341,
+            "spectral_excess": 0.002183110298596824,
+            "instrument_gain": 0.9878861180714504,
+            "vocal_leakage": 0.0035632948703454904,
+            "artifact_residual": 0.011939554015708655,
+            "bass_complex_error": 0.0020325277131965154,
+            "bass_flux_error": 0.0014650352430517616,
+            "body_complex_error": 0.01401893319016167,
+            "body_flux_error": 0.01362363248153725,
+            "attack_complex_error": 0.05210914999512088,
+            "attack_flux_error": 0.04217422259943869
+          }
+        }
+      },
+      {
+        "name": "Angels In Amplifiers - I'm Alright",
+        "split": "test",
+        "systems": {
+          "v1": {
+            "sdr_db": 17.235221537227044,
+            "si_sdr_db": 17.152362962023197,
+            "spectral_deficit": 0.007006856968365004,
+            "spectral_excess": 0.0029873402324309788,
+            "instrument_gain": 0.9808847781685113,
+            "vocal_leakage": 0.001684187314677763,
+            "artifact_residual": 0.017500528344772334,
+            "bass_complex_error": 0.00809955678263644,
+            "bass_flux_error": 0.007295678000402581,
+            "body_complex_error": 0.030762522014896994,
+            "body_flux_error": 0.048360722813671465,
+            "attack_complex_error": 0.03757024778247129,
+            "attack_flux_error": 0.009770249233830216
+          },
+          "previous_v2": {
+            "sdr_db": 17.305423709201897,
+            "si_sdr_db": 17.223918259027617,
+            "spectral_deficit": 0.006937850171276502,
+            "spectral_excess": 0.0029241459549390727,
+            "instrument_gain": 0.981123948891715,
+            "vocal_leakage": 0.0014677469008907084,
+            "artifact_residual": 0.0173391384985245,
+            "bass_complex_error": 0.00795469664240792,
+            "bass_flux_error": 0.007321853466923938,
+            "body_complex_error": 0.03014803419065652,
+            "body_flux_error": 0.048177808985787475,
+            "attack_complex_error": 0.03718522663901711,
+            "attack_flux_error": 0.00978886793897544
+          },
+          "frequency_candidate": {
+            "sdr_db": 17.347447062455203,
+            "si_sdr_db": 17.266730791601937,
+            "spectral_deficit": 0.006873423489463888,
+            "spectral_excess": 0.0028972232216533385,
+            "instrument_gain": 0.9813117319607486,
+            "vocal_leakage": 0.0013351415426845737,
+            "artifact_residual": 0.017248366131667036,
+            "bass_complex_error": 0.007857957248340196,
+            "bass_flux_error": 0.007346596743478288,
+            "body_complex_error": 0.029778059818370155,
+            "body_flux_error": 0.048217837810803334,
+            "attack_complex_error": 0.03700063448997237,
+            "attack_flux_error": 0.009796588981529889
+          }
+        }
+      }
+    ],
+    "summary": {
+      "train": {
+        "v1": {
+          "sdr_db": 17.243817954425904,
+          "si_sdr_db": 17.122583896201697,
+          "spectral_deficit": 0.010070352320284151,
+          "spectral_excess": 0.0040715778207209685,
+          "instrument_gain": 0.9744939410806377,
+          "vocal_leakage": 0.012890083207650364,
+          "artifact_residual": 0.02245218596898644,
+          "bass_complex_error": 0.005088198268713234,
+          "bass_flux_error": 0.009268869119751198,
+          "body_complex_error": 0.06831200303992448,
+          "body_flux_error": 0.0959389418536114,
+          "attack_complex_error": 0.09230410221148697,
+          "attack_flux_error": 0.047144282031851094
+        },
+        "previous_v2": {
+          "sdr_db": 17.311275481410483,
+          "si_sdr_db": 17.191335576855153,
+          "spectral_deficit": 0.010085621958143807,
+          "spectral_excess": 0.003968475516236432,
+          "instrument_gain": 0.9745905919307701,
+          "vocal_leakage": 0.011859315241541,
+          "artifact_residual": 0.022472863203838216,
+          "bass_complex_error": 0.005053652342669609,
+          "bass_flux_error": 0.009124901349879897,
+          "body_complex_error": 0.0673232025256669,
+          "body_flux_error": 0.0948179326770929,
+          "attack_complex_error": 0.09147149695534111,
+          "attack_flux_error": 0.0465335239091649
+        },
+        "frequency_candidate": {
+          "sdr_db": 17.35426908873866,
+          "si_sdr_db": 17.23521982786042,
+          "spectral_deficit": 0.010072132234999934,
+          "spectral_excess": 0.0039058044014117074,
+          "instrument_gain": 0.9746881098219351,
+          "vocal_leakage": 0.011235157963945872,
+          "artifact_residual": 0.022472863203907064,
+          "bass_complex_error": 0.005031687978339725,
+          "bass_flux_error": 0.009068981473078865,
+          "body_complex_error": 0.06667569072980362,
+          "body_flux_error": 0.09397748166297432,
+          "attack_complex_error": 0.09109430374133987,
+          "attack_flux_error": 0.04628408362303139
+        }
+      },
+      "test": {
+        "v1": {
+          "sdr_db": 18.274963625858888,
+          "si_sdr_db": 18.201444407616783,
+          "spectral_deficit": 0.006060697118280757,
+          "spectral_excess": 0.0026171536210659457,
+          "instrument_gain": 0.9837595714211848,
+          "vocal_leakage": 0.012897911176028592,
+          "artifact_residual": 0.01430356351058132,
+          "bass_complex_error": 0.004063991152852201,
+          "bass_flux_error": 0.0035435992372661877,
+          "body_complex_error": 0.055014253365138446,
+          "body_flux_error": 0.023544027242656328,
+          "attack_complex_error": 0.07531057208438463,
+          "attack_flux_error": 0.026138026344705648
+        },
+        "previous_v2": {
+          "sdr_db": 18.355995507199015,
+          "si_sdr_db": 18.28358569622377,
+          "spectral_deficit": 0.006007645648963991,
+          "spectral_excess": 0.0025556113232924173,
+          "instrument_gain": 0.9839839725381622,
+          "vocal_leakage": 0.011958091124216556,
+          "artifact_residual": 0.014227306647975727,
+          "bass_complex_error": 0.003966584280643898,
+          "bass_flux_error": 0.003506207062672895,
+          "body_complex_error": 0.05385418453663679,
+          "body_flux_error": 0.023233856414870753,
+          "attack_complex_error": 0.07466730983704767,
+          "attack_flux_error": 0.025976483868883224
+        },
+        "frequency_candidate": {
+          "sdr_db": 18.40894298999734,
+          "si_sdr_db": 18.337300451287817,
+          "spectral_deficit": 0.005946080462299873,
+          "spectral_excess": 0.002527182744406282,
+          "instrument_gain": 0.9841896409393373,
+          "vocal_leakage": 0.011407883465826347,
+          "artifact_residual": 0.014170932055836598,
+          "bass_complex_error": 0.0039025805631761647,
+          "bass_flux_error": 0.0034881946130641394,
+          "body_complex_error": 0.053062063464261996,
+          "body_flux_error": 0.023013765017623443,
+          "attack_complex_error": 0.07432323178034667,
+          "attack_flux_error": 0.025872882671645347
+        }
+      }
+    }
+  },
+  "reference_components": {
+    "scope": "Eight previously reused local evaluation excerpts with original reference drum and bass streams. Conditional linear gain is a limited retention proxy, not isolated output SDR or listening quality. Ezo lacks these reference stems.",
+    "frequency_weights": {
+      "anchors_hz": [
+        0,
+        80,
+        250,
+        1000,
+        4000,
+        10000,
+        22050
+      ],
+      "weights": [
+        [
+          0.5720475982101789,
+          0.5474283267030773,
+          0.5992941043084711,
+          0.5666553552413298,
+          0.5126262625848258,
+          0.5081780829839894,
+          0.508063224458009
+        ],
+        [
+          0.26259602129791737,
+          0.28044397564932333,
+          0.2635703661367964,
+          0.2279705164208016,
+          0.34884158164998985,
+          0.3632808737655938,
+          0.36357074240134485
+        ],
+        [
+          0.16535638049190376,
+          0.17212769764759936,
+          0.13713552955473263,
+          0.20537412833786856,
+          0.13853215576518432,
+          0.12854104325041674,
+          0.12836603314064607
+        ]
+      ]
+    },
+    "summary": {
+      "v1": {
+        "drum_gain": 0.9874692725604616,
+        "bass_gain": 0.9972430489520407,
+        "drum_gain_squared_error": 0.00019238896362107382,
+        "bass_gain_squared_error": 1.0772065562441999e-05
+      },
+      "previous_v2": {
+        "drum_gain": 0.9875737357333829,
+        "bass_gain": 0.997343784740464,
+        "drum_gain_squared_error": 0.0001901514016346945,
+        "bass_gain_squared_error": 9.712503473644643e-06
+      },
+      "refined": {
+        "drum_gain": 0.9876920233312605,
+        "bass_gain": 0.9974164714137804,
+        "drum_gain_squared_error": 0.00018729338158441616,
+        "bass_gain_squared_error": 9.0126397905986e-06
+      }
+    },
+    "rows": [
+      {
+        "name": "Bobby Nobody - Stitch Up",
+        "systems": {
+          "v1": {
+            "drum_gain": 0.9909008081664544,
+            "bass_gain": 0.9987728938635307,
+            "drum_gain_squared_error": 8.279529202366244e-05,
+            "bass_gain_squared_error": 1.5057894701605095e-06
+          },
+          "previous_v2": {
+            "drum_gain": 0.9910042512023304,
+            "bass_gain": 0.9987538019973765,
+            "drum_gain_squared_error": 8.092349643077446e-05,
+            "bass_gain_squared_error": 1.5530094617427726e-06
+          },
+          "refined": {
+            "drum_gain": 0.9910744899000838,
+            "bass_gain": 0.9987433570061465,
+            "drum_gain_squared_error": 7.966473054370531e-05,
+            "bass_gain_squared_error": 1.5791516140011618e-06
+          }
+        }
+      },
+      {
+        "name": "Arise - Run Run Run",
+        "systems": {
+          "v1": {
+            "drum_gain": 0.9953230522357356,
+            "bass_gain": 0.9960766930258558,
+            "drum_gain_squared_error": 2.1873840389657924e-05,
+            "bass_gain_squared_error": 1.5392337613368713e-05
+          },
+          "previous_v2": {
+            "drum_gain": 0.9955547384722204,
+            "bass_gain": 0.9963429181001358,
+            "drum_gain_squared_error": 1.976035005035721e-05,
+            "bass_gain_squared_error": 1.3374248022314678e-05
+          },
+          "refined": {
+            "drum_gain": 0.9957361715790146,
+            "bass_gain": 0.996535918041896,
+            "drum_gain_squared_error": 1.8180232803602702e-05,
+            "bass_gain_squared_error": 1.1999863812461593e-05
+          }
+        }
+      },
+      {
+        "name": "Moosmusic - Big Dummy Shake",
+        "systems": {
+          "v1": {
+            "drum_gain": 0.9948560154085482,
+            "bass_gain": 0.9937041074148999,
+            "drum_gain_squared_error": 2.646057747709377e-05,
+            "bass_gain_squared_error": 3.963826344311848e-05
+          },
+          "previous_v2": {
+            "drum_gain": 0.9948910313316901,
+            "bass_gain": 0.9941519515466891,
+            "drum_gain_squared_error": 2.610156085377222e-05,
+            "bass_gain_squared_error": 3.4199670712271816e-05
+          },
+          "refined": {
+            "drum_gain": 0.9949159861270294,
+            "bass_gain": 0.9944213348456432,
+            "drum_gain_squared_error": 2.5847197060557913e-05,
+            "bass_gain_squared_error": 3.112150490443464e-05
+          }
+        }
+      },
+      {
+        "name": "Ben Carrigan - We'll Talk About It All Tonight",
+        "systems": {
+          "v1": {
+            "drum_gain": 0.9858044487978649,
+            "bass_gain": 0.997299127381075,
+            "drum_gain_squared_error": 0.0002015136739324397,
+            "bass_gain_squared_error": 7.294712903659021e-06
+          },
+          "previous_v2": {
+            "drum_gain": 0.9859484765083886,
+            "bass_gain": 0.9974861382393472,
+            "drum_gain_squared_error": 0.00019744531243530783,
+            "bass_gain_squared_error": 6.3195009516725196e-06
+          },
+          "refined": {
+            "drum_gain": 0.986126000587148,
+            "bass_gain": 0.9976327310187143,
+            "drum_gain_squared_error": 0.00019248785970781611,
+            "bass_gain_squared_error": 5.603962429757423e-06
+          }
+        }
+      },
+      {
+        "name": "The Long Wait - Dark Horses",
+        "systems": {
+          "v1": {
+            "drum_gain": 0.9854604005065416,
+            "bass_gain": 0.9988435811020866,
+            "drum_gain_squared_error": 0.00021139995343017574,
+            "bass_gain_squared_error": 1.337304667451249e-06
+          },
+          "previous_v2": {
+            "drum_gain": 0.9857905104084331,
+            "bass_gain": 0.9987688514958224,
+            "drum_gain_squared_error": 0.00020190959445284722,
+            "bass_gain_squared_error": 1.5157266393387513e-06
+          },
+          "refined": {
+            "drum_gain": 0.9860944164861433,
+            "bass_gain": 0.9986935290402534,
+            "drum_gain_squared_error": 0.0001933652528608442,
+            "bass_gain_squared_error": 1.706866368661108e-06
+          }
+        }
+      },
+      {
+        "name": "Timboz - Pony",
+        "systems": {
+          "v1": {
+            "drum_gain": 0.9819524201823544,
+            "bass_gain": 0.9993641750035305,
+            "drum_gain_squared_error": 0.00032571513727428875,
+            "bass_gain_squared_error": 4.0427342613547153e-07
+          },
+          "previous_v2": {
+            "drum_gain": 0.9817520501174657,
+            "bass_gain": 0.9993888698064985,
+            "drum_gain_squared_error": 0.0003329876749154839,
+            "bass_gain_squared_error": 3.734801134091226e-07
+          },
+          "refined": {
+            "drum_gain": 0.9817357024976221,
+            "bass_gain": 0.9993932852947228,
+            "drum_gain_squared_error": 0.0003335845632553677,
+            "bass_gain_squared_error": 3.681027335995732e-07
+          }
+        }
+      },
+      {
+        "name": "Louis Cressy Band - Good Time",
+        "systems": {
+          "v1": {
+            "drum_gain": 0.9887594804257351,
+            "bass_gain": 0.9979165802718399,
+            "drum_gain_squared_error": 0.00012634928029943153,
+            "bass_gain_squared_error": 4.340637763686551e-06
+          },
+          "previous_v2": {
+            "drum_gain": 0.9888278174934667,
+            "bass_gain": 0.9977951164988117,
+            "drum_gain_squared_error": 0.00012481766195928848,
+            "bass_gain_squared_error": 4.8615112538123935e-06
+          },
+          "refined": {
+            "drum_gain": 0.988935983220123,
+            "bass_gain": 0.9977263458237924,
+            "drum_gain_squared_error": 0.00012241246730539996,
+            "bass_gain_squared_error": 5.1695033129863414e-06
+          }
+        }
+      },
+      {
+        "name": "Angels In Amplifiers - I'm Alright",
+        "systems": {
+          "v1": {
+            "drum_gain": 0.9766975547604583,
+            "bass_gain": 0.9959672335535075,
+            "drum_gain_squared_error": 0.0005430039541418408,
+            "bass_gain_squared_error": 1.6263205211955993e-05
+          },
+          "previous_v2": {
+            "drum_gain": 0.9768210103330683,
+            "bass_gain": 0.9960626302390307,
+            "drum_gain_squared_error": 0.0005372655619797247,
+            "bass_gain_squared_error": 1.5502880634595094e-05
+          },
+          "refined": {
+            "drum_gain": 0.9769174362529195,
+            "bass_gain": 0.996185270239075,
+            "drum_gain_squared_error": 0.0005328047491380354,
+            "bass_gain_squared_error": 1.4552163148886957e-05
+          }
+        }
+      }
+    ]
+  },
+  "ezo": {
+    "frequency_weights": {
+      "anchors_hz": [
+        0,
+        80,
+        250,
+        1000,
+        4000,
+        10000,
+        22050
+      ],
+      "weights": [
+        [
+          0.5720475982101789,
+          0.5474283267030773,
+          0.5992941043084711,
+          0.5666553552413298,
+          0.5126262625848258,
+          0.5081780829839894,
+          0.508063224458009
+        ],
+        [
+          0.26259602129791737,
+          0.28044397564932333,
+          0.2635703661367964,
+          0.2279705164208016,
+          0.34884158164998985,
+          0.3632808737655938,
+          0.36357074240134485
+        ],
+        [
+          0.16535638049190376,
+          0.17212769764759936,
+          0.13713552955473263,
+          0.20537412833786856,
+          0.13853215576518432,
+          0.12854104325041674,
+          0.12836603314064607
+        ]
+      ]
+    },
+    "seconds": 305.17986394557823,
+    "distinct_models": 3,
+    "inference_passes": 3,
+    "secondary_subtraction": false,
+    "peak": 0.9265079668000199,
+    "source_sum_max_error": 0.0,
+    "true_music_fidelity_verified": false,
+    "true_sdr_db": null,
+    "zero_leakage_verified": false,
+    "low_voice_windows": {
+      "v1": {
+        "(20, 250)": {
+          "spectral_deficit": 9.270573781163585e-07,
+          "flux_error": 2.3951466453669133e-06
+        },
+        "(250, 1000)": {
+          "spectral_deficit": 0.0031408298949446227,
+          "flux_error": 0.0029200875928410567
+        },
+        "(1000, 10000)": {
+          "spectral_deficit": 0.00018611036039227745,
+          "flux_error": 0.00011883088077096828
+        }
+      },
+      "previous_v2": {
+        "(20, 250)": {
+          "spectral_deficit": 6.321182854556903e-07,
+          "flux_error": 1.7589636783744603e-06
+        },
+        "(250, 1000)": {
+          "spectral_deficit": 0.0020962733430534538,
+          "flux_error": 0.001981283134735816
+        },
+        "(1000, 10000)": {
+          "spectral_deficit": 0.0001462612230870621,
+          "flux_error": 9.728476386035302e-05
+        }
+      },
+      "refined": {
+        "(20, 250)": {
+          "spectral_deficit": 4.645390225967134e-07,
+          "flux_error": 1.4054030947008506e-06
+        },
+        "(250, 1000)": {
+          "spectral_deficit": 0.0016572305000095986,
+          "flux_error": 0.0017510502582018255
+        },
+        "(1000, 10000)": {
+          "spectral_deficit": 0.0001346037666600079,
+          "flux_error": 8.929075595308033e-05
+        }
+      }
+    },
+    "interpretation": "Same 39 low-voice windows as frozen preceding audit. Source-mixture closeness and Viper residuals are biased proxies, not true isolated instruments or vocals.",
+    "vocal_probe": {
+      "estimated_voice_dbfs": -57.153611868491296,
+      "model": "BS-Roformer-Viperx-1297",
+      "independent": false,
+      "seconds_to_process": 227.43799999999828,
+      "v1_dbfs": -54.72169215165292,
+      "previous_v2_dbfs": -55.756574354453754
+    }
+  },
+  "rejected_consensus": {
+    "development_summary": {
+      "previous_v2": {
+        "sdr_db": 17.311275481410483,
+        "si_sdr_db": 17.191335576855153,
+        "spectral_deficit": 0.010085621958143807,
+        "spectral_excess": 0.003968475516236432,
+        "instrument_gain": 0.9745905919307701,
+        "vocal_leakage": 0.011859315241541,
+        "artifact_residual": 0.022472863203838216,
+        "bass_complex_error": 0.005053652342669609,
+        "body_complex_error": 0.0673232025256669,
+        "attack_complex_error": 0.09147149695534111
+      },
+      "median": {
+        "sdr_db": 16.953193829484075,
+        "si_sdr_db": 16.8273259448435,
+        "spectral_deficit": 0.010242352990505497,
+        "spectral_excess": 0.004780097985488023,
+        "instrument_gain": 0.9752417097415853,
+        "vocal_leakage": 0.015203970081402979,
+        "artifact_residual": 0.023756063890117377,
+        "bass_complex_error": 0.005514905874147229,
+        "body_complex_error": 0.07400079636851953,
+        "attack_complex_error": 0.095180722146102
+      },
+      "half_median": {
+        "sdr_db": 17.18541244103144,
+        "si_sdr_db": 17.063293248229996,
+        "spectral_deficit": 0.010105028512151146,
+        "spectral_excess": 0.004269623112287206,
+        "instrument_gain": 0.974916150836178,
+        "vocal_leakage": 0.013472132608974393,
+        "artifact_residual": 0.022775559934874106,
+        "bass_complex_error": 0.0051595531243913695,
+        "body_complex_error": 0.06973248415004105,
+        "attack_complex_error": 0.09270209069834395
+      },
+      "geometric": {
+        "sdr_db": 17.361531112178575,
+        "si_sdr_db": 17.24279326057434,
+        "spectral_deficit": 0.010240096026785456,
+        "spectral_excess": 0.003846701640224562,
+        "instrument_gain": 0.9750507260365201,
+        "vocal_leakage": 0.008012834107021655,
+        "artifact_residual": 0.02348983330013324,
+        "bass_complex_error": 0.005236235554573979,
+        "body_complex_error": 0.06585957834312539,
+        "attack_complex_error": 0.09141988739022304
+      },
+      "robust": {
+        "sdr_db": 17.161814121241584,
+        "si_sdr_db": 17.039819083027588,
+        "spectral_deficit": 0.010170932931451819,
+        "spectral_excess": 0.004458139793175641,
+        "instrument_gain": 0.9755522040821435,
+        "vocal_leakage": 0.013114955117549737,
+        "artifact_residual": 0.023358131384619077,
+        "bass_complex_error": 0.005367544477992,
+        "body_complex_error": 0.07063091766202395,
+        "attack_complex_error": 0.09283664898428604
+      }
+    },
+    "accepted_development_methods": [],
+    "development_rows": [
+      {
+        "name": "Night Panther - Fire",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 12.926617924526983,
+            "si_sdr_db": 12.700726967584501,
+            "spectral_deficit": 0.018936723000360978,
+            "spectral_excess": 0.007096949111621319,
+            "instrument_gain": 0.9513527998336267,
+            "vocal_leakage": 0.006130189305363941,
+            "artifact_residual": 0.04403921064800448,
+            "bass_complex_error": 0.00045860008173691106,
+            "body_complex_error": 0.10694558322903834,
+            "attack_complex_error": 0.10178215286315986
+          },
+          "median": {
+            "sdr_db": 12.726928924938774,
+            "si_sdr_db": 12.491407443186022,
+            "spectral_deficit": 0.019377464374104,
+            "spectral_excess": 0.0077373229672125015,
+            "instrument_gain": 0.9511769816639059,
+            "vocal_leakage": 0.007279806973098009,
+            "artifact_residual": 0.04556319844064607,
+            "bass_complex_error": 0.00046360742327456687,
+            "body_complex_error": 0.11440801444197723,
+            "attack_complex_error": 0.10360980677756808
+          },
+          "half_median": {
+            "sdr_db": 12.868923117183684,
+            "si_sdr_db": 12.6401970718658,
+            "spectral_deficit": 0.019120495532328866,
+            "spectral_excess": 0.007271519559008919,
+            "instrument_gain": 0.9512648907487665,
+            "vocal_leakage": 0.006692656058875093,
+            "artifact_residual": 0.04429287647132872,
+            "bass_complex_error": 0.0004512061331622147,
+            "body_complex_error": 0.10933048156333355,
+            "attack_complex_error": 0.1020028312997777
+          },
+          "geometric": {
+            "sdr_db": 12.867505802380707,
+            "si_sdr_db": 12.63918190162916,
+            "spectral_deficit": 0.019040707436644416,
+            "spectral_excess": 0.007329310667649019,
+            "instrument_gain": 0.9520488232609889,
+            "vocal_leakage": 0.004304422258224193,
+            "artifact_residual": 0.046166314496726674,
+            "bass_complex_error": 0.00047652825959040656,
+            "body_complex_error": 0.10753050744032473,
+            "attack_complex_error": 0.10427236829203468
+          },
+          "robust": {
+            "sdr_db": 12.862239201038863,
+            "si_sdr_db": 12.63340741729886,
+            "spectral_deficit": 0.019279754063983915,
+            "spectral_excess": 0.0072833400963491415,
+            "instrument_gain": 0.9516284177270892,
+            "vocal_leakage": 0.006118230650820142,
+            "artifact_residual": 0.04483605291564252,
+            "bass_complex_error": 0.0004482178306314326,
+            "body_complex_error": 0.109873921008586,
+            "attack_complex_error": 0.10170612340787648
+          }
+        }
+      },
+      {
+        "name": "Auctioneer - Our Future Faces",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 12.194183103710778,
+            "si_sdr_db": 11.924919539159088,
+            "spectral_deficit": 0.02457546673165653,
+            "spectral_excess": 0.007259656269021462,
+            "instrument_gain": 0.9429570098428651,
+            "vocal_leakage": 0.017183026366248657,
+            "artifact_residual": 0.04883199182445477,
+            "bass_complex_error": 0.017978008600205715,
+            "body_complex_error": 0.13877378013158356,
+            "attack_complex_error": 0.2131410853851132
+          },
+          "median": {
+            "sdr_db": 11.959363091643516,
+            "si_sdr_db": 11.678552249202806,
+            "spectral_deficit": 0.025069256613636317,
+            "spectral_excess": 0.00839378125652571,
+            "instrument_gain": 0.9441511845714281,
+            "vocal_leakage": 0.019936874529715733,
+            "artifact_residual": 0.05099422810753685,
+            "bass_complex_error": 0.019562883944281854,
+            "body_complex_error": 0.14735896890164737,
+            "attack_complex_error": 0.21747943226315447
+          },
+          "half_median": {
+            "sdr_db": 12.108617037284219,
+            "si_sdr_db": 11.835037502157457,
+            "spectral_deficit": 0.024798402732824753,
+            "spectral_excess": 0.0076929901200973915,
+            "instrument_gain": 0.9435540972071469,
+            "vocal_leakage": 0.018534377429221545,
+            "artifact_residual": 0.0494502641491796,
+            "bass_complex_error": 0.01854653195794357,
+            "body_complex_error": 0.14189619690567512,
+            "attack_complex_error": 0.21455696554115453
+          },
+          "geometric": {
+            "sdr_db": 12.220807901331433,
+            "si_sdr_db": 11.95387091086214,
+            "spectral_deficit": 0.02476190898961969,
+            "spectral_excess": 0.007092855843790411,
+            "instrument_gain": 0.944308808801693,
+            "vocal_leakage": 0.012635839295263124,
+            "artifact_residual": 0.050801392112492384,
+            "bass_complex_error": 0.017825626288580965,
+            "body_complex_error": 0.13718265264024843,
+            "attack_complex_error": 0.2142645445647324
+          },
+          "robust": {
+            "sdr_db": 12.06076462046674,
+            "si_sdr_db": 11.785521304912756,
+            "spectral_deficit": 0.025284536529210647,
+            "spectral_excess": 0.00794922731340202,
+            "instrument_gain": 0.9444767480091376,
+            "vocal_leakage": 0.01726338260840463,
+            "artifact_residual": 0.05084616570299302,
+            "bass_complex_error": 0.019030652088303474,
+            "body_complex_error": 0.1431292349973583,
+            "attack_complex_error": 0.21545912926080846
+          }
+        }
+      },
+      {
+        "name": "Clara Berry And Wooldog - Waltz For My Victims",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 21.516183817891907,
+            "si_sdr_db": 21.48561949889572,
+            "spectral_deficit": 0.002381557353238379,
+            "spectral_excess": 0.0012997814331131478,
+            "instrument_gain": 0.9934710194332628,
+            "vocal_leakage": 0.00020188135794923666,
+            "artifact_residual": 0.006939888777897318,
+            "bass_complex_error": 0.0014484899517627932,
+            "body_complex_error": 0.010080486610361393,
+            "attack_complex_error": 0.026169066473615107
+          },
+          "median": {
+            "sdr_db": 21.105003799670072,
+            "si_sdr_db": 21.07191347815607,
+            "spectral_deficit": 0.0025453448066058764,
+            "spectral_excess": 0.001454809266234163,
+            "instrument_gain": 0.9933725438144868,
+            "vocal_leakage": 0.00034154490659408317,
+            "artifact_residual": 0.007590201466895759,
+            "bass_complex_error": 0.0015579667479757003,
+            "body_complex_error": 0.011241354030548871,
+            "attack_complex_error": 0.02669447673475044
+          },
+          "half_median": {
+            "sdr_db": 21.34849161911601,
+            "si_sdr_db": 21.31687765036861,
+            "spectral_deficit": 0.0024478221553297314,
+            "spectral_excess": 0.0013602123781322423,
+            "instrument_gain": 0.9934217816238753,
+            "vocal_leakage": 0.00026714970147033456,
+            "artifact_residual": 0.007194102650954124,
+            "bass_complex_error": 0.0014902054212642462,
+            "body_complex_error": 0.010547738058737904,
+            "attack_complex_error": 0.026287751608971458
+          },
+          "geometric": {
+            "sdr_db": 21.67731171676209,
+            "si_sdr_db": 21.64852993174712,
+            "spectral_deficit": 0.002283035646117047,
+            "spectral_excess": 0.0012782234409553052,
+            "instrument_gain": 0.9943393065976394,
+            "vocal_leakage": 3.2625212172516515e-05,
+            "artifact_residual": 0.006752762713981851,
+            "bass_complex_error": 0.0016072138247086494,
+            "body_complex_error": 0.009522091412962877,
+            "attack_complex_error": 0.025681451800610215
+          },
+          "robust": {
+            "sdr_db": 21.379012316513503,
+            "si_sdr_db": 21.347897566219466,
+            "spectral_deficit": 0.0024288057038603207,
+            "spectral_excess": 0.0013632995747210794,
+            "instrument_gain": 0.9937304854799452,
+            "vocal_leakage": 0.00018971458704722074,
+            "artifact_residual": 0.00717379389463578,
+            "bass_complex_error": 0.0015668837702195078,
+            "body_complex_error": 0.01042284475751603,
+            "attack_complex_error": 0.025850530555997366
+          }
+        }
+      },
+      {
+        "name": "Alexander Ross - Velvet Curtain",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 13.852605382763748,
+            "si_sdr_db": 13.671727078244654,
+            "spectral_deficit": 0.013600265691889574,
+            "spectral_excess": 0.007490328062879651,
+            "instrument_gain": 0.9632036940936497,
+            "vocal_leakage": 0.04953116244366098,
+            "artifact_residual": 0.02889926522045952,
+            "bass_complex_error": 0.010034646882784697,
+            "body_complex_error": 0.10599016518922041,
+            "attack_complex_error": 0.09027695133356349
+          },
+          "median": {
+            "sdr_db": 13.250261305805504,
+            "si_sdr_db": 13.063741182581655,
+            "spectral_deficit": 0.012400584382367139,
+            "spectral_excess": 0.011146422677355881,
+            "instrument_gain": 0.969076784061551,
+            "vocal_leakage": 0.06822381677687678,
+            "artifact_residual": 0.03131698143913602,
+            "bass_complex_error": 0.011659786745172316,
+            "body_complex_error": 0.12241848391886036,
+            "attack_complex_error": 0.10036566686602202
+          },
+          "half_median": {
+            "sdr_db": 13.645930070416838,
+            "si_sdr_db": 13.462257151482152,
+            "spectral_deficit": 0.012692551721580462,
+            "spectral_excess": 0.008977293040232294,
+            "instrument_gain": 0.9661402390776004,
+            "vocal_leakage": 0.058504209498228724,
+            "artifact_residual": 0.029142161625502618,
+            "bass_complex_error": 0.010288988555716829,
+            "body_complex_error": 0.11196114953323356,
+            "attack_complex_error": 0.093994411143358
+          },
+          "geometric": {
+            "sdr_db": 13.944683374409642,
+            "si_sdr_db": 13.766356557920574,
+            "spectral_deficit": 0.01521670776083755,
+            "spectral_excess": 0.006103349389362471,
+            "instrument_gain": 0.9605096267818836,
+            "vocal_leakage": 0.03246728830351778,
+            "artifact_residual": 0.031585833788472566,
+            "bass_complex_error": 0.010694814070806876,
+            "body_complex_error": 0.10171593213317201,
+            "attack_complex_error": 0.08781130439959106
+          },
+          "robust": {
+            "sdr_db": 13.434187398419045,
+            "si_sdr_db": 13.250947978300982,
+            "spectral_deficit": 0.01249574121649924,
+            "spectral_excess": 0.010110584091454938,
+            "instrument_gain": 0.9687414960579112,
+            "vocal_leakage": 0.059948450845928064,
+            "artifact_residual": 0.031155282802862165,
+            "bass_complex_error": 0.011438399319215866,
+            "body_complex_error": 0.11667896043927029,
+            "attack_complex_error": 0.09614779055070824
+          }
+        }
+      },
+      {
+        "name": "Johnny Lokke - Whisper To A Scream",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 16.613060708614146,
+            "si_sdr_db": 16.519388892709742,
+            "spectral_deficit": 0.0067473889060711625,
+            "spectral_excess": 0.0038101071014364006,
+            "instrument_gain": 0.9818264219055436,
+            "vocal_leakage": 0.013683815646484961,
+            "artifact_residual": 0.018200707385160882,
+            "bass_complex_error": 0.00172437640169171,
+            "body_complex_error": 0.04259006952381617,
+            "attack_complex_error": 0.10007272268564608
+          },
+          "median": {
+            "sdr_db": 16.41790630422917,
+            "si_sdr_db": 16.320770513859255,
+            "spectral_deficit": 0.006985418578520136,
+            "spectral_excess": 0.003975582838848939,
+            "instrument_gain": 0.9815814703803417,
+            "vocal_leakage": 0.015081557917895944,
+            "artifact_residual": 0.018859767532506382,
+            "bass_complex_error": 0.001752870889332612,
+            "body_complex_error": 0.04587450527528728,
+            "attack_complex_error": 0.10269638974528233
+          },
+          "half_median": {
+            "sdr_db": 16.547272523296638,
+            "si_sdr_db": 16.4523806874466,
+            "spectral_deficit": 0.0068376832344286395,
+            "spectral_excess": 0.0038414331350250307,
+            "instrument_gain": 0.9817039461429433,
+            "vocal_leakage": 0.014374192028827242,
+            "artifact_residual": 0.01836396243840332,
+            "bass_complex_error": 0.0017073573407173314,
+            "body_complex_error": 0.043841576746204244,
+            "attack_complex_error": 0.10082006874059192
+          },
+          "geometric": {
+            "sdr_db": 16.636497118769924,
+            "si_sdr_db": 16.544801959281852,
+            "spectral_deficit": 0.006634672753029907,
+            "spectral_excess": 0.004012398657293439,
+            "instrument_gain": 0.9828444132673159,
+            "vocal_leakage": 0.009953333149189008,
+            "artifact_residual": 0.019012384033341993,
+            "bass_complex_error": 0.0018102585764206722,
+            "body_complex_error": 0.04113614599880455,
+            "attack_complex_error": 0.10109002720805857
+          },
+          "robust": {
+            "sdr_db": 16.561309357866786,
+            "si_sdr_db": 16.467257744296994,
+            "spectral_deficit": 0.0068313231375236455,
+            "spectral_excess": 0.0038756380241668524,
+            "instrument_gain": 0.9820896544253431,
+            "vocal_leakage": 0.012908674420677547,
+            "artifact_residual": 0.018657289336176632,
+            "bass_complex_error": 0.001712271579809486,
+            "body_complex_error": 0.04353932468269973,
+            "attack_complex_error": 0.10070586718923989
+          }
+        }
+      },
+      {
+        "name": "Aimee Norwich - Child",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 23.95050413011714,
+            "si_sdr_db": 23.934162334863313,
+            "spectral_deficit": 0.0016663059735794788,
+            "spectral_excess": 0.0003864506898208413,
+            "instrument_gain": 0.9953436571423132,
+            "vocal_leakage": 0.0016318488180194792,
+            "artifact_residual": 0.0038509772742306844,
+            "bass_complex_error": 0.0002824527620574938,
+            "body_complex_error": 0.05081002571391564,
+            "attack_complex_error": 0.05555241993118558
+          },
+          "median": {
+            "sdr_db": 23.603828605753023,
+            "si_sdr_db": 23.585641090427643,
+            "spectral_deficit": 0.001729811349698606,
+            "spectral_excess": 0.0004632327297170311,
+            "instrument_gain": 0.9953229719641593,
+            "vocal_leakage": 0.0025999490777544963,
+            "artifact_residual": 0.0040939569468191744,
+            "bass_complex_error": 0.0002979682933220693,
+            "body_complex_error": 0.05600989698057443,
+            "attack_complex_error": 0.05819771635241146
+          },
+          "half_median": {
+            "sdr_db": 23.829107172288975,
+            "si_sdr_db": 23.812108388237192,
+            "spectral_deficit": 0.0016920101672023497,
+            "spectral_excess": 0.00041193493833742185,
+            "instrument_gain": 0.9953333145532359,
+            "vocal_leakage": 0.002087843137076308,
+            "artifact_residual": 0.003921958766701938,
+            "bass_complex_error": 0.00028868164963259007,
+            "body_complex_error": 0.05254208728567333,
+            "attack_complex_error": 0.05652935843735457
+          },
+          "geometric": {
+            "sdr_db": 23.985831122860656,
+            "si_sdr_db": 23.969518532166354,
+            "spectral_deficit": 0.0016352267889860298,
+            "spectral_excess": 0.0003784613086243944,
+            "instrument_gain": 0.9954609344972616,
+            "vocal_leakage": 0.0007470704417032563,
+            "artifact_residual": 0.003902986099830072,
+            "bass_complex_error": 0.0002756479583750474,
+            "body_complex_error": 0.05053275849420939,
+            "attack_complex_error": 0.0549522875822694
+          },
+          "robust": {
+            "sdr_db": 23.778523821825583,
+            "si_sdr_db": 23.761171432113972,
+            "spectral_deficit": 0.0016968653268425507,
+            "spectral_excess": 0.00042928423827039185,
+            "instrument_gain": 0.9954153365900535,
+            "vocal_leakage": 0.001963581015789208,
+            "artifact_residual": 0.003982962579737895,
+            "bass_complex_error": 0.0002873990970799031,
+            "body_complex_error": 0.05354434606869384,
+            "attack_complex_error": 0.05644678404269733
+          }
+        }
+      },
+      {
+        "name": "The Long Wait - Back Home To Blue",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 15.84531419598216,
+            "si_sdr_db": 15.732564303278835,
+            "spectral_deficit": 0.010615847922506052,
+            "spectral_excess": 0.003315622430412056,
+            "instrument_gain": 0.9757133994652073,
+            "vocal_leakage": 0.006205602409089716,
+            "artifact_residual": 0.022361943667904755,
+            "bass_complex_error": 0.005348585772599005,
+            "body_complex_error": 0.07109548080607166,
+            "attack_complex_error": 0.1169725848043574
+          },
+          "median": {
+            "sdr_db": 15.402579982656938,
+            "si_sdr_db": 15.280162690430858,
+            "spectral_deficit": 0.011417936674113938,
+            "spectral_excess": 0.0038141068950462644,
+            "instrument_gain": 0.9745448798749573,
+            "vocal_leakage": 0.007733226419223801,
+            "artifact_residual": 0.02434083047750966,
+            "bass_complex_error": 0.005671352445640039,
+            "body_complex_error": 0.08030369604203703,
+            "attack_complex_error": 0.12210702095517108
+          },
+          "half_median": {
+            "sdr_db": 15.673786876595454,
+            "si_sdr_db": 15.557419884636431,
+            "spectral_deficit": 0.010994601415457373,
+            "spectral_excess": 0.0034646027714161456,
+            "instrument_gain": 0.975129139670083,
+            "vocal_leakage": 0.0069484237261215834,
+            "artifact_residual": 0.023013977785697515,
+            "bass_complex_error": 0.005433574316684496,
+            "body_complex_error": 0.07467395007092216,
+            "attack_complex_error": 0.11870394292458779
+          },
+          "geometric": {
+            "sdr_db": 15.96654580626015,
+            "si_sdr_db": 15.856691308713133,
+            "spectral_deficit": 0.010232489425677683,
+            "spectral_excess": 0.003413953701963899,
+            "instrument_gain": 0.9769437925209412,
+            "vocal_leakage": 0.00391625576025732,
+            "artifact_residual": 0.02283722816901652,
+            "bass_complex_error": 0.0054909573194885245,
+            "body_complex_error": 0.06808419508621785,
+            "attack_complex_error": 0.11620657963355455
+          },
+          "robust": {
+            "sdr_db": 15.65628252261041,
+            "si_sdr_db": 15.540510701269874,
+            "spectral_deficit": 0.011096301456727804,
+            "spectral_excess": 0.003520547474507541,
+            "instrument_gain": 0.9751284140604023,
+            "vocal_leakage": 0.006304235945366043,
+            "artifact_residual": 0.02344200613174738,
+            "bass_complex_error": 0.005387275807491325,
+            "body_complex_error": 0.07529078828517122,
+            "attack_complex_error": 0.11807562883003864
+          }
+        }
+      },
+      {
+        "name": "James May - If You Say",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 21.591734587677017,
+            "si_sdr_db": 21.561576000105347,
+            "spectral_deficit": 0.0021614200858483053,
+            "spectral_excess": 0.0010889090315865761,
+            "instrument_gain": 0.9928567337296926,
+            "vocal_leakage": 0.0003069955855110292,
+            "artifact_residual": 0.006658920832593323,
+            "bass_complex_error": 0.0031540582885185493,
+            "body_complex_error": 0.01230002900132803,
+            "attack_complex_error": 0.027804992166088154
+          },
+          "median": {
+            "sdr_db": 21.159678621175605,
+            "si_sdr_db": 21.12641891090369,
+            "spectral_deficit": 0.0024130071449979637,
+            "spectral_excess": 0.001255525252963692,
+            "instrument_gain": 0.9927068616018522,
+            "vocal_leakage": 0.00043498405006499335,
+            "artifact_residual": 0.007289346709889118,
+            "bass_complex_error": 0.003152810504178676,
+            "body_complex_error": 0.014391451357223639,
+            "attack_complex_error": 0.030295267474456097
+          },
+          "half_median": {
+            "sdr_db": 21.461171112069692,
+            "si_sdr_db": 21.430067649645736,
+            "spectral_deficit": 0.002256661138056992,
+            "spectral_excess": 0.0011369989560481972,
+            "instrument_gain": 0.9927817976657727,
+            "vocal_leakage": 0.0003682092919743073,
+            "artifact_residual": 0.0068251755912250075,
+            "bass_complex_error": 0.0030698796200096783,
+            "body_complex_error": 0.013066693036548394,
+            "attack_complex_error": 0.02872139589095565
+          },
+          "geometric": {
+            "sdr_db": 21.593066054653992,
+            "si_sdr_db": 21.563394982274396,
+            "spectral_deficit": 0.0021160194133713313,
+            "spectral_excess": 0.001165060112157557,
+            "instrument_gain": 0.9939501025644377,
+            "vocal_leakage": 4.5838435846043566e-05,
+            "artifact_residual": 0.006859764987203862,
+            "bass_complex_error": 0.003708838138620691,
+            "body_complex_error": 0.01117234353906326,
+            "attack_complex_error": 0.02708053564093338
+          },
+          "robust": {
+            "sdr_db": 21.56219373119174,
+            "si_sdr_db": 21.5318385198078,
+            "spectral_deficit": 0.0022541360169664273,
+            "spectral_excess": 0.0011331975325331693,
+            "instrument_gain": 0.9932070803072659,
+            "vocal_leakage": 0.00022337086636503372,
+            "artifact_residual": 0.006771497713157235,
+            "bass_complex_error": 0.003069256331185008,
+            "body_complex_error": 0.012567921056896232,
+            "attack_complex_error": 0.028301338036921853
+          }
+        }
+      }
+    ],
+    "evaluation_rows": []
+  },
+  "asr_summary": [
+    {
+      "start": 40,
+      "usable_reference": true,
+      "matching_reference_token_count": 0
+    },
+    {
+      "start": 80,
+      "usable_reference": true,
+      "matching_reference_token_count": 0
+    },
+    {
+      "start": 140,
+      "usable_reference": false,
+      "matching_reference_token_count": 1
+    },
+    {
+      "start": 220,
+      "usable_reference": true,
+      "matching_reference_token_count": 0
+    }
+  ],
+  "scope": "Only a small previously reused reference pool and one Ezo recording. Numerical improvements do not establish clear audible superiority or true Ezo drum/bass fidelity. Historical Ezo and earlier V2 reports do not describe this recipe.",
+  "selected_preset": {
+    "id": "atlas_studio_v2",
+    "name": "Atlas Studio V2",
+    "revision": "three-model-smooth-music-v2",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297",
+        "estimate": "vocal",
+        "weight": 0.55
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "estimate": "vocal",
+        "weight": 0.25
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "estimate": "inst",
+        "weight": 0.2
+      }
+    ],
+    "inference_passes": [
+      {
+        "transform": "identity",
+        "weight": 1.0
+      }
+    ],
+    "validation": {
+      "status": "local_reference_and_ezo_checks_passed",
+      "report": "docs/atlas-studio-v2-refined-check.json",
+      "scope": "Same three models and three passes. Smooth frequency-dependent mixture fitted on eight development excerpts, evaluated on eight previously reused local reference excerpts and Ezo proxies. No isolated Ezo reference stems or listening test; no zero-loss, zero-leakage or clear audible superiority claim."
+    },
+    "target": "instrumental",
+    "frequency_weights": {
+      "anchors_hz": [
+        0,
+        80,
+        250,
+        1000,
+        4000,
+        10000,
+        22050
+      ],
+      "weights": [
+        [
+          0.5720475982101789,
+          0.5474283267030773,
+          0.5992941043084711,
+          0.5666553552413298,
+          0.5126262625848258,
+          0.5081780829839894,
+          0.508063224458009
+        ],
+        [
+          0.26259602129791737,
+          0.28044397564932333,
+          0.2635703661367964,
+          0.2279705164208016,
+          0.34884158164998985,
+          0.3632808737655938,
+          0.36357074240134485
+        ],
+        [
+          0.16535638049190376,
+          0.17212769764759936,
+          0.13713552955473263,
+          0.20537412833786856,
+          0.13853215576518432,
+          0.12854104325041674,
+          0.12836603314064607
+        ]
+      ]
+    }
+  },
+  "runtime_live_check": {
+    "passed": true,
+    "revision": "three-model-smooth-music-v2",
+    "task_id": "eba86d71-84b4-4c53-8a94-63a6d99f8254",
+    "sum_max_abs_error": 2.9802322387695312e-08,
+    "backend_pid_unchanged": true,
+    "frames": 132300,
+    "stems": [
+      "AtlasStudioV2_Vocals_08141fb7e070.wav",
+      "AtlasStudioV2_Instrumental_08141fb7e070.wav"
+    ]
+  }
+}

@@ -1,9 +1,19 @@
 import unittest
 import numpy as np
-from atlas_band_ensemble import combine_frequency,validate_frequency_weights
+from atlas_band_ensemble import combine_frequency,validate_frequency_weights,_combine_frequency_block
 
 
 class FrequencyEnsembleTests(unittest.TestCase):
+    def test_long_record_blocks_match_whole_transform_at_boundaries(self):
+        rng=np.random.default_rng(34);source=rng.normal(0,.1,(530777,2))
+        candidates=[rng.normal(0,.05,source.shape) for _ in range(3)]
+        spec={'anchors_hz':[0,80,250,1000,4000,10000,22050],
+              'weights':[[.6,.5,.7,.5,.4,.5,.6],[.2,.3,.1,.3,.4,.3,.2],[.2,.2,.2,.2,.2,.2,.2]]}
+        expected,_=_combine_frequency_block(source,candidates,spec)
+        actual,instrumental=combine_frequency(source,candidates,spec)
+        np.testing.assert_allclose(actual,expected,atol=1e-15)
+        np.testing.assert_allclose(actual+instrumental,source,atol=1e-15)
+
     def test_constant_frequency_weights_match_sample_average_including_edges(self):
         rng=np.random.default_rng(29)
         source=rng.normal(0,.1,(44173,2))

@@ -174,7 +174,7 @@ export const VisualizerExportModal: React.FC<VisualizerExportModalProps> = ({
                     : 'bg-slate-950/60 border-white/5 text-slate-400 hover:text-white'
                 )}
               >
-                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-indigo-500 to-sky-400 mx-auto mb-1.5 shadow-sm" />
+                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-400 mx-auto mb-1.5 shadow-sm" />
                 <span className="text-xs font-bold block">Neon Sky</span>
               </button>
 
@@ -184,11 +184,11 @@ export const VisualizerExportModal: React.FC<VisualizerExportModalProps> = ({
                 className={cn(
                   'p-3 rounded-2xl border text-center transition-all',
                   theme === 'gold'
-                    ? 'bg-amber-500/20 border-amber-500 text-white shadow-md'
+                    ? 'bg-indigo-500/20 border-indigo-500 text-white shadow-md'
                     : 'bg-slate-950/60 border-white/5 text-slate-400 hover:text-white'
                 )}
               >
-                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 mx-auto mb-1.5 shadow-sm" />
+                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600 mx-auto mb-1.5 shadow-sm" />
                 <span className="text-xs font-bold block">Gold Studio</span>
               </button>
 
@@ -202,7 +202,7 @@ export const VisualizerExportModal: React.FC<VisualizerExportModalProps> = ({
                     : 'bg-slate-950/60 border-white/5 text-slate-400 hover:text-white'
                 )}
               >
-                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 mx-auto mb-1.5 shadow-sm" />
+                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-400 mx-auto mb-1.5 shadow-sm" />
                 <span className="text-xs font-bold block">Cyberpunk</span>
               </button>
             </div>
@@ -257,7 +257,7 @@ export const VisualizerExportModal: React.FC<VisualizerExportModalProps> = ({
             type="button"
             onClick={handleGenerate}
             disabled={rendering}
-            className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
           >
             {rendering ? (
               <>

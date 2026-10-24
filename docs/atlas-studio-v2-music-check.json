@@ -1,0 +1,82 @@
+{
+  "selected_preset": {
+    "id": "atlas_studio_v2",
+    "name": "Atlas Studio V2",
+    "revision": "ezo-music-preservation-v1",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297",
+        "estimate": "vocal",
+        "weight": 0.55
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "estimate": "vocal",
+        "weight": 0.25
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "estimate": "inst",
+        "weight": 0.2
+      }
+    ],
+    "inference_passes": [
+      {
+        "transform": "identity",
+        "weight": 1.0
+      }
+    ],
+    "validation": {
+      "status": "music_preservation_policy_change",
+      "report": "docs/atlas-studio-v2-music-check.json",
+      "scope": "Retains the existing three-model single-pass instrumental blend and removes secondary vocal subtraction to avoid its additional music-removal risk. Ezo outputs compared numerically, without isolated reference stems or a listening test. No claim of improved true fidelity, zero instrumental loss or zero vocal leakage."
+    },
+    "target": "instrumental"
+  },
+  "distinct_separation_models": 3,
+  "full_inference_passes": 3,
+  "secondary_vocal_subtraction": false,
+  "isolated_reference_stems_available": false,
+  "zero_leakage_verified": false,
+  "true_instrumental_sdr_db": null,
+  "true_music_fidelity_improvement_verified": false,
+  "perceptual_listening_performed": false,
+  "duration_seconds": 305.17986394557823,
+  "sample_rate": 44100,
+  "channels": 2,
+  "output_peak": 0.9262911677360535,
+  "changed_component_energy_relative_to_music": 0.0002542528046090489,
+  "band_comparison": {
+    "sub_bass_20_60": {
+      "previous_strict_to_music_power_db": -1.8269607079472793e-05,
+      "changed_component_energy_relative_to_music": 3.768452054343938e-10
+    },
+    "bass_60_250": {
+      "previous_strict_to_music_power_db": -5.416292214283132e-05,
+      "changed_component_energy_relative_to_music": 5.460456473090451e-06
+    },
+    "low_mid_250_1000": {
+      "previous_strict_to_music_power_db": -0.02012660109530771,
+      "changed_component_energy_relative_to_music": 0.0006273672158560854
+    },
+    "mid_1000_4000": {
+      "previous_strict_to_music_power_db": -0.01131961048803852,
+      "changed_component_energy_relative_to_music": 0.000575463610151713
+    },
+    "presence_4000_10000": {
+      "previous_strict_to_music_power_db": -0.006916012076656682,
+      "changed_component_energy_relative_to_music": 0.0006649081444684489
+    },
+    "air_10000_20000": {
+      "previous_strict_to_music_power_db": -0.0009713966532649479,
+      "changed_component_energy_relative_to_music": 4.167673994676042e-05
+    }
+  },
+  "output": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\outputs\\Ezo_Karaoke_Gelistirme\\Ezo_V2_Music_Instrumental.wav",
+  "baseline_sha256": "49685a126d0200ebda1b81fb79ac7cd87621e25eae1abceca84cca2b199ab32e",
+  "output_sha256": "49685a126d0200ebda1b81fb79ac7cd87621e25eae1abceca84cca2b199ab32e",
+  "interpretation": "The new output exactly restores the cached single-pass blend before secondary vocal subtraction. Changed energy includes unknown amounts of music and voice; band energy does not measure instrument fidelity or isolated drum/bass retention. Primary separation may still remove music or leave voice. Historical strict-cleanup reports do not describe this revision."
+}

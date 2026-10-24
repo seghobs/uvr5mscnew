@@ -65,3 +65,4 @@ tests/.artifacts/
 /tools/setup-runtime/
 /.local-settings.json
 /.local-settings.json.tmp
+/frontend/.next-restart-*/

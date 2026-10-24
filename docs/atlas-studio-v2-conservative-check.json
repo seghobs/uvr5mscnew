@@ -1,0 +1,255 @@
+{
+  "preset": {
+    "id": "atlas_studio_v2",
+    "name": "Atlas Studio V2",
+    "revision": "conservative-three-model-tta-v1",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297",
+        "estimate": "vocal",
+        "weight": 0.5
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "estimate": "vocal",
+        "weight": 0.25
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "estimate": "inst",
+        "weight": 0.25
+      }
+    ],
+    "inference_passes": [
+      {
+        "transform": "identity",
+        "weight": 0.5
+      },
+      {
+        "transform": "swap_channels",
+        "weight": 0.25
+      },
+      {
+        "transform": "invert_polarity",
+        "weight": 0.25
+      }
+    ],
+    "validation": {
+      "status": "small_reference_pilot",
+      "report": "docs/atlas-studio-v2-conservative-check.json",
+      "scope": "Four seven-second reference excerpts; fixed three-model blend and transforms, no fitting. Two test excerpts averaged +0.01943 dB waveform SDR; one excerpt slightly regressed. Small metric change is not proof of audible superiority or zero artifacts."
+    }
+  },
+  "scope": "Four seven-second excerpts; fixed weights/transforms. Existing reference cache, no fitting. This is not a perceptual or zero-artifact guarantee.",
+  "tracks": [
+    {
+      "name": "Night Panther - Fire",
+      "split": "train",
+      "systems": {
+        "atlas_studio": {
+          "vocal": {
+            "sdr_db": 11.622019290436594,
+            "si_sdr_db": 11.325994001578293,
+            "spectral_deficit": 0.03228602505744674,
+            "spectral_excess": 0.0072410103733367755
+          },
+          "instrumental": {
+            "sdr_db": 12.891761703977792,
+            "si_sdr_db": 12.664115494232925,
+            "spectral_deficit": 0.018903032043325402,
+            "spectral_excess": 0.007212878098321378
+          }
+        },
+        "conservative_tta": {
+          "vocal": {
+            "sdr_db": 11.629665397978696,
+            "si_sdr_db": 11.33333066936131,
+            "spectral_deficit": 0.03222158710557815,
+            "spectral_excess": 0.007255022720019811
+          },
+          "instrumental": {
+            "sdr_db": 12.899407811519897,
+            "si_sdr_db": 12.672158286672197,
+            "spectral_deficit": 0.01891727261042643,
+            "spectral_excess": 0.007223731801653105
+          }
+        }
+      }
+    },
+    {
+      "name": "Auctioneer - Our Future Faces",
+      "split": "train",
+      "systems": {
+        "atlas_studio": {
+          "vocal": {
+            "sdr_db": 8.984487690460666,
+            "si_sdr_db": 8.402407920152,
+            "spectral_deficit": 0.060036923484959454,
+            "spectral_excess": 0.01306345417092732
+          },
+          "instrumental": {
+            "sdr_db": 12.158444012736753,
+            "si_sdr_db": 11.886997680515098,
+            "spectral_deficit": 0.024482787296930045,
+            "spectral_excess": 0.007413421172040016
+          }
+        },
+        "conservative_tta": {
+          "vocal": {
+            "sdr_db": 8.985279972732595,
+            "si_sdr_db": 8.404334539794668,
+            "spectral_deficit": 0.060325567406189815,
+            "spectral_excess": 0.012926270932043406
+          },
+          "instrumental": {
+            "sdr_db": 12.159236295008684,
+            "si_sdr_db": 11.88784895061525,
+            "spectral_deficit": 0.024448852263480668,
+            "spectral_excess": 0.007411776423929481
+          }
+        }
+      }
+    },
+    {
+      "name": "Bobby Nobody - Stitch Up",
+      "split": "test",
+      "systems": {
+        "atlas_studio": {
+          "vocal": {
+            "sdr_db": 13.019992124134951,
+            "si_sdr_db": 12.819850584342294,
+            "spectral_deficit": 0.02359379347317741,
+            "spectral_excess": 0.004353068744885038
+          },
+          "instrumental": {
+            "sdr_db": 18.59916205047093,
+            "si_sdr_db": 18.538888478315567,
+            "spectral_deficit": 0.00487701473112786,
+            "spectral_excess": 0.0019083550119777916
+          }
+        },
+        "conservative_tta": {
+          "vocal": {
+            "sdr_db": 13.017361938683232,
+            "si_sdr_db": 12.818173248259296,
+            "spectral_deficit": 0.023616668046158657,
+            "spectral_excess": 0.004265734594523031
+          },
+          "instrumental": {
+            "sdr_db": 18.596531865019212,
+            "si_sdr_db": 18.536247434372278,
+            "spectral_deficit": 0.004876168702711785,
+            "spectral_excess": 0.0019065460064620848
+          }
+        }
+      }
+    },
+    {
+      "name": "Arise - Run Run Run",
+      "split": "test",
+      "systems": {
+        "atlas_studio": {
+          "vocal": {
+            "sdr_db": 15.704531995744318,
+            "si_sdr_db": 15.591049474398346,
+            "spectral_deficit": 0.011448531367873114,
+            "spectral_excess": 0.0033090295372645447
+          },
+          "instrumental": {
+            "sdr_db": 24.124683807906315,
+            "si_sdr_db": 24.108851284894513,
+            "spectral_deficit": 0.0013127805383938904,
+            "spectral_excess": 0.0006117266684367893
+          }
+        },
+        "conservative_tta": {
+          "vocal": {
+            "sdr_db": 15.746021421281569,
+            "si_sdr_db": 15.63412146648697,
+            "spectral_deficit": 0.011438103115117872,
+            "spectral_excess": 0.0032593586099576156
+          },
+          "instrumental": {
+            "sdr_db": 24.166173233443565,
+            "si_sdr_db": 24.150880701428356,
+            "spectral_deficit": 0.0012992106983290834,
+            "spectral_excess": 0.0006023619398856956
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "train": {
+      "atlas_studio": {
+        "vocal": {
+          "sdr_db": 10.303253490448629,
+          "si_sdr_db": 9.864200960865146,
+          "spectral_deficit": 0.046161474271203096,
+          "spectral_excess": 0.010152232272132047
+        },
+        "instrumental": {
+          "sdr_db": 12.525102858357272,
+          "si_sdr_db": 12.275556587374012,
+          "spectral_deficit": 0.021692909670127724,
+          "spectral_excess": 0.007313149635180697
+        }
+      },
+      "conservative_tta": {
+        "vocal": {
+          "sdr_db": 10.307472685355645,
+          "si_sdr_db": 9.868832604577989,
+          "spectral_deficit": 0.046273577255883984,
+          "spectral_excess": 0.01009064682603161
+        },
+        "instrumental": {
+          "sdr_db": 12.529322053264291,
+          "si_sdr_db": 12.280003618643724,
+          "spectral_deficit": 0.02168306243695355,
+          "spectral_excess": 0.007317754112791293
+        }
+      }
+    },
+    "test": {
+      "atlas_studio": {
+        "vocal": {
+          "sdr_db": 14.362262059939635,
+          "si_sdr_db": 14.20545002937032,
+          "spectral_deficit": 0.01752116242052526,
+          "spectral_excess": 0.003831049141074791
+        },
+        "instrumental": {
+          "sdr_db": 21.361922929188623,
+          "si_sdr_db": 21.32386988160504,
+          "spectral_deficit": 0.0030948976347608755,
+          "spectral_excess": 0.0012600408402072905
+        }
+      },
+      "conservative_tta": {
+        "vocal": {
+          "sdr_db": 14.3816916799824,
+          "si_sdr_db": 14.226147357373133,
+          "spectral_deficit": 0.017527385580638266,
+          "spectral_excess": 0.003762546602240323
+        },
+        "instrumental": {
+          "sdr_db": 21.381352549231387,
+          "si_sdr_db": 21.343564067900317,
+          "spectral_deficit": 0.003087689700520434,
+          "spectral_excess": 0.0012544539731738902
+        }
+      }
+    }
+  },
+  "decision": {
+    "deployed_recipe": "conservative-three-model-tta-v1",
+    "quality_claim": "small pilot only",
+    "no_universal_superiority": true,
+    "no_zero_artifact_guarantee": true,
+    "test_mean_sdr_delta_db": 0.019429620042764384,
+    "worst_track_sdr_delta_db": -0.0026301854517196688
+  }
+}

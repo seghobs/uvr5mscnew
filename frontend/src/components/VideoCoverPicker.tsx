@@ -41,7 +41,7 @@ export function VideoCoverPicker({value,onChange,disabled=false,onBusyChange}:{v
       <p className="text-xs font-bold text-zinc-200">Video kapak görseli <span className="font-normal text-zinc-400">(isteğe bağlı)</span></p>
       <p className="text-xs text-zinc-400">JPG, PNG veya WebP · En fazla 10 MB. Seçmeden de video oluşturabilirsin.</p>
       <div className="flex gap-2">
-        <button type="button" disabled={busy||disabled} onClick={()=>input.current?.click()} className="flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs font-bold text-amber-300 disabled:opacity-50"><ImagePlus className="w-4 h-4"/>{busy?'Görsel hazırlanıyor…':value?'Kapağı değiştir':'Kapak görseli seç'}</button>
+        <button type="button" disabled={busy||disabled} onClick={()=>input.current?.click()} className="flex items-center gap-2 rounded-xl border border-indigo-400/30 bg-indigo-400/10 px-3 py-2 text-xs font-bold text-indigo-300 disabled:opacity-50"><ImagePlus className="w-4 h-4"/>{busy?'Görsel hazırlanıyor…':value?'Kapağı değiştir':'Kapak görseli seç'}</button>
         {value&&<button type="button" disabled={busy||disabled} onClick={()=>{request.current++;onChange('');setError('');}} className="flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs text-zinc-300"><Trash2 className="w-4 h-4"/>Kaldır</button>}
       </div>
       {error&&<p role="alert" className="text-xs text-rose-300">{error}</p>}

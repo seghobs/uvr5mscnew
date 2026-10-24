@@ -1,0 +1,1568 @@
+{
+  "source": "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\ytdl\\Nurettin Rençber - Ezo.wav",
+  "source_sha256": "fd16df20c6fc7b19b10fb6384cb0ebb708957c6562d3558ece3a33ea8cdaa142",
+  "isolated_reference_stems_available": false,
+  "true_instrumental_sdr_db": null,
+  "zero_leakage_verified": false,
+  "baseline_job_id": "c35dc565-c566-4edf-b9f8-0d3fe50cc4aa",
+  "previous_preset": {
+    "id": "atlas_studio_v2",
+    "name": "Atlas Studio V2",
+    "revision": "karaoke-instrumental-three-model-v1",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297",
+        "estimate": "vocal",
+        "weight": 0.55
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "estimate": "vocal",
+        "weight": 0.25
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "estimate": "inst",
+        "weight": 0.2
+      }
+    ],
+    "inference_passes": [
+      {
+        "transform": "identity",
+        "weight": 0.5
+      },
+      {
+        "transform": "swap_channels",
+        "weight": 0.25
+      },
+      {
+        "transform": "invert_polarity",
+        "weight": 0.25
+      }
+    ],
+    "validation": {
+      "status": "local_reference_comparison",
+      "report": "docs/atlas-studio-v2-karaoke-check.json",
+      "scope": "Instrumental-first bounded development fit, eight seven-second evaluation excerpts plus four cached transform checks. Better evaluation means for instrumental waveform error, spectral deficit/excess, vocal projection leakage and artifact residual. Small local comparison, not a zero-loss or universal quality guarantee."
+    },
+    "target": "instrumental"
+  },
+  "frames": 13458432,
+  "rate": 44100,
+  "cleanup_model_reused": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+  "cleanup_seconds": 117.21899999999732,
+  "identity_passes_captured_from_running_job": true,
+  "distinct_separation_models": 3,
+  "candidate_runtime_full_passes": 4,
+  "correction_only_activity_gate": true,
+  "clips": [
+    {
+      "start": 0,
+      "end": 20,
+      "gate_mean": 0.33233416399857013,
+      "relative_changed_energy": 1.2173601709805037e-05,
+      "max_abs_correction": 0.0026912945322692394,
+      "is_true_music_loss_measurement": false
+    },
+    {
+      "start": 40,
+      "end": 56,
+      "gate_mean": 0.957854515499894,
+      "relative_changed_energy": 0.00016829931942202858,
+      "max_abs_correction": 0.037739310413598987,
+      "is_true_music_loss_measurement": false
+    },
+    {
+      "start": 80,
+      "end": 96,
+      "gate_mean": 0.9637535346118155,
+      "relative_changed_energy": 0.00015377579233563868,
+      "max_abs_correction": 0.023503681644797325,
+      "is_true_music_loss_measurement": false
+    },
+    {
+      "start": 140,
+      "end": 156,
+      "gate_mean": 0.02091205112399536,
+      "relative_changed_energy": 6.235101044072597e-12,
+      "max_abs_correction": 9.196702232885934e-06,
+      "is_true_music_loss_measurement": false
+    },
+    {
+      "start": 220,
+      "end": 236,
+      "gate_mean": 0.9665139093606205,
+      "relative_changed_energy": 0.00048063862912091056,
+      "max_abs_correction": 0.04410920664668086,
+      "is_true_music_loss_measurement": false
+    }
+  ],
+  "independent_model_probe": {
+    "old_v2": {
+      "estimated_vocal_rms_dbfs": -43.94861660463063,
+      "estimated_vocal_energy_relative_to_input": 0.0029857851373043323,
+      "is_ground_truth_leakage": false
+    },
+    "strict_v2": {
+      "estimated_vocal_rms_dbfs": -66.56387990648221,
+      "estimated_vocal_energy_relative_to_input": 1.63549909512836e-05,
+      "is_ground_truth_leakage": false
+    },
+    "estimated_residual_drop_db": 22.615263301851584
+  },
+  "selection_checks": {
+    "independent_probe_improved": true,
+    "solo_preserved": true,
+    "bounded_correction": true,
+    "complementary_export": true,
+    "timebase_preserved": true,
+    "finite": true
+  },
+  "selected_for_ezo": true,
+  "sum_max_abs_error": 4.330649971961975e-08,
+  "experiment_plan": {
+    "scope": "Nurettin Rencber - Ezo only",
+    "distinct_models_limit": 3,
+    "candidate_base": "existing three identity-pass estimates, weights 0.55/0.25/0.20",
+    "cleanup": "reuse Kim FT2 Bleedless once, strength 1.0, correction-only source-vocal activity -32 to -18 dB",
+    "selection_checks_before_probe_result": {
+      "independent_viper_estimated_residual_drop_db_min": 3.0,
+      "solo_140_156_changed_energy_ratio_max": 1e-06,
+      "vocal_80_96_changed_energy_ratio_max": 0.001,
+      "complementary_export_max_error": 1e-06
+    },
+    "true_instrumental_quality_score_available": false,
+    "zero_leakage_claim_allowed": false
+  },
+  "full_record_independent_probe": {
+    "diagnostic_only": true,
+    "zero_leakage_verified": false,
+    "true_sdr_db": null,
+    "seconds": 305.17986394557823,
+    "model": "BS-Roformer-Viperx-1297",
+    "overall_estimated_vocal_rms_dbfs": -65.5526774092479,
+    "loudest_estimated_windows": [
+      {
+        "start": 71.0,
+        "estimated_vocal_rms_dbfs": -52.674721904511074
+      },
+      {
+        "start": 265.0,
+        "estimated_vocal_rms_dbfs": -53.29762152592202
+      },
+      {
+        "start": 203.0,
+        "estimated_vocal_rms_dbfs": -53.62562503769769
+      },
+      {
+        "start": 226.0,
+        "estimated_vocal_rms_dbfs": -54.960023603688015
+      },
+      {
+        "start": 224.0,
+        "estimated_vocal_rms_dbfs": -55.68395858338817
+      },
+      {
+        "start": 199.0,
+        "estimated_vocal_rms_dbfs": -56.38821740726194
+      },
+      {
+        "start": 187.0,
+        "estimated_vocal_rms_dbfs": -56.603841000340374
+      },
+      {
+        "start": 274.0,
+        "estimated_vocal_rms_dbfs": -56.66821614913957
+      },
+      {
+        "start": 262.0,
+        "estimated_vocal_rms_dbfs": -56.89462258874415
+      },
+      {
+        "start": 147.0,
+        "estimated_vocal_rms_dbfs": -57.24705686907125
+      },
+      {
+        "start": 146.0,
+        "estimated_vocal_rms_dbfs": -57.39510676248273
+      },
+      {
+        "start": 270.0,
+        "estimated_vocal_rms_dbfs": -57.433484601602004
+      }
+    ],
+    "windows": [
+      {
+        "start": 0.0,
+        "estimated_vocal_rms_dbfs": -105.09824301558044
+      },
+      {
+        "start": 1.0,
+        "estimated_vocal_rms_dbfs": -131.4849245754079
+      },
+      {
+        "start": 2.0,
+        "estimated_vocal_rms_dbfs": -131.47431250704105
+      },
+      {
+        "start": 3.0,
+        "estimated_vocal_rms_dbfs": -131.52070422464118
+      },
+      {
+        "start": 4.0,
+        "estimated_vocal_rms_dbfs": -133.0701350795949
+      },
+      {
+        "start": 5.0,
+        "estimated_vocal_rms_dbfs": -131.68607942312474
+      },
+      {
+        "start": 6.0,
+        "estimated_vocal_rms_dbfs": -130.41777464598155
+      },
+      {
+        "start": 7.0,
+        "estimated_vocal_rms_dbfs": -103.37466472144625
+      },
+      {
+        "start": 8.0,
+        "estimated_vocal_rms_dbfs": -105.5997860561744
+      },
+      {
+        "start": 9.0,
+        "estimated_vocal_rms_dbfs": -130.12879134964032
+      },
+      {
+        "start": 10.0,
+        "estimated_vocal_rms_dbfs": -78.40585743029348
+      },
+      {
+        "start": 11.0,
+        "estimated_vocal_rms_dbfs": -75.14541584521218
+      },
+      {
+        "start": 12.0,
+        "estimated_vocal_rms_dbfs": -75.09915573257169
+      },
+      {
+        "start": 13.0,
+        "estimated_vocal_rms_dbfs": -68.07515858801781
+      },
+      {
+        "start": 14.0,
+        "estimated_vocal_rms_dbfs": -70.94771633747197
+      },
+      {
+        "start": 15.0,
+        "estimated_vocal_rms_dbfs": -92.8720523916026
+      },
+      {
+        "start": 16.0,
+        "estimated_vocal_rms_dbfs": -108.97219454751949
+      },
+      {
+        "start": 17.0,
+        "estimated_vocal_rms_dbfs": -97.44553848219893
+      },
+      {
+        "start": 18.0,
+        "estimated_vocal_rms_dbfs": -98.69979544129492
+      },
+      {
+        "start": 19.0,
+        "estimated_vocal_rms_dbfs": -108.33427572580796
+      },
+      {
+        "start": 20.0,
+        "estimated_vocal_rms_dbfs": -84.16761433022928
+      },
+      {
+        "start": 21.0,
+        "estimated_vocal_rms_dbfs": -81.04295491367559
+      },
+      {
+        "start": 22.0,
+        "estimated_vocal_rms_dbfs": -80.41491551307855
+      },
+      {
+        "start": 23.0,
+        "estimated_vocal_rms_dbfs": -77.94679847030804
+      },
+      {
+        "start": 24.0,
+        "estimated_vocal_rms_dbfs": -85.12340261236065
+      },
+      {
+        "start": 25.0,
+        "estimated_vocal_rms_dbfs": -90.84922655931676
+      },
+      {
+        "start": 26.0,
+        "estimated_vocal_rms_dbfs": -92.12923036172018
+      },
+      {
+        "start": 27.0,
+        "estimated_vocal_rms_dbfs": -87.1961302415376
+      },
+      {
+        "start": 28.0,
+        "estimated_vocal_rms_dbfs": -96.599628142093
+      },
+      {
+        "start": 29.0,
+        "estimated_vocal_rms_dbfs": -112.5991313060713
+      },
+      {
+        "start": 30.0,
+        "estimated_vocal_rms_dbfs": -105.87634662364792
+      },
+      {
+        "start": 31.0,
+        "estimated_vocal_rms_dbfs": -109.06644516626628
+      },
+      {
+        "start": 32.0,
+        "estimated_vocal_rms_dbfs": -120.73954821731759
+      },
+      {
+        "start": 33.0,
+        "estimated_vocal_rms_dbfs": -120.87377589749266
+      },
+      {
+        "start": 34.0,
+        "estimated_vocal_rms_dbfs": -114.42094540579572
+      },
+      {
+        "start": 35.0,
+        "estimated_vocal_rms_dbfs": -122.74390172991609
+      },
+      {
+        "start": 36.0,
+        "estimated_vocal_rms_dbfs": -110.13855182225018
+      },
+      {
+        "start": 37.0,
+        "estimated_vocal_rms_dbfs": -124.04930762036501
+      },
+      {
+        "start": 38.0,
+        "estimated_vocal_rms_dbfs": -96.7376702318617
+      },
+      {
+        "start": 39.0,
+        "estimated_vocal_rms_dbfs": -93.8422178174848
+      },
+      {
+        "start": 40.0,
+        "estimated_vocal_rms_dbfs": -85.36000373183285
+      },
+      {
+        "start": 41.0,
+        "estimated_vocal_rms_dbfs": -89.33740753796309
+      },
+      {
+        "start": 42.0,
+        "estimated_vocal_rms_dbfs": -70.76658141744721
+      },
+      {
+        "start": 43.0,
+        "estimated_vocal_rms_dbfs": -59.58131147473105
+      },
+      {
+        "start": 44.0,
+        "estimated_vocal_rms_dbfs": -116.40318743364102
+      },
+      {
+        "start": 45.0,
+        "estimated_vocal_rms_dbfs": -111.60702748280397
+      },
+      {
+        "start": 46.0,
+        "estimated_vocal_rms_dbfs": -87.85356385080433
+      },
+      {
+        "start": 47.0,
+        "estimated_vocal_rms_dbfs": -85.63057691458854
+      },
+      {
+        "start": 48.0,
+        "estimated_vocal_rms_dbfs": -113.11325801452327
+      },
+      {
+        "start": 49.0,
+        "estimated_vocal_rms_dbfs": -119.09627420244533
+      },
+      {
+        "start": 50.0,
+        "estimated_vocal_rms_dbfs": -96.07849294551158
+      },
+      {
+        "start": 51.0,
+        "estimated_vocal_rms_dbfs": -92.49205341750694
+      },
+      {
+        "start": 52.0,
+        "estimated_vocal_rms_dbfs": -103.91843222066521
+      },
+      {
+        "start": 53.0,
+        "estimated_vocal_rms_dbfs": -94.53733323316057
+      },
+      {
+        "start": 54.0,
+        "estimated_vocal_rms_dbfs": -80.46331407259352
+      },
+      {
+        "start": 55.0,
+        "estimated_vocal_rms_dbfs": -93.195830140254
+      },
+      {
+        "start": 56.0,
+        "estimated_vocal_rms_dbfs": -70.86291152928342
+      },
+      {
+        "start": 57.0,
+        "estimated_vocal_rms_dbfs": -75.24733925528359
+      },
+      {
+        "start": 58.0,
+        "estimated_vocal_rms_dbfs": -70.89279828838387
+      },
+      {
+        "start": 59.0,
+        "estimated_vocal_rms_dbfs": -75.37396214174593
+      },
+      {
+        "start": 60.0,
+        "estimated_vocal_rms_dbfs": -64.97126690456169
+      },
+      {
+        "start": 61.0,
+        "estimated_vocal_rms_dbfs": -58.064290331997
+      },
+      {
+        "start": 62.0,
+        "estimated_vocal_rms_dbfs": -62.59545687360992
+      },
+      {
+        "start": 63.0,
+        "estimated_vocal_rms_dbfs": -64.78357155641318
+      },
+      {
+        "start": 64.0,
+        "estimated_vocal_rms_dbfs": -57.66733342344927
+      },
+      {
+        "start": 65.0,
+        "estimated_vocal_rms_dbfs": -66.94878359456655
+      },
+      {
+        "start": 66.0,
+        "estimated_vocal_rms_dbfs": -65.79708378064979
+      },
+      {
+        "start": 67.0,
+        "estimated_vocal_rms_dbfs": -60.39934243184896
+      },
+      {
+        "start": 68.0,
+        "estimated_vocal_rms_dbfs": -64.44050292318701
+      },
+      {
+        "start": 69.0,
+        "estimated_vocal_rms_dbfs": -63.92695731961482
+      },
+      {
+        "start": 70.0,
+        "estimated_vocal_rms_dbfs": -70.90627561313612
+      },
+      {
+        "start": 71.0,
+        "estimated_vocal_rms_dbfs": -52.674721904511074
+      },
+      {
+        "start": 72.0,
+        "estimated_vocal_rms_dbfs": -64.6112574116968
+      },
+      {
+        "start": 73.0,
+        "estimated_vocal_rms_dbfs": -64.89065343471319
+      },
+      {
+        "start": 74.0,
+        "estimated_vocal_rms_dbfs": -64.32355482319176
+      },
+      {
+        "start": 75.0,
+        "estimated_vocal_rms_dbfs": -80.81037525444187
+      },
+      {
+        "start": 76.0,
+        "estimated_vocal_rms_dbfs": -67.58046839310434
+      },
+      {
+        "start": 77.0,
+        "estimated_vocal_rms_dbfs": -66.9015087391444
+      },
+      {
+        "start": 78.0,
+        "estimated_vocal_rms_dbfs": -75.81897394979241
+      },
+      {
+        "start": 79.0,
+        "estimated_vocal_rms_dbfs": -76.25108108636199
+      },
+      {
+        "start": 80.0,
+        "estimated_vocal_rms_dbfs": -76.25833479439221
+      },
+      {
+        "start": 81.0,
+        "estimated_vocal_rms_dbfs": -65.59927515222876
+      },
+      {
+        "start": 82.0,
+        "estimated_vocal_rms_dbfs": -66.59125047535751
+      },
+      {
+        "start": 83.0,
+        "estimated_vocal_rms_dbfs": -81.84135755222238
+      },
+      {
+        "start": 84.0,
+        "estimated_vocal_rms_dbfs": -70.79132253687901
+      },
+      {
+        "start": 85.0,
+        "estimated_vocal_rms_dbfs": -70.70772476924553
+      },
+      {
+        "start": 86.0,
+        "estimated_vocal_rms_dbfs": -67.73465765461013
+      },
+      {
+        "start": 87.0,
+        "estimated_vocal_rms_dbfs": -62.397569205057735
+      },
+      {
+        "start": 88.0,
+        "estimated_vocal_rms_dbfs": -59.812930497166626
+      },
+      {
+        "start": 89.0,
+        "estimated_vocal_rms_dbfs": -74.7129441109609
+      },
+      {
+        "start": 90.0,
+        "estimated_vocal_rms_dbfs": -71.9177362081423
+      },
+      {
+        "start": 91.0,
+        "estimated_vocal_rms_dbfs": -65.07798796745396
+      },
+      {
+        "start": 92.0,
+        "estimated_vocal_rms_dbfs": -61.802203711442125
+      },
+      {
+        "start": 93.0,
+        "estimated_vocal_rms_dbfs": -67.0517396963422
+      },
+      {
+        "start": 94.0,
+        "estimated_vocal_rms_dbfs": -63.92901967550557
+      },
+      {
+        "start": 95.0,
+        "estimated_vocal_rms_dbfs": -65.84608406754197
+      },
+      {
+        "start": 96.0,
+        "estimated_vocal_rms_dbfs": -65.08563130202202
+      },
+      {
+        "start": 97.0,
+        "estimated_vocal_rms_dbfs": -59.54703368122288
+      },
+      {
+        "start": 98.0,
+        "estimated_vocal_rms_dbfs": -65.99108444844008
+      },
+      {
+        "start": 99.0,
+        "estimated_vocal_rms_dbfs": -66.08094913542546
+      },
+      {
+        "start": 100.0,
+        "estimated_vocal_rms_dbfs": -63.40018160239395
+      },
+      {
+        "start": 101.0,
+        "estimated_vocal_rms_dbfs": -79.26172916187716
+      },
+      {
+        "start": 102.0,
+        "estimated_vocal_rms_dbfs": -69.20677917195368
+      },
+      {
+        "start": 103.0,
+        "estimated_vocal_rms_dbfs": -67.6813772682168
+      },
+      {
+        "start": 104.0,
+        "estimated_vocal_rms_dbfs": -75.14081493250283
+      },
+      {
+        "start": 105.0,
+        "estimated_vocal_rms_dbfs": -60.997767458646415
+      },
+      {
+        "start": 106.0,
+        "estimated_vocal_rms_dbfs": -67.8920162371299
+      },
+      {
+        "start": 107.0,
+        "estimated_vocal_rms_dbfs": -71.22956881127264
+      },
+      {
+        "start": 108.0,
+        "estimated_vocal_rms_dbfs": -71.03319676358315
+      },
+      {
+        "start": 109.0,
+        "estimated_vocal_rms_dbfs": -72.38881783749687
+      },
+      {
+        "start": 110.0,
+        "estimated_vocal_rms_dbfs": -69.48742129857601
+      },
+      {
+        "start": 111.0,
+        "estimated_vocal_rms_dbfs": -81.94982467214238
+      },
+      {
+        "start": 112.0,
+        "estimated_vocal_rms_dbfs": -67.66590044857794
+      },
+      {
+        "start": 113.0,
+        "estimated_vocal_rms_dbfs": -68.779624600185
+      },
+      {
+        "start": 114.0,
+        "estimated_vocal_rms_dbfs": -79.16731476573808
+      },
+      {
+        "start": 115.0,
+        "estimated_vocal_rms_dbfs": -72.55472444117537
+      },
+      {
+        "start": 116.0,
+        "estimated_vocal_rms_dbfs": -92.0181419241648
+      },
+      {
+        "start": 117.0,
+        "estimated_vocal_rms_dbfs": -90.14731784377918
+      },
+      {
+        "start": 118.0,
+        "estimated_vocal_rms_dbfs": -93.08492481645797
+      },
+      {
+        "start": 119.0,
+        "estimated_vocal_rms_dbfs": -97.14486617259816
+      },
+      {
+        "start": 120.0,
+        "estimated_vocal_rms_dbfs": -92.21165399506572
+      },
+      {
+        "start": 121.0,
+        "estimated_vocal_rms_dbfs": -94.51396667701628
+      },
+      {
+        "start": 122.0,
+        "estimated_vocal_rms_dbfs": -100.095584414689
+      },
+      {
+        "start": 123.0,
+        "estimated_vocal_rms_dbfs": -96.24852675966572
+      },
+      {
+        "start": 124.0,
+        "estimated_vocal_rms_dbfs": -86.80626015046273
+      },
+      {
+        "start": 125.0,
+        "estimated_vocal_rms_dbfs": -84.96394005800036
+      },
+      {
+        "start": 126.0,
+        "estimated_vocal_rms_dbfs": -91.83993094789771
+      },
+      {
+        "start": 127.0,
+        "estimated_vocal_rms_dbfs": -84.89439289621309
+      },
+      {
+        "start": 128.0,
+        "estimated_vocal_rms_dbfs": -90.77973115706334
+      },
+      {
+        "start": 129.0,
+        "estimated_vocal_rms_dbfs": -93.36120946442422
+      },
+      {
+        "start": 130.0,
+        "estimated_vocal_rms_dbfs": -108.26929765926572
+      },
+      {
+        "start": 131.0,
+        "estimated_vocal_rms_dbfs": -93.23485652598339
+      },
+      {
+        "start": 132.0,
+        "estimated_vocal_rms_dbfs": -99.59940809955135
+      },
+      {
+        "start": 133.0,
+        "estimated_vocal_rms_dbfs": -110.47191813110223
+      },
+      {
+        "start": 134.0,
+        "estimated_vocal_rms_dbfs": -104.95164448788842
+      },
+      {
+        "start": 135.0,
+        "estimated_vocal_rms_dbfs": -106.42530223939494
+      },
+      {
+        "start": 136.0,
+        "estimated_vocal_rms_dbfs": -79.57391086299177
+      },
+      {
+        "start": 137.0,
+        "estimated_vocal_rms_dbfs": -92.25791484370575
+      },
+      {
+        "start": 138.0,
+        "estimated_vocal_rms_dbfs": -78.78918292272034
+      },
+      {
+        "start": 139.0,
+        "estimated_vocal_rms_dbfs": -80.54422988150932
+      },
+      {
+        "start": 140.0,
+        "estimated_vocal_rms_dbfs": -79.08506834097335
+      },
+      {
+        "start": 141.0,
+        "estimated_vocal_rms_dbfs": -95.64991698417138
+      },
+      {
+        "start": 142.0,
+        "estimated_vocal_rms_dbfs": -79.96510817886877
+      },
+      {
+        "start": 143.0,
+        "estimated_vocal_rms_dbfs": -78.71216168041457
+      },
+      {
+        "start": 144.0,
+        "estimated_vocal_rms_dbfs": -90.57118378547038
+      },
+      {
+        "start": 145.0,
+        "estimated_vocal_rms_dbfs": -82.68128218370954
+      },
+      {
+        "start": 146.0,
+        "estimated_vocal_rms_dbfs": -57.39510676248273
+      },
+      {
+        "start": 147.0,
+        "estimated_vocal_rms_dbfs": -57.24705686907125
+      },
+      {
+        "start": 148.0,
+        "estimated_vocal_rms_dbfs": -64.24162298128975
+      },
+      {
+        "start": 149.0,
+        "estimated_vocal_rms_dbfs": -74.60631296863279
+      },
+      {
+        "start": 150.0,
+        "estimated_vocal_rms_dbfs": -91.1021578446666
+      },
+      {
+        "start": 151.0,
+        "estimated_vocal_rms_dbfs": -85.33906681365332
+      },
+      {
+        "start": 152.0,
+        "estimated_vocal_rms_dbfs": -76.72523597894488
+      },
+      {
+        "start": 153.0,
+        "estimated_vocal_rms_dbfs": -71.9155926206293
+      },
+      {
+        "start": 154.0,
+        "estimated_vocal_rms_dbfs": -115.76010231187351
+      },
+      {
+        "start": 155.0,
+        "estimated_vocal_rms_dbfs": -99.93024464412238
+      },
+      {
+        "start": 156.0,
+        "estimated_vocal_rms_dbfs": -85.01296949493022
+      },
+      {
+        "start": 157.0,
+        "estimated_vocal_rms_dbfs": -83.52811748843101
+      },
+      {
+        "start": 158.0,
+        "estimated_vocal_rms_dbfs": -95.4415964372052
+      },
+      {
+        "start": 159.0,
+        "estimated_vocal_rms_dbfs": -88.9647986101406
+      },
+      {
+        "start": 160.0,
+        "estimated_vocal_rms_dbfs": -88.45113231452092
+      },
+      {
+        "start": 161.0,
+        "estimated_vocal_rms_dbfs": -110.07357314167406
+      },
+      {
+        "start": 162.0,
+        "estimated_vocal_rms_dbfs": -88.76137977732087
+      },
+      {
+        "start": 163.0,
+        "estimated_vocal_rms_dbfs": -83.11361734716465
+      },
+      {
+        "start": 164.0,
+        "estimated_vocal_rms_dbfs": -89.1655853118926
+      },
+      {
+        "start": 165.0,
+        "estimated_vocal_rms_dbfs": -108.16205112469147
+      },
+      {
+        "start": 166.0,
+        "estimated_vocal_rms_dbfs": -114.60956388080976
+      },
+      {
+        "start": 167.0,
+        "estimated_vocal_rms_dbfs": -73.99640135602561
+      },
+      {
+        "start": 168.0,
+        "estimated_vocal_rms_dbfs": -108.41528282075494
+      },
+      {
+        "start": 169.0,
+        "estimated_vocal_rms_dbfs": -119.93678266932291
+      },
+      {
+        "start": 170.0,
+        "estimated_vocal_rms_dbfs": -95.12617123212405
+      },
+      {
+        "start": 171.0,
+        "estimated_vocal_rms_dbfs": -124.95826692128577
+      },
+      {
+        "start": 172.0,
+        "estimated_vocal_rms_dbfs": -128.63352957854968
+      },
+      {
+        "start": 173.0,
+        "estimated_vocal_rms_dbfs": -125.95481750195155
+      },
+      {
+        "start": 174.0,
+        "estimated_vocal_rms_dbfs": -127.07748441819245
+      },
+      {
+        "start": 175.0,
+        "estimated_vocal_rms_dbfs": -118.29040331390958
+      },
+      {
+        "start": 176.0,
+        "estimated_vocal_rms_dbfs": -117.36283983732375
+      },
+      {
+        "start": 177.0,
+        "estimated_vocal_rms_dbfs": -75.80342874656759
+      },
+      {
+        "start": 178.0,
+        "estimated_vocal_rms_dbfs": -78.85449560160085
+      },
+      {
+        "start": 179.0,
+        "estimated_vocal_rms_dbfs": -83.31783466987659
+      },
+      {
+        "start": 180.0,
+        "estimated_vocal_rms_dbfs": -80.4737724013793
+      },
+      {
+        "start": 181.0,
+        "estimated_vocal_rms_dbfs": -70.73720110458949
+      },
+      {
+        "start": 182.0,
+        "estimated_vocal_rms_dbfs": -77.8679146110187
+      },
+      {
+        "start": 183.0,
+        "estimated_vocal_rms_dbfs": -77.4673734564862
+      },
+      {
+        "start": 184.0,
+        "estimated_vocal_rms_dbfs": -64.40603465256888
+      },
+      {
+        "start": 185.0,
+        "estimated_vocal_rms_dbfs": -65.93473081290524
+      },
+      {
+        "start": 186.0,
+        "estimated_vocal_rms_dbfs": -68.75351388318171
+      },
+      {
+        "start": 187.0,
+        "estimated_vocal_rms_dbfs": -56.603841000340374
+      },
+      {
+        "start": 188.0,
+        "estimated_vocal_rms_dbfs": -71.63898945218523
+      },
+      {
+        "start": 189.0,
+        "estimated_vocal_rms_dbfs": -65.17735917546113
+      },
+      {
+        "start": 190.0,
+        "estimated_vocal_rms_dbfs": -71.18414488533799
+      },
+      {
+        "start": 191.0,
+        "estimated_vocal_rms_dbfs": -73.04722030388132
+      },
+      {
+        "start": 192.0,
+        "estimated_vocal_rms_dbfs": -84.01141606137507
+      },
+      {
+        "start": 193.0,
+        "estimated_vocal_rms_dbfs": -68.6392028060913
+      },
+      {
+        "start": 194.0,
+        "estimated_vocal_rms_dbfs": -64.8602926583698
+      },
+      {
+        "start": 195.0,
+        "estimated_vocal_rms_dbfs": -66.7984540226785
+      },
+      {
+        "start": 196.0,
+        "estimated_vocal_rms_dbfs": -63.37075763413328
+      },
+      {
+        "start": 197.0,
+        "estimated_vocal_rms_dbfs": -70.8255825537913
+      },
+      {
+        "start": 198.0,
+        "estimated_vocal_rms_dbfs": -63.16947157605867
+      },
+      {
+        "start": 199.0,
+        "estimated_vocal_rms_dbfs": -56.38821740726194
+      },
+      {
+        "start": 200.0,
+        "estimated_vocal_rms_dbfs": -81.45336591748523
+      },
+      {
+        "start": 201.0,
+        "estimated_vocal_rms_dbfs": -70.42839833171736
+      },
+      {
+        "start": 202.0,
+        "estimated_vocal_rms_dbfs": -63.30518756867076
+      },
+      {
+        "start": 203.0,
+        "estimated_vocal_rms_dbfs": -53.62562503769769
+      },
+      {
+        "start": 204.0,
+        "estimated_vocal_rms_dbfs": -63.12509461340255
+      },
+      {
+        "start": 205.0,
+        "estimated_vocal_rms_dbfs": -74.12133973808231
+      },
+      {
+        "start": 206.0,
+        "estimated_vocal_rms_dbfs": -63.19502531095846
+      },
+      {
+        "start": 207.0,
+        "estimated_vocal_rms_dbfs": -71.52331446871911
+      },
+      {
+        "start": 208.0,
+        "estimated_vocal_rms_dbfs": -65.19932096451339
+      },
+      {
+        "start": 209.0,
+        "estimated_vocal_rms_dbfs": -60.8558609329142
+      },
+      {
+        "start": 210.0,
+        "estimated_vocal_rms_dbfs": -65.29556013265326
+      },
+      {
+        "start": 211.0,
+        "estimated_vocal_rms_dbfs": -63.859695532758266
+      },
+      {
+        "start": 212.0,
+        "estimated_vocal_rms_dbfs": -77.76231621982252
+      },
+      {
+        "start": 213.0,
+        "estimated_vocal_rms_dbfs": -64.17390545524303
+      },
+      {
+        "start": 214.0,
+        "estimated_vocal_rms_dbfs": -77.19103028203705
+      },
+      {
+        "start": 215.0,
+        "estimated_vocal_rms_dbfs": -77.93190063485835
+      },
+      {
+        "start": 216.0,
+        "estimated_vocal_rms_dbfs": -63.77436213309237
+      },
+      {
+        "start": 217.0,
+        "estimated_vocal_rms_dbfs": -64.25242561364314
+      },
+      {
+        "start": 218.0,
+        "estimated_vocal_rms_dbfs": -64.4016675538462
+      },
+      {
+        "start": 219.0,
+        "estimated_vocal_rms_dbfs": -75.95007254569369
+      },
+      {
+        "start": 220.0,
+        "estimated_vocal_rms_dbfs": -78.23631320695958
+      },
+      {
+        "start": 221.0,
+        "estimated_vocal_rms_dbfs": -63.62570804202911
+      },
+      {
+        "start": 222.0,
+        "estimated_vocal_rms_dbfs": -63.97125714083366
+      },
+      {
+        "start": 223.0,
+        "estimated_vocal_rms_dbfs": -62.66292878808202
+      },
+      {
+        "start": 224.0,
+        "estimated_vocal_rms_dbfs": -55.68395858338817
+      },
+      {
+        "start": 225.0,
+        "estimated_vocal_rms_dbfs": -59.56546485261987
+      },
+      {
+        "start": 226.0,
+        "estimated_vocal_rms_dbfs": -54.960023603688015
+      },
+      {
+        "start": 227.0,
+        "estimated_vocal_rms_dbfs": -79.6857541665072
+      },
+      {
+        "start": 228.0,
+        "estimated_vocal_rms_dbfs": -74.48361993974429
+      },
+      {
+        "start": 229.0,
+        "estimated_vocal_rms_dbfs": -85.28532023796885
+      },
+      {
+        "start": 230.0,
+        "estimated_vocal_rms_dbfs": -76.90294221854127
+      },
+      {
+        "start": 231.0,
+        "estimated_vocal_rms_dbfs": -83.06019142011264
+      },
+      {
+        "start": 232.0,
+        "estimated_vocal_rms_dbfs": -84.30063861060191
+      },
+      {
+        "start": 233.0,
+        "estimated_vocal_rms_dbfs": -79.1157412816644
+      },
+      {
+        "start": 234.0,
+        "estimated_vocal_rms_dbfs": -71.23678155348233
+      },
+      {
+        "start": 235.0,
+        "estimated_vocal_rms_dbfs": -66.18023308665194
+      },
+      {
+        "start": 236.0,
+        "estimated_vocal_rms_dbfs": -68.14238223306079
+      },
+      {
+        "start": 237.0,
+        "estimated_vocal_rms_dbfs": -68.56348060976836
+      },
+      {
+        "start": 238.0,
+        "estimated_vocal_rms_dbfs": -60.71840596520438
+      },
+      {
+        "start": 239.0,
+        "estimated_vocal_rms_dbfs": -74.70568049184767
+      },
+      {
+        "start": 240.0,
+        "estimated_vocal_rms_dbfs": -70.5574902857924
+      },
+      {
+        "start": 241.0,
+        "estimated_vocal_rms_dbfs": -68.29041853728594
+      },
+      {
+        "start": 242.0,
+        "estimated_vocal_rms_dbfs": -68.17554953633515
+      },
+      {
+        "start": 243.0,
+        "estimated_vocal_rms_dbfs": -76.49429825535348
+      },
+      {
+        "start": 244.0,
+        "estimated_vocal_rms_dbfs": -61.177852289103775
+      },
+      {
+        "start": 245.0,
+        "estimated_vocal_rms_dbfs": -63.475311596557155
+      },
+      {
+        "start": 246.0,
+        "estimated_vocal_rms_dbfs": -66.76606863111334
+      },
+      {
+        "start": 247.0,
+        "estimated_vocal_rms_dbfs": -58.14268344185352
+      },
+      {
+        "start": 248.0,
+        "estimated_vocal_rms_dbfs": -65.87819033654802
+      },
+      {
+        "start": 249.0,
+        "estimated_vocal_rms_dbfs": -70.20559496676067
+      },
+      {
+        "start": 250.0,
+        "estimated_vocal_rms_dbfs": -64.54099087088966
+      },
+      {
+        "start": 251.0,
+        "estimated_vocal_rms_dbfs": -66.83933698017083
+      },
+      {
+        "start": 252.0,
+        "estimated_vocal_rms_dbfs": -68.14566788226475
+      },
+      {
+        "start": 253.0,
+        "estimated_vocal_rms_dbfs": -81.50605576442203
+      },
+      {
+        "start": 254.0,
+        "estimated_vocal_rms_dbfs": -67.64051446374341
+      },
+      {
+        "start": 255.0,
+        "estimated_vocal_rms_dbfs": -66.8384700659034
+      },
+      {
+        "start": 256.0,
+        "estimated_vocal_rms_dbfs": -65.24549020783799
+      },
+      {
+        "start": 257.0,
+        "estimated_vocal_rms_dbfs": -60.56030014496649
+      },
+      {
+        "start": 258.0,
+        "estimated_vocal_rms_dbfs": -65.73081449314455
+      },
+      {
+        "start": 259.0,
+        "estimated_vocal_rms_dbfs": -61.34388315377321
+      },
+      {
+        "start": 260.0,
+        "estimated_vocal_rms_dbfs": -64.09652308053401
+      },
+      {
+        "start": 261.0,
+        "estimated_vocal_rms_dbfs": -58.88150842488059
+      },
+      {
+        "start": 262.0,
+        "estimated_vocal_rms_dbfs": -56.89462258874415
+      },
+      {
+        "start": 263.0,
+        "estimated_vocal_rms_dbfs": -65.59616696582306
+      },
+      {
+        "start": 264.0,
+        "estimated_vocal_rms_dbfs": -59.75837350393681
+      },
+      {
+        "start": 265.0,
+        "estimated_vocal_rms_dbfs": -53.29762152592202
+      },
+      {
+        "start": 266.0,
+        "estimated_vocal_rms_dbfs": -61.86892217126722
+      },
+      {
+        "start": 267.0,
+        "estimated_vocal_rms_dbfs": -63.426909854884116
+      },
+      {
+        "start": 268.0,
+        "estimated_vocal_rms_dbfs": -62.13845504460514
+      },
+      {
+        "start": 269.0,
+        "estimated_vocal_rms_dbfs": -70.60991464560783
+      },
+      {
+        "start": 270.0,
+        "estimated_vocal_rms_dbfs": -57.433484601602004
+      },
+      {
+        "start": 271.0,
+        "estimated_vocal_rms_dbfs": -70.49555940197365
+      },
+      {
+        "start": 272.0,
+        "estimated_vocal_rms_dbfs": -64.23544131943883
+      },
+      {
+        "start": 273.0,
+        "estimated_vocal_rms_dbfs": -62.48840814799899
+      },
+      {
+        "start": 274.0,
+        "estimated_vocal_rms_dbfs": -56.66821614913957
+      },
+      {
+        "start": 275.0,
+        "estimated_vocal_rms_dbfs": -65.57194741614185
+      },
+      {
+        "start": 276.0,
+        "estimated_vocal_rms_dbfs": -66.90097567169377
+      },
+      {
+        "start": 277.0,
+        "estimated_vocal_rms_dbfs": -63.20859521993277
+      },
+      {
+        "start": 278.0,
+        "estimated_vocal_rms_dbfs": -68.87382762381128
+      },
+      {
+        "start": 279.0,
+        "estimated_vocal_rms_dbfs": -58.32536014878892
+      },
+      {
+        "start": 280.0,
+        "estimated_vocal_rms_dbfs": -66.95485763369811
+      },
+      {
+        "start": 281.0,
+        "estimated_vocal_rms_dbfs": -58.990754232939075
+      },
+      {
+        "start": 282.0,
+        "estimated_vocal_rms_dbfs": -60.111113665154804
+      },
+      {
+        "start": 283.0,
+        "estimated_vocal_rms_dbfs": -68.77590104844857
+      },
+      {
+        "start": 284.0,
+        "estimated_vocal_rms_dbfs": -70.85278166741745
+      },
+      {
+        "start": 285.0,
+        "estimated_vocal_rms_dbfs": -73.10981733321897
+      },
+      {
+        "start": 286.0,
+        "estimated_vocal_rms_dbfs": -63.672850226669325
+      },
+      {
+        "start": 287.0,
+        "estimated_vocal_rms_dbfs": -70.61717636747015
+      },
+      {
+        "start": 288.0,
+        "estimated_vocal_rms_dbfs": -71.75694249381634
+      },
+      {
+        "start": 289.0,
+        "estimated_vocal_rms_dbfs": -75.24609611965789
+      },
+      {
+        "start": 290.0,
+        "estimated_vocal_rms_dbfs": -72.95834889209863
+      },
+      {
+        "start": 291.0,
+        "estimated_vocal_rms_dbfs": -84.2978695362357
+      },
+      {
+        "start": 292.0,
+        "estimated_vocal_rms_dbfs": -78.22060061522566
+      },
+      {
+        "start": 293.0,
+        "estimated_vocal_rms_dbfs": -85.78202103206075
+      },
+      {
+        "start": 294.0,
+        "estimated_vocal_rms_dbfs": -88.42425933524574
+      },
+      {
+        "start": 295.0,
+        "estimated_vocal_rms_dbfs": -90.37372182379919
+      },
+      {
+        "start": 296.0,
+        "estimated_vocal_rms_dbfs": -99.41010017433089
+      },
+      {
+        "start": 297.0,
+        "estimated_vocal_rms_dbfs": -100.45808759935566
+      },
+      {
+        "start": 298.0,
+        "estimated_vocal_rms_dbfs": -119.02770443926735
+      },
+      {
+        "start": 299.0,
+        "estimated_vocal_rms_dbfs": -113.68714301070895
+      },
+      {
+        "start": 300.0,
+        "estimated_vocal_rms_dbfs": -110.6651749969019
+      },
+      {
+        "start": 301.0,
+        "estimated_vocal_rms_dbfs": -109.76993767398406
+      },
+      {
+        "start": 302.0,
+        "estimated_vocal_rms_dbfs": -109.78591309012492
+      },
+      {
+        "start": 303.0,
+        "estimated_vocal_rms_dbfs": -110.92615348876097
+      },
+      {
+        "start": 304.0,
+        "estimated_vocal_rms_dbfs": -111.20556587558616
+      },
+      {
+        "start": 305.0,
+        "estimated_vocal_rms_dbfs": -105.81547025487842
+      }
+    ],
+    "warning": "This model can classify instruments as voice. Its output is not isolated ground truth."
+  },
+  "selected_preset": {
+    "id": "atlas_studio_v2",
+    "name": "Atlas Studio V2",
+    "revision": "ezo-residual-vocal-control-v1",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297",
+        "estimate": "vocal",
+        "weight": 0.55
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+        "estimate": "vocal",
+        "weight": 0.25
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa",
+        "estimate": "inst",
+        "weight": 0.2
+      }
+    ],
+    "inference_passes": [
+      {
+        "transform": "identity",
+        "weight": 1.0
+      }
+    ],
+    "validation": {
+      "status": "ezo_local_diagnostics",
+      "report": "docs/atlas-studio-v2-ezo-check.json",
+      "scope": "Tuned only on Nurettin Rencber - Ezo. Full-record correction, independent-model residual probe and activity-protected instrumental sections. No isolated reference stems: true SDR, zero music loss and zero vocal leakage are not established."
+    },
+    "target": "instrumental",
+    "residual_cleanup": {
+      "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa",
+      "strength": 1.0,
+      "voice_reference_model_key": "BS-Roformer-Viperx-1297",
+      "activity_floor_db": -32.0,
+      "activity_full_db": -18.0
+    }
+  },
+  "asr_diagnostics": {
+    "original": [
+      {
+        "start": 40,
+        "recognized_token_count": 9,
+        "reference_match_count": null,
+        "usable_lyric_reference": true
+      },
+      {
+        "start": 80,
+        "recognized_token_count": 8,
+        "reference_match_count": null,
+        "usable_lyric_reference": true
+      },
+      {
+        "start": 140,
+        "recognized_token_count": 1,
+        "reference_match_count": null,
+        "usable_lyric_reference": false
+      },
+      {
+        "start": 220,
+        "recognized_token_count": 4,
+        "reference_match_count": null,
+        "usable_lyric_reference": true
+      }
+    ],
+    "previous_full": [
+      {
+        "start": 40,
+        "recognized_token_count": 1,
+        "reference_match_count": 0,
+        "usable_lyric_reference": true
+      },
+      {
+        "start": 80,
+        "recognized_token_count": 1,
+        "reference_match_count": 0,
+        "usable_lyric_reference": true
+      },
+      {
+        "start": 140,
+        "recognized_token_count": 1,
+        "reference_match_count": 1,
+        "usable_lyric_reference": false
+      },
+      {
+        "start": 220,
+        "recognized_token_count": 1,
+        "reference_match_count": 0,
+        "usable_lyric_reference": true
+      }
+    ],
+    "strict_full": [
+      {
+        "start": 40,
+        "recognized_token_count": 1,
+        "reference_match_count": 0,
+        "usable_lyric_reference": true
+      },
+      {
+        "start": 80,
+        "recognized_token_count": 1,
+        "reference_match_count": 0,
+        "usable_lyric_reference": true
+      },
+      {
+        "start": 140,
+        "recognized_token_count": 1,
+        "reference_match_count": 1,
+        "usable_lyric_reference": false
+      },
+      {
+        "start": 220,
+        "recognized_token_count": 1,
+        "reference_match_count": 0,
+        "usable_lyric_reference": true
+      }
+    ],
+    "interpretation": "Both old and new outputs had no reference-lyric matches on the three usable voiced test clips. This does not establish zero voice; ASR was not used as a quality score."
+  },
+  "claim_limits": {
+    "zero_vocal_leakage_verified": false,
+    "zero_instrumental_loss_verified": false,
+    "actual_sdr_score_available": false,
+    "generalizes_to_other_songs_verified": false
+  },
+  "runtime_live_check": {
+    "passed": true,
+    "task_id": "ac4c8dd4-b10f-4ec3-a740-028c9480f4b7",
+    "revision": "ezo-residual-vocal-control-v1",
+    "sum_max_abs_error": 2.9802322387695312e-08,
+    "frames": 132300,
+    "backend_pid_unchanged": true,
+    "files": [
+      "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\outputs\\AtlasStudioV2_Vocals_ab3fb881b0c1.wav",
+      "C:\\Users\\user\\Desktop\\UVR5-UI-1.8.4\\outputs\\AtlasStudioV2_Instrumental_ab3fb881b0c1.wav"
+    ]
+  }
+}

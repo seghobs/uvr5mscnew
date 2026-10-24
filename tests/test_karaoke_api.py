@@ -18,6 +18,7 @@ from fastapi import BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from local_projects import ProjectStore
+from task_cancellation import TaskCancellation
 from karaoke_timing import repair_timing, timing_issues, render_timing_issues
 
 
@@ -41,7 +42,7 @@ class ApiTests(unittest.TestCase):
         self.tasks = {}
         def create_task(extra=None):
             key = str(len(self.tasks)); self.tasks[key] = {'status': 'processing', **(extra or {})}; return key
-        self.ns = dict(globals(), project_store=ProjectStore(root/'projects'), FAVORITES_DB_PATH=root/'lyrics.db', OUTPUT_DIR=root,
+        self.ns = dict(globals(), task_cancellation=TaskCancellation(),project_store=ProjectStore(root/'projects'), FAVORITES_DB_PATH=root/'lyrics.db', OUTPUT_DIR=root,
                        tasks=self.tasks, tasks_lock=threading.Lock(),
                        _lyrics_data_lock=threading.RLock(), _lyrics_inference_lock=threading.RLock(),
                        _find_audio_file=lambda name: root/name, get_whisper_model=lambda name: object(),

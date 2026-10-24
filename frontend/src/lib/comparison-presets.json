@@ -1,0 +1,119 @@
+{
+  "lale_instrument": {
+    "name": "Lale — Enstrüman Koruma",
+    "prefix": "Lale",
+    "algorithm": "max_fft",
+    "description": "Deux + SW · Enstrüman detaylarını korumayı hedefler",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Deux by becruily"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer SW 6 Stem by jarredou"
+      }
+    ]
+  },
+  "sedef_clean": {
+    "name": "Sedef — Temiz Altyapı",
+    "prefix": "Sedef",
+    "algorithm": "uvr_max_spec",
+    "description": "Fv7z + Resurrection Inst · Vokal sızıntısını azaltmayı hedefler",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Fv7z Instrumental by Gabox"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa"
+      }
+    ]
+  },
+  "clean_music": {
+    "name": "Clean Music",
+    "prefix": "CleanMusic",
+    "algorithm": "median_spec",
+    "description": "Lale + Sedef + Atlas V1 · Üç altyapı sonucundan spektral uzlaşma",
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Deux by becruily"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer SW 6 Stem by jarredou"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Fv7z Instrumental by Gabox"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa"
+      }
+    ]
+  },
+  "clean_music_restore": {
+    "name": "Clean Music Restore",
+    "prefix": "CleanMusicRestore",
+    "algorithm": "residual_recovery",
+    "description": "Clean Music + Flüt / Keman / Üflemeli · Kontrollü enstrüman geri kazanımı",
+    "recovery_strength": 0.65,
+    "models": [
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Deux by becruily"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer SW 6 Stem by jarredou"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Fv7z Instrumental by Gabox"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Resurrection Instrumental by pcunwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS-Roformer-Viperx-1297"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | FT 2 Bleedless by unwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "MelBand Roformer Kim | Inst V2 by Unwa"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Mega Flute by MVSep (single head)"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Mega Violin by MVSep (single head)"
+      },
+      {
+        "model_type": "roformer",
+        "model_key": "BS Roformer Mega Wind by MVSep (single head)"
+      }
+    ]
+  }
+}

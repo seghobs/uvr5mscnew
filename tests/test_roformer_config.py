@@ -1,5 +1,33 @@
 import unittest
+import tempfile
+from pathlib import Path
 from roformer_config import compatible_single_target_config
+
+
+class LegacyCacheTests(unittest.TestCase):
+    def test_matching_legacy_pair_is_reused_without_altering_originals(self):
+        import torch
+        from safetensors.torch import save_file
+        from roformer_config import reuse_legacy_safetensors
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            save_file({'band_split.to_features.0.0.gamma': torch.ones(2)}, str(root/'model.safetensors'))
+            (root/'config.yaml').write_text('model:\n  freqs_per_bands: [2]\n')
+            target = root/'isolated'
+            self.assertTrue(reuse_legacy_safetensors(root, target))
+            self.assertEqual((target/'model.safetensors').read_bytes(), (root/'model.safetensors').read_bytes())
+            self.assertEqual((target/'config.yaml').read_bytes(), (root/'config.yaml').read_bytes())
+
+    def test_unrelated_config_is_not_copied(self):
+        import torch
+        from safetensors.torch import save_file
+        from roformer_config import reuse_legacy_safetensors
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            save_file({'band_split.to_features.0.0.gamma': torch.ones(2)}, str(root/'model.safetensors'))
+            (root/'config.yaml').write_text('model:\n  freqs_per_bands: [2, 2]\n')
+            self.assertFalse(reuse_legacy_safetensors(root, root/'isolated'))
+            self.assertFalse((root/'isolated').exists())
 
 
 class ConfigCompatibilityTests(unittest.TestCase):

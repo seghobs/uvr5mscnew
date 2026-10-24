@@ -39,6 +39,7 @@ interface StemAudioPlayerProps {
   lang: Language;
   accentColor: AccentColor;
   onNewStemCreated?: (filename: string) => void;
+  onTransferRequested?: (time:number) => void;
   onNotify: (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string) => void;
 }
 
@@ -48,11 +49,12 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
   lang,
   accentColor,
   onNewStemCreated,
+  onTransferRequested,
   onNotify,
 }) => {
   const t = (key: string) => getTranslation(lang, key);
   const stemAccent = {indigo:'183 161 245',emerald:'129 200 178',rose:'233 154 180',amber:'251 191 36',violet:'202 159 233'}[accentColor];
-  const toolButton = 'px-3 py-2 rounded-xl bg-white/[0.035] hover:bg-preset/10 text-slate-300 hover:text-preset border border-white/10 hover:border-preset/30 text-xs font-semibold transition-colors flex items-center gap-1.5 active:scale-95 disabled:opacity-50';
+  const toolButton = 'px-3 py-2 rounded-xl bg-white/[0.035] hover:bg-preset/10 text-slate-300 hover:text-preset border border-white/10 hover:border-preset/30 text-sm font-semibold transition-colors flex items-center gap-1.5 active:scale-95 disabled:opacity-50';
   const containerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WaveSurfer | null>(null);
 
@@ -62,6 +64,17 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [showKaraokeModal, setShowKaraokeModal] = useState(false);
+  useEffect(() => {
+    try {
+      const saved=sessionStorage.getItem('uvr-restart-player:'+stem);
+      if(saved){setShowKaraokeModal(!!JSON.parse(saved).karaoke);}
+    } catch {}
+  },[stem]);
+  useEffect(() => {
+    const capture=()=>sessionStorage.setItem('uvr-restart-player:'+stem,JSON.stringify({karaoke:showKaraokeModal,time:wsRef.current?.getCurrentTime() || 0}));
+    window.addEventListener('uvr-before-restart',capture);
+    return()=>window.removeEventListener('uvr-before-restart',capture);
+  },[stem,showKaraokeModal]);
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [showABCompareModal, setShowABCompareModal] = useState(false);
 
@@ -132,6 +145,10 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
 
     ws.on('ready', () => {
       setDuration(ws.getDuration());
+      try {
+        const saved=sessionStorage.getItem('uvr-restart-player:'+stem);
+        if(saved){ws.setTime(Math.min(JSON.parse(saved).time || 0,ws.getDuration()));sessionStorage.removeItem('uvr-restart-player:'+stem);}
+      } catch {}
       updateLivePlayback(0, playbackSettings.current.tempo);
     });
 
@@ -363,57 +380,116 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
       style={{'--preset-accent':stemAccent} as React.CSSProperties}
       className="stem-player border border-white/10 rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-preset/5 via-[#211d2b] to-[#191621] shadow-xl shadow-black/10 space-y-4 relative overflow-hidden"
     >
-      {/* ROW 1: Stem Identification Badge, Title & Key/BPM */}
-      <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/5">
-        <div className="flex flex-wrap items-center gap-3 min-w-0">
-          <div
-            className={toolButton}
-          >
-            {isVocal ? (
-              <>
-                <Mic className="w-4 h-4 text-preset fill-preset/20 shrink-0" />
-                <span>VOKAL (İNSAN SESİ)</span>
-              </>
-            ) : isInst ? (
-              <>
-                <Music className="w-4 h-4 text-preset shrink-0" />
-                <span>ENSTRÜMANTAL (MÜZİK)</span>
-              </>
-            ) : (
-              <>
-                <Music className="w-4 h-4 text-preset shrink-0" />
-                <span>AYRILMIŞ KANAL</span>
-              </>
-            )}
-          </div>
-
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="rounded-xl bg-preset/10 p-3 text-preset">{isVocal ? <Mic size={20} /> : <Music size={20} />}</div>
           <div className="min-w-0">
-            <h4 className="font-bold text-xs sm:text-sm text-white/90 truncate" title={stem}>
-              {stem}
-            </h4>
-            {analysis && (
-              <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 mt-1">
-                <span className="font-bold">🎼 {analysis.key} ({analysis.camelot})</span>
-                <span className="text-slate-600">•</span>
-                <span className="font-bold">⚡ {analysis.bpm} BPM</span>
-              </div>
-            )}
+            <h4 className="text-lg font-bold text-white">{isVocal ? (lang === 'tr' ? 'Vokal' : 'Vocals') : isInst ? (lang === 'tr' ? 'Enstrüman' : 'Instrumental') : (lang === 'tr' ? 'Ayrılmış kanal' : 'Separated track')}</h4>
+            <p className="mt-1 truncate text-sm text-slate-400" title={stem}>{stem}</p>
+            {analysis && <p className="mt-2 text-sm font-mono text-slate-300">{analysis.key} ({analysis.camelot}) · {analysis.bpm} BPM</p>}
           </div>
         </div>
-
-        {/* Quick Download icon top right */}
-        <a
-          href={`/output/${encodeURIComponent(stem)}`}
-          download={stem}
-          className="p-2.5 rounded-xl bg-white/[0.035] hover:bg-preset/10 border border-white/10 text-slate-400 hover:text-preset transition-colors active:scale-95 shrink-0"
-          title={t('Download')}
-        >
-          <Download className="w-4 h-4" />
+        <a href={`/output/${encodeURIComponent(stem)}`} download={stem}
+          className="flex shrink-0 items-center gap-2 rounded-xl border border-preset/30 bg-preset/10 px-3 py-2.5 text-sm font-semibold text-preset hover:bg-preset/20"
+          aria-label={lang === 'tr' ? 'Kanalı dışa aktar' : 'Export track'}>
+          <Download size={16} /><span className="hidden sm:inline">{lang === 'tr' ? 'Dışa aktar' : 'Export'}</span>
         </a>
       </div>
 
-      {/* ROW 2: Action Controls Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 pt-0.5">
+      {/* Waveform Player */}
+      <div className="track-playback">
+        {preparingPitch&&<p role="status" className="flex items-center gap-2 text-xs text-preset"><Loader2 size={14} className="animate-spin"/>{pitchProgress||'Ton hazırlanıyor · Tempo korunuyor…'}</p>}
+        {pitchError&&<div role="alert" className="text-xs text-rose-300">{pitchError} <button className="underline" onClick={()=>setPreviewRetry(value=>value+1)}>Tekrar dene</button></div>}
+        <div ref={containerRef} className="w-full cursor-pointer" />
+
+        {/* Player Controls */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-3">
+            {/* Play/Pause Button */}
+            <button
+              onClick={handleTogglePlay}
+              aria-label={isPlaying ? (lang === 'tr' ? 'Duraklat' : 'Pause') : (lang === 'tr' ? 'Dinle' : 'Play')}
+              disabled={preparingPitch||!!pitchError}
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-preset text-slate-950 hover:brightness-110 disabled:opacity-40"
+            >
+              {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+            </button>
+
+            {/* Time Indicator */}
+            <div className="text-sm font-mono text-slate-300">
+              <span className="text-white font-bold">{formatTime(currentTime)}</span> /{' '}
+              <span>{formatTime(duration)}</span>
+            </div>
+          </div>
+
+          {/* Volume Control */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleToggleMute}
+              aria-label={isMuted ? (lang === 'tr' ? 'Sesi aç' : 'Unmute') : (lang === 'tr' ? 'Sesi kapat' : 'Mute')}
+              className="rounded-lg p-2 text-slate-300 hover:text-white transition-colors"
+            >
+              {isMuted || volume === 0 ? (
+                <VolumeX className="w-4 h-4 text-rose-400" />
+              ) : (
+                <Volume2 className="w-4 h-4" />
+              )}
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              aria-label={lang === 'tr' ? 'Ses seviyesi' : 'Volume'}
+              value={isMuted ? 0 : volume}
+              onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+              className="w-16 sm:w-20 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+        {isVocal&&onTransferRequested&&<button className={toolButton} onClick={()=>{wsRef.current?.pause();onTransferRequested(wsRef.current?.getCurrentTime()||0);}}><ArrowRightLeft size={15}/>Seç ve enstrümana aktar</button>}
+        {/* 1080p YouTube Karaoke Video Generator */}
+        <button
+          onClick={() => setShowKaraokeModal(true)}
+          className={toolButton}
+          title="Şarkı sözlerini düzenleyip 1080p YouTube Karaoke Videosu (MP4) Oluştur"
+        >
+          <Mic className="w-3.5 h-3.5 text-preset" />
+          <span>Karaoke Video</span>
+        </button>
+
+        {/* Instant A/B Quality Comparison Button (Available when paired stem exists) */}
+        {counterpartStem && (
+          <button
+            onClick={() => setShowABCompareModal(true)}
+            className="px-3 py-2 rounded-xl border border-preset/30 bg-preset/10 text-preset text-sm font-semibold flex items-center gap-2 hover:bg-preset/20"
+            title="Orijinal ve Onarılmış ses arasındaki kalite farkını canlı senkronize dinleyin ve spektrumu inceleyin"
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5 text-preset" />
+            <span>A/B Karşılaştır</span>
+          </button>
+        )}
+
+        {/* Pitch & Tempo Toggle */}
+        <button
+          onClick={() => setShowPitchTempo(!showPitchTempo)}
+          aria-expanded={showPitchTempo}
+          className={cn(
+            'px-3 py-2 rounded-xl border text-sm font-bold transition-all flex items-center gap-1.5 active:scale-95',
+            showPitchTempo || pitchShift !== 0 || tempoFactor !== 1.0
+              ? 'bg-preset/15 border-preset/30 text-preset'
+              : 'bg-white/[0.035] border-white/10 text-slate-300 hover:bg-preset/10 hover:text-preset'
+          )}
+        >
+          <Sliders className="w-3.5 h-3.5" />
+          <span>{t('Pitch & Tempo Editor')}</span>
+        </button>
+        <details className="basis-full group">
+          <summary className="mt-2 w-fit cursor-pointer rounded-xl px-3 py-2 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white">{lang === 'tr' ? 'Diğer işlemler' : 'More tools'}</summary>
+          <div className="mt-3 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-black/10 p-3">
         {/* Quick 2-Pass Clean Button */}
         {isVocal && (
           <button
@@ -451,16 +527,6 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
           </button>
         )}
 
-        {/* 1080p YouTube Karaoke Video Generator */}
-        <button
-          onClick={() => setShowKaraokeModal(true)}
-          className={toolButton}
-          title="Şarkı sözlerini düzenleyip 1080p YouTube Karaoke Videosu (MP4) Oluştur"
-        >
-          <Mic className="w-3.5 h-3.5 text-preset" />
-          <span>Karaoke Video</span>
-        </button>
-
         {/* 1080p Video Visualizer Export */}
         <button
           onClick={() => setShowVisualizerModal(true)}
@@ -481,88 +547,8 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
           <span>AI Onar & Parlat</span>
         </button>
 
-        {/* Instant A/B Quality Comparison Button (Available when paired stem exists) */}
-        {counterpartStem && (
-          <button
-            onClick={() => setShowABCompareModal(true)}
-            className={toolButton}
-            title="Orijinal ve Onarılmış ses arasındaki kalite farkını canlı senkronize dinleyin ve spektrumu inceleyin"
-          >
-            <ArrowRightLeft className="w-3.5 h-3.5 text-preset" />
-            <span>A/B Karşılaştır</span>
-          </button>
-        )}
-
-        {/* Pitch & Tempo Toggle */}
-        <button
-          onClick={() => setShowPitchTempo(!showPitchTempo)}
-          className={cn(
-            'px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95',
-            showPitchTempo || pitchShift !== 0 || tempoFactor !== 1.0
-              ? 'bg-preset/15 border-preset/30 text-preset'
-              : 'bg-white/[0.035] border-white/10 text-slate-300 hover:bg-preset/10 hover:text-preset'
-          )}
-        >
-          <Sliders className="w-3.5 h-3.5" />
-          <span>{t('Pitch & Tempo Editor')}</span>
-        </button>
-      </div>
-
-      {/* Waveform Player */}
-      <div className="bg-[#14121c]/75 p-4 rounded-2xl border border-white/[0.06] space-y-3">
-        {preparingPitch&&<p role="status" className="flex items-center gap-2 text-xs text-preset"><Loader2 size={14} className="animate-spin"/>{pitchProgress||'Ton hazırlanıyor · Tempo korunuyor…'}</p>}
-        {pitchError&&<div role="alert" className="text-xs text-rose-300">{pitchError} <button className="underline" onClick={()=>setPreviewRetry(value=>value+1)}>Tekrar dene</button></div>}
-        <div ref={containerRef} className="w-full cursor-pointer" />
-
-        {/* Player Controls */}
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-3">
-            {/* Play/Pause Button */}
-            <button
-              onClick={handleTogglePlay}
-              disabled={preparingPitch||!!pitchError}
-              className={cn(
-                'w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg transition-transform active:scale-90',
-                accentColor === 'indigo' && 'bg-indigo-600 hover:bg-indigo-500',
-                accentColor === 'emerald' && 'bg-emerald-600 hover:bg-emerald-500',
-                accentColor === 'rose' && 'bg-rose-600 hover:bg-rose-500',
-                accentColor === 'amber' && 'bg-amber-600 hover:bg-amber-500',
-                accentColor === 'violet' && 'bg-violet-600 hover:bg-violet-500'
-              )}
-            >
-              {isPlaying ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white ml-0.5" />}
-            </button>
-
-            {/* Time Indicator */}
-            <div className="text-xs font-mono text-slate-400">
-              <span className="text-white font-bold">{formatTime(currentTime)}</span> /{' '}
-              <span>{formatTime(duration)}</span>
-            </div>
           </div>
-
-          {/* Volume Control */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleToggleMute}
-              className="text-slate-400 hover:text-white transition-colors"
-            >
-              {isMuted || volume === 0 ? (
-                <VolumeX className="w-4 h-4 text-rose-400" />
-              ) : (
-                <Volume2 className="w-4 h-4" />
-              )}
-            </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              value={isMuted ? 0 : volume}
-              onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-              className="w-20 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-            />
-          </div>
-        </div>
+        </details>
       </div>
 
       {/* Pitch & Tempo Interactive Panel */}
@@ -621,7 +607,7 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-violet-500"
               />
 
-              <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase">
+              <div className="flex justify-between text-xs text-slate-500 font-bold uppercase">
                 <span>-12 (−1 oktav)</span>
                 <span>0 (Orijinal)</span>
                 <span>+12 (+1 oktav)</span>
@@ -629,12 +615,12 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
 
               {/* 12-TET Chromatic Note Buttons */}
               <div className="pt-2">
-                <div className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider flex items-center justify-between">
+                <div className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider flex items-center justify-between">
                   <span className="flex items-center gap-1">
                     <span>🎵</span>
                     <span>{t('Quick Note Selection')}</span>
                   </span>
-                  <span className="text-[9px] text-violet-400 font-mono">12-TET Scale</span>
+                  <span className="text-xs text-violet-400 font-mono">12-TET Scale</span>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {chromaticNotes.map((n) => {
@@ -645,7 +631,7 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
                         type="button"
                         onClick={() => handlePitchChange(n.semitones)}
                         className={cn(
-                          'px-2 py-0.5 text-[10px] rounded border transition-all active:scale-95 font-mono',
+                          'px-2 py-0.5 text-xs rounded border transition-all active:scale-95 font-mono',
                           isSelected
                             ? 'bg-violet-600 text-white font-bold border-violet-400 shadow-md shadow-violet-500/40 ring-1 ring-violet-400'
                             : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/60 hover:text-white'
@@ -675,10 +661,10 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
                 step="0.05"
                 value={tempoFactor}
                 onChange={(e) => handleTempoChange(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-fuchsia-500"
+                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
               />
 
-              <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase">
+              <div className="flex justify-between text-xs text-slate-500 font-bold uppercase">
                 <span>0.5x</span>
                 <span>1.0x</span>
                 <span>2.0x</span>
@@ -686,7 +672,7 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
 
               {/* Quick Tempo Buttons */}
               <div className="pt-2">
-                <div className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider flex items-center justify-between">
+                <div className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider flex items-center justify-between">
                   <span className="flex items-center gap-1">
                     <span>⚡</span>
                     <span>BPM / Speed</span>
@@ -699,9 +685,9 @@ export const StemAudioPlayer: React.FC<StemAudioPlayerProps> = ({
                       type="button"
                       onClick={() => handleTempoChange(spd)}
                       className={cn(
-                        'px-2 py-0.5 text-[10px] rounded border transition-all active:scale-95 font-mono',
+                        'px-2 py-0.5 text-xs rounded border transition-all active:scale-95 font-mono',
                         tempoFactor === spd
-                          ? 'bg-fuchsia-600 text-white font-bold border-fuchsia-400 shadow-md shadow-fuchsia-500/40 ring-1 ring-fuchsia-400'
+                          ? 'bg-indigo-600 text-white font-bold border-indigo-400 shadow-md shadow-indigo-500/40 ring-1 ring-indigo-400'
                           : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/60 hover:text-white'
                       )}
                     >

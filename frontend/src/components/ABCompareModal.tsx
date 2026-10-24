@@ -477,8 +477,8 @@ export const ABCompareModal: React.FC<ABCompareModalProps> = ({
               className={cn(
                 "px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-md active:scale-95 shrink-0",
                 activeChannel === 'A'
-                  ? "bg-gradient-to-r from-cyan-600 to-teal-500 text-white shadow-cyan-600/20"
-                  : "bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-amber-600/20"
+                  ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-indigo-600/20"
+                  : "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-indigo-600/20"
               )}
             >
               <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -535,7 +535,7 @@ export const ABCompareModal: React.FC<ABCompareModalProps> = ({
                 onChange={handleSeek}
                 className={cn(
                   "w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-slate-800",
-                  activeChannel === 'A' ? "accent-amber-500" : "accent-cyan-500"
+                  activeChannel === 'A' ? "accent-indigo-500" : "accent-indigo-500"
                 )}
               />
               <div className="flex justify-between text-[11px] font-mono text-slate-400">
@@ -552,8 +552,8 @@ export const ABCompareModal: React.FC<ABCompareModalProps> = ({
                   className={cn(
                     "w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg transition-transform active:scale-95",
                     activeChannel === 'A'
-                      ? "bg-amber-600 hover:bg-amber-500 shadow-amber-600/25"
-                      : "bg-cyan-600 hover:bg-cyan-500 shadow-cyan-600/25"
+                      ? "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/25"
+                      : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/25"
                   )}
                   title="Oynat / Duraklat (Space)"
                 >
@@ -640,7 +640,7 @@ export const ABCompareModal: React.FC<ABCompareModalProps> = ({
             <a
               href={restoredUrl}
               download={cleanRestoredName}
-              className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-cyan-600/20"
+              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-indigo-600/20"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Restored (.flac) İndir</span>

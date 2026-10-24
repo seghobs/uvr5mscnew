@@ -37,6 +37,12 @@ from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict
 import core
+from task_cancellation import task_cancellation, cancellable_task
+
+# Stop model inference between forward calls, including batch jobs without progress.
+import torch
+_task_cancel_hook = torch.nn.modules.module.register_module_forward_pre_hook(
+    lambda module, inputs: task_cancellation.checkpoint())
 from karaoke_timing import repair_timing, timing_issues, render_timing_issues, ass_time, ass_word_tags, escape_ass, align_lyrics, render_windows
 
 import sqlite3
@@ -85,6 +91,8 @@ if os.name == 'nt':
                 kwargs['creationflags'] |= subprocess.CREATE_NO_WINDOW
             super().__init__(*args, **kwargs)
     subprocess.Popen = _SilentPopen
+
+subprocess.Popen = task_cancellation.popen_class(subprocess.Popen)
 
 app = FastAPI(title="UVR5 Premium API")
 from lyric_sources.api import router as lyric_catalog_router
@@ -213,7 +221,7 @@ _lyrics_data_lock = threading.RLock()
 
 
 def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bool = False, allow_locked_changes: bool = False) -> dict:
-    with _lyrics_data_lock:
+    with _lyrics_data_lock, task_cancellation.commit():
         if not allow_locked_changes:
             previous=get_saved_lyrics(file_name)
             locked=[row for row in (previous or {}).get('segments',[]) if row.get('locked')]
@@ -421,6 +429,7 @@ def serialized_separation(function):
 def _create_task(extra: dict = None) -> str:
     _cleanup_tasks()
     task_id = str(uuid.uuid4())
+    task_cancellation.register(task_id)
     with tasks_lock:
         tasks[task_id] = {
             "status": "processing",
@@ -431,11 +440,12 @@ def _create_task(extra: dict = None) -> str:
             **(extra or {}),
         }
         snapshot = dict(tasks[task_id])
-    _persist_lyrics_job(task_id, snapshot)
-    separation_tasks.update(task_id,snapshot)
+        _persist_lyrics_job(task_id, snapshot)
+        separation_tasks.update(task_id,snapshot)
     return task_id
 
 def _update_task(task_id: str, **kwargs):
+    task_cancellation.checkpoint(task_id)
     with tasks_lock:
         if task_id in tasks:
             tasks[task_id].update(kwargs)
@@ -443,9 +453,9 @@ def _update_task(task_id: str, **kwargs):
             snapshot = dict(tasks[task_id])
         else:
             snapshot = None
-    if snapshot is not None:
-        _persist_lyrics_job(task_id, snapshot)
-        separation_tasks.update(task_id,snapshot)
+        if snapshot is not None:
+            _persist_lyrics_job(task_id, snapshot)
+            separation_tasks.update(task_id,snapshot)
 
 def _persist_lyrics_job(task_id: str, task: dict):
     """Persist resumable Whisper work; completed lyrics remain in the lyrics table."""
@@ -550,6 +560,8 @@ async def get_model_status(model_key: str):
     existing = []
     for fname in files:
         fpath = Path(core.models_dir) / fname
+        if display_key in json.loads((Path(__file__).parent/'assets/comparison-models.json').read_text(encoding='utf8')):
+            fpath=Path(core.models_dir)/('roformer_custom_'+hashlib.sha256(display_key.encode()).hexdigest()[:12])/fname
         if fpath.exists():
             existing.append(fname)
         else:
@@ -568,6 +580,7 @@ async def get_model_status(model_key: str):
 class ModelDownloadRequest(BaseModel):
     model_key: str = Field(..., min_length=1, max_length=256)
 
+@cancellable_task
 def run_model_download(task_id, model_key):
     try:
         import json, urllib.parse, subprocess
@@ -593,6 +606,8 @@ def run_model_download(task_id, model_key):
         for i, url in enumerate(urls):
             fname = Path(urllib.parse.urlparse(url).path).name
             fpath = Path(core.models_dir) / fname
+            if model_key in json.loads((Path(__file__).parent/'assets/comparison-models.json').read_text(encoding='utf8')):
+                fpath=Path(core.models_dir)/('roformer_custom_'+hashlib.sha256(model_key.encode()).hexdigest()[:12])/fname
             if fpath.exists():
                 _update_task(task_id, progress=(i+1)/total, message=f"Already cached: {fname} ({i+1}/{total})")
                 continue
@@ -603,6 +618,7 @@ def run_model_download(task_id, model_key):
             try:
                 # Ensure dir exists
                 Path(core.models_dir).mkdir(parents=True, exist_ok=True)
+                fpath.parent.mkdir(parents=True,exist_ok=True)
                 # Download with progress via urlopen
                 with urllib.request.urlopen(url) as r, open(fpath, 'wb') as out:
                     total_size = int(r.headers.get('Content-Length', 0))
@@ -760,6 +776,7 @@ class SeparationRequest(BaseModel):
         return v
 
 def progress_callback(task_id, progress, message):
+    task_cancellation.checkpoint(task_id)
     with tasks_lock:
         if task_id in tasks:
             tasks[task_id]["progress"] = max(0.0, min(1.0, float(progress)))
@@ -813,6 +830,7 @@ class TqdmProgressContext:
 
 @gpu_operation
 @serialized_separation
+@cancellable_task
 def run_separation_task(task_id, request: SeparationRequest):
     try:
         # Validate paths and model
@@ -911,6 +929,7 @@ def run_separation_task(task_id, request: SeparationRequest):
 
 @gpu_operation
 @serialized_separation
+@cancellable_task
 def run_ensemble_task(task_id, audio_path, models: list, out_format: str, profile=None):
     try:
         audio_path = _validate_audio_path(audio_path)
@@ -920,6 +939,12 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str, profil
             raise ValueError(f"Invalid out_format: {out_format}")
         if not models or len(models) == 0:
             raise ValueError("No models provided for ensemble")
+        if profile in ('lale_instrument','sedef_clean','clean_music','clean_music_restore'):
+            from comparison_ensemble import run
+            files=run(core,audio_path,models,out_format,OUTPUT_DIR,
+                lambda p,m:_update_task(task_id,progress=p,message=m),profile)
+            _update_task(task_id,status='completed',progress=1.,stems=[Path(f).name for f in files])
+            return
         if profile in ('atlas_studio', 'atlas_studio_v2'):
             from atlas_studio import run_atlas_studio, PRESET, PRESET_V2
             files = run_atlas_studio(core, audio_path, models, out_format, OUTPUT_DIR,
@@ -1101,6 +1126,19 @@ def run_ensemble_task(task_id, audio_path, models: list, out_format: str, profil
     finally:
         core.clear_gpu_and_ram_cache()
 
+class StemTransferRequest(BaseModel):
+    vocal: str = Field(...,min_length=1,max_length=256)
+    instrumental: str = Field(...,min_length=1,max_length=256)
+    start: float = Field(...,ge=0,allow_inf_nan=False)
+    end: float = Field(...,gt=0,allow_inf_nan=False)
+    amount: float = Field(default=1,gt=0,le=1,allow_inf_nan=False)
+
+@app.post('/api/audio/transfer')
+def transfer_stem_selection(req: StemTransferRequest):
+    from stem_transfer import transfer_pair
+    try:return transfer_pair(OUTPUT_DIR,req.vocal,req.instrumental,req.start,req.end,req.amount)
+    except ValueError as error:raise HTTPException(400,str(error))
+
 class AudioModRequest(BaseModel):
     file_name: str = Field(..., min_length=1, max_length=256)
     pitch_semitones: float = Field(default=0.0, ge=-12, le=12)
@@ -1216,8 +1254,12 @@ async def start_ensemble(request: dict, background_tasks: BackgroundTasks):
     if out_format not in core.output_format:
         raise HTTPException(status_code=400, detail="Invalid out_format")
     profile = (request.get('params') or {}).get('ensemble_profile')
-    if profile not in (None, 'studio_pro', 'atlas_studio', 'atlas_studio_v2'):
+    if profile not in (None, 'studio_pro', 'atlas_studio', 'atlas_studio_v2','lale_instrument','sedef_clean','clean_music','clean_music_restore'):
         raise HTTPException(status_code=400, detail='Unknown ensemble profile')
+    if profile in ('lale_instrument','sedef_clean','clean_music','clean_music_restore'):
+        from comparison_ensemble import validate_models
+        try:validate_models(models,profile,out_format)
+        except ValueError as error:raise HTTPException(400,str(error))
     if profile == 'studio_pro':
         from studio_pro import validate_models
         try:
@@ -1308,6 +1350,16 @@ async def get_active_lyrics_tasks(file_name: str):
                 "created_at": task.get("created_at", 0),
             })
     return {"file_name": file_name, "tasks": active}
+
+@app.get('/api/audio/source')
+def get_source_audio(path: str):
+    source = Path(_validate_audio_path(path))
+    if not source.is_file():
+        raise HTTPException(404, 'Orijinal ses dosyası bulunamadı.')
+    if source.suffix.lower() not in core.extensions:
+        raise HTTPException(400, 'Desteklenmeyen ses dosyası.')
+    return FileResponse(source)
+
 
 @app.get("/output/{filename}")
 async def get_output(filename: str):
@@ -1567,6 +1619,7 @@ class BatchRequest(BaseModel):
     params: dict = Field(default_factory=dict)
 
 @gpu_operation
+@cancellable_task
 def run_batch_task(task_id, req: BatchRequest):
     try:
         # Validate dirs
@@ -1773,6 +1826,7 @@ def reference_compare_endpoint(req: ReferenceCompareRequest):
 
 
 @gpu_operation
+@cancellable_task
 def run_reference_alignment(task_id, req, expected_revision):
     from karaoke_reference import align_changed_rows
     try:
@@ -1915,34 +1969,30 @@ async def download_whisper_endpoint(req: Optional[DownloadWhisperRequest] = None
         "progress": 10
     })
     
+    @cancellable_task
     def _download_task(t_id, target_key):
         try:
             target_dir = WHISPER_DIR / target_key
             target_dir.mkdir(parents=True, exist_ok=True)
-            from huggingface_hub import snapshot_download
-            repo_id = "Systran/faster-whisper-large-v3" if target_key == "large-v3" else "deepdml/faster-whisper-large-v3-turbo-ct2"
-            snapshot_download(
-                repo_id=repo_id,
-                local_dir=str(target_dir),
-                local_dir_use_symlinks=False,
-                resume_download=True
-            )
-            tasks[t_id]["status"] = "completed"
-            tasks[t_id]["progress"] = 100
-            tasks[t_id]["message"] = f"{label} başarıyla kuruldu!"
-        except Exception as e:
-            try:
-                from faster_whisper import download_model
-                out_dir = WHISPER_DIR / target_key
-                download_model(target_key, output_dir=str(out_dir))
-                tasks[t_id]["status"] = "completed"
-                tasks[t_id]["progress"] = 100
-                tasks[t_id]["message"] = f"{label} başarıyla kuruldu!"
-            except Exception as e2:
-                tasks[t_id]["status"] = "failed"
-                tasks[t_id]["progress"] = 0
-                tasks[t_id]["message"] = f"İndirme hatası: {e2}"
-                tasks[t_id]["error"] = str(e2)
+            # Network download workers cannot be interrupted safely as Python
+            # threads. Keep them in a task-owned child process instead.
+            script = """
+import sys
+from huggingface_hub import snapshot_download
+key, destination = sys.argv[1:]
+repo = 'Systran/faster-whisper-large-v3' if key == 'large-v3' else 'deepdml/faster-whisper-large-v3-turbo-ct2'
+try:
+    snapshot_download(repo_id=repo, local_dir=destination,
+                      local_dir_use_symlinks=False, resume_download=True)
+except Exception:
+    from faster_whisper import download_model
+    download_model(key, output_dir=destination)
+"""
+            subprocess.run([sys.executable,'-u','-c',script,target_key,str(target_dir)],
+                           check=True,creationflags=SUBPROCESS_FLAGS)
+            _update_task(t_id,status="completed",progress=100,message=f"{label} başarıyla kuruldu!")
+        except Exception as exc:
+            _update_task(t_id,status="failed",progress=0,message=f"İndirme hatası: {exc}",error=str(exc))
 
     background_tasks.add_task(_download_task, task_id, m_key)
     return {"status": "started", "task_id": task_id}
@@ -2045,6 +2095,7 @@ class DeepWordsRequest(BaseModel):
 
 
 @gpu_operation
+@cancellable_task
 def run_deep_words(task_id, req):
     try:
         from karaoke_deep_words import deep_words
@@ -2146,6 +2197,7 @@ class LyricsAITranscribe(BaseModel):
     file_name: str = Field(...,min_length=1,max_length=256)
 
 
+@cancellable_task
 def run_ai_transcription(task_id,req):
     try:
         from lyrics_ai import settings,transcribe_audio
@@ -2167,6 +2219,7 @@ def ai_transcribe_endpoint(req: LyricsAITranscribe,background_tasks: BackgroundT
 
 
 @gpu_operation
+@cancellable_task
 def run_ai_review(task_id,req,expected_revision):
     try:
         from lyrics_ai import correct_rows
@@ -2195,6 +2248,7 @@ def ai_review_endpoint(req: LyricsAIReview,background_tasks: BackgroundTasks):
 
 
 @gpu_operation
+@cancellable_task
 def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: str):
     try:
         with _lyrics_inference_lock:
@@ -2402,6 +2456,7 @@ class SuppliedAlignmentRequest(SaveLyricsRequest):
 
 
 @gpu_operation
+@cancellable_task
 def run_supplied_alignment(task_id,req,expected_revision):
     from karaoke_supplied_alignment import align_supplied
     from karaoke_model_crosscheck import original_for_stem
@@ -2456,6 +2511,7 @@ def supplied_alignment_endpoint(req: SuppliedAlignmentRequest,background_tasks: 
 
 
 @gpu_operation
+@cancellable_task
 def run_pasted_sync(task_id,req,expected_revision):
     from paste_sync import synchronize
     from karaoke_anchored import anchor_transcript_rows
@@ -2593,6 +2649,7 @@ class KaraokeVideoRequest(BaseModel):
     aspect_ratio: str = Field(default="16:9", pattern="^(16:9|9:16)$")
     theme: str = Field(default="gold", pattern="^(gold|neon|cyberpunk|emerald)$")
 
+@cancellable_task
 def run_karaoke_video_task(task_id: str, req_data: dict):
     reserved_video = None
     try:
@@ -2884,6 +2941,10 @@ def local_service_status():
 
 @app.post('/api/service/prepare')
 def prepare_service_stop():
+    with task_cancellation.lock:
+        if task_cancellation.running:raise HTTPException(409,'Görevler hâlâ çalışıyor veya durduruluyor. Tamamlanmasını bekleyin.')
+    with _gpu_activity_lock:
+        if _gpu_active_operations:raise HTTPException(409,'GPU işlemlerinin durmasını bekleyin.')
     with tasks_lock:
         if any(t.get('status')=='processing' for t in tasks.values()):raise HTTPException(409,'Çalışan işlem var. Önce tamamlanmasını bekleyin.')
     if any(j['status'] in ('queued','processing','cancelling') for j in audio_jobs.list()):raise HTTPException(409,'Ses kuyruğunu önce tamamlayın veya iptal edin.')
@@ -2895,35 +2956,49 @@ def restart_local_service(background_tasks: BackgroundTasks):
     background_tasks.add_task(_launch_service_control,'restart')
     return {'status':'restarting','previous_pid':os.getpid()}
 
+
+@app.get('/api/service/rebuild-restart')
+def studio_restart_status():
+    from studio_restart import status
+    return status()
+
+
+@app.post('/api/service/rebuild-restart')
+def restart_entire_studio():
+    from studio_restart import request
+    return request()
+
 @app.post('/api/tasks/cancel-all')
 def cancel_and_delete_all_tasks(background_tasks: BackgroundTasks):
     """Stop unfinished work; preserve completed history, source mappings and saved projects."""
-    separation_tasks.cancel_all()
     with tasks_lock:
         active_ids=[key for key,value in tasks.items() if value.get('status') in ('queued','processing','cancelling')]
-        legacy_count=len(active_ids)
-        for key in active_ids: tasks.pop(key,None)
-    with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
-        persisted_count=conn.execute('SELECT COUNT(*) FROM lyrics_jobs WHERE status IN ("queued","processing","cancelling")').fetchone()[0]
-        conn.execute('DELETE FROM lyrics_jobs WHERE status IN ("queued","processing","cancelling")')
-        conn.commit()
+        with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
+            persisted_ids=[row[0] for row in conn.execute('SELECT task_id FROM lyrics_jobs WHERE status IN ("queued","processing","cancelling")')]
+            task_cancellation.cancel(set(active_ids)|set(persisted_ids))
+            for key in active_ids: tasks.pop(key,None)
+            conn.execute('DELETE FROM lyrics_jobs WHERE status IN ("queued","processing","cancelling")')
+            conn.commit()
+        separation_tasks.cancel_all()
     audio_count=0
     for job in audio_jobs.list():
         if job.get('status') in ('queued','processing','cancelling'):
             try:audio_jobs.cancel(job['id']);audio_count+=1
             except Exception:pass
-    background_tasks.add_task(_launch_service_control,'force-restart')
-    return {'status':'cancelled','previous_pid':os.getpid(),'deleted_tasks':max(legacy_count,persisted_count)+audio_count,
-            'message':'Çalışan ve bekleyen görevler sonlandırıldı. Kayıtlı projeler korundu. Servis temizleniyor.'}
+    return {'status':'cancelled','deleted_tasks':len(set(active_ids)|set(persisted_ids))+audio_count,
+            'message':'Görevlere iptal sinyali gönderildi. Kayıtlı projeler korundu; sunucu bağlantısı açık.'}
 
 def _launch_service_control(action):
     time.sleep(.5)
     arguments=[sys.executable,str(Path(__file__).parent/'service_control.py'),action]
-    if action=='stop':arguments.append(str(os.getpid()))
-    subprocess.Popen(arguments,cwd=Path(__file__).parent,
-        stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,
-        creationflags=(subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.CREATE_NEW_PROCESS_GROUP) if os.name=='nt' else 0,
-        start_new_session=os.name!='nt')
+    if action in ('stop','restart','force-restart'):arguments.append(str(os.getpid()))
+    from service_control import service_event
+    service_event('api_management_requested',action=action,backend_pid=os.getpid())
+    with (Path(__file__).parent/'logs'/'backend.log').open('ab') as output:
+        subprocess.Popen(arguments,cwd=Path(__file__).parent,
+            stdin=subprocess.DEVNULL,stdout=output,stderr=subprocess.STDOUT,
+            creationflags=(subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.CREATE_NEW_PROCESS_GROUP) if os.name=='nt' else 0,
+            start_new_session=os.name!='nt')
 
 @app.post('/shutdown')
 def shutdown_system_endpoint(background_tasks: BackgroundTasks):
@@ -2939,6 +3014,7 @@ class RestoreAudioRequest(BaseModel):
     guidance_scale: float = Field(default=3.5, ge=1.0, le=10.0)
 
 @gpu_operation
+@cancellable_task
 def run_restoration_task(task_id: str, req_data: dict):
     try:
         _update_task(task_id, status="processing", message="AI Restorasyon motoru hazırlanıyor...", progress=0.02)

@@ -13,6 +13,65 @@ import psutil
 
 ROOT=Path(__file__).resolve().parent
 
+def service_event(event, **details):
+    folder=ROOT/'logs';folder.mkdir(exist_ok=True)
+    with (folder/'service-events.jsonl').open('a',encoding='utf8') as output:
+        output.write(json.dumps({'time':time.strftime('%Y-%m-%dT%H:%M:%S%z'),
+                                 'event':event,'manager_pid':os.getpid(),**details},ensure_ascii=False)+'\n')
+
+
+def owns_supervisor(process):
+    try:
+        command=process.cmdline()
+        return (Path(process.cwd()).resolve()==ROOT
+                and Path(process.exe()).resolve().is_relative_to(ROOT/'env')
+                and any(Path(arg).name=='service_control.py' for arg in command)
+                and 'supervise' in command)
+    except (psutil.Error,OSError):return False
+
+
+def stop_supervisors():
+    # Stop recovery before intentionally stopping the worker. Do not terminate
+    # the supervisor's tree here: restart helpers can be descendants themselves.
+    supervisors=[p for p in psutil.process_iter() if p.pid!=os.getpid() and owns_supervisor(p)]
+    for process in supervisors:
+        try:process.terminate()
+        except psutil.Error:pass
+    _,alive=psutil.wait_procs(supervisors,timeout=3)
+    for process in alive:
+        try:process.kill()
+        except psutil.Error:pass
+
+
+def supervise_backend():
+    """Recover actual process exits, never kill a slow or busy HTTP worker."""
+    def spawn_worker():
+        logs=ROOT/'logs';logs.mkdir(exist_ok=True)
+        with (logs/'backend.log').open('ab') as output:
+            return subprocess.Popen([sys.executable,'-u','-X','faulthandler',str(ROOT/'api_modern.py')],
+                cwd=ROOT,stdin=subprocess.DEVNULL,stdout=output,stderr=subprocess.STDOUT)
+    failures=[]
+    while True:
+        if failures:
+            with management_lock():
+                if service_info() or any(owns_backend(p) for p in psutil.process_iter()):return
+                worker=spawn_worker()
+        else:worker=spawn_worker()
+        service_event('backend_started',pid=worker.pid)
+        code=worker.wait()
+        service_event('backend_exited',pid=worker.pid,exit_code=code,
+                      windows_status=f'0x{code & 0xffffffff:08X}')
+        if code==0:return
+        now=time.monotonic()
+        failures=[stamp for stamp in failures if now-stamp<300]
+        failures.append(now)
+        if len(failures)>3:
+            service_event('recovery_limit_reached',failures=len(failures))
+            return
+        time.sleep(min(len(failures),3))
+        # Coordinate with launch/restart/stop and refuse to replace another API.
+        service_event('backend_recovering',attempt=len(failures))
+
 @contextmanager
 def management_lock():
     folder=ROOT/'.runtime';folder.mkdir(exist_ok=True)
@@ -40,7 +99,8 @@ def management_lock():
 def revision():
     digest=hashlib.sha256()
     model_registry=ROOT/'assets/models.json'
-    configurations=[*(ROOT/'frontend/src/lib').glob('*preset.json')]
+    configurations=[*(ROOT/'frontend/src/lib').glob('*preset.json'),*(ROOT/'frontend/src/lib').glob('*presets.json')]
+    if (ROOT/'assets/comparison-models.json').exists():configurations.append(ROOT/'assets/comparison-models.json')
     if model_registry.exists():configurations.append(model_registry)
     for path in sorted([*ROOT.glob('*.py'), *(ROOT/'lyric_sources').glob('*.py'), *configurations]):
         digest.update(path.relative_to(ROOT).as_posix().encode());digest.update(path.read_bytes())
@@ -170,6 +230,8 @@ def prepare():
 
 def stop(frontend=False):
     prepare()
+    service_event('intentional_stop',frontend=frontend)
+    stop_supervisors()
     # Stop callers before their API, so the UI cannot keep polling a dead backend.
     if frontend:
         for process in psutil.process_iter():
@@ -184,6 +246,8 @@ def stop_generation(expected_pid):
 
 def force_restart():
     """Used only after the API has explicitly cancelled and deleted every job."""
+    service_event('cancel_all_restart')
+    stop_supervisors()
     for process in psutil.process_iter():
         if process.pid!=os.getpid() and owns_backend(process):terminate_tree(process)
     start()
@@ -207,21 +271,32 @@ def start(reuse_busy=False):
             return
     for connection in psutil.net_connections(kind='tcp'):
         if connection.status=='LISTEN' and connection.laddr.port==8000:raise RuntimeError('8000 portu başka bir işlem tarafından kullanılıyor.')
+    # A recovery supervisor may be waiting for this management lock after a
+    # worker exit. Retire it before launching a replacement supervisor.
+    stop_supervisors()
     logs=ROOT/'logs';logs.mkdir(exist_ok=True)
     with (logs/'backend.log').open('ab') as output:
-        subprocess.Popen([str(ROOT/'env'/'python.exe' if os.name=='nt' else ROOT/'env'/'bin'/'python'),str(ROOT/'api_modern.py')],cwd=ROOT,stdin=subprocess.DEVNULL,stdout=output,stderr=subprocess.STDOUT,
+        supervisor=subprocess.Popen([str(ROOT/'env'/'python.exe' if os.name=='nt' else ROOT/'env'/'bin'/'python'),str(ROOT/'service_control.py'),'supervise'],cwd=ROOT,stdin=subprocess.DEVNULL,stdout=output,stderr=subprocess.STDOUT,
             creationflags=(subprocess.CREATE_NO_WINDOW|subprocess.DETACHED_PROCESS|subprocess.CREATE_NEW_PROCESS_GROUP) if os.name=='nt' else 0,start_new_session=os.name!='nt')
     for _ in range(90):
         current=service_info()
         if current and current.get('revision')==revision():return
+        if supervisor.poll() is not None:raise RuntimeError('Backend gözeticisi kapandı. logs/backend.log ve logs/service-events.jsonl dosyalarını kontrol edin.')
         time.sleep(1)
     raise RuntimeError('Sunucu başlatılamadı. logs/backend.log dosyasını kontrol edin.')
 
 if __name__=='__main__':
     try:
         action=sys.argv[1] if len(sys.argv)>1 else 'ensure'
+        if action=='supervise':supervise_backend();sys.exit(0)
         if action=='frontend-launch':sys.exit(launch_frontend())
         with management_lock():
+            service_event('management_action',action=action)
+            if action in ('restart','force-restart') and len(sys.argv)>2:
+                current=service_info()
+                if not current or current.get('pid')!=int(sys.argv[2]):
+                    service_event('stale_restart_ignored',action=action,expected_pid=int(sys.argv[2]))
+                    sys.exit(0)
             if action=='frontend-check':
                 if frontend_running():
                     print('UVR5 zaten çalışıyor: http://localhost:3000')
@@ -240,4 +315,6 @@ if __name__=='__main__':
             elif action=='launch':start(reuse_busy=True)
             else:raise ValueError('Unknown service action')
         print('UVR5: '+action+' tamamlandı.')
-    except Exception as exc:print(str(exc),file=sys.stderr);sys.exit(1)
+    except Exception as exc:
+        service_event('management_failed',error=repr(exc))
+        print(str(exc),file=sys.stderr);sys.exit(1)

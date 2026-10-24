@@ -59,15 +59,15 @@ export default function LyricsCatalogSearch({initialTitle,initialArtist,onSelect
         <label className="text-xs text-zinc-300 space-y-1 block">Şarkı adı veya söz<div><input aria-label="Şarkı adı veya söz" maxLength={128} value={title} disabled={blocked} onChange={e=>{setTitle(e.target.value);setGroups(null);setPage(0);}} placeholder="Örn. Nesrine" className={field}/></div></label>
         <label className="text-xs text-zinc-300 space-y-1 block">Sanatçı<div><input aria-label="Sanatçı" maxLength={128} value={artist} disabled={blocked} onChange={e=>{setArtist(e.target.value);setGroups(null);setPage(0);}} placeholder="Örn. Berdan Mardini" className={field}/></div></label>
       </div>
-      <button type="submit" disabled={blocked||(!title.trim()&&!artist.trim())} className="flex items-center justify-center gap-2 rounded-xl bg-purple-500/20 border border-purple-400/30 px-4 py-2.5 text-sm text-purple-200 disabled:opacity-40 w-full">
+      <button type="submit" disabled={blocked||(!title.trim()&&!artist.trim())} className="flex items-center justify-center gap-2 rounded-xl bg-indigo-500/20 border border-indigo-400/30 px-4 py-2.5 text-sm text-indigo-200 disabled:opacity-40 w-full">
         {busy==='search'?<Loader2 className="w-4 h-4 animate-spin"/>:<Search className="w-4 h-4"/>}{busy==='search'?'Kaynaklarda aranıyor…':'Kaynaklarda söz ara'}
       </button>
     </form>
     {groups&&<div className="space-y-3 max-h-64 overflow-y-auto pr-1">
       {Object.values(groups).map(group=><div key={group.source} className="rounded-xl border border-white/10 bg-white/[0.025] p-3">
         <h4 className="text-xs font-semibold text-purple-200 mb-2">{names[group.source]} · {group.results.length} sonuç</h4>
-        {group.status!=='ok'?<p className="text-xs text-zinc-400">{group.status==='not_configured'?'Bu kaynak için Musixmatch API anahtarı tanımlı değil.':group.error||'Kaynağa şu anda ulaşılamıyor.'}</p>:!group.results.length?<p className="text-xs text-zinc-400">Sonuç bulunamadı.</p>:group.results.map(song=><button key={`${song.source}:${song.id}`} type="button" disabled={blocked||song.instrumental} onClick={()=>void (song.lyrics_access==='authorization_required'?findAlternative(song):choose(song))} className="w-full flex items-center gap-3 text-left rounded-lg p-2 hover:bg-purple-400/10 disabled:opacity-50">
-          {busy===`${song.source}:${song.id}`?<Loader2 className="w-4 h-4 shrink-0 animate-spin"/>:<Music2 className="w-4 h-4 shrink-0 text-purple-300"/>}
+        {group.status!=='ok'?<p className="text-xs text-zinc-400">{group.status==='not_configured'?'Bu kaynak için Musixmatch API anahtarı tanımlı değil.':group.error||'Kaynağa şu anda ulaşılamıyor.'}</p>:!group.results.length?<p className="text-xs text-zinc-400">Sonuç bulunamadı.</p>:group.results.map(song=><button key={`${song.source}:${song.id}`} type="button" disabled={blocked||song.instrumental} onClick={()=>void (song.lyrics_access==='authorization_required'?findAlternative(song):choose(song))} className="w-full flex items-center gap-3 text-left rounded-lg p-2 hover:bg-indigo-400/10 disabled:opacity-50">
+          {busy===`${song.source}:${song.id}`?<Loader2 className="w-4 h-4 shrink-0 animate-spin"/>:<Music2 className="w-4 h-4 shrink-0 text-indigo-300"/>}
           <span className="min-w-0"><span className="block text-sm text-zinc-100 break-words">{song.title}</span><span className="block text-xs text-zinc-400">{song.artist||'Sanatçı belirtilmemiş'}{song.language?` · ${song.language}`:''}{song.instrumental?' · Enstrümantal':''}{song.lyrics_access==='authorization_required'?' · LyricFind API izni yok — diğer kaynaklarda ara':''}</span></span>
         </button>)}
       </div>)}

@@ -5,7 +5,7 @@ export type Language = 'tr' | 'en';
 export type AccentColor = 'indigo' | 'emerald' | 'rose' | 'amber' | 'violet';
 
 export interface SeparationParams {
-  ensemble_profile?: "studio_pro" | "atlas_studio" | "atlas_studio_v2";
+  ensemble_profile?: "studio_pro" | "atlas_studio" | "atlas_studio_v2" | "lale_instrument" | "sedef_clean" | "clean_music" | "clean_music_restore";
   // Roformer / MDX23C
   segment_size?: number;
   override_segment_size?: boolean;

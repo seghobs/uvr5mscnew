@@ -1,0 +1,581 @@
+{
+  "weights": [
+    0.55,
+    0.24999999999999992,
+    0.20000000000000004
+  ],
+  "objective": "Minimize instrumental waveform MSE, each weight within 0.05 of V1. Development spectral deficit/artifact budget at most +1%; no development increase in spectral excess or reference vocal projection leakage.",
+  "fit_used_test": false,
+  "scope": "16 existing seven-second excerpts, eight development/eight evaluation; previously used local reference pool, not evidence of universal quality.",
+  "summary": {
+    "train": {
+      "atlas_studio": {
+        "sdr_db": 17.243817954425904,
+        "si_sdr_db": 17.122583896201697,
+        "spectral_deficit": 0.010070352320284151,
+        "spectral_excess": 0.0040715778207209685,
+        "instrument_gain": 0.9744939410806377,
+        "vocal_leakage": 0.012890083207650364,
+        "artifact_residual": 0.02245218596898644
+      },
+      "karaoke_candidate": {
+        "sdr_db": 17.311275481410483,
+        "si_sdr_db": 17.191335576855153,
+        "spectral_deficit": 0.010085621958143807,
+        "spectral_excess": 0.003968475516236432,
+        "instrument_gain": 0.9745905919307701,
+        "vocal_leakage": 0.011859315241541006,
+        "artifact_residual": 0.022472863203838213
+      }
+    },
+    "test": {
+      "atlas_studio": {
+        "sdr_db": 18.274963625858888,
+        "si_sdr_db": 18.201444407616783,
+        "spectral_deficit": 0.006060697118280757,
+        "spectral_excess": 0.0026171536210659457,
+        "instrument_gain": 0.9837595714211848,
+        "vocal_leakage": 0.012897911176028592,
+        "artifact_residual": 0.01430356351058132
+      },
+      "karaoke_candidate": {
+        "sdr_db": 18.355995507199015,
+        "si_sdr_db": 18.28358569622377,
+        "spectral_deficit": 0.006007645648963991,
+        "spectral_excess": 0.0025556113232924177,
+        "instrument_gain": 0.9839839725381622,
+        "vocal_leakage": 0.011958091124216561,
+        "artifact_residual": 0.014227306647975727
+      }
+    }
+  },
+  "tracks": [
+    {
+      "id": "fc9f42fdeb43",
+      "name": "Night Panther - Fire",
+      "split": "train",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 12.891761703977792,
+          "si_sdr_db": 12.664115494232925,
+          "spectral_deficit": 0.018903032043325402,
+          "spectral_excess": 0.007212878098321378,
+          "instrument_gain": 0.951220085494279,
+          "vocal_leakage": 0.006733053904749615,
+          "artifact_residual": 0.043987461913522694
+        },
+        "karaoke_candidate": {
+          "sdr_db": 12.926617924526983,
+          "si_sdr_db": 12.700726967584504,
+          "spectral_deficit": 0.018936723000360978,
+          "spectral_excess": 0.007096949111621321,
+          "instrument_gain": 0.9513527998336267,
+          "vocal_leakage": 0.006130189305363945,
+          "artifact_residual": 0.044039210648004465
+        }
+      }
+    },
+    {
+      "id": "3c1b6f88b282",
+      "name": "Auctioneer - Our Future Faces",
+      "split": "train",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 12.158444012736753,
+          "si_sdr_db": 11.886997680515098,
+          "spectral_deficit": 0.024482787296930045,
+          "spectral_excess": 0.007413421172040016,
+          "instrument_gain": 0.9426759232063529,
+          "vocal_leakage": 0.01860176418113212,
+          "artifact_residual": 0.04861632978793144
+        },
+        "karaoke_candidate": {
+          "sdr_db": 12.194183103710778,
+          "si_sdr_db": 11.924919539159086,
+          "spectral_deficit": 0.02457546673165653,
+          "spectral_excess": 0.007259656269021462,
+          "instrument_gain": 0.9429570098428651,
+          "vocal_leakage": 0.01718302636624867,
+          "artifact_residual": 0.04883199182445476
+        }
+      }
+    },
+    {
+      "id": "2063584c7f74",
+      "name": "Clara Berry And Wooldog - Waltz For My Victims",
+      "split": "train",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 21.43628574807542,
+          "si_sdr_db": 21.405098562391423,
+          "spectral_deficit": 0.002426278186457265,
+          "spectral_excess": 0.0013200274894774738,
+          "instrument_gain": 0.993258953027777,
+          "vocal_leakage": 0.000261883681164486,
+          "artifact_residual": 0.007047063382604994
+        },
+        "karaoke_candidate": {
+          "sdr_db": 21.516183817891907,
+          "si_sdr_db": 21.48561949889572,
+          "spectral_deficit": 0.0023815573532383785,
+          "spectral_excess": 0.0012997814331131474,
+          "instrument_gain": 0.9934710194332628,
+          "vocal_leakage": 0.00020188135794923815,
+          "artifact_residual": 0.006939888777897318
+        }
+      }
+    },
+    {
+      "id": "7446f71a03b7",
+      "name": "Alexander Ross - Velvet Curtain",
+      "split": "train",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 13.800142684296137,
+          "si_sdr_db": 13.617935848611264,
+          "spectral_deficit": 0.01332665101057062,
+          "spectral_excess": 0.007854352513747099,
+          "instrument_gain": 0.9637654715997965,
+          "vocal_leakage": 0.053341520380878325,
+          "artifact_residual": 0.028602434670106924
+        },
+        "karaoke_candidate": {
+          "sdr_db": 13.852605382763748,
+          "si_sdr_db": 13.67172707824465,
+          "spectral_deficit": 0.013600265691889574,
+          "spectral_excess": 0.007490328062879652,
+          "instrument_gain": 0.9632036940936497,
+          "vocal_leakage": 0.04953116244366098,
+          "artifact_residual": 0.028899265220459516
+        }
+      }
+    },
+    {
+      "id": "465889e42b6a",
+      "name": "Johnny Lokke - Whisper To A Scream",
+      "split": "train",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 16.56069425045487,
+          "si_sdr_db": 16.465893004635372,
+          "spectral_deficit": 0.006796324451300163,
+          "spectral_excess": 0.003840981354202032,
+          "instrument_gain": 0.981631853101457,
+          "vocal_leakage": 0.014891062159313103,
+          "artifact_residual": 0.018169322563912085
+        },
+        "karaoke_candidate": {
+          "sdr_db": 16.613060708614146,
+          "si_sdr_db": 16.519388892709742,
+          "spectral_deficit": 0.006747388906071165,
+          "spectral_excess": 0.0038101071014364015,
+          "instrument_gain": 0.9818264219055436,
+          "vocal_leakage": 0.013683815646484972,
+          "artifact_residual": 0.01820070738516088
+        }
+      }
+    },
+    {
+      "id": "2778930b9b61",
+      "name": "Aimee Norwich - Child",
+      "split": "train",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 23.893245321659357,
+          "si_sdr_db": 23.87662676412781,
+          "spectral_deficit": 0.0016775742989393486,
+          "spectral_excess": 0.00039689322190532235,
+          "instrument_gain": 0.9953134382105986,
+          "vocal_leakage": 0.0019186670733808782,
+          "artifact_residual": 0.0038770479108994967
+        },
+        "karaoke_candidate": {
+          "sdr_db": 23.95050413011714,
+          "si_sdr_db": 23.93416233486331,
+          "spectral_deficit": 0.0016663059735794786,
+          "spectral_excess": 0.0003864506898208414,
+          "instrument_gain": 0.9953436571423132,
+          "vocal_leakage": 0.0016318488180194824,
+          "artifact_residual": 0.003850977274230685
+        }
+      }
+    },
+    {
+      "id": "5bc229213e9f",
+      "name": "The Long Wait - Back Home To Blue",
+      "split": "train",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 15.756424297049382,
+          "si_sdr_db": 15.641582826098508,
+          "spectral_deficit": 0.010725433603350782,
+          "spectral_excess": 0.003417127715809063,
+          "instrument_gain": 0.9755156196597462,
+          "vocal_leakage": 0.006951773351723955,
+          "artifact_residual": 0.022521279725037265
+        },
+        "karaoke_candidate": {
+          "sdr_db": 15.84531419598216,
+          "si_sdr_db": 15.732564303278835,
+          "spectral_deficit": 0.01061584792250605,
+          "spectral_excess": 0.003315622430412056,
+          "instrument_gain": 0.9757133994652073,
+          "vocal_leakage": 0.006205602409089725,
+          "artifact_residual": 0.02236194366790475
+        }
+      }
+    },
+    {
+      "id": "60a9cec090f0",
+      "name": "James May - If You Say",
+      "split": "train",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 21.45354561715753,
+          "si_sdr_db": 21.42242098900116,
+          "spectral_deficit": 0.002224737671399576,
+          "spectral_excess": 0.0011169410002653632,
+          "instrument_gain": 0.9925701843450939,
+          "vocal_leakage": 0.00042094092886043965,
+          "artifact_residual": 0.006796547797876609
+        },
+        "karaoke_candidate": {
+          "sdr_db": 21.591734587677017,
+          "si_sdr_db": 21.561576000105354,
+          "spectral_deficit": 0.0021614200858483057,
+          "spectral_excess": 0.0010889090315865761,
+          "instrument_gain": 0.9928567337296926,
+          "vocal_leakage": 0.0003069955855110305,
+          "artifact_residual": 0.006658920832593322
+        }
+      }
+    },
+    {
+      "id": "d9dd17e0b02a",
+      "name": "Bobby Nobody - Stitch Up",
+      "split": "test",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 18.59916205047093,
+          "si_sdr_db": 18.538888478315567,
+          "spectral_deficit": 0.00487701473112786,
+          "spectral_excess": 0.0019083550119777916,
+          "instrument_gain": 0.9856402266141848,
+          "vocal_leakage": 0.00419390371624791,
+          "artifact_residual": 0.01243916347424079
+        },
+        "karaoke_candidate": {
+          "sdr_db": 18.69857536930596,
+          "si_sdr_db": 18.63968252637542,
+          "spectral_deficit": 0.004785809782908144,
+          "spectral_excess": 0.001867221733260936,
+          "instrument_gain": 0.9859438403363819,
+          "vocal_leakage": 0.0036215443350357205,
+          "artifact_residual": 0.012293782247509119
+        }
+      }
+    },
+    {
+      "id": "dc7a6304b83d",
+      "name": "Arise - Run Run Run",
+      "split": "test",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 24.124683807906315,
+          "si_sdr_db": 24.108851284894513,
+          "spectral_deficit": 0.0013127805383938904,
+          "spectral_excess": 0.0006117266684367893,
+          "instrument_gain": 0.9951328970534009,
+          "vocal_leakage": 0.001039105314062464,
+          "artifact_residual": 0.003695638761949979
+        },
+        "karaoke_candidate": {
+          "sdr_db": 24.25755634647213,
+          "si_sdr_db": 24.24178972682313,
+          "spectral_deficit": 0.0012431819766549604,
+          "spectral_excess": 0.0006078728839960514,
+          "instrument_gain": 0.9954871853115903,
+          "vocal_leakage": 0.0009227460361969842,
+          "artifact_residual": 0.0035990876047436162
+        }
+      }
+    },
+    {
+      "id": "f8e29bf5adf9",
+      "name": "Moosmusic - Big Dummy Shake",
+      "split": "test",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 19.421519477596178,
+          "si_sdr_db": 19.371737843981542,
+          "spectral_deficit": 0.00378475317546966,
+          "spectral_excess": 0.0020712061058978273,
+          "instrument_gain": 0.9890319366356164,
+          "vocal_leakage": 0.0009263719881747595,
+          "artifact_residual": 0.010846173431417748
+        },
+        "karaoke_candidate": {
+          "sdr_db": 19.477103494366755,
+          "si_sdr_db": 19.427983164076558,
+          "spectral_deficit": 0.003762063434467822,
+          "spectral_excess": 0.0020366182686772797,
+          "instrument_gain": 0.9892434550973165,
+          "vocal_leakage": 0.0007975738908011038,
+          "artifact_residual": 0.010769277780423941
+        }
+      }
+    },
+    {
+      "id": "e23c4f5842d0",
+      "name": "Ben Carrigan - We'll Talk About It All Tonight",
+      "split": "test",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 16.154901270787107,
+          "si_sdr_db": 16.051317089181055,
+          "spectral_deficit": 0.007640154086112832,
+          "spectral_excess": 0.004611824569184495,
+          "instrument_gain": 0.9796373086483802,
+          "vocal_leakage": 0.028625684620000518,
+          "artifact_residual": 0.017843088319999215
+        },
+        "karaoke_candidate": {
+          "sdr_db": 16.252130499785192,
+          "si_sdr_db": 16.15061452189098,
+          "spectral_deficit": 0.00751681682962578,
+          "spectral_excess": 0.0044868168550636104,
+          "instrument_gain": 0.9799183702810758,
+          "vocal_leakage": 0.02635074722159155,
+          "artifact_residual": 0.01779328638912484
+        }
+      }
+    },
+    {
+      "id": "bc848a47154c",
+      "name": "The Long Wait - Dark Horses",
+      "split": "test",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 16.090723113539745,
+          "si_sdr_db": 15.983493967565485,
+          "spectral_deficit": 0.01031411859951687,
+          "spectral_excess": 0.002797571631594914,
+          "instrument_gain": 0.9736364029383086,
+          "vocal_leakage": 0.00526535516970983,
+          "artifact_residual": 0.021700441956212534
+        },
+        "karaoke_candidate": {
+          "sdr_db": 16.19386393994946,
+          "si_sdr_db": 16.089247804654107,
+          "spectral_deficit": 0.010097255166393603,
+          "spectral_excess": 0.002725424845746808,
+          "instrument_gain": 0.9741365505268345,
+          "vocal_leakage": 0.004540452855097573,
+          "artifact_residual": 0.02145301383361429
+        }
+      }
+    },
+    {
+      "id": "4a04f1fb5a27",
+      "name": "Timboz - Pony",
+      "split": "test",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 15.81904922051265,
+          "si_sdr_db": 15.708246624411712,
+          "spectral_deficit": 0.009305075788495607,
+          "spectral_excess": 0.0037045753168322257,
+          "instrument_gain": 0.9787052934908489,
+          "vocal_leakage": 0.05716541070875694,
+          "artifact_residual": 0.01830158158433613
+        },
+        "karaoke_candidate": {
+          "sdr_db": 15.839012041725427,
+          "si_sdr_db": 15.727999942575803,
+          "spectral_deficit": 0.009515875684708427,
+          "spectral_excess": 0.0035959941348867753,
+          "instrument_gain": 0.9783721225943629,
+          "vocal_leakage": 0.05414520284060095,
+          "artifact_residual": 0.01856006196923938
+        }
+      }
+    },
+    {
+      "id": "34fdc94158e1",
+      "name": "Louis Cressy Band - Good Time",
+      "split": "test",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 18.754448528831116,
+          "si_sdr_db": 18.696657010561207,
+          "spectral_deficit": 0.0042448230587643285,
+          "spectral_excess": 0.002244629432172542,
+          "instrument_gain": 0.987407727820227,
+          "vocal_leakage": 0.004283270576598553,
+          "artifact_residual": 0.012101892211721841
+        },
+        "karaoke_candidate": {
+          "sdr_db": 18.824298656785302,
+          "si_sdr_db": 18.76744962436655,
+          "spectral_deficit": 0.004202312145676687,
+          "spectral_excess": 0.0022007959097688086,
+          "instrument_gain": 0.9876463072660207,
+          "vocal_leakage": 0.0038187149135178945,
+          "artifact_residual": 0.012010804860626135
+        }
+      }
+    },
+    {
+      "id": "0ff5de8403b2",
+      "name": "Angels In Amplifiers - I'm Alright",
+      "split": "test",
+      "systems": {
+        "atlas_studio": {
+          "sdr_db": 17.235221537227044,
+          "si_sdr_db": 17.152362962023197,
+          "spectral_deficit": 0.007006856968365004,
+          "spectral_excess": 0.0029873402324309788,
+          "instrument_gain": 0.9808847781685113,
+          "vocal_leakage": 0.001684187314677763,
+          "artifact_residual": 0.017500528344772334
+        },
+        "karaoke_candidate": {
+          "sdr_db": 17.305423709201897,
+          "si_sdr_db": 17.223918259027617,
+          "spectral_deficit": 0.006937850171276502,
+          "spectral_excess": 0.0029241459549390727,
+          "instrument_gain": 0.981123948891715,
+          "vocal_leakage": 0.0014677469008907132,
+          "artifact_residual": 0.017339138498524507
+        }
+      }
+    }
+  ],
+  "accepted": true,
+  "transform_check": {
+    "tracks": [
+      {
+        "id": "fc9f42fdeb43",
+        "name": "Night Panther - Fire",
+        "split": "train",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 12.899407811519897,
+            "si_sdr_db": 12.672158286672197,
+            "spectral_deficit": 0.01891727261042643,
+            "spectral_excess": 0.007223731801653105,
+            "instrument_gain": 0.951256089735226,
+            "vocal_leakage": 0.006638232349379356,
+            "artifact_residual": 0.04397129664999857
+          },
+          "karaoke_v2": {
+            "sdr_db": 12.93244746552272,
+            "si_sdr_db": 12.706869770399633,
+            "spectral_deficit": 0.018960355302702826,
+            "spectral_excess": 0.007121682840609542,
+            "instrument_gain": 0.9513999182450541,
+            "vocal_leakage": 0.006048144898171934,
+            "artifact_residual": 0.044036593302757436
+          }
+        }
+      },
+      {
+        "id": "3c1b6f88b282",
+        "name": "Auctioneer - Our Future Faces",
+        "split": "train",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 12.159236295008684,
+            "si_sdr_db": 11.88784895061525,
+            "spectral_deficit": 0.024448852263480668,
+            "spectral_excess": 0.007411776423929481,
+            "instrument_gain": 0.9426947631423664,
+            "vocal_leakage": 0.018882250155438672,
+            "artifact_residual": 0.04847250807621032
+          },
+          "karaoke_v2": {
+            "sdr_db": 12.195064190839453,
+            "si_sdr_db": 11.925849062074983,
+            "spectral_deficit": 0.024558081309879652,
+            "spectral_excess": 0.007251315969886419,
+            "instrument_gain": 0.9429489954427623,
+            "vocal_leakage": 0.017409260606447666,
+            "artifact_residual": 0.048710057755439504
+          }
+        }
+      },
+      {
+        "id": "d9dd17e0b02a",
+        "name": "Bobby Nobody - Stitch Up",
+        "split": "test",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 18.596531865019212,
+            "si_sdr_db": 18.536247434372278,
+            "spectral_deficit": 0.004876168702711785,
+            "spectral_excess": 0.0019065460064620848,
+            "instrument_gain": 0.9855695721380706,
+            "vocal_leakage": 0.004244530911923871,
+            "artifact_residual": 0.012431477089256604
+          },
+          "karaoke_v2": {
+            "sdr_db": 18.69376167767872,
+            "si_sdr_db": 18.634829337734345,
+            "spectral_deficit": 0.004787558053529394,
+            "spectral_excess": 0.001867828264751701,
+            "instrument_gain": 0.9858678051453341,
+            "vocal_leakage": 0.003663326585476383,
+            "artifact_residual": 0.01229503585904458
+          }
+        }
+      },
+      {
+        "id": "dc7a6304b83d",
+        "name": "Arise - Run Run Run",
+        "split": "test",
+        "systems": {
+          "previous_v2": {
+            "sdr_db": 24.166173233443565,
+            "si_sdr_db": 24.150880701428356,
+            "spectral_deficit": 0.0012992106983290834,
+            "spectral_excess": 0.0006023619398856956,
+            "instrument_gain": 0.9950060627239772,
+            "vocal_leakage": 0.0010369111807056377,
+            "artifact_residual": 0.003657934357376594
+          },
+          "karaoke_v2": {
+            "sdr_db": 24.293965129057305,
+            "si_sdr_db": 24.278589533517998,
+            "spectral_deficit": 0.0012304734956249531,
+            "spectral_excess": 0.0006003437069809085,
+            "instrument_gain": 0.9953777230053451,
+            "vocal_leakage": 0.0009215959131096723,
+            "artifact_residual": 0.003566940104868995
+          }
+        }
+      }
+    ],
+    "evaluation_summary": {
+      "previous_v2": {
+        "sdr_db": 21.381352549231387,
+        "si_sdr_db": 21.343564067900317,
+        "spectral_deficit": 0.003087689700520434,
+        "spectral_excess": 0.0012544539731738902,
+        "instrument_gain": 0.9902878174310239,
+        "vocal_leakage": 0.0026407210463147545,
+        "artifact_residual": 0.008044705723316599
+      },
+      "karaoke_v2": {
+        "sdr_db": 21.49386340336801,
+        "si_sdr_db": 21.456709435626173,
+        "spectral_deficit": 0.0030090157745771735,
+        "spectral_excess": 0.0012340859858663048,
+        "instrument_gain": 0.9906227640753396,
+        "vocal_leakage": 0.0022924612492930276,
+        "artifact_residual": 0.007930987981956787
+      }
+    }
+  },
+  "no_zero_loss_guarantee": true,
+  "no_universal_superiority": true
+}

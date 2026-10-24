@@ -420,7 +420,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   {onLoadProject && (
                     <button
                       onClick={() => onLoadProject(item)}
-                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-500 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/20 active:scale-95 transition-all flex items-center gap-1.5"
+                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/20 active:scale-95 transition-all flex items-center gap-1.5"
                       title="Bu projeyi çalışma alanına geri yükle ve mikserde düzenle"
                     >
                       <FolderOpen className="w-3.5 h-3.5" />

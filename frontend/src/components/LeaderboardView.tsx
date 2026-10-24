@@ -111,7 +111,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ lang, accentCo
               className={cn(
                 'px-4 py-2 rounded-xl text-xs font-bold font-outfit transition-all duration-200 active:scale-95',
                 filter === item.id
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30'
+                  ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               )}
             >

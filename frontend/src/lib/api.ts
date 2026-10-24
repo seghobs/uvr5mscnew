@@ -2,7 +2,7 @@ import { AvailableModels, ModelStatus, SeparationParams, TaskStatus, SearchResul
 import {backendFetch as safeFetch,pollBackendTask} from './backend-fetch';
 
 export const api = {
-  async cancelAllTasks():Promise<{status:string;previous_pid?:number;deleted_tasks:number;message:string}>{
+  async cancelAllTasks():Promise<{status:string;deleted_tasks:number;message:string}>{
     const res=await safeFetch('/api/tasks/cancel-all',{method:'POST'});
     const data=await res.json().catch(()=>({}));
     if(!res.ok)throw new Error(data.detail||'Görevler sonlandırılamadı.');

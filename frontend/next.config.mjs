@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  distDir: process.env.UVR_NEXT_DIST || '.next',
   reactStrictMode: false,
   // Whole-song high-quality audio processing can exceed the default 30 seconds.
   experimental: { proxyTimeout: 660000 },

@@ -497,7 +497,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
           <p id="song-selection-description" className="text-sm text-slate-300">Bu şarkıyı seçip indirmek istediğinize emin misiniz?</p>
           <div className="mt-6 flex justify-end gap-3">
             <button autoFocus type="button" onClick={() => setPendingSelection(null)} className="rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold hover:bg-white/20">Vazgeç</button>
-            <button type="button" onClick={() => confirmSearchResult(pendingSelection)} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-bold hover:from-purple-500 hover:to-indigo-500"><Download className="h-4 w-4" />Seç ve indir</button>
+            <button type="button" onClick={() => confirmSearchResult(pendingSelection)} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-600 px-4 py-2.5 text-sm font-bold hover:from-indigo-500 hover:to-indigo-500"><Download className="h-4 w-4" />Seç ve indir</button>
           </div>
         </dialog>, document.body
       )}
@@ -918,7 +918,7 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
               accentColor === 'rose' &&
                 'bg-gradient-to-r from-rose-600 via-rose-500 to-rose-700 shadow-rose-500/30',
               accentColor === 'amber' &&
-                'bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 shadow-amber-500/30',
+                'bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-700 shadow-indigo-500/30',
               accentColor === 'violet' &&
                 'bg-gradient-to-r from-violet-600 via-violet-500 to-violet-700 shadow-violet-500/30'
             )}

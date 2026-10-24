@@ -1,6 +1,7 @@
 'use client';
 
 import {StudioSelect} from './StudioSelect';
+import comparisonPresets from '@/lib/comparison-presets.json';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -162,7 +163,18 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
     return 'roformer';
   };
 
-  const applyPreset = (presetType: 'atlas_studio_v2' | 'atlas_studio' | 'studio_pro' | 'zero_loss_exchange' | 'master_studio' | 'strings' | 'vocal' | 'piano') => {
+  const applyPreset = (presetType: 'lale_instrument' | 'sedef_clean' | 'clean_music' | 'clean_music_restore' | 'atlas_studio_v2' | 'atlas_studio' | 'studio_pro' | 'zero_loss_exchange' | 'master_studio' | 'strings' | 'vocal' | 'piano') => {
+    if(presetType==='lale_instrument'||presetType==='sedef_clean'||presetType==='clean_music'||presetType==='clean_music_restore'){
+      const preset=comparisonPresets[presetType];
+      const missing=preset.models.filter(m=>!availableModels[m.model_type]?.includes(m.model_key));
+      if(missing.length){onNotify('warning','Model listesi yenilenmeli','Sayfayı yenileyip hazır ayarı tekrar seçin.');return;}
+      if(!ensembleMode)onToggleEnsembleMode();
+      onChangeEnsembleSlots(preset.models);
+      onChangeParams({...params,ensemble_profile:presetType,segment_size:256,override_segment_size:false,overlap:8,batch_size:1,normalization_threshold:1,amplification_threshold:0,single_stem:''});
+      onChangeOutputFormat('wav');
+      onNotify('success',preset.name+' hazır',preset.models.length+' model · '+preset.algorithm+' · WAV. Eksik modeller ilk çalıştırmada indirilir; sonuç kayda göre değişir.');
+      return;
+    }
     if (presetType === 'atlas_studio' || presetType === 'atlas_studio_v2') {
       const preset = presetType === 'atlas_studio_v2' ? atlasStudioV2 : atlasStudio;
       const slots = preset.models.map(({model_type,model_key}) => ({model_type,model_key}));
@@ -177,7 +189,11 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
         override_segment_size:false, overlap:8, batch_size:1, normalization_threshold:1,
         amplification_threshold:0, single_stem:''});
       onChangeOutputFormat('wav');
-      onNotify('success', `${preset.name} hazır`, `${slots.length} model · %87,5 örtüşme · WAV. Kaynak toplamı korunur; ayrım kalitesi kayda göre değişir.`);
+      const passes = presetType === 'atlas_studio_v2' ? atlasStudioV2.inference_passes.length : 1;
+      const totalPasses = slots.length * passes + (presetType === 'atlas_studio_v2' && 'residual_cleanup' in atlasStudioV2 ? 1 : 0);
+      onNotify('success', `${preset.name} hazır`, presetType === 'atlas_studio_v2'
+        ? `Müzik bütünlüğü öncelikli · Yumuşak frekans karışımı · ${slots.length} model · ${totalPasses} çıkarım · WAV. Ayrım kalitesi kayda göre değişir.`
+        : `${slots.length} model · %87,5 örtüşme · WAV. Kaynak toplamı korunur; ayrım kalitesi kayda göre değişir.`);
       return;
     }
     if (!ensembleMode) {
@@ -400,6 +416,8 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
         )}
       </div>
 
+
+
       {/* Quick Ensemble Presets Deck */}
       <div className="space-y-3" style={{'--preset-accent': {
         indigo:'183 161 245', emerald:'129 200 178', rose:'233 154 180', amber:'251 191 36', violet:'202 159 233',
@@ -423,9 +441,8 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
           { key: 'atlas_studio', title: 'Atlas Studio', badge: 'YENİ · 3 MODEL', icon: Sparkles,
             description: 'Vokal temizliği ve enstrüman bütünlüğü için dengeli ayrım', detail: 'WAV · %87,5 örtüşme · Uzun işlem · Sonuç kayda göre değişir' },
           { key: 'atlas_studio_v2', title: 'Atlas Studio V2', badge: `${atlasStudioV2.models.length} MODEL`, icon: Sparkles,
-            description: 'frequency_weights' in atlasStudioV2
-              ? 'Vokal ve müzik uzmanları; frekanslara göre ayarlanmış karışım'
-              : 'Viper + Leap + iki MelBand uzmanı; referans kayıtlarla ayarlanmış karışım', detail: 'Float WAV · %87,5 örtüşme · Sonuç kayda göre değişir · Uzun işlem' },
+            description: 'Davul, bas ve enstrüman için yumuşak frekans karışımı; 3 model',
+            detail: `Float WAV · ${atlasStudioV2.models.length * atlasStudioV2.inference_passes.length + ('residual_cleanup' in atlasStudioV2 ? 1 : 0)} çıkarım · %87,5 örtüşme` },
           { key: 'studio_pro', title: 'Master Studio Pro', badge: 'YENİ · 4 MODEL', icon: ShieldCheck,
             description: 'Doğal vokal ve temiz enstrüman için uzman karışımı', detail: 'FLAC · Daha uzun işlem · Sonuç şarkıya göre değişir' },
         ] as const).map(({key, title, badge, icon: Icon, description, detail}) => (
@@ -491,14 +508,14 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
           <button
             type="button"
             onClick={() => applyPreset('piano')}
-            className="p-3 rounded-2xl bg-slate-900/80 hover:bg-slate-800/90 border border-white/10 hover:border-amber-500/50 text-left transition-all active:scale-95 group shadow-md flex flex-col justify-between cursor-pointer"
+            className="p-3 rounded-2xl bg-slate-900/80 hover:bg-slate-800/90 border border-white/10 hover:border-indigo-500/50 text-left transition-all active:scale-95 group shadow-md flex flex-col justify-between cursor-pointer"
             title="Piyano ve akustik soloları net ayırır"
           >
-            <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-2 group-hover:scale-110 group-hover:border-amber-400 transition-all">
+            <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-2 group-hover:scale-110 group-hover:border-indigo-400 transition-all">
               <Volume2 className="w-3.5 h-3.5" />
             </div>
             <div>
-              <span className="text-[11px] font-bold text-white block leading-tight truncate group-hover:text-amber-300 transition-colors">
+              <span className="text-[11px] font-bold text-white block leading-tight truncate group-hover:text-indigo-300 transition-colors">
                 Piyano & Solo
               </span>
               <span className="text-[9px] text-slate-400 block truncate mt-0.5">Solo Koruma</span>
@@ -547,13 +564,16 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
             <button
               type="button"
               onClick={() => setDropdownOpen(!dropdownOpen)}
+              aria-expanded={dropdownOpen}
+              aria-controls="model-options"
+              aria-label={lang === 'tr' ? 'Model seç' : 'Select model'}
               className="w-full bg-slate-950/90 border border-white/10 hover:border-white/20 rounded-2xl p-3.5 text-xs text-white flex items-center justify-between transition-all duration-200 shadow-inner"
             >
               <div className="flex items-center gap-2.5 truncate">
                 <Cpu className="w-4 h-4 text-indigo-400 shrink-0" />
                 <span className="font-bold truncate">{selectedModel || t('Choose a model...')}</span>
                 {isFavorite(selectedModel) && (
-                  <span className="text-amber-400 text-xs shrink-0 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
+                  <span className="text-indigo-400 text-xs shrink-0 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
                     ★
                   </span>
                 )}
@@ -565,7 +585,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
 
             {/* Model Dropdown Menu Outward Floating Popover */}
             {dropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-[#0b1329]/98 border border-white/20 backdrop-blur-2xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.9)] p-2.5 z-[100] max-h-72 overflow-y-auto space-y-1 custom-scrollbar animate-in fade-in zoom-in-95 duration-150 ring-1 ring-white/10">
+              <div id="model-options" className="absolute top-full left-0 right-0 mt-2 bg-[#0b1329]/98 border border-white/20 backdrop-blur-2xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.9)] p-2.5 z-[100] max-h-72 overflow-y-auto space-y-1 custom-scrollbar animate-in fade-in zoom-in-95 duration-150 ring-1 ring-white/10">
                 <input
                   type="text"
                   placeholder={t('Search models...')}
@@ -579,32 +599,36 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
                     <div
                       key={m}
                       className={cn(
-                        'flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.08] cursor-pointer text-xs transition-colors group',
+                        'flex items-stretch justify-between rounded-xl hover:bg-white/[0.08] text-xs transition-colors group border border-transparent',
                         selectedModel === m && 'bg-indigo-600/20 text-indigo-300 font-bold border border-indigo-500/30'
                       )}
                     >
-                      <span
+                      <button
+                        type="button"
+                        aria-pressed={selectedModel === m}
                         onClick={() => {
                           onSelectModel(m);
                           setDropdownOpen(false);
+                          setSearchFilter('');
                         }}
-                        className="truncate flex-1 text-slate-200 group-hover:text-white"
+                        className="min-w-0 flex-1 truncate rounded-xl p-3 text-left text-slate-200 group-hover:text-white"
+                        title={m}
                       >
                         {m}
-                      </span>
+                      </button>
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleFavorite(m);
                         }}
-                        className="p-1 rounded-lg hover:bg-white/10 text-slate-500 hover:text-amber-400 transition-colors ml-2 shrink-0"
+                        className="p-1 rounded-lg hover:bg-white/10 text-slate-500 hover:text-indigo-400 transition-colors ml-2 shrink-0"
                         title={fav ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
                       >
                         <Star
                           className={cn(
                             'w-3.5 h-3.5',
-                            fav ? 'fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]' : 'text-slate-500'
+                            fav ? 'fill-amber-400 text-indigo-400 drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]' : 'text-slate-500'
                           )}
                         />
                       </button>
@@ -727,7 +751,7 @@ export const ModelConfiguration: React.FC<ModelConfigurationProps> = ({
             <button
               key={fmt}
               type="button"
-              disabled={ensembleMode && ['atlas_studio','atlas_studio_v2'].includes(params.ensemble_profile || '') && !['wav', 'flac'].includes(fmt)}
+              disabled={ensembleMode && ['atlas_studio','atlas_studio_v2','lale_instrument','sedef_clean','clean_music','clean_music_restore'].includes(params.ensemble_profile || '') && !['wav', 'flac'].includes(fmt)}
               onClick={() => onChangeOutputFormat(fmt)}
               className={cn(
                 'py-3 rounded-2xl font-mono text-xs font-bold uppercase transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center gap-1.5 disabled:opacity-35 disabled:cursor-not-allowed',

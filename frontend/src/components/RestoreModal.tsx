@@ -152,13 +152,13 @@ export const RestoreModal: React.FC<RestoreModalProps> = ({
                 className={cn(
                   "p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-1",
                   denoise && enhanceSr
-                    ? "bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 border-cyan-500/50 shadow-md shadow-cyan-500/10 text-white"
+                    ? "bg-gradient-to-br from-indigo-500/20 to-indigo-500/20 border-indigo-500/50 shadow-md shadow-indigo-500/10 text-white"
                     : "bg-slate-950/40 border-slate-800 text-slate-400 hover:bg-slate-800/60"
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-cyan-300">✨ Tam Restorasyon</span>
-                  {denoise && enhanceSr && <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />}
+                  <span className="text-xs font-bold text-indigo-300">✨ Tam Restorasyon</span>
+                  {denoise && enhanceSr && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />}
                 </div>
                 <span className="text-[10px] text-slate-400 leading-tight">
                   Denoise (28dB) + 48kHz AudioSR. Boğuk kayıtlar için önerilir.
@@ -171,13 +171,13 @@ export const RestoreModal: React.FC<RestoreModalProps> = ({
                 className={cn(
                   "p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-1",
                   denoise && !enhanceSr
-                    ? "bg-sky-500/20 border-sky-500/50 shadow-md text-white"
+                    ? "bg-indigo-500/20 border-indigo-500/50 shadow-md text-white"
                     : "bg-slate-950/40 border-slate-800 text-slate-400 hover:bg-slate-800/60"
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-sky-300">🛡️ Yalnızca Denoise</span>
-                  {denoise && !enhanceSr && <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />}
+                  <span className="text-xs font-bold text-indigo-300">🛡️ Yalnızca Denoise</span>
+                  {denoise && !enhanceSr && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />}
                 </div>
                 <span className="text-[10px] text-slate-400 leading-tight">
                   Kaset hışırtısı, amfi vızıltısı ve dip gürültüyü kazır.
@@ -234,7 +234,7 @@ export const RestoreModal: React.FC<RestoreModalProps> = ({
                 type="checkbox"
                 checked={denoise}
                 onChange={() => {}}
-                className="rounded border-slate-700 bg-slate-900 text-sky-500 focus:ring-0 cursor-pointer"
+                className="rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-0 cursor-pointer"
               />
             </div>
 
@@ -265,7 +265,7 @@ export const RestoreModal: React.FC<RestoreModalProps> = ({
                 type="checkbox"
                 checked={enhanceSr}
                 onChange={() => {}}
-                className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
+                className="rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-0 cursor-pointer"
               />
             </div>
           </div>
@@ -279,7 +279,7 @@ export const RestoreModal: React.FC<RestoreModalProps> = ({
                 className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
               >
                 <span className="flex items-center gap-1.5">
-                  <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                  <Sliders className="w-3.5 h-3.5 text-indigo-400" />
                   Gelişmiş Difüzyon Ayarları
                 </span>
                 <span className="text-[10px] text-slate-500 font-mono">
@@ -301,7 +301,7 @@ export const RestoreModal: React.FC<RestoreModalProps> = ({
                       step={5}
                       value={ddimSteps}
                       onChange={(e) => setDdimSteps(parseInt(e.target.value))}
-                      className="w-full accent-cyan-500 cursor-pointer"
+                      className="w-full accent-indigo-500 cursor-pointer"
                     />
                     <span className="text-[10px] text-slate-500 block mt-0.5">
                       20 adım RTX 5060 için optimum stüdyo hızı ve yüksek kalite sunar.
@@ -320,7 +320,7 @@ export const RestoreModal: React.FC<RestoreModalProps> = ({
                       step={0.5}
                       value={guidanceScale}
                       onChange={(e) => setGuidanceScale(parseFloat(e.target.value))}
-                      className="w-full accent-cyan-500 cursor-pointer"
+                      className="w-full accent-indigo-500 cursor-pointer"
                     />
                     <span className="text-[10px] text-slate-500 block mt-0.5">
                       Değer arttıkça orijinal ses karakterine sadık kalarak tizleri açar (Varsayılan: 3.5).
@@ -364,9 +364,9 @@ export const RestoreModal: React.FC<RestoreModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowABModal(true)}
-                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500/25 via-cyan-500/25 to-indigo-500/25 hover:from-amber-500/35 hover:to-cyan-500/35 text-white font-bold text-xs border border-cyan-500/40 flex items-center gap-1.5 transition-all shadow-md shadow-cyan-500/10 active:scale-95"
+                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-500/25 via-indigo-500/25 to-indigo-500/25 hover:from-indigo-500/35 hover:to-indigo-500/35 text-white font-bold text-xs border border-indigo-500/40 flex items-center gap-1.5 transition-all shadow-md shadow-indigo-500/10 active:scale-95"
                 >
-                  <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-300" />
+                  <ArrowRightLeft className="w-3.5 h-3.5 text-indigo-300" />
                   <span>🔀 Kalite Farkını Karşılaştır (A/B Testi)</span>
                 </button>
                 <a
@@ -401,7 +401,7 @@ export const RestoreModal: React.FC<RestoreModalProps> = ({
               type="button"
               onClick={handleStartRestore}
               disabled={isProcessing}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-cyan-600 to-teal-500 hover:from-indigo-500 hover:to-teal-400 text-white text-xs font-bold transition-all shadow-lg shadow-cyan-600/25 flex items-center gap-2 active:scale-95 disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-bold transition-all shadow-lg shadow-indigo-600/25 flex items-center gap-2 active:scale-95 disabled:opacity-50"
             >
               {isProcessing ? (
                 <>
@@ -410,7 +410,7 @@ export const RestoreModal: React.FC<RestoreModalProps> = ({
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-cyan-200" />
+                  <Sparkles className="w-4 h-4 text-indigo-200" />
                   <span>Restorasyonu Başlat</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>

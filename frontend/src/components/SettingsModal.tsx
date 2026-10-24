@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Cpu, Sliders, CheckCircle2, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 import { Language, AccentColor, SeparationParams } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -36,6 +36,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [isClearingKaraoke, setIsClearingKaraoke] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const aiSettings=useRef<{save:()=>Promise<boolean>}>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previous; };
+  }, [isOpen]);
 
   const handleClearKaraoke = async () => {
     if (!confirmClear) {
@@ -63,54 +69,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   };
 
-  const accentCardMap: Record<AccentColor, { card: string; icon: string; btn: string; confirmBtn: string }> = {
-    indigo: {
-      card: 'bg-indigo-500/10 border-indigo-500/30',
-      icon: 'text-indigo-400',
-      btn: 'bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border-indigo-500/30',
-      confirmBtn: 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30',
-    },
-    emerald: {
-      card: 'bg-emerald-500/10 border-emerald-500/30',
-      icon: 'text-emerald-400',
-      btn: 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/30',
-      confirmBtn: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30',
-    },
-    rose: {
-      card: 'bg-rose-500/10 border-rose-500/30',
-      icon: 'text-rose-400',
-      btn: 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border-rose-500/30',
-      confirmBtn: 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30',
-    },
-    amber: {
-      card: 'bg-amber-500/10 border-amber-500/30',
-      icon: 'text-amber-400',
-      btn: 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/30',
-      confirmBtn: 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/30',
-    },
-    violet: {
-      card: 'bg-violet-500/10 border-violet-500/30',
-      icon: 'text-violet-400',
-      btn: 'bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 border-violet-500/30',
-      confirmBtn: 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-600/30',
-    },
+  const themeStyle = {
+    card: 'bg-indigo-300/10 border-indigo-300/30',
+    icon: 'text-indigo-300',
+    btn: 'bg-rose-300/5 hover:bg-rose-300/10 text-rose-200 border-rose-300/20',
+    confirmBtn: 'bg-rose-600 hover:bg-rose-500 text-white',
   };
-
-  const themeStyle = accentCardMap[accentColor] || accentCardMap.indigo;
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-      <div className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
+      <div role="dialog" aria-modal="true" aria-labelledby="settings-title" className="settings-modal custom-scrollbar bg-slate-900 border border-white/10 rounded-3xl max-w-lg w-full max-h-[90dvh] overflow-y-auto p-5 sm:p-6 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Sliders className={cn('w-5 h-5', themeStyle.icon)} />
-            <h3 className="text-base font-bold font-outfit text-white">{t('Global Settings')}</h3>
+            <h3 id="settings-title" className="text-base font-bold font-outfit text-white">{t('Global Settings')}</h3>
           </div>
           <button
             onClick={onClose}
+            aria-label={lang === 'tr' ? 'Ayarları kapat' : 'Close settings'}
             className="p-1.5 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
@@ -132,6 +111,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 key={dev.id}
                 type="button"
                 onClick={() => onChangeDevice(dev.id)}
+                aria-pressed={device === dev.id}
                 className={cn(
                   'p-3.5 rounded-2xl border text-left transition-all',
                   device === dev.id
@@ -143,7 +123,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <Cpu className={cn('w-4 h-4', themeStyle.icon)} />
                   <span>{dev.label}</span>
                 </div>
-                <span className="text-[10px] text-slate-500 mt-1 block font-mono">{dev.desc}</span>
+                <span className="text-xs text-slate-400 mt-1 block font-mono">{dev.desc}</span>
               </button>
             ))}
           </div>
@@ -198,7 +178,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {lang === 'tr' ? 'Karaoke & Veritabanı Yönetimi' : 'Karaoke & Database Storage'}
           </label>
 
-          <div className={cn('p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4', themeStyle.card)}>
+          <div className={cn('p-4 rounded-2xl border border-rose-300/15 bg-rose-300/[0.035] flex flex-col sm:items-start justify-between gap-4')}>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Trash2 className={cn('w-4 h-4', themeStyle.icon)} />
@@ -206,7 +186,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {lang === 'tr' ? 'Tüm Çalışmaları & İndirmeleri Temizle' : 'Clear All Outputs & Downloads'}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-400 leading-relaxed">
                 {lang === 'tr'
                   ? 'outputs/, ytdl/ ve uploads/ klasörlerindeki tüm dosyaları (ayrıştırılmış sesler, karaoke videoları, indirmeler) ve veritabanı kayıtlarını tamamen siler.'
                   : 'Wipes all files in outputs/, ytdl/, and uploads/ (stems, karaoke videos, downloads) and SQLite database records.'}
@@ -259,14 +239,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             onClose();
             onNotify('success', 'Settings Saved');
           }}
-          className={cn(
-            'w-full py-3.5 rounded-2xl font-bold text-xs text-white shadow-xl transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer',
-            accentColor === 'indigo' && 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/25',
-            accentColor === 'emerald' && 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/25',
-            accentColor === 'rose' && 'bg-rose-600 hover:bg-rose-500 shadow-rose-500/25',
-            accentColor === 'amber' && 'bg-amber-600 hover:bg-amber-500 shadow-amber-500/25',
-            accentColor === 'violet' && 'bg-violet-600 hover:bg-violet-500 shadow-violet-500/25'
-          )}
+          className="settings-save w-full flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold"
         >
           <CheckCircle2 className="w-4 h-4" />
           <span>{t('Save & Close')}</span>

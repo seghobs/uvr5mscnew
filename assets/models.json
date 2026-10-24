@@ -563,5 +563,25 @@
     "BS Roformer Siamese by pcunwa": [
         "https://huggingface.co/pcunwa/BS-EXP-SiameseRoformer/resolve/2042531f6f98ff5070124fec89dffbdd185877f9/bs_exp_siameseroformer.ckpt",
         "https://huggingface.co/pcunwa/BS-EXP-SiameseRoformer/resolve/2042531f6f98ff5070124fec89dffbdd185877f9/config.yaml"
+    ],
+    "BS Roformer SW 6 Stem by jarredou": [
+        "https://huggingface.co/enerjazzer/BS-ROFO-SW-Fixed/resolve/a443a2985534b3bc815ef54a5d446c6a0390f974/BS-Rofo-SW-Fixed.ckpt",
+        "https://huggingface.co/enerjazzer/BS-ROFO-SW-Fixed/resolve/a443a2985534b3bc815ef54a5d446c6a0390f974/BS-Rofo-SW-Fixed.yaml"
+    ],
+    "MelBand Roformer Fv7z Instrumental by Gabox": [
+        "https://huggingface.co/noblebarkrr/mvsepless_resources/resolve/283025218e6447db47da1ad18df3c2f67ca8d66d/mel_band_roformer/mbr_instfv7z_gabox.ckpt",
+        "https://huggingface.co/noblebarkrr/mvsepless_resources/resolve/283025218e6447db47da1ad18df3c2f67ca8d66d/mel_band_roformer/mbr_instfv7z_gabox_config.yaml"
+    ],
+    "BS Roformer Mega Flute by MVSep (single head)": [
+        "https://huggingface.co/noblebarkrr/BS-Roformer-MVSep-Mega-53-stems/resolve/0677941f9cdfd891a6bc3336229244e197035327/v1/bs_mega_53stem_flute_mvsep.ckpt",
+        "https://huggingface.co/noblebarkrr/BS-Roformer-MVSep-Mega-53-stems/resolve/0677941f9cdfd891a6bc3336229244e197035327/v1/bs_mega_53stem_flute_mvsep_config.yaml"
+    ],
+    "BS Roformer Mega Violin by MVSep (single head)": [
+        "https://huggingface.co/noblebarkrr/BS-Roformer-MVSep-Mega-53-stems/resolve/0677941f9cdfd891a6bc3336229244e197035327/v1/bs_mega_53stem_violin_mvsep.ckpt",
+        "https://huggingface.co/noblebarkrr/BS-Roformer-MVSep-Mega-53-stems/resolve/0677941f9cdfd891a6bc3336229244e197035327/v1/bs_mega_53stem_violin_mvsep_config.yaml"
+    ],
+    "BS Roformer Mega Wind by MVSep (single head)": [
+        "https://huggingface.co/noblebarkrr/BS-Roformer-MVSep-Mega-53-stems/resolve/0677941f9cdfd891a6bc3336229244e197035327/v1/bs_mega_53stem_wind_mvsep.ckpt",
+        "https://huggingface.co/noblebarkrr/BS-Roformer-MVSep-Mega-53-stems/resolve/0677941f9cdfd891a6bc3336229244e197035327/v1/bs_mega_53stem_wind_mvsep_config.yaml"
     ]
 }

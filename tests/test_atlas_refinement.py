@@ -50,7 +50,7 @@ class RefinementTests(unittest.TestCase):
         rng=np.random.default_rng(41);source=rng.normal(0,.1,(4103,2))
         estimates=[rng.normal(0,.1,source.shape) for _ in range(4)]
         spec={'anchors_hz':[0,1000,22050],'weights':[[.1,.2,.4],[.2,.3,.1],[.3,.2,.3],[.4,.3,.2]]}
-        fixture={**PRESET_V2,'models':[{**m,'weight':.25} for m in PRESET_V2['models'][:4]],'frequency_weights':spec}
+        fixture={**PRESET_V2,'models':[{**m,'weight':.25} for m in [*PRESET_V2['models'],PRESET_V2['models'][0]]],'frequency_weights':spec}
         vocal,inst=combine(source,estimates,fixture)
         candidates=[source-e if m['estimate']=='inst' else e for e,m in zip(estimates,fixture['models'])]
         expected=combine_frequency(source,candidates,spec)

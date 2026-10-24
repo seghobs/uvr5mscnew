@@ -112,7 +112,7 @@ class AtlasStudioTests(unittest.TestCase):
         asyncio.run(ns['start_ensemble'](v2, v2_bg))
         self.assertEqual(v2_bg.tasks[0].args[-1], 'atlas_studio_v2')
         with self.assertRaises(HTTPException):
-            asyncio.run(ns['start_ensemble']({**v2,'models':PRESET['models']}, BackgroundTasks()))
+            asyncio.run(ns['start_ensemble']({**v2,'models':PRESET['models'][::-1]}, BackgroundTasks()))
         payload['out_format'] = 'mp3'
         with self.assertRaises(HTTPException): asyncio.run(ns['start_ensemble'](payload, BackgroundTasks()))
 

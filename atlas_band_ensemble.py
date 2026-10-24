@@ -29,7 +29,7 @@ def spectrum(wave):
     return stft(wave.T,fs=RATE,nperseg=FFT,noverlap=FFT-HOP,boundary='zeros',padded=True)[2]
 
 
-def combine_frequency(source,candidates,spec):
+def _combine_frequency_block(source,candidates,spec):
     """Shared timebase/gain. No masks, gating, peak limiting or region replacement."""
     if source.ndim!=2 or source.shape[1]!=2 or not len(source) or not np.isfinite(source).all():
         raise ValueError('Kaynak ses geçersiz')
@@ -46,4 +46,21 @@ def combine_frequency(source,candidates,spec):
     vocal=wave.T[:len(source)]
     if vocal.shape!=source.shape or not np.isfinite(vocal).all():
         raise ValueError('Frekans karışımı geçersiz çıktı üretti')
+    return vocal,source-vocal
+
+
+def combine_frequency(source,candidates,spec):
+    """Bound STFT memory; aligned overlap reproduces the full-record transform."""
+    validate_frequency_weights(spec,len(candidates))
+    if (source.ndim!=2 or source.shape[1]!=2 or not len(source) or not np.isfinite(source).all()
+            or any(x.shape!=source.shape or not np.isfinite(x).all() for x in candidates)):
+        raise ValueError('Kaynak veya model çıktısı geçersiz')
+    block=262144  # Multiple of HOP; FFT context covers every contributing frame.
+    if len(source)<=block:return _combine_frequency_block(source,candidates,spec)
+    vocal=np.empty(source.shape,dtype=np.float64)
+    for start in range(0,len(source),block):
+        stop=min(len(source),start+block)
+        left=max(0,start-FFT);right=min(len(source),stop+FFT)
+        part,_=_combine_frequency_block(source[left:right],[x[left:right] for x in candidates],spec)
+        vocal[start:stop]=part[start-left:stop-left]
     return vocal,source-vocal

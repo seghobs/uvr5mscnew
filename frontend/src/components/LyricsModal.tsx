@@ -208,7 +208,7 @@ export const LyricsModal: React.FC<LyricsModalProps> = ({
               onClick={() => loadLyrics(true)}
               disabled={loading}
               title="Whisper AI ile şarkı sözlerini sıfırdan baştan çıkar"
-              className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-40"
+              className="px-2.5 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-40"
             >
               {loading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />

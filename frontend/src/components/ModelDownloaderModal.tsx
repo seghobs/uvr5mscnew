@@ -353,7 +353,7 @@ export const ModelDownloaderModal: React.FC<ModelDownloaderModalProps> = ({
                           className={cn(
                             'flex items-center gap-1.5 px-4 py-2 rounded-xl font-black text-xs transition-all shadow-md active:scale-95 cursor-pointer',
                             isFull
-                              ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/20'
+                              ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-slate-950 shadow-indigo-500/20'
                               : 'bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white shadow-indigo-500/20'
                           )}
                         >

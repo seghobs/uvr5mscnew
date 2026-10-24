@@ -440,7 +440,7 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
             step="0.05"
             value={remixTempo}
             onChange={(e) => handleRemixTempoChange(parseFloat(e.target.value))}
-            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-fuchsia-500"
+            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
           />
         </div>
       </div>
@@ -466,7 +466,7 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
               className={cn(
                 'px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all',
                 activeAB === 'remix'
-                  ? 'bg-fuchsia-600 text-white shadow-md shadow-fuchsia-600/30'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                   : 'text-slate-400 hover:text-white'
               )}
             >
@@ -529,7 +529,7 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
               step="1"
               value={bassGain}
               onChange={(e) => handleBassChange(parseInt(e.target.value, 10))}
-              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-fuchsia-500"
+              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
           </div>
 
@@ -546,7 +546,7 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
               step="1"
               value={midGain}
               onChange={(e) => handleMidChange(parseInt(e.target.value, 10))}
-              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-fuchsia-500"
+              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
           </div>
 
@@ -563,7 +563,7 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
               step="1"
               value={trebleGain}
               onChange={(e) => handleTrebleChange(parseInt(e.target.value, 10))}
-              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-fuchsia-500"
+              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
           </div>
         </div>
@@ -597,7 +597,7 @@ export const StudioRemix: React.FC<StudioRemixProps> = ({
         <button
           onClick={handleExportRemix}
           disabled={isRemixing}
-          className="flex-1 py-3.5 rounded-2xl font-bold text-xs bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 text-white flex items-center justify-center gap-2 shadow-xl shadow-fuchsia-500/25 active:scale-95 disabled:opacity-50"
+          className="flex-1 py-3.5 rounded-2xl font-bold text-xs bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white flex items-center justify-center gap-2 shadow-xl shadow-indigo-500/25 active:scale-95 disabled:opacity-50"
         >
           {isRemixing ? (
             <>

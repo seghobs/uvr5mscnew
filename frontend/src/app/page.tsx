@@ -20,7 +20,9 @@ import { Header } from '@/components/Header';
 import { NavigationTabs } from '@/components/NavigationTabs';
 import { UploadZone, UploadedItem } from '@/components/UploadZone';
 import { ModelConfiguration } from '@/components/ModelConfiguration';
+import { StemTransferModal, type StemPair } from '@/components/StemTransferModal';
 import { StemAudioPlayer } from '@/components/StemAudioPlayer';
+import { OriginalAudioPlayer } from '@/components/OriginalAudioPlayer';
 import { StudioRemix } from '@/components/StudioRemix';
 import { LibraryView } from '@/components/LibraryView';
 import { LeaderboardView } from '@/components/LeaderboardView';
@@ -123,7 +125,41 @@ export default function StudioPage() {
     return () => clearInterval(timer);
   }, [isProcessing]);
   const [separatedStems, setSeparatedStems] = useState<string[]>([]);
+  const [transferSelection,setTransferSelection]=useState<{vocal:string;time:number}|null>(null);
+  const applyStemTransfer=(before:StemPair,after:StemPair,time:number)=>{
+    const replace=(stems:string[])=>stems.map(name=>name===before.vocal?after.vocal:name===before.instrumental?after.instrumental:name);
+    for(const name of [after.vocal,after.instrumental])sessionStorage.setItem('uvr-restart-player:'+name,JSON.stringify({time,karaoke:false}));
+    setSeparatedStems(replace);
+    const library:LibraryItem[]=JSON.parse(projectStorage.getItem('uvr_library')||'[]');
+    projectStorage.setItem('uvr_library',JSON.stringify(library.map(item=>item.stems.includes(before.vocal)&&item.stems.includes(before.instrumental)?{...item,stems:replace(item.stems)}:item)));
+  };
+  const [resultSource, setResultSource] = useState<{ name: string; path: string } | null>(null);
   const [activeProjectId,setActiveProjectId]=useState<number|null>(null);
+  const restoredAfterRestart=useRef(false);
+  useEffect(() => {
+    const capture = () => sessionStorage.setItem('uvr-restart-workspace', JSON.stringify({
+      currentTab, queue:queue.map(({id,name,path,size})=>({id,name,path,size})), separatedStems,
+      resultSource, activeProjectId, params, selectedModel, ensembleMode, ensembleSlots,
+      outputFormat, scrollY:window.scrollY,
+    }));
+    window.addEventListener('uvr-before-restart', capture);
+    return () => window.removeEventListener('uvr-before-restart', capture);
+  }, [currentTab,queue,separatedStems,resultSource,activeProjectId,params,selectedModel,ensembleMode,ensembleSlots,outputFormat]);
+  useEffect(() => {
+    if (!projectsReady) return;
+    const saved = sessionStorage.getItem('uvr-restart-workspace');
+    if (!saved) return;
+    try {
+      const state = JSON.parse(saved);
+      restoredAfterRestart.current=true;
+      setCurrentTab(state.currentTab); setQueue(state.queue); setSeparatedStems(state.separatedStems);
+      setResultSource(state.resultSource); setActiveProjectId(state.activeProjectId);
+      setParams(state.params); setSelectedModel(state.selectedModel); setEnsembleMode(state.ensembleMode);
+      setEnsembleSlots(state.ensembleSlots); setOutputFormat(state.outputFormat);
+      setTimeout(()=>window.scrollTo({top:state.scrollY || 0}),500);
+      sessionStorage.removeItem('uvr-restart-workspace');
+    } catch { sessionStorage.removeItem('uvr-restart-workspace'); }
+  }, [projectsReady]);
 
   useEffect(()=>{
     if(!projectsReady||activeProjectId===null||!['roformer','mdx23c','mdxnet','vrarch','demucs'].includes(currentTab))return;
@@ -158,6 +194,7 @@ export default function StudioPage() {
       .getModels()
       .then((data) => {
         setAvailableModels(data);
+        if(restoredAfterRestart.current)return;
         if (data.roformer && data.roformer.length > 0) {
           setSelectedModel(data.roformer[0]);
         }
@@ -203,6 +240,7 @@ export default function StudioPage() {
     setProgress(10);
     setProcessingMessage('Initializing AI neural network models...');
     setSeparatedStems([]);
+    setResultSource(null);
 
     try {
       let taskId = '';
@@ -272,6 +310,7 @@ export default function StudioPage() {
                 ? statusRes.results
                 : [];
             setSeparatedStems(stems);
+            setResultSource({ name: currentItem.name, path: currentItem.path });
             addToast('success', 'Separation Complete!', `${stems.length} stems ready for preview.`);
 
             // Scroll down to stems smoothly
@@ -336,6 +375,7 @@ export default function StudioPage() {
 
     // 2. Restore separated stems
     setSeparatedStems(project.stems || []);
+    setResultSource({ name: project.filename, path: project.source_path || project.filename });
 
     // 3. Switch back to studio workspace tab
     setCurrentTab(project.settings?.tab||'roformer');
@@ -467,17 +507,24 @@ export default function StudioPage() {
                     <div className="flex items-center gap-2.5">
                       <Music className="w-4 h-4 text-slate-400" />
                       <h3 className="text-base font-bold font-outfit text-white tracking-tight">
-                        {t('Separated Stems')} ({separatedStems.length})
+                        {lang === 'tr' ? 'Dinle ve karşılaştır' : 'Listen and compare'}
                       </h3>
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    {separatedStems.map((stem) => (
+                    {resultSource && (
+                      <OriginalAudioPlayer key={resultSource.path} source={resultSource} lang={lang} accentColor={accentColor} />
+                    )}
+                    {[...separatedStems].sort((a, b) => {
+                      const rank = (name: string) => /vocal|vox/i.test(name) ? 0 : /instrumental|inst|other/i.test(name) ? 1 : 2;
+                      return rank(a) - rank(b);
+                    }).map((stem) => (
                       <StemAudioPlayer
                         key={stem}
                         stem={stem}
                         allStems={separatedStems}
+                        onTransferRequested={/vocal|vox/i.test(stem)&&separatedStems.some(name=>/instrumental|\(instrument\)|\(other\)/i.test(name))?(time)=>setTransferSelection({vocal:stem,time}):undefined}
                         lang={lang}
                         accentColor={accentColor}
                         onNewStemCreated={(newStem) => {
@@ -563,6 +610,8 @@ export default function StudioPage() {
         availableModels={availableModels}
         onNotify={addToast}
       />
+
+      {transferSelection&&<StemTransferModal vocal={transferSelection.vocal} initialTime={transferSelection.time} instrumentals={separatedStems.filter(name=>/instrumental|\(instrument\)|\(other\)/i.test(name))} onClose={()=>setTransferSelection(null)} onApply={applyStemTransfer}/>}
 
       {/* Floating Notifications */}
       <ToastContainer toasts={toasts} onDismiss={removeToast} />

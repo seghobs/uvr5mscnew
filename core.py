@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import sys
 import subprocess
 import re
@@ -11,6 +12,8 @@ import yt_dlp
 import threading
 import time
 from audio_separator.separator import Separator
+from roformer_config import install_bs_mask_expansion_support
+install_bs_mask_expansion_support()
 
 # Suppress background popup cmd windows/tabs on Windows globally across all libraries (ffmpeg, pydub, audio_separator, etc.)
 SUBPROCESS_FLAGS = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
@@ -96,6 +99,7 @@ try:
         }
     }
     from roformer_publisher import REGISTRY as _publisher_models
+    _new_models.update(json.loads((Path(__file__).parent/'assets/comparison-models.json').read_text(encoding='utf8')))
     _new_models.update({name: {'filename': spec['filename'], 'download_files':
         [spec['checkpoint_url'], spec['config_url']]} for name, spec in _publisher_models.items()})
     def _patched_list(self, *args, **kwargs):
@@ -129,6 +133,9 @@ try:
                 isolated_dir = os.path.join(self.model_file_dir, 'roformer_custom_' + hashlib.sha256(name.encode()).hexdigest()[:12])
                 os.makedirs(isolated_dir, exist_ok=True)
                 model_path = os.path.join(isolated_dir, info["filename"])
+                if info['filename'] == 'model.safetensors':
+                    from roformer_config import reuse_legacy_safetensors
+                    reuse_legacy_safetensors(self.model_file_dir, isolated_dir)
                 # Download files if needed
                 for url_or_file in info["download_files"]:
                     if url_or_file.startswith("http"):
@@ -163,10 +170,15 @@ try:
                 # The stock separator detects Roformer from its config filename.
                 if yaml_candidate:
                     import shutil
-                    named_config = os.path.join(isolated_dir, 'config_mel_band_roformer.yaml' if name == 'MelBand Roformer Deux by becruily' else 'config_bs_roformer.yaml')
+                    named_config = os.path.join(isolated_dir, 'config_mel_band_roformer.yaml' if name in ('MelBand Roformer Deux by becruily', 'MelBand Roformer Fv7z Instrumental by Gabox') else 'config_bs_roformer.yaml')
                     shutil.copyfile(yaml_candidate, named_config)
                     yaml_candidate = named_config
-                    if name == 'BS Roformer Leap Vocals by pcunwa' or name.startswith(('BS-Roformer-Resurrection ', 'BS Roformer Leap Xe ')):
+                    if info.get('target'):
+                        import yaml
+                        from roformer_config import compatible_recovery_config
+                        config=compatible_recovery_config(yaml.load(Path(named_config).read_text(encoding='utf8'),Loader=yaml.FullLoader))
+                        Path(named_config).write_text(yaml.dump(config),encoding='utf8')
+                    if name in ('BS Roformer Leap Vocals by pcunwa', 'BS Roformer SW 6 Stem by jarredou') or name.startswith(('BS-Roformer-Resurrection ', 'BS Roformer Leap Xe ')):
                         # These published defaults are equivalent to the stock
                         # implementation, whose constructor lacks the keywords.
                         import yaml
@@ -324,6 +336,7 @@ roformer_models = {
 }
 
 from roformer_publisher import REGISTRY as _publisher_registry
+roformer_models.update({name:spec['filename'] for name,spec in json.loads((Path(__file__).parent/'assets/comparison-models.json').read_text(encoding='utf8')).items()})
 roformer_models.update({name: spec['filename'] for name, spec in _publisher_registry.items()})
 
 mdx23c_models = [
@@ -575,6 +588,9 @@ def generic_separator(audio, model_filename, params, progress_callback=None, wor
             separator.load_model(model_filename=model_filename)
         from roformer_input import attach_minimum_window
         minimum_window=attach_minimum_window(separator.model_instance)
+        if model_filename == 'BS-Rofo-SW-Fixed.ckpt':
+            from comparison_ensemble import attach_sw_vocal_pair
+            attach_sw_vocal_pair(separator.model_instance)
         if overlap_factor is not None:
             from atlas_studio import roformer_step_seconds
             instance = separator.model_instance

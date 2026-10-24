@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Cpu, Settings, Globe, Sparkles, Radio, CloudDownload, Power, CheckCircle2, Loader2, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Cpu, Settings, Globe, Sparkles, Radio, CloudDownload, Power, CheckCircle2, Loader2, Trash2, RotateCcw, X } from 'lucide-react';
 import { Language, AccentColor } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { getTranslation } from '@/lib/translations';
@@ -41,6 +41,53 @@ export const Header: React.FC<HeaderProps> = ({
   const [isTerminated, setIsTerminated] = useState(false);
   const [isClearingMemory, setIsClearingMemory] = useState(false);
   const [memoryClearedMsg, setMemoryClearedMsg] = useState<string | null>(null);
+  const [restartMessage, setRestartMessage] = useState('');
+  const [restartError, setRestartError] = useState('');
+  const handleStudioRestart = async () => {
+    if (restartMessage) return;
+    setRestartError(''); setRestartMessage('Çalışma alanı kaydediliyor…');
+    try {
+      window.dispatchEvent(new Event('uvr-before-restart'));
+      await flushAllProjects();
+      const response = await fetch('/api/service/rebuild-restart', {method:'POST'});
+      const job = await response.json();
+      if (!response.ok) throw Error(job.detail || 'Yeniden başlatma başlatılamadı.');
+      // Poll the backend directly: the frontend is briefly unavailable during its restart.
+      const hostname = window.location.hostname;
+      const host = ['localhost','127.0.0.1','[::1]'].includes(hostname) ? '127.0.0.1' : hostname;
+      const deadline = Date.now() + 25*60*60*1000;
+      while (Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        let current;
+        try {
+          const status = await fetch(`http://${host}:8000/api/service/rebuild-restart`, {cache:'no-store', signal:AbortSignal.timeout(5000)});
+          if (!status.ok) continue;
+          current = await status.json();
+        } catch { continue; }
+        if (current.id !== job.id) throw Error('Yeniden başlatma durumu değişti. Lütfen tekrar deneyin.');
+        if (current.phase === 'failed') throw Error(current.message);
+        setRestartMessage(current.message || 'Yeniden başlatılıyor…');
+        if (current.phase === 'completed') {
+          window.dispatchEvent(new Event('uvr-before-restart'));
+          await flushAllProjects();
+          window.location.reload();
+          return;
+        }
+      }
+      throw Error('Yeniden başlatma bekleme süresi doldu.');
+    } catch (error) {
+      for (let index=sessionStorage.length-1;index>=0;index--) {
+        const key=sessionStorage.key(index);
+        if(key?.startsWith('uvr-restart-'))sessionStorage.removeItem(key);
+      }
+      setRestartError((error as Error).message); setRestartMessage('');
+    }
+  };
+  useEffect(()=>{
+    const restart=()=>{void handleStudioRestart();};
+    window.addEventListener('uvr-restart-request',restart);
+    return()=>window.removeEventListener('uvr-restart-request',restart);
+  },[restartMessage]);
 
   const handleClearMemory = async () => {
     setIsClearingMemory(true);
@@ -73,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full backdrop-blur-2xl bg-slate-950/70 border-b border-white/[0.08] px-6 lg:px-10 py-3.5 transition-all">
+      <header className="studio-header sticky top-0 z-40 w-full backdrop-blur-2xl bg-slate-950/70 border-b border-white/[0.08] px-6 lg:px-10 py-3.5 transition-all">
         <div className="max-w-[1840px] mx-auto flex items-center justify-between gap-4 flex-wrap">
           {/* Brand Logo & Tag */}
           <div className="flex items-center gap-4">
@@ -135,6 +182,8 @@ export const Header: React.FC<HeaderProps> = ({
                   key={col.id}
                   onClick={() => onChangeAccent(col.id)}
                   title={col.name}
+                  aria-label={col.name}
+                  aria-pressed={accentColor === col.id}
                   className={cn(
                     'w-5 h-5 rounded-xl transition-all duration-300 active:scale-90 relative flex items-center justify-center',
                     col.bgClass,
@@ -171,7 +220,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenSettings}
               title={t('Global Settings')}
-              className="p-2.5 rounded-2xl glass-panel hover:bg-white/[0.08] border border-white/10 text-slate-300 hover:text-white transition-all duration-200 active:scale-95 shadow-sm hover:rotate-45 cursor-pointer"
+              className="p-2.5 rounded-2xl glass-panel hover:bg-white/[0.08] border border-white/10 text-slate-300 hover:text-white transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
             >
               <Settings className="w-4 h-4" />
             </button>
@@ -185,15 +234,15 @@ export const Header: React.FC<HeaderProps> = ({
                 "px-3 py-2 rounded-2xl border transition-all duration-200 active:scale-95 shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50",
                 memoryClearedMsg
                   ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300"
-                  : "bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/30 text-amber-300 hover:text-amber-200"
+                  : "bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/30 text-indigo-300 hover:text-indigo-200"
               )}
             >
               {isClearingMemory ? (
-                <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+                <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
               ) : memoryClearedMsg ? (
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               ) : (
-                <Trash2 className="w-4 h-4 text-amber-400" />
+                <Trash2 className="w-4 h-4 text-indigo-400" />
               )}
               <span className="text-xs font-bold font-outfit hidden sm:inline">
                 {memoryClearedMsg ? memoryClearedMsg : "VRAM Boşalt"}
@@ -201,6 +250,12 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             {/* Shutdown / Power Off Button */}
+            <button onClick={()=>void handleStudioRestart()} disabled={!!restartMessage}
+              title="Önce derle, sonra backend ve frontend’i yeniden başlat"
+              className="flex items-center gap-2 rounded-2xl border border-indigo-300/25 bg-indigo-300/10 px-3 py-2 text-sm font-semibold text-indigo-200 hover:bg-indigo-300/20 disabled:opacity-50">
+              {restartMessage ? <Loader2 size={16} className="animate-spin"/> : <RotateCcw size={16}/>}
+              <span className="hidden sm:inline">Restart</span>
+            </button>
             <button
               onClick={() => setShowShutdownModal(true)}
               title="Uygulamayı ve Arka Plandaki Tüm Servisleri Kapat"
@@ -212,6 +267,11 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </header>
+      {(restartMessage || restartError) && <div role={restartError?'alert':'status'} className="fixed bottom-5 left-1/2 z-[10000] flex w-[min(92vw,620px)] -translate-x-1/2 items-center gap-3 rounded-2xl border border-indigo-300/25 bg-[#262230] px-5 py-4 text-sm text-slate-100 shadow-xl">
+        {restartMessage && <Loader2 size={18} className="shrink-0 animate-spin text-indigo-300"/>}
+        <span className="flex-1">{restartMessage || restartError}</span>
+        {restartError && <button onClick={()=>setRestartError('')} aria-label="Bildirimi kapat"><X size={16}/></button>}
+      </div>}
 
       {/* Shutdown Confirmation Modal */}
       {showShutdownModal && !isTerminated && (

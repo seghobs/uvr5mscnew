@@ -29,7 +29,7 @@ class LaunchTests(unittest.TestCase):
 
     def test_frontend_stops_before_backend(self):
         frontend,backend=SimpleNamespace(pid=101),SimpleNamespace(pid=102)
-        with patch.object(service,'prepare'),patch.object(service.psutil,'process_iter',side_effect=[[frontend,backend],[frontend,backend]]),patch.object(service,'owns_frontend',side_effect=lambda p:p is frontend),patch.object(service,'owns_backend',side_effect=lambda p:p is backend),patch.object(service,'terminate_tree') as terminate:
+        with patch.object(service,'prepare'),patch.object(service,'service_event'),patch.object(service,'stop_supervisors'),patch.object(service.psutil,'process_iter',side_effect=[[frontend,backend],[frontend,backend]]),patch.object(service,'owns_frontend',side_effect=lambda p:p is frontend),patch.object(service,'owns_backend',side_effect=lambda p:p is backend),patch.object(service,'terminate_tree') as terminate:
             service.stop(True)
             self.assertEqual([call.args[0] for call in terminate.call_args_list],[frontend,backend])
     def test_frontend_port_free(self):
