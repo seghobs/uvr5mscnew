@@ -25,6 +25,7 @@ def update(identifier, phase, message):
     folder.mkdir(exist_ok=True)
     temporary = folder/('studio-restart-'+uuid.uuid4().hex+'.tmp')
     temporary.write_text(json.dumps({'id': identifier, 'phase': phase, 'message': message,
+                                     'automatic':(folder/('auto-restart-'+identifier)).exists(),
                                      'updated_at': time.time()}, ensure_ascii=False), encoding='utf8')
     os.replace(temporary, folder/'studio-restart.json')
 
@@ -37,14 +38,18 @@ def detached(command, output, env=None):
         start_new_session=os.name != 'nt')
 
 
-def request():
-    with REQUEST_LOCK:
+def request(automatic=False):
+    from studio_build import build_lock
+    with REQUEST_LOCK, build_lock(ROOT,'restart-request.lock'):
         current = status()
         if current['phase'] not in ('idle', 'completed', 'failed'):
             if time.time()-current.get('updated_at', 0) < 1800:
                 return current
         identifier = uuid.uuid4().hex
         update(identifier, 'queued', 'Yeniden başlatma hazırlanıyor…')
+        if automatic:
+            marker=ROOT/'.runtime'/('auto-restart-'+identifier)
+            marker.touch()
         try:
             logs = ROOT/'logs'
             logs.mkdir(exist_ok=True)
@@ -71,6 +76,14 @@ def wait_idle(identifier):
 
 
 def build(identifier):
+    from studio_build import build_lock
+    import ast
+    with build_lock(ROOT):
+        for path in ROOT.glob('*.py'):ast.parse(path.read_bytes(),filename=str(path))
+        return _build(identifier)
+
+
+def _build(identifier):
     dist = '.next-restart-'+identifier
     environment = dict(os.environ, UVR_NEXT_DIST=dist)
     npm = shutil.which('npm.cmd' if os.name == 'nt' else 'npm')
@@ -88,7 +101,14 @@ def build(identifier):
                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
     finally:
         for path, content in generated.items():
-            path.write_bytes(content)
+            if path.name=='tsconfig.json':
+                # Preserve edits made by the user while Next adds generated includes.
+                current=json.loads(path.read_text(encoding='utf8'))
+                current['include']=[p for p in current.get('include',[]) if not p.startswith(dist+'/')]
+                original=json.loads(content)
+                if current==original:path.write_bytes(content)
+                else:path.write_text(json.dumps(current,indent=2)+'\n',encoding='utf8')
+            else:path.write_bytes(content)
     if result.returncode:
         raise RuntimeError('Derleme başarısız; mevcut servisler korundu. logs/studio-restart.log dosyasını kontrol edin.')
     if not (ROOT/'frontend'/dist/'BUILD_ID').is_file():
@@ -130,10 +150,14 @@ def start_frontend(environment):
 
 def run(identifier):
     import service_control as service
+    from studio_build import fingerprint,record
     try:
         wait_idle(identifier)
+        digest=fingerprint(ROOT)
         environment = build(identifier)
         wait_idle(identifier)
+        if fingerprint(ROOT)!=digest:
+            raise RuntimeError('Derleme sırasında kod değişti; mevcut sürüm korundu. Son düzenleme yeniden derlenecek.')
         with service.management_lock():
             old_environment = frontend_environment()
             update(identifier, 'restarting', 'Backend ve frontend yeniden başlatılıyor…')
@@ -147,7 +171,10 @@ def run(identifier):
             except Exception:
                 start_frontend(old_environment)
                 raise
+            record(environment,digest,ROOT)
             update(identifier, 'completed', 'Uygulama hazır; çalışma alanı geri yükleniyor…')
+            from studio_build import start_watcher
+            start_watcher()
     except Exception as error:
         update(identifier, 'failed', str(error))
 

@@ -24,13 +24,13 @@ echo Yerel servis hazirlaniyor...
 call node scripts\ensure-backend.js --no-browser --quiet
 if errorlevel 1 goto launch_failed
 
-echo Uretim surumu derleniyor...
-call npm run build
+echo Kaynak degisiklikleri kontrol ediliyor...
+call "%~dp0env\python.exe" "%~dp0studio_build.py" ensure
 if errorlevel 1 goto launch_failed
 
 cls
 echo [Backend] Hazir: http://127.0.0.1:8000
-echo [Derleme] Uretim derlemesi tamamlandi.
+echo [Derleme] Guncel uretim surumu hazir.
 echo [Frontend] Baslatiliyor: http://localhost:3000
 echo Uygulama uretim modunda aciliyor...
 node scripts\start-production.js
@@ -38,6 +38,8 @@ set "uvr_exit_code=%errorlevel%"
 exit %uvr_exit_code%
 
 :already_running
+call "%~dp0env\python.exe" "%~dp0studio_build.py" watch
+if errorlevel 1 goto launch_failed
 call node scripts\ensure-backend.js --no-browser --quiet
 if errorlevel 1 goto launch_failed
 echo Uygulama zaten acik. Mevcut pencere tarayicida aciliyor...

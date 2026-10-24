@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Cpu, Settings, Globe, Sparkles, Radio, CloudDownload, Power, CheckCircle2, Loader2, Trash2, RotateCcw, X } from 'lucide-react';
 import { Language, AccentColor } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -43,15 +43,21 @@ export const Header: React.FC<HeaderProps> = ({
   const [memoryClearedMsg, setMemoryClearedMsg] = useState<string | null>(null);
   const [restartMessage, setRestartMessage] = useState('');
   const [restartError, setRestartError] = useState('');
-  const handleStudioRestart = async () => {
-    if (restartMessage) return;
+  const restartBusy=useRef(false);
+  const handleStudioRestart = async (existingJob?:{id:string}) => {
+    if (restartBusy.current) return;
+    restartBusy.current=true;
     setRestartError(''); setRestartMessage('Çalışma alanı kaydediliyor…');
     try {
       window.dispatchEvent(new Event('uvr-before-restart'));
       await flushAllProjects();
-      const response = await fetch('/api/service/rebuild-restart', {method:'POST'});
-      const job = await response.json();
-      if (!response.ok) throw Error(job.detail || 'Yeniden başlatma başlatılamadı.');
+      let job=existingJob;
+      if(!job){
+        const response = await fetch('/api/service/rebuild-restart', {method:'POST'});
+        job = await response.json();
+        if (!response.ok) throw Error('Yeniden başlatma başlatılamadı.');
+      }
+      if(!job)throw Error('Yeniden başlatma kimliği alınamadı.');
       // Poll the backend directly: the frontend is briefly unavailable during its restart.
       const hostname = window.location.hostname;
       const host = ['localhost','127.0.0.1','[::1]'].includes(hostname) ? '127.0.0.1' : hostname;
@@ -80,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
         const key=sessionStorage.key(index);
         if(key?.startsWith('uvr-restart-'))sessionStorage.removeItem(key);
       }
-      setRestartError((error as Error).message); setRestartMessage('');
+      setRestartError((error as Error).message); setRestartMessage('');restartBusy.current=false;
     }
   };
   useEffect(()=>{
@@ -88,6 +94,21 @@ export const Header: React.FC<HeaderProps> = ({
     window.addEventListener('uvr-restart-request',restart);
     return()=>window.removeEventListener('uvr-restart-request',restart);
   },[restartMessage]);
+
+  useEffect(()=>{
+    let live=true,busy=false;
+    const poll=async()=>{
+      if(busy||restartBusy.current)return;busy=true;
+      try{
+        const response=await fetch('/api/service/rebuild-restart',{cache:'no-store',signal:AbortSignal.timeout(4000)});
+        if(!response.ok)return;
+        const job=await response.json();
+        if(live&&job.automatic&&['queued','waiting','building','restarting'].includes(job.phase))void handleStudioRestart(job);
+      }catch{}finally{busy=false;}
+    };
+    const timer=setInterval(()=>void poll(),2000);
+    return()=>{live=false;clearInterval(timer);};
+  },[]);
 
   const handleClearMemory = async () => {
     setIsClearingMemory(true);
