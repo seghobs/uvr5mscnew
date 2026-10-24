@@ -1766,9 +1766,11 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             <div className="space-y-1.5">
               <span className="block text-xs font-medium text-slate-400">Senkron dili</span>
               <StudioSelect aria-label="Senkron dili" value={alignmentLanguage} onValueChange={setAlignmentLanguage} disabled={loadingLyrics || !!bulkBindingStatus} className="min-w-52">
-                <option value="auto">Otomatik · TR / Kurmancî</option>
+                <option value="auto">Otomatik · TR / KU / AZ / EN</option>
                 <option value="tr">Türkçe</option>
                 <option value="kmr">Kürtçe (Kurmancî)</option>
+                <option value="az">Azərbaycan dili (Azerbaycanca)</option>
+                <option value="en">English (İngilizce)</option>
               </StudioSelect>
             </div>
             <button disabled={loadingLyrics || !!bulkBindingStatus || !segments.some(s=>s.text.trim()&&!isInstrumentalRow(s))} onClick={()=>void alignSuppliedLyrics()} className="karaoke-action karaoke-action-primary">{loadingLyrics?<Loader2 size={16} className="animate-spin"/>:<Wand2 size={16}/>} {loadingLyrics ? 'İşleniyor…' : 'Otomatik senkronla ve bağla'}</button>

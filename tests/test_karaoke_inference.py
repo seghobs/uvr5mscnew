@@ -52,6 +52,9 @@ class InferenceReuseTests(unittest.TestCase):
                 second,_=session.load('kmr_mms')
                 self.assertIsNot(first,second);self.assertEqual(weights.call_count,2)
                 self.assertEqual(weights.call_args.kwargs['target_lang'],'kmr-script_latin')
+                for language,adapter in [('az','azj-script_latin'),('en','eng')]:
+                    session.load(language)
+                    self.assertEqual(weights.call_args.kwargs['target_lang'],adapter)
             self.assertIsNone(session.cache)
 
     def test_session_releases_model_even_on_error(self):

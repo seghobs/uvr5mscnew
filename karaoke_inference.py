@@ -46,11 +46,11 @@ class RefinementSession:
             self.close()
             import torch
             from transformers import Wav2Vec2ForCTC,Wav2Vec2FeatureExtractor
-            from karaoke_alignment_models import ensure_model
+            from karaoke_alignment_models import ensure_model, MMS_ADAPTERS
             directory,vocab=ensure_model(language,progress)
-            required_gb=5 if language in ('kmr_mms','tr_mms') else 3
+            required_gb=5 if language in MMS_ADAPTERS else 3
             device='cuda' if torch.cuda.is_available() and torch.cuda.mem_get_info()[0]>required_gb*1024**3 else 'cpu'
-            adapter={'kmr_mms':'kmr-script_latin','tr_mms':'tur'}.get(language)
+            adapter=MMS_ADAPTERS.get(language)
             model=Wav2Vec2ForCTC.from_pretrained(directory,local_files_only=True,**({'target_lang':adapter} if adapter else {})).eval().to(device)
             extractor=Wav2Vec2FeatureExtractor.from_pretrained(directory,local_files_only=True)
             self.cache=EmissionCache(model,extractor,device);self.vocab=vocab;self.language=language

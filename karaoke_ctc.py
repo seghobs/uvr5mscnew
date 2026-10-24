@@ -35,7 +35,7 @@ def acoustic_text(text, vocab):
     letters = [c for c in text if c.isalpha()]
     if len(letters)==1 or any('LATIN' in unicodedata.name(c,'') for c in letters):
         text = text.translate(LOOKALIKE_LETTERS)
-    text = (text.replace('I','i').replace('İ','i') if getattr(vocab,'language','tr') == 'kmr'
+    text = (text.replace('I','i').replace('İ','i') if getattr(vocab,'language','tr') in ('kmr','en')
             else text.replace('I','ı').replace('İ','i')).lower()
     result=[]
     for char in text:

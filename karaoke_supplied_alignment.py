@@ -153,7 +153,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     import torchaudio.functional as AF
     from transformers import Wav2Vec2ForCTC,Wav2Vec2FeatureExtractor
     from karaoke_ctc import words_from_spans,supported_targets,restore_unsupported_words
-    from karaoke_alignment_models import resolve_language,ensure_model,model_spec
+    from karaoke_alignment_models import resolve_language,ensure_model,model_spec,MMS_ADAPTERS
     from karaoke_interludes import generated,music_evidence,place_interludes,regions
     from karaoke_repeat_spotting import expand_supplied_rows,local_verifier
     rows=[copy.deepcopy(r) for r in rows if not generated(r)]
@@ -206,6 +206,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         for row in result:row['alignment_mode']='supplied_ctc'
         report.update(solo_report)
         report.update(alignment_language=language,alignment_model=model_spec(model_language)[1])
+        if model_language in MMS_ADAPTERS:report['alignment_adapter']=MMS_ADAPTERS[model_language]
         words=[w for r in result if not instrumental(r) for w in r.get('words',[])]
         report['linked_words']=sum(w['end']>w['start'] for w in words)
         report['target_words']=len(words)
@@ -220,9 +221,9 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         return result,report
     if not blocks:return finish([])
     model_dir,vocab=ensure_model(model_language,emit)
-    required_gb=5 if model_language=='kmr_mms' else 3
+    required_gb=5 if model_language in MMS_ADAPTERS else 3
     device='cuda' if torch.cuda.is_available() and torch.cuda.mem_get_info()[0]>required_gb*1024**3 else 'cpu'
-    model_options={'target_lang':'kmr-script_latin'} if model_language=='kmr_mms' else {}
+    model_options={'target_lang':MMS_ADAPTERS[model_language]} if model_language in MMS_ADAPTERS else {}
     model=Wav2Vec2ForCTC.from_pretrained(model_dir,local_files_only=True,**model_options).eval().to(device)
     extractor=Wav2Vec2FeatureExtractor.from_pretrained(model_dir,local_files_only=True)
     hop=math.prod(model.config.conv_stride)
@@ -288,7 +289,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
             evidence=(1-emission[0,:,vocab.get('[PAD]',0)].exp()).numpy()>.35
             # MMS emits letters on some instruments. Those letters alone
             # cannot veto independently detected music-only intervals.
-            if model_language!='kmr_mms':
+            if model_language not in MMS_ADAPTERS:
                 voice_regions.extend([start+a,start+b] for a,b in regions(evidence,min_length=.02,bridge=.45))
             while True:
                 words=[{'word':t} for row in expanded for t in row['text'].split() if spoken(t)]

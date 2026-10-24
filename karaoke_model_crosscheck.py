@@ -91,7 +91,7 @@ def recover_model_reviews(vocal_path, original_path, rows, progress=lambda *args
     for ri,row in enumerate(frozen):row['_crosscheck_row_key']=row.get('id') or f'row:{ri+1}'
     candidates = {}
     failed_models = set()
-    models = {'tr': ('tr_cv8', 'tr_mms'), 'kmr': ('kmr_mms', 'kmr')}[language]
+    models = {'tr': ('tr_cv8', 'tr_mms'), 'kmr': ('kmr_mms', 'kmr'), 'az': ('az',), 'en': ('en',)}[language]
     from karaoke_inference import RefinementSession
     with RefinementSession() as session:
         for local in (False, True):
