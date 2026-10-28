@@ -19,6 +19,13 @@ class CrosscheckTests(unittest.TestCase):
             self.assertEqual(rows,before)
             self.assertEqual(report['dual_audio_repaired_words'],0)
 
+    def test_english_crosscheck_uses_independent_english_checkpoint(self):
+        with tempfile.TemporaryDirectory() as folder:
+            original=Path(folder)/'original.wav';original.touch();rows=self.rows()
+            with patch('soundfile.info',return_value=SimpleNamespace(duration=110)),patch('karaoke_ctc.refine_ctc',side_effect=RuntimeError('unavailable')) as model:
+                recover_model_reviews('vocals.wav',original,rows,language='en')
+            self.assertEqual([call.args[2] for call in model.call_args_list],['en_lv60','en'])
+
     def test_optional_model_failure_preserves_timings_and_warnings(self):
         with tempfile.TemporaryDirectory() as folder:
             original=Path(folder)/'original.wav';original.touch();rows=self.rows();before=copy.deepcopy(rows)
@@ -60,6 +67,13 @@ class CrosscheckTests(unittest.TestCase):
             if kind=='failed_alignment':w['needs_review']=True
             self.assertEqual(apply_crosscheck(rows,e,110),[],kind)
             self.assertEqual(rows,before,kind)
+
+    def test_unbound_future_row_does_not_block_every_earlier_repair(self):
+        rows=self.rows()
+        placeholder={'id':'unbound','text':'LATER','start':0.,'end':0.,'words':[{'word':'LATER','start':0.,'end':0.,'needs_review':True}]}
+        rows.append(copy.deepcopy(placeholder))
+        self.assertEqual(apply_crosscheck(rows,self.evidence(),110),[('r',1)])
+        self.assertEqual(rows[-1],placeholder)
 
     def test_word_and_row_neighbours_are_hard_limits(self):
         for kind in ('word','row'):

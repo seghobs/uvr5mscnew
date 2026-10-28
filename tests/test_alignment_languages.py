@@ -44,6 +44,27 @@ class LanguageTests(unittest.TestCase):
         self.assertEqual(MMS_ADAPTERS['en'],'eng')
         self.assertEqual(model_spec('az'),model_spec('en'))
 
+    def test_english_contractions_preserve_supported_apostrophes(self):
+        vocab=AlignmentVocabulary({c:i for i,c in enumerate("abcdefghijklmnopqrstuvwxyz'|")},'en')
+        self.assertEqual(acoustic_text("I’M, DON'T!",vocab),"i'm don't")
+        self.assertEqual(acoustic_text('lıke',vocab),'like')
+
+    def test_english_secondary_model_keeps_original_logit_indices(self):
+        import json,tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from karaoke_alignment_models import ensure_model
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            for name in ('config.json','preprocessor_config.json','pytorch_model.bin'): (root/name).touch()
+            (root/'vocab.json').write_text(json.dumps({'<pad>':0,'A':7,'I':10,'|':4}))
+            with patch('karaoke_alignment_models.model_spec',return_value=(root,'english','pinned')):
+                _,vocab=ensure_model('en_lv60')
+            self.assertEqual(vocab['a'],7)
+            self.assertEqual(vocab['[PAD]'],0)
+            self.assertEqual(vocab.language,'en')
+            self.assertEqual(acoustic_text('I',vocab),'i')
+
     def test_unsupported_language_is_not_run_with_turkish(self):
         with self.assertRaises(ValueError):resolve_language('de',[{'text':'Guten Tag'}])
         with self.assertRaises(ValueError):model_spec('de')

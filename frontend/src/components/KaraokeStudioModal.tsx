@@ -54,7 +54,7 @@ import { Language, LyricSegment } from '@/lib/types';
 import { getTranslation } from '@/lib/translations';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { preferLyricDraft, applyEditedWordTimes, instrumentalTiming, preserveWords, reconcileWords, uppercaseLyric, uppercaseLyrics, videoSegments, timingIssues, wordFillWithNeighbors, serializeProject, importProject, enqueueLyricsSave, rowPlaybackRange, repairTiming, TimedWord } from '@/lib/karaoke-timing';
+import { preferLyricDraft, applyEditedWordTimes, instrumentalTiming, preserveWords, reconcileWords, uppercaseLyric, uppercaseLyrics, videoSegments, timingIssues, renderTimingIssues, timingIssueTarget, wordFillWithNeighbors, serializeProject, importProject, enqueueLyricsSave, rowPlaybackRange, repairTiming, TimedWord } from '@/lib/karaoke-timing';
 import LyricsReferenceModal from './LyricsReferenceModal';
 import LyricsCatalogSearch from './LyricsCatalogSearch';
 import { WordPlayer, checkWordInterval } from '@/lib/word-player';
@@ -137,6 +137,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   const [segments, setRawSegments] = useState<LyricSegment[]>([]);
   const committedSegments=useRef<LyricSegment[]>([]);
+  const loadedSourceRef=useRef('');
   const rowTextBaseline=useRef<Record<string,TimedWord[]>>({});
   type Snapshot={segments:LyricSegment[];pools:Record<string,string>};
   const history=useRef(new EditHistory<Snapshot>({segments:[],pools:{}}));
@@ -149,6 +150,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     const snapshot={segments:next,pools:readPools()};
     history.current=new EditHistory(snapshot);
     try{const saved=JSON.parse(projectStorage.getItem(historyKey)||'null');if(saved&&segmentSignature(saved.current.segments)===segmentSignature(next))history.current.restore(saved);}catch{}
+    loadedSourceRef.current=vocalStem||instStem;
     committedSegments.current=next;segmentsRef.current=next;setRawSegments(next);
   };
   const commitSegments=(next:LyricSegment[],allowLocked=false)=>{
@@ -193,6 +195,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   // SQLite Persistence State
   const [isSavingDb, setIsSavingDb] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState('');
+  const activeSavesRef = useRef(0);
+  const activeSourceRef = useRef(vocalStem || instStem);
+  activeSourceRef.current = vocalStem || instStem;
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Import / Export & Whisper Model State
@@ -207,6 +213,16 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   // Whisper Language Selector State (Supports 99+ Languages & Auto Detect)
   const [selectedLyricsLang, setSelectedLyricsLang] = useState<string>('auto');
   const [alignmentLanguage, setAlignmentLanguage] = useState('auto');
+  useEffect(() => {
+    if (!isOpen) return;
+    const saved = projectStorage.getItem('uvr-alignment-language:' + (vocalStem || instStem));
+    setAlignmentLanguage(saved && ['auto','tr','kmr','az','en'].includes(saved) ? saved : 'auto');
+  }, [isOpen, vocalStem, instStem]);
+  const selectAlignmentLanguage = (language: string) => {
+    setAlignmentLanguage(language);
+    projectStorage.setItem('uvr-alignment-language:' + (vocalStem || instStem), language);
+  };
+
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [langSearchQuery, setLangSearchQuery] = useState('');
   const langMenuRef = useRef<HTMLDivElement>(null);
@@ -284,7 +300,6 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const [duration, setDuration] = useState(0);
   const [activeAudioSource, setActiveAudioSource] = useState<'vocal' | 'inst'>(vocalStem ? 'vocal' : 'inst');
   const restartPosition=useRef<number|null>(null);
-  const restartLyrics=useRef<LyricSegment[]|null>(null);
   useEffect(()=>{
     if(!isOpen)return;
     try{
@@ -293,14 +308,13 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         const state=JSON.parse(saved);
         setActiveTab(state.tab);setShowAdvancedTools(state.tools);setActiveAudioSource(state.source);
         restartPosition.current=state.time;
-        if(Array.isArray(state.segments))restartLyrics.current=state.segments;
         sessionStorage.removeItem('uvr-restart-karaoke:'+instStem);
       }
     }catch{}
   },[isOpen,instStem]);
   useEffect(()=>{
     if(!isOpen)return;
-    const capture=()=>sessionStorage.setItem('uvr-restart-karaoke:'+instStem,JSON.stringify({tab:activeTab,tools:showAdvancedTools,source:activeAudioSource,time:audioRef.current?.currentTime??currentTime,segments:committedSegments.current}));
+    const capture=()=>sessionStorage.setItem('uvr-restart-karaoke:'+instStem,JSON.stringify({tab:activeTab,tools:showAdvancedTools,source:activeAudioSource,time:audioRef.current?.currentTime??currentTime}));
     window.addEventListener('uvr-before-restart',capture);
     return()=>window.removeEventListener('uvr-before-restart',capture);
   },[isOpen,instStem,activeTab,showAdvancedTools,activeAudioSource,currentTime]);
@@ -533,19 +547,15 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     setVideoUrl(null);
     const sourceFile=vocalStem||instStem;
     if(!sourceFile)return;
+    loadedSourceRef.current='';setLastSavedTime(null);setSaveError('');
     const requestId=++lyricsRequestRef.current;
-    if(restartLyrics.current!==null){
-      const rows=restartLyrics.current;restartLyrics.current=null;
-      loadSegments(rows);setLoadingLyrics(false);
-      return;
-    }
     setLoadingLyrics(true);
     setLyricsProgress('Kayıtlı sözler kontrol ediliyor...');
     void (async()=>{
       try{
         let draft:{segments:LyricSegment[];modifiedAt?:number}|null=null;
         try{draft=JSON.parse(projectStorage.getItem('uvr-lyrics-draft:'+sourceFile)||'null');}catch{}
-        const saved=await api.getSavedLyrics(sourceFile).catch(()=>null);
+        const saved=await api.getSavedLyrics(sourceFile).catch(error=>{if(error.status===404)return null;throw error;});
         const useDraft=preferLyricDraft(draft,saved);
         const res=useDraft&&draft
           ? {status:'success',cached:true,segments:draft.segments} as Awaited<ReturnType<typeof api.getSavedLyrics>>
@@ -554,9 +564,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         const syncedSegments=uppercaseLyrics(res.segments||[]).map(seg=>({...seg,words:reconcileWords(seg.words||[],seg.text,seg.start)}));
         loadSegments(syncedSegments);
         if(useDraft)onNotify('info','Bekleyen düzenlemeler geri yüklendi');
-        if(res.updated_at)setLastSavedTime(new Date(res.updated_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
+        if(useDraft)triggerAutoSave(syncedSegments,true);
+        else if(res.updated_at)setLastSavedTime(new Date(res.updated_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
       }catch{
-        if(requestId===lyricsRequestRef.current){loadSegments([]);setLastSavedTime('');}
+        if(requestId===lyricsRequestRef.current){loadSegments([]);loadedSourceRef.current='';setLastSavedTime(null);setSaveError('Kayıtlı proje yüklenemedi');}
       }finally{
         if(requestId===lyricsRequestRef.current)setLoadingLyrics(false);
       }
@@ -827,17 +838,22 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const saveToDatabase = async (segmentsToSave: LyricSegment[], notifyUser = false, sourceFile = vocalStem || instStem, language = selectedLyricsLang) => {
     if (!sourceFile) return;
     const snapshot = repairTiming(segmentsToSave);
-    setIsSavingDb(true);
+    activeSavesRef.current++;
+    setIsSavingDb(true);setLastSavedTime(null);setSaveError('');
     try {
       await enqueueLyricsSave(() => api.saveLyrics(sourceFile, snapshot, language));
       const draftKey='uvr-lyrics-draft:'+sourceFile;
       try{const draft=JSON.parse(projectStorage.getItem(draftKey)||'null');if(draft&&JSON.stringify(draft.segments)===JSON.stringify(snapshot))projectStorage.removeItem(draftKey);}catch{}
-      setLastSavedTime(new Date().toLocaleTimeString());
-      if (notifyUser) onNotify('success', 'Kaydedildi', 'Kelime zamanları değiştirilmeden kaydedildi.');
+      await flushProjects();
+      if (activeSourceRef.current === sourceFile && !pendingSaveRef.current && JSON.stringify(committedSegments.current) === JSON.stringify(snapshot)) {
+        setLastSavedTime(new Date().toLocaleTimeString());setSaveError('');
+        if (notifyUser) onNotify('success', 'Proje kaydedildi', 'Sözler, kelime zamanları ve proje ayarları diske kaydedildi.');
+      }
     } catch (err) {
+      if(activeSourceRef.current === sourceFile){setLastSavedTime(null);setSaveError('Kaydedilemedi · Tekrar dene');}
       onNotify('warning', 'Kaydedilemedi', 'Son düzenleme kaydedilemedi. Yeniden kaydetmeyi deneyin.');
       throw err;
-    } finally { setIsSavingDb(false); }
+    } finally { activeSavesRef.current--;setIsSavingDb(activeSavesRef.current > 0); }
   };
 
   const flushPendingSave = () => {
@@ -850,6 +866,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
 
   const triggerAutoSave = (newSegments: LyricSegment[], immediate = false) => {
     newSegments=protectLockedRows(committedSegments.current,newSegments);
+    setLastSavedTime(null);setSaveError('');
     projectStorage.setItem('uvr-lyrics-draft:'+(vocalStem||instStem),JSON.stringify({segments:newSegments,language:selectedLyricsLang,modifiedAt:Date.now()}));
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     pendingSaveRef.current = { file: vocalStem || instStem, segments: structuredClone(newSegments), language: selectedLyricsLang };
@@ -857,11 +874,27 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     saveTimeoutRef.current = setTimeout(flushPendingSave, immediate ? 0 : 350);
   };
 
+  const saveCurrentProject = async (notifyUser = false) => {
+    // A restart during initial loading must not replace a saved song with [].
+    if(loadedSourceRef.current !== (vocalStem || instStem))return;
+    if(saveTimeoutRef.current)clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current=null;
+    pendingSaveRef.current=null;
+    await saveToDatabase(committedSegments.current, notifyUser);
+  };
+
   useEffect(() => {
     return () => flushPendingSave();
   }, [isOpen, vocalStem, instStem]);
 
-  useEffect(()=>{if(!isOpen)return;return registerProjectFlusher(async()=>{flushPendingSave();await enqueueLyricsSave(()=>Promise.resolve());if(committedSegments.current.length)await saveToDatabase(committedSegments.current,false);});},[vocalStem,instStem,isOpen]);
+  const flushCurrentProject = async () => {
+    // A clean editor can hold an older snapshot than the database. Restarting
+    // must drain real edits without writing that stale snapshot over new work.
+    if(pendingSaveRef.current)await saveCurrentProject();
+    else await enqueueLyricsSave(()=>Promise.resolve());
+    await flushProjects();
+  };
+  useEffect(()=>{if(!isOpen)return;return registerProjectFlusher(()=>flushCurrentProject());},[vocalStem,instStem,isOpen,selectedLyricsLang]);
   useEffect(()=>{
     if(!isOpen)return;
     const handleHistoryKey=(event:KeyboardEvent)=>{
@@ -1651,7 +1684,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       return;
     }
 
-    const issues = timingIssues(videoSegments(segments), false, false);
+    const issues = renderTimingIssues(videoSegments(segments));
     if (issues.length) { onNotify("warning", "Önce kelime zamanlarını hizalayın", issues.slice(0, 3).join(" / ")); return; }
     stopWordPreview();
     if (audioRef.current) audioRef.current.pause();
@@ -1699,7 +1732,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const syncIssues = timingIssues(segments);
   const inferredWordCount = segments.reduce((count, row) => count + (row.words || []).filter(word => word.timing_source === 'repeat_inferred').length, 0);
   const archivedRepeatCount = segments.reduce((count,row)=>count+(row.repeat_cleanup?.length||0),0);
-  const renderErrors = timingIssues(videoSegments(segments), false, false);
+  const renderErrors = renderTimingIssues(videoSegments(segments));
 
   if (!isOpen || !mounted) return null;
 
@@ -1765,7 +1798,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           <div className="flex flex-wrap items-end gap-2.5">
             <div className="space-y-1.5">
               <span className="block text-xs font-medium text-slate-400">Senkron dili</span>
-              <StudioSelect aria-label="Senkron dili" value={alignmentLanguage} onValueChange={setAlignmentLanguage} disabled={loadingLyrics || !!bulkBindingStatus} className="min-w-52">
+              <StudioSelect aria-label="Senkron dili" value={alignmentLanguage} onValueChange={selectAlignmentLanguage} disabled={loadingLyrics || !!bulkBindingStatus} className="min-w-52">
                 <option value="auto">Otomatik · TR / KU / AZ / EN</option>
                 <option value="tr">Türkçe</option>
                 <option value="kmr">Kürtçe (Kurmancî)</option>
@@ -1789,10 +1822,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           {inferredWordCount} kelimenin süresi aynı şarkıdaki tekrarlardan tahmin edildi. “Tahmini” etiketli kelimeler videoda renklenir; süreleri dinleyerek değiştirebilirsin.
         </div>}
         {activeTab === 'lyrics' && (renderErrors.length > 0 || syncIssues.length > 0) && <div role="status" className="flex items-center justify-between gap-3 border-b border-white/5 bg-amber-400/5 px-6 py-2 text-xs text-amber-200">
-          <span>{renderErrors.length ? `${renderErrors.length} zamanlama sorunu · ${renderErrors[0]}` : `${syncIssues.length} zamanlama uyarısı var; bağlı olup dinleme kontrolü bekleyen kelimeler de bu sayıya dahildir. Eksik süreli satırlar videoda satır olarak gösterilir.`}</span>
+          <span>{renderErrors.length ? `${renderErrors.length} zamanlama sorunu · ${renderErrors[0]}` : `${syncIssues.length} dinleme kontrolü bekliyor; video oluşturabilirsin. Süresi bulunamayan kelimeler beyaz kalır, bağlı kelimeler zamanında renklenir.`}</span>
           <div className="flex shrink-0 items-center gap-3"><button className="rounded border border-emerald-300/40 bg-emerald-400/10 px-2 py-1 font-semibold text-emerald-100 hover:bg-emerald-400/20" onClick={approveAllTimedWords}>Tümünü onayla</button><button className="underline underline-offset-4" onClick={() => {
-            const row = segments.findIndex(s => (s.words || []).some(w => w.needs_review || w.timing_source === 'estimated' || w.end <= w.start));
-            if (row >= 0) {setExpandedWordRow(row); setSelectedWordIndex(Math.max(0, (segments[row].words || []).findIndex(w => w.needs_review || w.timing_source === 'estimated' || w.end <= w.start))); rowRefs.current[row]?.scrollIntoView({block: 'center', behavior: 'smooth'});}
+            const target = timingIssueTarget(renderErrors[0] || syncIssues[0]);
+            if (target && segments[target.row]) {setExpandedWordRow(target.row); setSelectedWordIndex(target.word); rowRefs.current[target.row]?.scrollIntoView({block: 'center', behavior: 'smooth'});}
           }}>İlk uyarıya git</button></div>
         </div>}
 
@@ -3034,7 +3067,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             <span className="font-semibold text-slate-200">{segments.length} satır</span>
             <button disabled={!history.current.past.length||isLiveSyncMode} onClick={()=>restoreEdit('undo')} className="ml-3 disabled:opacity-30">Geri al</button>
             <button disabled={!history.current.future.length||isLiveSyncMode} onClick={()=>restoreEdit('redo')} className="ml-3 disabled:opacity-30">İleri al</button>
-            <button onClick={() => {flushPendingSave(); void saveToDatabase(segments, true).catch(() => {});}} className="ml-3 text-zinc-400 hover:text-slate-200" title={lastSavedTime ? `Son kayıt: ${lastSavedTime}` : 'Şimdi kaydet'}>{isSavingDb ? 'Kaydediliyor…' : lastSavedTime ? '✓ Kaydedildi' : 'Kaydet'}</button>
+            <button disabled={isSavingDb || loadingLyrics} onClick={() => {void saveCurrentProject(true).catch(() => {});}} className={cn('ml-3 hover:text-slate-200 disabled:opacity-60',saveError?'text-amber-200':'text-zinc-400')} title={lastSavedTime ? `Son kayıt: ${lastSavedTime}` : 'Sözleri ve proje ayarlarını diske kaydet'}>{isSavingDb ? 'Kaydediliyor…' : saveError || (lastSavedTime ? '✓ Kaydedildi' : 'Projeyi kaydet')}</button>
           </div>
 
           <div className="flex items-center gap-3">

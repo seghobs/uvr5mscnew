@@ -6,11 +6,15 @@ const result={segments:[{...segments[0],start:20,end:22}],alignment_report:{link
 const context={exports:{},require:()=>({}),console,setTimeout:callback=>queueMicrotask(callback),
   fetch:async(path,options)=>{
     calls.push({path,options});
-    if(path==='/api/lyrics/align-supplied')return {ok:true,json:async()=>({task_id:'explicit-click'})};
-    if(path==='/status/explicit-click')return {ok:true,json:async()=>++polls===1?
+    if(path==='/api/lyrics/align-supplied')return {ok:true,status:200,json:async()=>({task_id:'explicit-click'})};
+    if(path==='/status/explicit-click')return {ok:true,status:200,json:async()=>++polls===1?
       {status:'processing',message:'Senkron',progress:.5}:{status:'completed',result}};
     throw Error('Unexpected transcription/save request: '+path);
   }};
+const backendContext={exports:{},console,setTimeout:context.setTimeout,fetch:context.fetch};
+vm.createContext(backendContext);
+vm.runInContext(ts.transpile(fs.readFileSync('frontend/src/lib/backend-fetch.ts','utf8'),{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}),backendContext);
+context.require=path=>path==='./backend-fetch'?backendContext.exports:{};
 vm.createContext(context);
 vm.runInContext(ts.transpile(fs.readFileSync('frontend/src/lib/api.ts','utf8'),{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}),context);
 assert.equal(calls.length,0,'loading API must not start alignment');

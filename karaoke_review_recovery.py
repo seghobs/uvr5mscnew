@@ -1,4 +1,5 @@
 """Confirm weak CTC boundaries against a verified repetition in the same audio."""
+from karaoke_ctc import has_timed_row
 import math
 import copy
 from karaoke_ctc import acoustic_probability
@@ -31,9 +32,9 @@ def recover_row_reviews(audio_path,rows,progress=lambda *args:None,language='tr'
             if not word.get('needs_review'):continue
             # Rejected words have zero-length placeholders, sometimes at an
             # earlier row's old start. They are not boundary anchors.
-            lower=max([0.]+[r['end'] for r in rows[:index]]+
+            lower=max([0.]+[r['end'] for r in rows[:index] if has_timed_row(r)]+
                       [w['end'] for w in row['words'][:j] if w['end']>w['start']])
-            upper=min([math.inf]+[r['start'] for r in rows[index+1:]]+
+            upper=min([math.inf]+[r['start'] for r in rows[index+1:] if has_timed_row(r)]+
                       [w['start'] for w in row['words'][j+1:] if w['end']>w['start']])
             selected=choose_boundary_candidate(word,candidates[(index,j)],lower,upper)
             if selected is not word:

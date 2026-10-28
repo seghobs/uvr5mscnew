@@ -192,6 +192,70 @@ def infer_repeated_words(rows, duration, energy, duration_only=False):
     return count
 
 
+def infer_repeated_runs(rows, duration, energy):
+    """Estimate adjacent weak words only from two agreeing measured refrains.
+
+    Frozen acoustic anchors prevent an estimate from validating another estimate.
+    These remain explicitly inferred timings, never measured confidence scores.
+    """
+    from karaoke_supplied_alignment import protected, instrumental
+    snapshot=copy.deepcopy(rows);count=0
+    for ri,row in enumerate(rows):
+        if protected(row) or instrumental(row):continue
+        words=snapshot[ri].get('words') or []
+        keys=[token_key(w['word']) for w in words]
+        pending=[i for i,w in enumerate(words) if w.get('needs_review') and w.get('timing_source')!='manual']
+        runs=[]
+        for wi in pending:
+            if not runs or wi!=runs[-1][-1]+1:runs.append([])
+            runs[-1].append(wi)
+        for run in runs:
+            if len(run)==1 and not words[run[0]]['end']>words[run[0]]['start']:continue
+            anchors=[i for i,w in enumerate(words) if measured(w)]
+            if len(anchors)<3:continue
+            lower=max([0.]+[r['end'] for r in snapshot[:ri]]+
+                      [w['end'] for w in words[:run[0]] if w['end']>w['start']])
+            upper=min([duration]+[r['start'] for r in snapshot[ri+1:]]+
+                      [w['start'] for w in words[run[-1]+1:] if w['end']>w['start']])
+            proposals=[];donors=[]
+            for di,reference in enumerate(snapshot):
+                rw=reference.get('words') or []
+                if di==ri or [token_key(w['word']) for w in rw]!=keys:continue
+                if not all(measured(rw[i]) for i in run):continue
+                shared=[i for i in anchors if measured(rw[i])]
+                if len(shared)<3:continue
+                pairs=[((rw[i]['start']+rw[i]['end'])/2,(words[i]['start']+words[i]['end'])/2) for i in shared]
+                scales=[(d-b)/(c-a) for j,(a,b) in enumerate(pairs) for c,d in pairs[j+1:] if c-a>.4]
+                if not scales:continue
+                scale=statistics.median(scales)
+                offset=statistics.median(b-scale*a for a,b in pairs)
+                if not .85<=scale<=1.15 or max(abs(b-(scale*a+offset)) for a,b in pairs)>.18:continue
+                spans=[(scale*rw[i]['start']+offset,scale*rw[i]['end']+offset) for i in run]
+                if not all(lower<=a<b<=upper and .04<=b-a<=3 for a,b in spans):continue
+                proposals.append(spans);donors.append(reference.get('id') or f'row:{di+1}')
+            if len(proposals)<2:continue
+            planned=[]
+            for j,wi in enumerate(run):
+                starts=[p[j][0] for p in proposals];ends=[p[j][1] for p in proposals]
+                if max(starts)-min(starts)>.20 or max(ends)-min(ends)>.25:break
+                a,b=statistics.median(starts),statistics.median(ends)
+                level=energy(a,b);nearby=energy(max(0,a-.1),min(duration,b+.1))
+                if not all(math.isfinite(x) for x in (level,nearby)) or level<max(.0001,nearby*.12):break
+                planned.append((wi,a,b))
+            if len(planned)!=len(run) or any(a[2]>b[1] for a,b in zip(planned,planned[1:])):continue
+            for wi,a,b in planned:
+                old=words[wi]
+                row['words'][wi]={**old,'start':a,'end':b,'probability':None,'needs_review':False,
+                    'timing_source':'repeat_inferred','timing_reference':{
+                        'method':'matching_phrase_run_anchors','row_ids':donors,'anchor_words':len(anchors),
+                        'bounds':[lower,upper],'acoustically_verified':False,
+                        'previous_start':old['start'],'previous_end':old['end']}}
+                count+=1
+        good=[w for w in row.get('words') or [] if w['end']>w['start']]
+        if good:row['start']=min(row['start'],good[0]['start']);row['end']=max(row['end'],good[-1]['end'])
+    return count
+
+
 def recover_from_song_repeats(audio_path, rows, duration_only=True):
     import numpy as np
     import soundfile as sf
@@ -205,4 +269,5 @@ def recover_from_song_repeats(audio_path, rows, duration_only=True):
         if b <= a or invalid[b] != invalid[a]:
             return math.nan
         return math.sqrt(max(0., (cumulative[b]-cumulative[a])/(b-a)))
-    return infer_repeated_words(rows, len(audio)/rate, energy, duration_only=duration_only)
+    count=infer_repeated_runs(rows,len(audio)/rate,energy)
+    return count+infer_repeated_words(rows, len(audio)/rate, energy, duration_only=duration_only)

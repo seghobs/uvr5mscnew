@@ -350,7 +350,7 @@ export const api = {
     const res = await safeFetch(`/lyrics/${encodeURIComponent(fileName)}`);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || err.message || 'No saved lyrics found');
+      throw Object.assign(new Error(err.detail || err.message || 'No saved lyrics found'), {status:res.status});
     }
     return res.json();
   },

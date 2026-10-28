@@ -32,6 +32,8 @@ LOOKALIKE_LETTERS = str.maketrans({
 
 def acoustic_text(text, vocab):
     text = unicodedata.normalize('NFKC', text)
+    english = getattr(vocab,'language','tr') == 'en'
+    if english:text=text.replace('’', "'").replace('‘', "'").replace('ı','i')
     letters = [c for c in text if c.isalpha()]
     if len(letters)==1 or any('LATIN' in unicodedata.name(c,'') for c in letters):
         text = text.translate(LOOKALIKE_LETTERS)
@@ -40,13 +42,30 @@ def acoustic_text(text, vocab):
     result=[]
     for char in text:
         category=unicodedata.category(char)
-        if category.startswith('P') or category=='Cf' or '\ufe00'<=char<='\ufe0f':continue
+        if (category.startswith('P') and not (english and char == "'" and char in vocab)) or category=='Cf' or '\ufe00'<=char<='\ufe0f':continue
         if char not in vocab and 'LATIN' in unicodedata.name(char,''):
             # Preserve Turkish letters present in the model; fold only other
             # Latin accents such as circumflexes and imported acute accents.
             char=''.join(c for c in unicodedata.normalize('NFD',char) if unicodedata.category(c)!='Mn')
         result.append(char)
     return ''.join(result)
+
+
+def has_timed_row(row):
+    """Unbound 0/0 rows cannot anchor another line's search interval."""
+    a,b=row.get('start'),row.get('end')
+    return (isinstance(a,Real) and isinstance(b,Real) and math.isfinite(a) and math.isfinite(b)
+            and 0<=a<b)
+
+
+def mark_word_overlaps(rows):
+    previous=None
+    for row in rows:
+        for word in row.get('words') or []:
+            if word['end']<=word['start']:continue
+            if previous and word['start']<previous['end']:
+                previous['needs_review']=word['needs_review']=True
+            previous=word
 
 
 def alignment_mono(audio, channel):
@@ -151,6 +170,7 @@ def refine_ctc(audio_path, segments, language, progress=None, include_syllables=
     # independently to the last word of one line and the first of the next.
     groups = []
     for segment in result:
+        if not has_timed_row(segment):continue
         if not groups or independent_rows or segment['end'] - groups[-1][0]['start'] > 18:
             groups.append([])
         groups[-1].append(segment)
@@ -209,12 +229,7 @@ def refine_ctc(audio_path, segments, language, progress=None, include_syllables=
                     segment['words'] = aligned[cursor:cursor + count]
                     segment['start'], segment['end'] = segment['words'][0]['start'], segment['words'][-1]['end']
                     cursor += count
-        previous = None
-        for segment in result:
-            for word in segment.get('words', []):
-                if previous and word['start'] < previous['end']:
-                    previous['needs_review'] = word['needs_review'] = True
-                previous = word
+        mark_word_overlaps(result)
         return result
     finally:
         inference_cache=None

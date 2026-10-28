@@ -1,6 +1,7 @@
 'use client';
 
-import { projectStorage } from '@/lib/project-storage';
+import { projectStorage, flushProjects } from '@/lib/project-storage';
+import { exportProjectArchive, importProjectArchive } from '@/lib/project-archive';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Language, AccentColor, LibraryItem } from '@/lib/types';
@@ -42,6 +43,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 }) => {
   const t = (key: string) => getTranslation(lang, key);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [exportingProject,setExportingProject]=useState<number|null>(null);
 
   const [library, setLibrary] = useState<LibraryItem[]>(() => {
     if (typeof window !== 'undefined') {
@@ -57,34 +59,36 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
   useEffect(()=>{const refresh=(event:Event)=>{if((event as CustomEvent).detail?.key==='uvr_library'){try{setLibrary(JSON.parse(projectStorage.getItem('uvr_library')||'[]'));}catch{}}};window.addEventListener('uvr-project-changed',refresh);return()=>window.removeEventListener('uvr-project-changed',refresh);},[]);
 
-  const exportProjectFile = (item: LibraryItem) => {
-    const jsonStr = JSON.stringify(item, null, 2);
+  const exportProjectFile = async (item: LibraryItem) => {
+    if(exportingProject!==null)return;
+    setExportingProject(item.id);
+    try {
+    const jsonStr = JSON.stringify(await exportProjectArchive(item), null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `${item.filename.replace(/\.[^/.]+$/, '')}.uvrproj`;
     a.click();
-    URL.revokeObjectURL(url);
-    onNotify('success', 'Proje Dışa Aktarıldı', '.uvrproj oturum dosyası kaydedildi.');
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    onNotify('success', 'Proje Dışa Aktarıldı', 'Sözler, kelime zamanları ve proje ayarları .uvrproj dosyasına eklendi. Ses dosyaları mevcut konumlarından kullanılır.');
+    }catch(error){onNotify('error','Proje kaydedilemedi',(error as Error).message);}
+    finally{setExportingProject(null);}
   };
 
   const handleImportProjectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       try {
-        const project = JSON.parse(ev.target?.result as string) as LibraryItem;
-        if (!project.filename || !Array.isArray(project.stems)) {
-          throw new Error('Geçersiz proje formatı');
-        }
+        const project = await importProjectArchive(JSON.parse(ev.target?.result as string));
         // Add to library if not exists
-        setLibrary((prev) => {
-          const updated = [project, ...prev.filter((p) => p.id !== project.id)];
-          projectStorage.setItem('uvr_library', JSON.stringify(updated));
-          return updated;
-        });
+        const previous=JSON.parse(projectStorage.getItem('uvr_library')||'[]') as LibraryItem[];
+        const updated=[project,...previous.filter(p=>p.id!==project.id)];
+        projectStorage.setItem('uvr_library',JSON.stringify(updated));
+        await flushProjects();
+        setLibrary(updated);
         onNotify('success', 'Proje İçe Aktarıldı', `"${project.filename}" kütüphaneye eklendi.`);
         if (onLoadProject) {
           onLoadProject(project);
@@ -430,7 +434,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
                   {/* Export Project File (.uvrproj) */}
                   <button
-                    onClick={() => exportProjectFile(item)}
+                    disabled={exportingProject!==null}
+                    onClick={() => void exportProjectFile(item)}
                     className="p-1.5 rounded-xl bg-white/[0.04] hover:bg-white/10 text-slate-400 hover:text-indigo-300 border border-white/5 transition-colors"
                     title="Projeyi .uvrproj oturum dosyası olarak kaydet"
                   >

@@ -4,12 +4,12 @@ import hashlib
 import numpy as np
 
 
-def expand_repeats(rows,audio_path,verifier=None):
+def expand_repeats(rows,audio_path,verifier=None,audio_data=None):
     import soundfile as sf
     from scipy.signal import resample_poly,fftconvolve,find_peaks,stft
     from math import gcd
     from karaoke_supplied_alignment import instrumental,protected,alignment_mono
-    audio,rate=sf.read(str(audio_path),dtype='float32',always_2d=True)
+    audio,rate=audio_data if audio_data is not None else sf.read(str(audio_path),dtype='float32',always_2d=True)
     divisor=gcd(rate,2000)
     wave=resample_poly(alignment_mono(audio),2000//divisor,rate//divisor).astype('float64')
     wave-=wave.mean()

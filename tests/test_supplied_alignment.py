@@ -4,6 +4,29 @@ from karaoke_supplied_alignment import alignment_blocks,assemble,repair_anomalou
 
 
 class SuppliedAlignmentTests(unittest.TestCase):
+    def test_occurrence_window_cannot_overlap_untouched_neighbour(self):
+        from karaoke_supplied_alignment import apply_occurrence_windows
+        rows=[{'text':'A','_occurrence_words':[{'word':'A','start':1,'end':4,'probability':.9}]},
+              {'text':'B'}]
+        aligned=[{'word':'A','start':1,'end':2,'probability':.8},
+                 {'word':'B','start':3,'end':5,'probability':.8}]
+        original=copy.deepcopy(aligned)
+        self.assertEqual(apply_occurrence_windows(aligned,rows,{'a':1,'b':2},0,10),0)
+        self.assertEqual(aligned,original)
+        rows[0]['_occurrence_words'][0]['end']=2.5
+        self.assertEqual(apply_occurrence_windows(aligned,rows,{'a':1,'b':2},0,10),1)
+
+    def test_rejected_occurrence_exposes_original_neighbour_boundary(self):
+        from karaoke_supplied_alignment import apply_occurrence_windows
+        rows=[{'text':'A','_occurrence_words':[{'word':'A','start':1,'end':4,'probability':.9}]},
+              {'text':'B','_occurrence_words':[{'word':'B','start':4,'end':6,'probability':.9}]},
+              {'text':'C'}]
+        aligned=[{'word':'A','start':1,'end':2}, {'word':'B','start':3,'end':4},
+                 {'word':'C','start':5,'end':7}]
+        original=copy.deepcopy(aligned)
+        self.assertEqual(apply_occurrence_windows(aligned,rows,{'a':1,'b':2,'c':3},0,10),0)
+        self.assertEqual(aligned,original)
+
     def test_automatic_copy_must_not_compress_and_steal_supplied_audio(self):
         from karaoke_supplied_alignment import inconsistent_auto_repeats
         rows=[{'id':'given','text':'TU HERE'},

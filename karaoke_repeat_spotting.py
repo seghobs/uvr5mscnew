@@ -68,7 +68,10 @@ def find_occurrences(emission,row,vocab,threshold=-3.0,rescue=None,progress=lamb
         if similarity<.5:continue
         confidence=sum(w['probability'] for w in aligned)/len(aligned)
         if confidence<.4 or min(w['probability'] for w in aligned)<.1:
-            if rescue is None or confidence<.4:continue
+            # Borderline whole-song scores can improve on a bounded audio clip.
+            # The independently re-inferred result must still pass the original
+            # .4 mean/.1 minimum thresholds below; never accept a weak guess.
+            if rescue is None or confidence<.3:continue
             alternative=rescue(row,aligned[0]['start'],aligned[-1]['end'])
             if not alternative:continue
             aligned=alternative;confidence=sum(w['probability'] for w in aligned)/len(aligned)
@@ -151,7 +154,15 @@ def select_occurrences(rows,hits,vocab):
     for hit in hits:
         first=hit['words'][0]
         first_key=text_key({'text':first['word']},vocab)
-        if len(first_key)<=2 and first['probability']<.35 and first['end']-first['start']<.12:continue
+        if len(hit['words'])>1 and len(first_key)<=2 and first['probability']<.35 and first['end']-first['start']<.12:
+            # A weak short prefix alone cannot veto an otherwise well measured
+            # verse (e.g. Kurdish "Li"). Reject a borrowed interjection only
+            # when an independent suffix candidate explains the same sound.
+            suffix=text_key({'text':' '.join(w['word'] for w in hit['words'][1:])},vocab)
+            rivals=[other for other in hits if other is not hit and keys_by_text[other['text']]==suffix
+                    and first['end']-.15<=other['start']<=hit['words'][1]['start']+.25
+                    and abs(other['end']-hit['end'])<=.7 and other['confidence']>=.5]
+            if rivals:continue
         key=keys_by_text[hit['text']];group=(key,round(hit['start']/.3),round(hit['end']/.3))
         if group not in unique or hit['confidence']>unique[group]['confidence']:unique[group]=hit
     candidates=list(unique.values())
@@ -197,7 +208,30 @@ def select_occurrences(rows,hits,vocab):
     return list(reversed(selected))
 
 
-def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=None):
+def waveform_repeat_hits(rows,hits,vocab,audio,rate):
+    """Recover copies of verified phrases without lowering CTC thresholds.
+
+    The existing repeat detector requires >.97 waveform correlation and >.95
+    in three independent portions. A weak spelling prediction must not erase
+    a phrase whose actual vocal waveform repeats elsewhere in the same song.
+    """
+    from karaoke_repeats import expand_repeats
+    selected=select_occurrences(rows,hits,vocab)
+    templates={f'occurrence:{i}':hit for i,hit in enumerate(selected)}
+    references=[{'id':key,'text':hit['text'],'start':hit['start'],'end':hit['end'],'words':hit['words']}
+                for key,hit in templates.items()]
+    recovered,_=expand_repeats(references,None,audio_data=(audio,rate))
+    additions=[]
+    for row in recovered:
+        source=templates.get(row.get('repeat_source_id'))
+        if source is None:continue
+        words=[{**w,'timing_reference':{'method':'waveform_repeat_match','reference_start':source['start'],
+                'reference_end':source['end']}} for w in row['words']]
+        additions.append({**source,'start':row['start'],'end':row['end'],'words':words,'acoustic_repeat':True})
+    return additions
+
+
+def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=None,repeat_audio=None):
     import copy,hashlib
     views=emission if isinstance(emission,list) else [emission]
     seen=set();hits=[]
@@ -224,6 +258,11 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
                 if confidence<.4 or min(w['probability'] for w in aligned)<.1:continue
                 hits.append({**hit,'text':row['text'],'row_id':row.get('id'),'start':aligned[0]['start'],
                              'end':aligned[-1]['end'],'words':aligned,'confidence':confidence,'recovery':'local_suffix'})
+    acoustic_count=0
+    if repeat_audio is not None:
+        progress(.99,'Zayıf duyulan tekrarlar, aynı şarkının vokal dalgasıyla karşılaştırılıyor…')
+        additions=waveform_repeat_hits(rows,hits,vocab,*repeat_audio)
+        hits.extend(additions);acoustic_count=len(additions)
     progress(1.,'Bulunan tekrarların sırası ve çakışmaları kontrol ediliyor…')
     selected=select_occurrences(rows,hits,vocab)
     from karaoke_duplicate_repeats import archive_excess_repeats
@@ -252,6 +291,7 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
         row=copy.deepcopy(source)
         row.pop('repeat_cleanup',None)
         row['_occurrence_words']=copy.deepcopy(hit['words'])
+        if hit.get('acoustic_repeat'):row['_acoustic_occurrence']=True
         if hit.get('terminal_bounded'):
             row['_terminal_occurrence']=True;terminal_count+=1
         row.update(id='auto-repeat:'+hashlib.sha256((source['id']+str(round(hit['start'],2))).encode()).hexdigest()[:16],
@@ -264,12 +304,14 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
         matching=next((h for h in selected if h['kind']=='original' and h['source_index']==i),None)
         if matching:
             original['_occurrence_words']=copy.deepcopy(matching['words'])
+            if matching.get('acoustic_repeat'):original['_acoustic_occurrence']=True
             if matching.get('terminal_bounded'):original['_terminal_occurrence']=True
         result.append(original)
     result.extend(copies.get(len(rows),[]))
     return result,{'repeated_rows_added':count,'repeat_method':'supplied_text_ctc_occurrence_graph',
                    'repeat_accuracy_guaranteed':False,'repeat_candidates':len(hits),'repeat_review_candidates':review,
-                   'terminal_repeats_added':terminal_count,'archived_duplicate_rows':archived_count},selected
+                   'terminal_repeats_added':terminal_count,'archived_duplicate_rows':archived_count,
+                   'waveform_repeats_added':acoustic_count},selected
 
 
 def local_verifier(audio,rate,model,extractor,vocab,device,progress=lambda *args:None,inference_cache=None):

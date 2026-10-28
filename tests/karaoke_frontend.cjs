@@ -56,6 +56,19 @@ async function main() {
   const partial={start:1,end:4,text:'HEY GÖNÜL GENE',words:[{word:'HEY',start:1,end:1,timing_source:'estimated',needs_review:true},{word:'GÖNÜL',start:2,end:3,timing_source:'ctc'},{word:'GENE',start:3.2,end:4,timing_source:'ctc'}]};
   const shown=timing.videoSegments([partial])[0];
   assert.equal(shown.words.length,3);
+  assert.equal(timing.renderTimingIssues([shown]).length,0);
+  assert.ok(timing.timingIssues([shown]).length,'unbound words remain visible for review');
+  const stalePlaceholder={start:195,end:196.86,text:'Dil disoje',words:[
+    {word:'Dil',start:152.345,end:152.345,timing_source:'estimated',needs_review:true},
+    {word:'disoje',start:195,end:196.86,timing_source:'ctc',needs_review:true},
+  ]};
+  assert.equal(timing.renderTimingIssues([stalePlaceholder]).length,0);
+  assert.equal(timing.renderTimingIssues([{...stalePlaceholder,words:[{...stalePlaceholder.words[0],timing_source:'manual'}]}]).length,1);
+  const overlap={...partial,words:partial.words.map(w=>({...w}))};overlap.words[2].start=2.8;
+  assert.match(timing.renderTimingIssues([overlap])[0],/Satır 1, kelime 3/);
+  assert.ok(timing.renderTimingIssues([{...partial,words:[{word:'wrong',start:1,end:2}]}]).length);
+  assert.equal(JSON.stringify(timing.timingIssueTarget('Satır 17, kelime 1: geçersiz kelime süresi')),JSON.stringify({row:16,word:0}));
+  assert.equal(timing.timingIssueTarget('Satır 9: geçersiz satır süresi').row,8);
   assert.equal(timing.wordFillWithNeighbors(shown.words[1],2.5,shown.words[0],shown.words[2]),.5);
   assert.equal(JSON.stringify(timing.soloWindows([
     {start:5,end:10,text:'Bir'}, {start:20,end:25,text:'İki'},

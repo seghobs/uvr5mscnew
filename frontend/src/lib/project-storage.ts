@@ -3,7 +3,7 @@ type Pending={key:string;value:string|null;version:string;removed_ids?:number[]}
 const mirror=new Map<string,string|null>(),pending=new Map<string,Pending>();
 let running:Promise<void>|null=null, durableWrites:Promise<void>=Promise.resolve(),booted=false;
 let database:Promise<IDBDatabase>|null=null;
-const tracked=(key:string)=>key==='uvr_library'||key==='uvr_lang'||key==='uvr_accent'||/^(uvr-passages-v[23]:|uvr-stem-settings:|uvr-history:|uvr-lyrics-draft:|uvr-video-heading:|uvr-video-cover:)/.test(key);
+const tracked=(key:string)=>key==='uvr_library'||key==='uvr_lang'||key==='uvr_accent'||/^(uvr-passages-v[23]:|uvr-stem-settings:|uvr-history:|uvr-lyrics-draft:|uvr-video-heading:|uvr-video-cover:|uvr-alignment-language:)/.test(key);
 function db(){return database??=new Promise<IDBDatabase>((resolve,reject)=>{const request=indexedDB.open('uvr-project-outbox',1);request.onupgradeneeded=()=>request.result.createObjectStore('pending',{keyPath:'key'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>{database=null;reject(request.error);};});}
 async function writePending(record:Pending,remove=false){const database=await db();await new Promise<void>((resolve,reject)=>{const transaction=database.transaction('pending','readwrite');const store=transaction.objectStore('pending');if(remove)store.delete(record.key);else store.put(record);transaction.oncomplete=()=>resolve();transaction.onerror=()=>reject(transaction.error);transaction.onabort=()=>reject(transaction.error);});}
 function announce(error=''){window.dispatchEvent(new CustomEvent('uvr-project-status',{detail:{pending:pending.size,error}}));}

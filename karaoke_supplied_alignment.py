@@ -31,6 +31,42 @@ def protected(row):
             w['end']>w['start'] for w,t in zip(words,row['text'].split())))
 
 
+def prepare_supplied_rows(rows):
+    """Rebuild derived repeats and separate a repeated refrain from its suffix.
+
+    A pasted line such as "Dil disoje, diqîre heval" contains a refrain that
+    also appears alone. Searching it as one uninterrupted acoustic phrase loses
+    its occurrences when the singer pauses between the two parts.
+    """
+    from karaoke_interludes import generated
+    key=lambda text:''.join(c for c in text.casefold() if c.isalnum())
+    by_id={r.get('id'):r for r in rows if r.get('id')}
+    originals=[]
+    for row in rows:
+        if generated(row):continue
+        parent=by_id.get(row.get('repeat_source_id'))
+        manually_edited=any(w.get('timing_source')=='manual' for w in row.get('words') or [])
+        if (str(row.get('id','')).startswith('auto-repeat:') and parent and not protected(row)
+                and not manually_edited and key(row['text'])==key(parent['text'])):
+            continue
+        originals.append(copy.deepcopy(row))
+    known={key(r['text']) for r in originals if not instrumental(r)}
+    result=[]
+    for row in originals:
+        match=None if protected(row) or any(w.get('timing_source')=='manual' for w in row.get('words') or []) else re.search(r'[,;،]\s*',row['text'])
+        prefix=row['text'][:match.start()].strip() if match else ''
+        suffix=row['text'][match.end():].strip() if match else ''
+        if match and key(prefix) in known and len(prefix.split())>=2 and len(suffix.split())>=2:
+            for part,text in enumerate((prefix,suffix)):
+                # Existing automatic times were measured for a different phrase;
+                # they must not become anchors for the newly separated parts.
+                item={**copy.deepcopy(row),'text':text,'words':[],'start':0.,'end':0.}
+                if part:item['id']=str(row.get('id') or 'supplied')+':phrase:2'
+                result.append(item)
+        else:result.append(row)
+    return result
+
+
 def alignment_blocks(rows,duration):
     """Confirmed manual rows delimit search; unconfirmed coarse times are ignored."""
     blocks=[];indices=[];start=0.
@@ -104,14 +140,17 @@ def assemble(rows,aligned_blocks,duration):
                 'timing_source':'manual','needs_review':False}])
     trimmed=trim_unvoiced_repeat_prefixes(result)
     pending=[i+1 for i,row in enumerate(result) if any(w.get('needs_review') for w in row.get('words') or [])]
-    previous=0.
-    for row in result:
+    previous=0.;previous_manual=False
+    for row_index,row in enumerate(result):
         for word in row.get('words') or []:
             if word['end']<=word['start']:continue
             if not (math.isfinite(word['start']) and math.isfinite(word['end']) and
                     previous<=word['start']<word['end']<=duration):
-                raise ValueError('Korunan elle bağlı kelimelerle çakışma bulundu; mevcut sözler değiştirilmedi.')
+                manual=bool(row.get('locked') or word.get('timing_source')=='manual')
+                cause='Korunan elle bağlı kelimelerle çakışma' if manual or previous_manual else 'Otomatik kelime zamanlarında çakışma veya geçersiz süre'
+                raise ValueError(f'Satır {row_index+1}, {word["word"]}: {cause} bulundu; mevcut sözler değiştirilmedi.')
             previous=word['end']
+            previous_manual=bool(row.get('locked') or word.get('timing_source')=='manual')
     return result,{'method':'supplied_turkish_ctc','linked_words':linked,'target_words':total,
                    'review_rows':pending,'trimmed_repeat_prefixes':trimmed,'preserved_rows':sum(bool(protected(r)) for r in rows)}
 
@@ -147,6 +186,60 @@ def inconsistent_auto_repeats(rows,aligned,existing_ids,offset=0.):
     return rejected
 
 
+def apply_occurrence_windows(aligned,rows,vocab,start,end):
+    """Keep independently detected occurrences on their own acoustic clock.
+
+    A whole-song forced path may stretch a short word over an instrumental or
+    shift several identical refrains. Replace a verified row atomically, rather
+    than trying to fix single words inside that already displaced path.
+    """
+    from karaoke_ctc import normalized_words
+    proposals={};cursor=0;positions=[]
+    for index,row in enumerate(rows):
+        tokens=[t for t in row['text'].split() if spoken(t)]
+        positions.append((cursor,tokens));cursor+=len(tokens)
+        candidate=row.get('_occurrence_words') or []
+        if protected(row) or any(w.get('timing_source')=='manual' for w in row.get('words') or []):continue
+        if len(candidate)!=len(tokens) or not candidate:continue
+        try:matches=normalized_words(candidate,vocab)==normalized_words([{'word':t} for t in tokens],vocab)
+        except ValueError:matches=False
+        if not matches:continue
+        words=[{**copy.deepcopy(w),'word':token,'start':start+w['start'],'end':start+w['end']}
+               for token,w in zip(tokens,candidate)]
+        if any(not (start<=w['start']<w['end']<=end) for w in words):continue
+        if any(a['end']>b['start']+1e-7 for a,b in zip(words,words[1:])):continue
+        proposals[index]=words
+    # Overlapping occurrence candidates require joint acoustic review. Do not
+    # turn an overlap into invented, evenly divided word durations.
+    conflicts=set()
+    for (left,a),(right,b) in zip(proposals.items(),list(proposals.items())[1:]):
+        if a[-1]['end']>b[0]['start']+1e-7:conflicts.update((left,right))
+    # Validate untouched neighbours too. Rejection can expose another boundary.
+    while True:
+        rejected=set()
+        for index,words in proposals.items():
+            if index in conflicts:continue
+            cursor,tokens=positions[index]
+            lower=start;upper=end
+            if cursor:
+                previous=proposals.get(index-1) if index-1 not in conflicts else None
+                lower=previous[-1]['end'] if previous else aligned[cursor-1]['end']
+            boundary=cursor+len(tokens)
+            if boundary<len(aligned):
+                following=proposals.get(index+1) if index+1 not in conflicts else None
+                upper=following[0]['start'] if following else aligned[boundary]['start']
+            if words[0]['start']<lower-1e-7 or words[-1]['end']>upper+1e-7:
+                rejected.add(index)
+        if not rejected:break
+        conflicts.update(rejected)
+    count=0
+    for index,words in proposals.items():
+        if index in conflicts:continue
+        cursor,tokens=positions[index]
+        aligned[cursor:cursor+len(tokens)]=words;count+=len(words)
+    return count
+
+
 def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=None,diagnostics=None,language='tr',repeat_estimation=True,original_path=None):
     import soundfile as sf
     import torch
@@ -156,7 +249,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     from karaoke_alignment_models import resolve_language,ensure_model,model_spec,MMS_ADAPTERS
     from karaoke_interludes import generated,music_evidence,place_interludes,regions
     from karaoke_repeat_spotting import expand_supplied_rows,local_verifier
-    rows=[copy.deepcopy(r) for r in rows if not generated(r)]
+    rows=prepare_supplied_rows(rows)
     language=resolve_language(language,rows)
     model_language='kmr_mms' if language=='kmr' else language
     baseline=None
@@ -270,10 +363,11 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
                 if key not in verified_cache:verified_cache[key]=verifier(row,a,b)
                 return verified_cache[key]
             expanded,report,hits=expand_supplied_rows(local_rows,[e[0].numpy() for e in emissions],vocab,
-                search_progress,rescue=verify)
+                search_progress,rescue=verify,repeat_audio=(audio,rate))
             removed_indices.update(set(indices)-{r['_original_index'] for r in expanded if r.get('id') in {s.get('id') for s in local_rows}})
             repeat_report['archived_duplicate_rows']=repeat_report.get('archived_duplicate_rows',0)+report.get('archived_duplicate_rows',0)
             repeat_report['repeated_rows_added']+=report['repeated_rows_added']
+            repeat_report['waveform_repeats_added']=repeat_report.get('waveform_repeats_added',0)+report.get('waveform_repeats_added',0)
             repeat_report['terminal_repeats_added']+=report.get('terminal_repeats_added',0)
             repeat_report['repeat_candidates']+=report['repeat_candidates']
             repeat_report['repeat_review_candidates'].extend({**item,'start':start+item['start'],'end':start+item['end']} for item in report['repeat_review_candidates'])
@@ -301,6 +395,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
                     aligned=words_from_spans([words[i] for i in supported],normalized,spans,targets,hop/16000,start)
                 aligned=restore_unsupported_words(words,supported,aligned,start)
                 for word in aligned:word['end']=min(end,word['end'])
+                repeat_report['occurrence_aligned_words']=repeat_report.get('occurrence_aligned_words',0)+apply_occurrence_windows(aligned,expanded,vocab,start,end)
                 rejected=inconsistent_auto_repeats(expanded,aligned,existing_ids,offset=start)
                 if not rejected:break
                 rejected_ids={r['id'] for r in rejected}
@@ -323,7 +418,7 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         if len(rows)>500:raise ValueError('Tekrarlarla birlikte 500 satır sınırı aşıldı; mevcut sözler korundu.')
         positions={id(row):index for index,row in enumerate(rows)}
         completed=[([positions[id(row)] for row in expanded],aligned) for expanded,aligned in local_completed]
-        for row in rows:row.pop('_original_index',None);row.pop('_occurrence_words',None);row.pop('_terminal_occurrence',None)
+        for row in rows:row.pop('_original_index',None);row.pop('_occurrence_words',None);row.pop('_terminal_occurrence',None);row.pop('_acoustic_occurrence',None)
         emit(.98,'Satır sırası, dönüşler ve ara müzikler kontrol ediliyor…')
     finally:
         # The local verifier closes over this model. Release both before
@@ -424,13 +519,15 @@ def repair_anomalous_words(aligned,rows,vocab,start,end):
                          and not w.get('needs_review') and w['end']>w['start']),None)
             if manual:continue
             terminal=row.get('_terminal_occurrence',False)
-            if not terminal and word['end']-word['start']<=6:continue
+            acoustic=row.get('_acoustic_occurrence',False)
+            if not terminal and not acoustic and word['end']-word['start']<=6:continue
             a=start+alternative['start'];b=start+alternative['end']
             lower=aligned[cursor+index-1]['end'] if cursor+index else start
             upper=aligned[cursor+index+1]['start'] if cursor+index+1<len(aligned) else end
-            if lower<=a<b<=upper and (terminal or b-a<(word['end']-word['start'])*.6) and alternative['probability']>=.1:
+            if lower<=a<b<=upper and (terminal or acoustic or b-a<(word['end']-word['start'])*.6) and alternative['probability']>=.1:
                 aligned[cursor+index]={**word,'start':a,'end':b,'probability':alternative['probability'],
                                       'needs_review':alternative.get('needs_review',False) or alternative['probability']<.5,'timing_source':'ctc'}
+                if acoustic:aligned[cursor+index]['timing_reference']=copy.deepcopy(alternative.get('timing_reference'))
                 repaired+=1
         cursor+=len(tokens)
     return repaired

@@ -116,6 +116,8 @@ export interface LyricSegment {
 }
 
 export interface LyricsResponse {
+  file_name?: string;
+  language?: string;
   paste_report?: {mode:'line_by_line';total:number;aligned:number;pending:number[]} | null;
   timing_issues?: string[];
   status: string;

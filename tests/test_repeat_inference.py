@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from karaoke_repeat_inference import infer_repeated_words, recover_from_song_repeats, token_key
+from karaoke_repeat_inference import infer_repeated_words, infer_repeated_runs, recover_from_song_repeats, token_key
 from karaoke_timing import timing_issues, render_timing_issues
 
 
@@ -19,6 +19,28 @@ def missing(word):
 
 
 class RepeatInferenceTests(unittest.TestCase):
+    def test_adjacent_run_requires_two_measured_agreeing_donors(self):
+        rows=[row('a',1,'BEN SENİ ÇOK AMA ÇOK SEVDİM'),row('b',10,'BEN SENİ ÇOK AMA ÇOK SEVDİM'),
+              row('target',20,'BEN SENİ ÇOK AMA ÇOK SEVDİM')]
+        for w in rows[-1]['words'][2:4]:missing(w)
+        before=copy.deepcopy(rows)
+        self.assertEqual(infer_repeated_runs(rows,30,lambda a,b:.1),2)
+        self.assertEqual(rows[:2],before[:2])
+        for w in rows[-1]['words'][2:4]:
+            self.assertEqual(w['timing_source'],'repeat_inferred')
+            self.assertIsNone(w['probability'])
+            self.assertFalse(w['timing_reference']['acoustically_verified'])
+        self.assertFalse(timing_issues(rows))
+        for variant in ('one_donor','silence','locked','manual','disagree'):
+            trial=copy.deepcopy(before)
+            if variant=='one_donor':trial.pop(0)
+            if variant=='locked':trial[-1]['locked']=True
+            if variant=='manual':trial[-1]['words'][2]['timing_source']='manual'
+            if variant=='disagree':trial[0]['words'][2]['end']+=.3
+            snapshot=copy.deepcopy(trial)
+            self.assertEqual(infer_repeated_runs(trial,30,lambda a,b:0 if variant=='silence' else .1),0,variant)
+            self.assertEqual(trial,snapshot)
+
     def test_duration_only_keeps_reference_length_when_target_tempo_changes(self):
         rows=[row('reference',1),row('target',20)]
         for w in rows[1]['words']:

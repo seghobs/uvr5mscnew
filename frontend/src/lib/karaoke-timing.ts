@@ -89,6 +89,36 @@ export function timingIssues(segments: LyricSegment[], includeReview = true, req
   return issues;
 }
 
+// Match the renderer: an explicitly unbound word stays white while measured
+// neighbours keep their sweep. Invalid measured times must still block export.
+export function renderTimingIssues(segments: LyricSegment[]): string[] {
+  const checked: LyricSegment[] = [];
+  for (const [i, segment] of segments.entries()) {
+    const words = segment.words || [];
+    const label = `Satır ${i + 1}`;
+    if (words.length && words.map(w => w.word.trim()).join(' ') !== segment.text.trim().split(/\s+/).join(' ')) {
+      return [`${label}: metin değişmiş, yeniden hizalama gerekli`];
+    }
+    for (const [j, word] of words.entries()) {
+      const placeholder = word.end === word.start && word.timing_source === 'estimated' && word.needs_review;
+      if (![word.start, word.end].every(Number.isFinite) || word.start < 0 || word.end < word.start || (word.end === word.start && !placeholder)) {
+        return [`${label}, kelime ${j + 1}: geçersiz kelime süresi`];
+      }
+    }
+    const timed = words.filter(w => w.end > w.start);
+    checked.push({...segment, words:timed, text:timed.length ? timed.map(w => w.word.trim()).join(' ') : segment.text});
+  }
+  return timingIssues(checked, false, false).map(issue => issue.replace(/^Satır (\d+), kelime (\d+):/, (_, row, word) => {
+    const indices = (segments[Number(row)-1].words || []).flatMap((w, i) => w.end > w.start ? [i+1] : []);
+    return `Satır ${row}, kelime ${indices[Number(word)-1]}:`;
+  }));
+}
+
+export function timingIssueTarget(issue?: string): {row: number; word: number} | null {
+  const match = issue && /^Satır (\d+)(?:, kelime (\d+))?:/.exec(issue);
+  return match ? {row:Number(match[1])-1, word:match[2] ? Number(match[2])-1 : 0} : null;
+}
+
 // Export unaligned lyrics at their measured row interval without inventing word times.
 export function videoSegments(segments: LyricSegment[]): LyricSegment[] {
   return segments.map(instrumentalTiming).map(seg => {

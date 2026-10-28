@@ -1,0 +1,32 @@
+{
+  "rows": 66,
+  "words": 396,
+  "review_words": 0,
+  "estimated_words": 28,
+  "lyric_edits": [
+    {
+      "row_id": "227e035c-7993-48cd-bf12-2cf1d742de37",
+      "previous_text": "\"HOŞ GÖRDÜM, SENDİN\" DERDİM (OH)",
+      "removed_word": {
+        "word": "(OH)",
+        "start": 0.0,
+        "end": 0.0,
+        "probability": 0.0,
+        "timing_source": "estimated",
+        "needs_review": true,
+        "timing_reference": {
+          "method": "rejected_ctc_candidate",
+          "previous_start": 212.34,
+          "previous_end": 212.38
+        }
+      },
+      "reason": "absent_in_cover_dual_audio_asr_and_rejected_ctc"
+    }
+  ],
+  "timing_issues": [],
+  "initial_model_crosscheck": {
+    "dual_audio_repaired_words": 7,
+    "original_audio_crosscheck": true,
+    "dual_audio_review_words_remaining": 13
+  }
+}

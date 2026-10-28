@@ -71,6 +71,20 @@ class CharacterAlignmentTests(unittest.TestCase):
         self.assertEqual(words[0]['end'],10.5)
         self.assertEqual(words[1]['start'],10.1)
 
+    def test_zero_placeholders_do_not_mark_real_neighbours_as_overlapping(self):
+        from karaoke_ctc import mark_word_overlaps,has_timed_row
+        rows=[{'start':10,'end':11,'words':[{'start':10,'end':11,'needs_review':False}]},
+              {'start':0,'end':0,'words':[{'start':0,'end':0,'needs_review':True}]},
+              {'start':12,'end':13,'words':[{'start':12,'end':13,'needs_review':False}]}]
+        mark_word_overlaps(rows)
+        self.assertFalse(rows[0]['words'][0]['needs_review'])
+        self.assertFalse(rows[2]['words'][0]['needs_review'])
+        self.assertFalse(has_timed_row(rows[1]))
+        rows[2]['words'][0]['start']=10.5
+        mark_word_overlaps(rows)
+        self.assertTrue(rows[0]['words'][0]['needs_review'])
+        self.assertTrue(rows[2]['words'][0]['needs_review'])
+
     def test_turkish_case_and_punctuation(self):
         self.assertEqual(normalized_words([{'word':'İYİ!'}, {'word':'IŞIK'}], {c:i for i,c in enumerate('iyışk')}), ['iyi','ışık'])
 

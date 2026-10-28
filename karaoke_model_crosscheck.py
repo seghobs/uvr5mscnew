@@ -1,4 +1,5 @@
 """Corroborate weak word boundaries on the vocal AND the original recording."""
+from karaoke_ctc import has_timed_row
 import copy
 import math
 from pathlib import Path
@@ -31,9 +32,9 @@ def apply_crosscheck(rows, candidates, duration, targets=None, allow_manual=Fals
             if not word.get('needs_review') or (word.get('timing_source') == 'manual' and not allow_manual):
                 continue
             # Even an interior word must stay inside the neighbouring rows.
-            lower = max([0.] + [r['end'] for r in rows[:ri]] +
+            lower = max([0.] + [r['end'] for r in rows[:ri] if has_timed_row(r)] +
                         [w['end'] for w in words[:wi] if w['end'] > w['start']])
-            upper = min([duration] + [r['start'] for r in rows[ri+1:]] +
+            upper = min([duration] + [r['start'] for r in rows[ri+1:] if has_timed_row(r)] +
                         [w['start'] for w in words[wi+1:] if w['end'] > w['start']])
             usable = []
             for proposal in candidates.get(key, []):
@@ -91,7 +92,7 @@ def recover_model_reviews(vocal_path, original_path, rows, progress=lambda *args
     for ri,row in enumerate(frozen):row['_crosscheck_row_key']=row.get('id') or f'row:{ri+1}'
     candidates = {}
     failed_models = set()
-    models = {'tr': ('tr_cv8', 'tr_mms'), 'kmr': ('kmr_mms', 'kmr'), 'az': ('az',), 'en': ('en',)}[language]
+    models = {'tr': ('tr_cv8', 'tr_mms'), 'kmr': ('kmr_mms', 'kmr'), 'az': ('az',), 'en': ('en_lv60', 'en')}[language]
     from karaoke_inference import RefinementSession
     with RefinementSession() as session:
         for local in (False, True):
