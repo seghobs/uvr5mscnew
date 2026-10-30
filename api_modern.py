@@ -95,6 +95,18 @@ if os.name == 'nt':
 subprocess.Popen = task_cancellation.popen_class(subprocess.Popen)
 
 app = FastAPI(title="UVR5 Premium API")
+from fastapi.exceptions import RequestValidationError
+
+
+@app.exception_handler(RequestValidationError)
+async def invalid_request_handler(request,exc):
+    from fastapi.responses import JSONResponse
+    # Pydantic includes the original NaN/Infinity in validation errors; echoing
+    # it through the default JSON handler raises a second error (HTTP 500).
+    errors=[{'loc':list(error['loc']),'msg':error['msg'],'type':error['type']} for error in exc.errors()]
+    return JSONResponse(status_code=422,content={'detail':'Geçersiz veri: alanları ve süreleri kontrol edin.','errors':errors})
+
+
 from lyric_sources.api import router as lyric_catalog_router
 app.include_router(lyric_catalog_router)
 from local_projects import ProjectStore
@@ -122,6 +134,7 @@ os.makedirs(YTL_DIR, exist_ok=True)
 def init_favorites_db():
     try:
         with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
+            conn.execute('BEGIN IMMEDIATE')
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS model_favorites (
                     model_name TEXT PRIMARY KEY,
@@ -154,6 +167,8 @@ def init_favorites_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT, file_key TEXT NOT NULL,
                 segments_json TEXT NOT NULL, saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )""")
+            if 'revision' not in {row[1] for row in conn.execute('PRAGMA table_info(lyrics)')}:
+                conn.execute('ALTER TABLE lyrics ADD COLUMN revision INTEGER NOT NULL DEFAULT 0')
             conn.execute("""CREATE TABLE IF NOT EXISTS lyrics_jobs (
                 task_id TEXT PRIMARY KEY, file_name TEXT NOT NULL,
                 request_json TEXT NOT NULL, expected_revision TEXT NOT NULL,
@@ -170,32 +185,32 @@ def _get_lyrics_key(file_name: str) -> str:
     base = Path(file_name).stem.lower().strip()
     return base
 
+
+def _lyrics_keys(file_name):
+    key=_get_lyrics_key(file_name)
+    # Every stem spelling must share the SAME alias group and revision.
+    for token in ('instrumental','vocals','vocal','inst'):
+        if token in key:
+            return list(dict.fromkeys([key]+[key.replace(token,other) for other in ('instrumental','vocals','vocal','inst')]))
+    return [key]
+
 def get_saved_lyrics(file_name: str) -> Optional[dict]:
     init_favorites_db()
     key = _get_lyrics_key(file_name)
-    candidates = [key]
-    if "instrumental" in key:
-        candidates.append(key.replace("instrumental", "vocals"))
-        candidates.append(key.replace("instrumental", "vocal"))
-    elif "inst" in key:
-        candidates.append(key.replace("inst", "vocals"))
-        candidates.append(key.replace("inst", "vocal"))
-    elif "vocals" in key:
-        candidates.append(key.replace("vocals", "instrumental"))
-        candidates.append(key.replace("vocals", "inst"))
-    elif "vocal" in key:
-        candidates.append(key.replace("vocal", "instrumental"))
-        candidates.append(key.replace("vocal", "inst"))
+    candidates = _lyrics_keys(file_name)
 
     try:
         with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
             cursor = conn.cursor()
+            found=[]
             for cand in candidates:
                 cursor.execute(
-                    "SELECT file_key, file_name, language, segments_json, lrc_content, srt_content, is_edited, updated_at FROM lyrics WHERE file_key = ?",
+                    "SELECT file_key, file_name, language, segments_json, lrc_content, srt_content, is_edited, updated_at, revision FROM lyrics WHERE file_key = ?",
                     (cand,)
                 )
                 row = cursor.fetchone()
+                if row:found.append(row)
+            for row in sorted(found,key=lambda row:(row[8],row[7]),reverse=True)[:1]:
                 if row:
                     segments = repair_timing(json.loads(row[3]))
                     return {
@@ -210,6 +225,7 @@ def get_saved_lyrics(file_name: str) -> Optional[dict]:
                         "srt_content": row[5] or "",
                         "is_edited": bool(row[6]),
                         "updated_at": row[7],
+                        "revision": str(row[8]),
                         "lrc_file": f"{Path(row[1]).stem}.lrc",
                         "srt_file": f"{Path(row[1]).stem}.srt"
                     }
@@ -220,7 +236,7 @@ def get_saved_lyrics(file_name: str) -> Optional[dict]:
 _lyrics_data_lock = threading.RLock()
 
 
-def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bool = False, allow_locked_changes: bool = False) -> dict:
+def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bool = False, allow_locked_changes: bool = False, expected_revision: Optional[str] = None) -> dict:
     with _lyrics_data_lock, task_cancellation.commit():
         if not allow_locked_changes:
             previous=get_saved_lyrics(file_name)
@@ -231,12 +247,12 @@ def save_lyrics_db(file_name: str, language: str, segments: list, is_edited: boo
                 else:
                     by_id={row['id']:row for row in locked}
                     segments=[by_id.get(row.get('id'),row) for row in segments]
-        result = _save_lyrics_db(file_name, language, segments, is_edited)
+        result = _save_lyrics_db(file_name, language, segments, is_edited, expected_revision)
         project_store.put('lyrics:' + file_name, result)
         return result
 
 
-def _save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bool = False) -> dict:
+def _save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bool = False, expected_revision: Optional[str] = None) -> dict:
     init_favorites_db()
     segments = repair_timing(segments)
     key = _get_lyrics_key(file_name)
@@ -264,37 +280,25 @@ def _save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bo
     lrc_content = "\n".join(lrc_lines)
     srt_content = "\n".join(srt_lines)
     
-    # Save to disk as well (.lrc and .srt in outputs/)
-    try:
-        base_name = Path(file_name).stem
-        (OUTPUT_DIR / f"{base_name}.lrc").write_text(lrc_content, encoding="utf-8")
-        (OUTPUT_DIR / f"{base_name}.srt").write_text(srt_content, encoding="utf-8")
-    except Exception as e:
-        print(f"Error saving lrc/srt to disk: {e}")
-
     # Identify all stem variants (Instrumental, Vocals, etc.) to keep them in sync
-    keys_to_save = [key]
-    if "instrumental" in key:
-        keys_to_save.append(key.replace("instrumental", "vocals"))
-        keys_to_save.append(key.replace("instrumental", "vocal"))
-    elif "inst" in key:
-        keys_to_save.append(key.replace("inst", "vocals"))
-        keys_to_save.append(key.replace("inst", "vocal"))
-    elif "vocals" in key:
-        keys_to_save.append(key.replace("vocals", "instrumental"))
-        keys_to_save.append(key.replace("vocals", "inst"))
-    elif "vocal" in key:
-        keys_to_save.append(key.replace("vocal", "instrumental"))
-        keys_to_save.append(key.replace("vocal", "inst"))
+    keys_to_save = _lyrics_keys(file_name)
 
     try:
         with closing(sqlite3.connect(str(FAVORITES_DB_PATH))) as conn:
             cursor = conn.cursor()
+            # Check and write in ONE SQLite transaction, including stem aliases.
+            # A process-local lock alone cannot protect against another server.
+            cursor.execute('BEGIN IMMEDIATE')
+            revisions=[row[0] for k in set(keys_to_save) for row in cursor.execute('SELECT revision FROM lyrics WHERE file_key=?',(k,)).fetchall()]
+            current_revision=str(max(revisions,default=0))
+            if expected_revision is not None and expected_revision != current_revision:
+                raise HTTPException(status_code=409,detail='Bu şarkının daha yeni bir kaydı var. Düzenlemeniz taslakta korundu; güncel kaydı yükleyin.')
+            revision=int(current_revision)+1
             for k in set(keys_to_save):
                 cursor.execute("INSERT INTO lyrics_history(file_key, segments_json) SELECT file_key, segments_json FROM lyrics WHERE file_key = ? AND segments_json != ?", (k, segments_json))
                 cursor.execute("""
-                    INSERT INTO lyrics (file_key, file_name, language, segments_json, lrc_content, srt_content, is_edited, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    INSERT INTO lyrics (file_key, file_name, language, segments_json, lrc_content, srt_content, is_edited, updated_at, revision)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
                     ON CONFLICT(file_key) DO UPDATE SET
                         file_name = excluded.file_name,
                         language = excluded.language,
@@ -302,11 +306,27 @@ def _save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bo
                         lrc_content = excluded.lrc_content,
                         srt_content = excluded.srt_content,
                         is_edited = excluded.is_edited,
-                        updated_at = CURRENT_TIMESTAMP;
-                """, (k, file_name, language or "tr", segments_json, lrc_content, srt_content, 1 if is_edited else 0))
+                        updated_at = CURRENT_TIMESTAMP,
+                        revision = excluded.revision;
+                """, (k, file_name, language or "tr", segments_json, lrc_content, srt_content, 1 if is_edited else 0, revision))
             conn.commit()
+    except HTTPException:
+        raise
     except Exception as e:
         raise RuntimeError("Sözler veritabanına kaydedilemedi") from e
+
+    # Rejected writes must not alter exported subtitles either. The DB remains
+    # authoritative; each derived file is replaced atomically after commit.
+    try:
+        import tempfile
+        for suffix,content in (('.lrc',lrc_content),('.srt',srt_content)):
+            target=OUTPUT_DIR / (Path(file_name).stem+suffix)
+            with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=OUTPUT_DIR,delete=False) as output:
+                output.write(content)
+                temporary=Path(output.name)
+            temporary.replace(target)
+    except OSError as e:
+        print(f"Error exporting lrc/srt: {e}")
 
     return {
         "status": "success",
@@ -319,6 +339,7 @@ def _save_lyrics_db(file_name: str, language: str, segments: list, is_edited: bo
         "lrc_content": lrc_content,
         "srt_content": srt_content,
         "is_edited": is_edited,
+        "revision": str(revision),
         "lrc_file": f"{Path(file_name).stem}.lrc",
         "srt_file": f"{Path(file_name).stem}.srt"
     }
@@ -1752,21 +1773,35 @@ async def analyze_audio_endpoint(req: AnalyzeAudioRequest):
     except Exception as e:
         return {"status": "success", "bpm": 124.0, "key": "A Minor", "root_note": "A", "scale": "Minor", "camelot": "8A", "duration": 180.0}
 
+class SyllableModel(BaseModel):
+    text: str = Field(...,min_length=1,max_length=2048)
+    start: float = Field(...,ge=0,allow_inf_nan=False)
+    end: float = Field(...,ge=0,allow_inf_nan=False)
+    score: float = Field(...,ge=0,le=1,allow_inf_nan=False)
+    needs_review: bool = False
+    timing_source: str = 'ctc'
+
+
 class WordModel(BaseModel):
-    word: str
-    start: float
-    end: float
-    probability: Optional[float] = None
+    word: str = Field(...,max_length=2048)
+    start: float = Field(...,ge=0,allow_inf_nan=False)
+    end: float = Field(...,ge=0,allow_inf_nan=False)
+    probability: Optional[float] = Field(None,ge=0,le=1,allow_inf_nan=False)
     timing_source: Optional[str] = None
     needs_review: bool = False
     timing_reference: Optional[dict] = None
+    syllables: Optional[List[SyllableModel]] = None
+    syllable_reference: Optional[dict] = None
+    timing_parts: Optional[List[SyllableModel]] = None
+    timing_parts_reference: Optional[dict] = None
+    alignment_audit: Optional[dict] = None
 
 class LyricSegmentModel(BaseModel):
     id: Optional[str] = None
     locked: bool = False
-    start: float
-    end: float
-    text: str
+    start: float = Field(...,ge=0,allow_inf_nan=False)
+    end: float = Field(...,ge=0,allow_inf_nan=False)
+    text: str = Field(...,max_length=10000)
     words: Optional[List[WordModel]] = None
     repeat_source_id: Optional[str] = None
     repeat_prefix_repair: Optional[dict] = None
@@ -1855,7 +1890,7 @@ def run_reference_alignment(task_id, req, expected_revision):
             with _lyrics_data_lock:
                 if _lyrics_revision(req.file_name) != expected_revision:
                     raise ValueError('Bu sırada sözler değiştirildi. Yeni düzenlemeler korundu; yeniden karşılaştırın.')
-                saved = save_lyrics_db(req.file_name, language, segments, is_edited=True)
+                saved = save_lyrics_db(req.file_name, language, segments, is_edited=True, expected_revision=expected_revision)
             _update_task(task_id, status='completed', progress=1., result=saved, message='Seçilen satırlar düzeltildi ve hizalandı.')
     except Exception as exc:
         _update_task(task_id, status='failed', error=str(exc), message='Düzeltme tamamlanamadı; mevcut kayıt korundu.')
@@ -1881,7 +1916,8 @@ def reference_apply_endpoint(req: ReferenceApplyRequest, background_tasks: Backg
 class SaveLyricsRequest(BaseModel):
     file_name: str = Field(..., min_length=1, max_length=256)
     language: Optional[str] = "tr"
-    segments: List[LyricSegmentModel]
+    segments: List[LyricSegmentModel] = Field(...,max_length=500)
+    expected_revision: Optional[str] = Field(None, max_length=80)
 
 WHISPER_DIR = Path("models/whisper").resolve()
 WHISPER_DIR.mkdir(parents=True, exist_ok=True)
@@ -2013,13 +2049,17 @@ async def get_lyrics_endpoint(file_name: str):
 @app.api_route("/save_lyrics", methods=["POST", "PUT"])
 async def save_lyrics_endpoint(req: SaveLyricsRequest):
     try:
+        if req.expected_revision is None and get_saved_lyrics(req.file_name) is not None:
+            raise HTTPException(status_code=428,detail='Kayıt sürümü gerekli. Güncel projeyi yükleyip yeniden deneyin.')
         saved = save_lyrics_db(
             req.file_name,
             req.language or "tr",
             [s.model_dump() for s in req.segments],
-            is_edited=True, allow_locked_changes=True
+            is_edited=True, allow_locked_changes=True, expected_revision=req.expected_revision or '0'
         )
         return saved
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -2049,7 +2089,7 @@ async def clear_karaoke_data_endpoint():
 
         # Explicit cleanup must also retire disk snapshots, otherwise lyrics can return on reload.
         for key in project_store.all():
-            if key.startswith(('lyrics:', 'project:', 'uvr-stem-settings:', 'uvr-lyrics-draft:', 'uvr-history:', 'uvr-passages-v2:', 'uvr-passages-v3:')):
+            if key.startswith(('lyrics:', 'project:', 'uvr-stem-settings:', 'uvr-lyrics-draft:', 'uvr-lyrics-conflict:', 'uvr-history:', 'uvr-passages-v2:', 'uvr-passages-v3:')):
                 project_store.put(key, None)
         library=json.loads(project_store.get('uvr_library') or '[]')
         project_store.update_library('[]',[item['id'] for item in library])
@@ -2152,7 +2192,7 @@ def syllables_endpoint(req: SyllablesRequest):
 
 def _lyrics_revision(file_name):
     current = get_saved_lyrics(file_name)
-    return hashlib.sha256(json.dumps(current.get("segments", []) if current else [], sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    return current.get('revision','0') if current else '0'
 
 
 class LyricsAISettings(BaseModel):
@@ -2235,7 +2275,7 @@ def run_ai_review(task_id,req,expected_revision):
             if report is None:raise ValueError('AI desteğini ayarlardan açıp API anahtarını kaydedin.')
             with _lyrics_data_lock:
                 if _lyrics_revision(req.file_name)!=expected_revision:raise ValueError('İnceleme sırasında sözler değişti; yeni düzenlemeler korundu.')
-                saved=save_lyrics_db(req.file_name,'tr',result,is_edited=True)
+                saved=save_lyrics_db(req.file_name,'tr',result,is_edited=True,expected_revision=expected_revision)
             saved['ai_report']=report
             _update_task(task_id,status='completed',progress=1.,result=saved)
     except Exception as exc:
@@ -2385,7 +2425,7 @@ def run_lyrics_alignment(task_id: str, req: LyricsRequest, expected_revision: st
             with _lyrics_data_lock:
                 if _lyrics_revision(req.file_name) != expected_revision:
                     raise ValueError("Hizalama sırasında sözler değiştirildi. Yeni düzenlemeler korundu; yeniden hizalayın.")
-                saved = save_lyrics_db(req.file_name, language, segments, is_edited=False)
+                saved = save_lyrics_db(req.file_name, language, segments, is_edited=False, expected_revision=expected_revision)
             saved["cached"] = False
             saved['ai_report']=ai_report
             saved['paste_report']=paste_report
@@ -2479,10 +2519,15 @@ def run_supplied_alignment(task_id,req,expected_revision):
         if original is not None:
             try:original=Path(_validate_audio_path(str(original)))
             except HTTPException:original=None
-        segments,report=align_supplied(_find_audio_file(req.file_name),
+        vocal_path=_find_audio_file(req.file_name)
+        instrumental_path=_find_audio_file(req.instrumental_file_name) if req.instrumental_file_name else None
+        if original is None and instrumental_path is not None:
+            from karaoke_source_recovery import verified_original
+            original=verified_original(vocal_path,instrumental_path,[UPLOAD_DIR,YTL_DIR],lambda _p,m:progress(0.,m))
+        segments,report=align_supplied(vocal_path,
             [s.model_dump() for s in req.segments],progress,
-            instrumental_path=_find_audio_file(req.instrumental_file_name) if req.instrumental_file_name else None,language=req.language,
-            original_path=original)
+            instrumental_path=instrumental_path,language=req.language,
+            original_path=original,recognizer_loader=get_precision_whisper_model)
         with _lyrics_data_lock:
             if _lyrics_revision(req.file_name)!=expected_revision:
                 raise ValueError('Bu sırada sözler değişti; yeni düzenlemeler korundu.')
@@ -2536,7 +2581,7 @@ def run_pasted_sync(task_id,req,expected_revision):
             if acquired:_lyrics_inference_lock.release()
         with _lyrics_data_lock:
             if _lyrics_revision(req.file_name)!=expected_revision:raise ValueError('Sözler değiştirildi; yeni düzenlemeler korundu.')
-            saved=save_lyrics_db(req.file_name,req.language or 'tr',segments,is_edited=True)
+            saved=save_lyrics_db(req.file_name,req.language or 'tr',segments,is_edited=True,expected_revision=expected_revision)
         saved.update(cached=False,paste_report=report)
         _update_task(task_id,status='completed',progress=1.,result=saved,message='Sözler satır satır eklendi. Eşleşmeyen satırlar senkron bekliyor.')
     except Exception as exc:_update_task(task_id,status='failed',error=str(exc),message='Sözler kaydedilemedi; mevcut kayıt korundu.')

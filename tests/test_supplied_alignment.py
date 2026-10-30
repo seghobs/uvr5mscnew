@@ -4,6 +4,32 @@ from karaoke_supplied_alignment import alignment_blocks,assemble,repair_anomalou
 
 
 class SuppliedAlignmentTests(unittest.TestCase):
+    def test_editor_preparation_keeps_compound_refrain_and_repeat_sources(self):
+        from karaoke_supplied_alignment import prepare_supplied_rows
+        rows=[{'id':'short','text':'Dil disoje','start':0,'end':0,'words':[]},
+              {'id':'long','text':'Dil disoje, diqîre heval','start':0,'end':0,'words':[]}]
+        original=copy.deepcopy(rows)
+        prepared=prepare_supplied_rows(rows,split_phrases=False)
+        self.assertEqual(prepared,original)
+        self.assertEqual(rows,original)
+        self.assertEqual([r['id'] for r in prepared],['short','long'])
+
+    def test_resync_keeps_existing_repeats_after_their_timings_are_cleared(self):
+        from karaoke_supplied_alignment import prepare_supplied_rows
+        rows=[{'id':'source','text':'AYRILIK KOLAY MI','start':0.,'end':0.,'words':[]}]
+        for index in range(4):
+            rows.append({'id':f'auto-repeat:{index}','repeat_source_id':'source',
+                         'text':'AYRILIK KOLAY MI','start':0.,'end':0.,'words':[]})
+        before=copy.deepcopy(rows)
+        prepared=prepare_supplied_rows(rows)
+        self.assertEqual(prepared,before)
+        aligned=[{'word':token,'start':10+i*5+j,'end':10+i*5+j+.5,
+                  'probability':.9,'timing_source':'ctc','needs_review':False}
+                 for i,row in enumerate(prepared) for j,token in enumerate(row['text'].split())]
+        result,_=assemble(prepared,[(list(range(len(prepared))),aligned)],50)
+        self.assertEqual([(r['id'],r['text']) for r in result],[(r['id'],r['text']) for r in before])
+        self.assertEqual(rows,before)
+
     def test_occurrence_window_cannot_overlap_untouched_neighbour(self):
         from karaoke_supplied_alignment import apply_occurrence_windows
         rows=[{'text':'A','_occurrence_words':[{'word':'A','start':1,'end':4,'probability':.9}]},

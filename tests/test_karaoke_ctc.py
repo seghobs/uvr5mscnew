@@ -110,6 +110,24 @@ class CharacterAlignmentTests(unittest.TestCase):
         result = words_from_spans([{'word':'a'}],['a'],[Span(token=1,start=1,end=2,score=.1)],[1],.02,0)
         self.assertTrue(result[0]['needs_review'])
 
+    def test_short_ctc_blank_margins_are_bounded_without_faking_confidence(self):
+        spans=[Span(token=1,start=0,end=1,score=.2),Span(token=2,start=5,end=6,score=.9),Span(token=3,start=10,end=11,score=.7)]
+        words=[{'word':'a'},{'word':'b'}]
+        balanced=words_from_spans(words,['a','b'],spans,[1,2,3],.02,0,boundary_policy='balanced')
+        self.assertAlmostEqual(balanced[0]['end'],.06)
+        self.assertAlmostEqual(balanced[1]['start'],.16)
+        self.assertEqual(balanced[0]['probability'],.2);self.assertTrue(balanced[0]['needs_review'])
+        self.assertFalse(balanced[0]['timing_reference']['acoustically_verified'])
+        self.assertLessEqual(balanced[0]['end'],balanced[1]['start'])
+
+    def test_breath_gaps_and_weak_delimiters_are_not_redistributed(self):
+        for gap,score in [(50,.9),(5,.1)]:
+            spans=[Span(token=1,start=0,end=1,score=.9),Span(token=2,start=gap,end=gap+1,score=score),Span(token=3,start=gap*2,end=gap*2+1,score=.9)]
+            words=[{'word':'a'},{'word':'b'}]
+            regular=words_from_spans(words,['a','b'],spans,[1,2,3],.02,0)
+            balanced=words_from_spans(words,['a','b'],spans,[1,2,3],.02,0,boundary_policy='balanced')
+            self.assertEqual(regular,balanced)
+
     def test_group_boundary_uses_source_duration_not_resampled_padding(self):
         # Resampling rounds length up; its padded duration would overlap the
         # next group's first source sample. Exercise the actual scale expression.

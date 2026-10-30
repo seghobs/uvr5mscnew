@@ -83,6 +83,64 @@ def find_occurrences(emission,row,vocab,threshold=-3.0,rescue=None,progress=lamb
     return sorted(proposals,key=lambda x:x['start'])
 
 
+def pack_occurrence_words(row,parts,vocab,allow_prefix=False):
+    """Rebind a shared acoustic hit to this row's exact punctuation/tokenization."""
+    import copy
+    from karaoke_ctc import normalized_words
+    expanded=[]
+    for piece in parts:
+        reference=piece.get('timing_reference') or {}
+        children=reference.get('parts') if reference.get('method')=='punctuation_phrase_parts' else None
+        if children:
+            try:
+                matches=''.join(normalized_words(children,vocab))==normalized_words([piece],vocab)[0]
+                bounded=all(piece['start']<=w['start']<w['end']<=piece['end'] for w in children)
+                ordered=all(a['end']<=b['start'] for a,b in zip(children,children[1:]))
+                if matches and bounded and ordered:expanded.extend(children);continue
+            except (ValueError,KeyError,TypeError):pass
+        expanded.append(piece)
+    parts=expanded
+    words=[];cursor=0
+    try:
+        for token in row['text'].split():
+            target=normalized_words([{'word':token}],vocab)[0];matched='';group=[]
+            while len(matched)<len(target) and cursor<len(parts):
+                piece=parts[cursor];cursor+=1;group.append(piece)
+                matched+=normalized_words([piece],vocab)[0]
+            if matched!=target:return []
+            item=copy.deepcopy(group[0]);item.update(word=token,end=group[-1]['end'],
+                probability=min(w['probability'] for w in group),
+                needs_review=any(w.get('needs_review') for w in group))
+            if len(group)>1:
+                item['timing_reference']={'method':'punctuation_phrase_parts',
+                    'parts':copy.deepcopy(group),'acoustically_verified':False}
+            words.append(item)
+    except (ValueError,IndexError):return []
+    return words if allow_prefix or cursor==len(parts) else []
+
+
+def join_phrase_parts(row,prefix_hits,suffix_hits,vocab,max_gap=5.):
+    """Join independently located punctuation parts, preserving supplied tokens.
+
+    A comma can contain a sung breath or a full musical beat. It is not
+    permission to move the source row or borrow a distant occurrence.
+    """
+    result=[]
+    for tail in suffix_hits:
+        preceding=[h for h in prefix_hits if 0<=tail['start']-h['end']<=max_gap]
+        if not preceding:continue
+        head=max(preceding,key=lambda h:h['start'])
+        if tail['end']-head['start']>18:continue
+        words=pack_occurrence_words(row,head['words']+tail['words'],vocab)
+        if not words:continue
+        result.append({'text':row['text'],'row_id':row.get('id'),'start':words[0]['start'],
+            'end':words[-1]['end'],'words':words,'confidence':min(head['confidence'],tail['confidence']),
+            'text_similarity':min(head['text_similarity'],tail['text_similarity']),
+            'path_score':min(head['path_score'],tail['path_score']),
+            'recovery':'punctuation_phrase_parts'})
+    return result
+
+
 def text_key(row,vocab):
     from karaoke_ctc import normalized_words
     from karaoke_supplied_alignment import spoken
@@ -218,6 +276,18 @@ def waveform_repeat_hits(rows,hits,vocab,audio,rate):
     from karaoke_repeats import expand_repeats
     selected=select_occurrences(rows,hits,vocab)
     templates={f'occurrence:{i}':hit for i,hit in enumerate(selected)}
+    known={(text_key(h,vocab),round(h['start'],3),round(h['end'],3)) for h in selected}
+    for i,hit in enumerate(selected):
+        for row in rows:
+            key=text_key(row,vocab)
+            if len(row['text'].split())<2 or key==text_key(hit,vocab) or not text_key(hit,vocab).startswith(key):continue
+            words=pack_occurrence_words(row,hit['words'],vocab,allow_prefix=True)
+            if not words:continue
+            identity=(key,round(words[0]['start'],3),round(words[-1]['end'],3))
+            if identity in known:continue
+            known.add(identity)
+            templates[f'prefix:{i}:{len(templates)}']={**hit,'text':row['text'],'row_id':row.get('id'),
+                'start':words[0]['start'],'end':words[-1]['end'],'words':words}
     references=[{'id':key,'text':hit['text'],'start':hit['start'],'end':hit['end'],'words':hit['words']}
                 for key,hit in templates.items()]
     recovered,_=expand_repeats(references,None,audio_data=(audio,rate))
@@ -232,9 +302,10 @@ def waveform_repeat_hits(rows,hits,vocab,audio,rate):
 
 
 def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=None,repeat_audio=None):
-    import copy,hashlib
+    import copy,hashlib,re
     views=emission if isinstance(emission,list) else [emission]
-    seen=set();hits=[]
+    known={text_key(row,vocab) for row in rows}
+    seen=set();hits=[];fragment_searches=[]
     for index,row in enumerate(rows):
         key=text_key(row,vocab)
         if key in seen:continue
@@ -243,6 +314,18 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
             hits.extend({**hit,'channel':channel} for hit in find_occurrences(view,row,vocab,rescue=rescue,
                 progress=lambda p,message:progress(.9*(index+(channel+p)/len(views))/max(1,len(rows)),
                     f'Satır {index+1}/{len(rows)} · '+message)))
+            # Search phrase parts internally. The editor still receives the
+            # exact supplied row and its original id, never synthetic sources.
+            match=re.search(r'[,;،]\s*',row['text'])
+            if match:
+                prefix={**row,'text':row['text'][:match.start()].strip()}
+                suffix={**row,'text':row['text'][match.end():].strip()}
+                if (len(prefix['text'].split())>=2 and len(suffix['text'].split())>=2
+                        and text_key(prefix,vocab) in known):
+                    left=find_occurrences(view,prefix,vocab,rescue=rescue)
+                    right=find_occurrences(view,suffix,vocab,rescue=rescue)
+                    fragment_searches.append((row,prefix,suffix,left,right,channel))
+                    hits.extend({**hit,'channel':channel} for hit in join_phrase_parts(row,left,right,vocab))
     # Verify truncated terminal repetitions locally; do not invent an unobserved suffix.
     if rescue is not None:
         for row_index,row in enumerate(rows):
@@ -263,6 +346,18 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
         progress(.99,'Zayıf duyulan tekrarlar, aynı şarkının vokal dalgasıyla karşılaştırılıyor…')
         additions=waveform_repeat_hits(rows,hits,vocab,*repeat_audio)
         hits.extend(additions);acoustic_count=len(additions)
+        # A quiet refrain prefix may be found only by its waveform. Rejoin
+        # those recovered prefixes with independently located suffixes too;
+        # otherwise a real last refrain is lost before the instrumental.
+        known_hits={(text_key(h,vocab),round(h['start'],3),round(h['end'],3)) for h in hits}
+        for row,prefix,suffix,left,right,channel in fragment_searches:
+            more_left=[h for h in additions if text_key(h,vocab)==text_key(prefix,vocab)]
+            more_right=[h for h in additions if text_key(h,vocab)==text_key(suffix,vocab)]
+            if not more_left and not more_right:continue
+            for hit in join_phrase_parts(row,left+more_left,right+more_right,vocab):
+                key=(text_key(hit,vocab),round(hit['start'],3),round(hit['end'],3))
+                if key in known_hits:continue
+                known_hits.add(key);hits.append({**hit,'channel':channel,'acoustic_repeat':True})
     progress(1.,'Bulunan tekrarların sırası ve çakışmaları kontrol ediliyor…')
     selected=select_occurrences(rows,hits,vocab)
     from karaoke_duplicate_repeats import archive_excess_repeats
@@ -290,7 +385,7 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
 
         row=copy.deepcopy(source)
         row.pop('repeat_cleanup',None)
-        row['_occurrence_words']=copy.deepcopy(hit['words'])
+        row['_occurrence_words']=pack_occurrence_words(source,hit['words'],vocab)
         if hit.get('acoustic_repeat'):row['_acoustic_occurrence']=True
         if hit.get('terminal_bounded'):
             row['_terminal_occurrence']=True;terminal_count+=1
@@ -303,7 +398,7 @@ def expand_supplied_rows(rows,emission,vocab,progress=lambda *args:None,rescue=N
         original=copy.deepcopy(row)
         matching=next((h for h in selected if h['kind']=='original' and h['source_index']==i),None)
         if matching:
-            original['_occurrence_words']=copy.deepcopy(matching['words'])
+            original['_occurrence_words']=pack_occurrence_words(original,matching['words'],vocab)
             if matching.get('acoustic_repeat'):original['_acoustic_occurrence']=True
             if matching.get('terminal_bounded'):original['_terminal_occurrence']=True
         result.append(original)

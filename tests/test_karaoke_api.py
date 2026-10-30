@@ -29,13 +29,13 @@ class ApiTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         root = Path(self.tmp.name)
         source = ast.parse(Path('api_modern.py').read_text(encoding='utf8'))
-        names = {'init_favorites_db', '_get_lyrics_key', 'get_saved_lyrics', 'save_lyrics_db',
-                 '_save_lyrics_db', '_lyrics_revision', 'WordModel', 'LyricSegmentModel',
+        names = {'init_favorites_db', '_get_lyrics_key','_lyrics_keys', 'get_saved_lyrics', 'save_lyrics_db',
+                 '_save_lyrics_db', '_lyrics_revision','SyllableModel', 'WordModel', 'LyricSegmentModel',
                  'LyricsRequest', 'SaveLyricsRequest', 'save_lyrics_endpoint',
                  'KaraokeVideoRequest', 'generate_karaoke_video_endpoint',
                  'run_lyrics_alignment', 'transcribe_lyrics_endpoint', 'ReferenceApplyRequest',
                  'reference_apply_endpoint', 'run_reference_alignment', 'get_output',
-                 'run_pasted_sync', 'paste_lyrics_endpoint', 'get_active_lyrics_tasks'}
+                 'run_pasted_sync', 'paste_lyrics_endpoint', 'get_active_lyrics_tasks','invalid_request_handler'}
         nodes = [n for n in source.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and n.name in names]
         for n in nodes:
             n.decorator_list = []
@@ -84,11 +84,82 @@ class ApiTests(unittest.TestCase):
         locked={**self.seg,'id':'locked','locked':True}
         save=self.ns['save_lyrics_db']
         save(audio.name,'tr',[locked]);save('second_Vocals.wav','tr',[self.seg])
-        req=self.ns['SaveLyricsRequest'](file_name=audio.name,language='tr',segments=[])
+        req=self.ns['SaveLyricsRequest'](file_name=audio.name,language='tr',segments=[],expected_revision='1')
         asyncio.run(self.ns['save_lyrics_endpoint'](req))
         self.assertEqual(self.ns['get_saved_lyrics']('first_Instrumental.wav')['segments'],[])
         self.assertEqual(self.ns['get_saved_lyrics']('second_Vocals.wav')['segments'],[self.seg])
         self.assertEqual(audio.read_bytes(),b'original audio')
+
+    def test_stale_and_unversioned_clients_cannot_overwrite_newer_lyrics(self):
+        save=self.ns['save_lyrics_db'];endpoint=self.ns['save_lyrics_endpoint'];request=self.ns['SaveLyricsRequest']
+        first=save('sample_Vocals.wav','tr',[self.seg])
+        newer=save('sample_Instrumental.wav','tr',[],expected_revision=first['revision'])
+        for revision,code in ((first['revision'],409),(None,428)):
+            with self.assertRaises(HTTPException) as error:
+                asyncio.run(endpoint(request(file_name='sample_Vocals.wav',segments=[self.seg],expected_revision=revision)))
+            self.assertEqual(error.exception.status_code,code)
+        self.assertEqual(self.ns['get_saved_lyrics']('sample_Vocals.wav')['revision'],newer['revision'])
+        self.assertEqual(self.ns['get_saved_lyrics']('sample_Instrumental.wav')['segments'],[])
+
+    def test_revision_detects_aba_same_text_and_same_second_updates(self):
+        save=self.ns['save_lyrics_db']
+        first=save('sample.wav','tr',[self.seg])
+        save('sample.wav','tr',[])
+        last=save('sample.wav','tr',[self.seg])
+        self.assertNotEqual(first['revision'],last['revision'])
+        with self.assertRaises(HTTPException):save('sample.wav','tr',[],expected_revision=first['revision'])
+
+    def test_all_stem_aliases_share_one_revision_even_after_legacy_divergence(self):
+        save=self.ns['save_lyrics_db'];load=self.ns['get_saved_lyrics']
+        save('sample_Instrumental.wav','tr',[self.seg])
+        save('sample_Vocals.wav','tr',[],expected_revision='1')
+        for suffix in ('Vocal','Vocals','Inst','Instrumental'):
+            self.assertEqual(load('sample_'+suffix+'.wav')['revision'],'2')
+        with closing(sqlite3.connect(self.ns['FAVORITES_DB_PATH'])) as db:
+            db.execute("UPDATE lyrics SET revision=0 WHERE file_key='sample_vocal'");db.commit()
+        self.assertEqual(load('sample_Vocal.wav')['revision'],'2','refresh must return the authoritative alias, not a permanently stale record')
+        save('sample_Vocal.wav','tr',[self.seg],expected_revision='2')
+        self.assertEqual(load('sample_Instrumental.wav')['revision'],'3')
+
+    def test_sqlite_compare_and_swap_serializes_independent_writers(self):
+        from concurrent.futures import ThreadPoolExecutor
+        first=self.ns['save_lyrics_db']('sample_Vocals.wav','tr',[self.seg])
+        barrier=threading.Barrier(2)
+        def writer(name):
+            barrier.wait()
+            try:return self.ns['_save_lyrics_db'](name,'tr',[],expected_revision=first['revision'])['revision']
+            except HTTPException as error:return error.status_code
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results=list(pool.map(writer,['sample_Vocals.wav','sample_Instrumental.wav']))
+        self.assertCountEqual(results,['2',409])
+
+    def test_rejected_write_cannot_change_history_or_subtitle_exports(self):
+        self.ns['save_lyrics_db']('sample.wav','tr',[self.seg])
+        root=self.ns['OUTPUT_DIR'];before=(root/'sample.srt').read_bytes()
+        with self.assertRaises(HTTPException):self.ns['_save_lyrics_db']('sample.wav','tr',[],expected_revision='0')
+        self.assertEqual((root/'sample.srt').read_bytes(),before)
+        with closing(sqlite3.connect(self.ns['FAVORITES_DB_PATH'])) as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM lyrics_history').fetchone()[0],0)
+
+    def test_http_contract_rejects_stale_requests_and_non_finite_input(self):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        application=FastAPI()
+        from fastapi.exceptions import RequestValidationError
+        application.add_exception_handler(RequestValidationError,self.ns['invalid_request_handler'])
+        application.post('/save_lyrics')(self.ns['save_lyrics_endpoint'])
+        with TestClient(application) as client:
+            body={'file_name':'http.wav','segments':[self.seg],'expected_revision':'0'}
+            first=client.post('/save_lyrics',json=body)
+            self.assertEqual(first.status_code,200)
+            self.assertEqual(client.post('/save_lyrics',json=body).status_code,409)
+            body.pop('expected_revision')
+            self.assertEqual(client.post('/save_lyrics',json=body).status_code,428)
+            body['segments'][0]['start']=-1
+            self.assertEqual(client.post('/save_lyrics',json=body).status_code,422)
+            body['segments'][0]['start']=float('nan')
+            bad=json.dumps(body).encode()
+            self.assertEqual(client.post('/save_lyrics',content=bad,headers={'Content-Type':'application/json'}).status_code,422)
 
     def test_global_cleanup_can_remove_nested_atlas_directory(self):
         from types import SimpleNamespace

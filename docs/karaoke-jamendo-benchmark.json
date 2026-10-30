@@ -1,0 +1,42 @@
+{
+  "source": "https://huggingface.co/datasets/jamendolyrics/jamendolyrics",
+  "recording": "HILA_-_Give_Me_the_Same",
+  "evaluation_mode": "oracle_sentence_windows_first_three_lines",
+  "whole_song_accuracy_measured": false,
+  "baseline": {
+    "reference_kind": "human_verified",
+    "human_accuracy_measured": true,
+    "accuracy_guaranteed": false,
+    "reference_words": 13,
+    "matched_words": 13,
+    "missing_words": [],
+    "wrong_words": [],
+    "extra_words": [],
+    "onset_mae_seconds": 0.07226095307417751,
+    "offset_mae_seconds": 0.08873565062845401,
+    "boundary_p95_seconds": 0.30237729408984393,
+    "tolerance_seconds": 0.08,
+    "words_within_tolerance": 6,
+    "within_tolerance_fraction": 0.46153846153846156
+  },
+  "after_audit": {
+    "reference_kind": "human_verified",
+    "human_accuracy_measured": true,
+    "accuracy_guaranteed": false,
+    "reference_words": 13,
+    "matched_words": 13,
+    "missing_words": [],
+    "wrong_words": [],
+    "extra_words": [],
+    "onset_mae_seconds": 0.07226095307417751,
+    "offset_mae_seconds": 0.08873565062845401,
+    "boundary_p95_seconds": 0.30237729408984393,
+    "tolerance_seconds": 0.08,
+    "words_within_tolerance": 6,
+    "within_tolerance_fraction": 0.46153846153846156
+  },
+  "audit_report": {
+    "phrase_skipped_rows": [],
+    "phrase_audit_errors": []
+  }
+}

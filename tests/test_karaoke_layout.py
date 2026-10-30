@@ -2,6 +2,21 @@ import unittest
 from karaoke_design import soft_word_events,row_motion,lead_cue_events
 
 class LayoutTests(unittest.TestCase):
+    def test_syllable_fill_stops_during_gap_and_preserves_held_ending(self):
+        row={'text':'KARA','start':1.,'end':4.,'words':[{'word':'KARA','start':1.,'end':4.,'timing_source':'ctc',
+            'syllables':[{'text':'ka','start':1.,'end':1.2,'score':.9},{'text':'ra','start':2.,'end':4.,'score':.9}]}]}
+        events=soft_word_events(row,4.8,1280,720,400,76,'gold')
+        if events is None:self.skipTest('Windows Segoe font required')
+        import re
+        fills=[event.split(',')[1:3] for event in events if event.startswith('Dialogue: 2,')]
+        self.assertTrue(fills)
+        self.assertIn(['0:00:01.00','0:00:01.20'],fills)
+        self.assertIn(['0:00:02.00','0:00:04.00'],fills)
+        for event in events:
+            if event.startswith('Dialogue: 2,0:00:01.20,'):
+                clips=re.findall(r'\\clip\(([^)]+)\)',event)
+                self.assertEqual(len(set(clips)),1,'completed first syllable must remain still during the gap')
+
     def test_render_sweep_uses_measured_glyph_bounds(self):
         from karaoke_design import prepare_word_geometry
         import re

@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('../frontend/node_modules/typescript');
 function load(file, extras = {}) {
-  const ctx = { exports: {}, require, console, Promise, AbortController, DOMException, setTimeout, clearTimeout, ...extras };
+  const ctx = { exports: {}, require:id=>id==='./syllable-timing'?load('frontend/src/lib/syllable-timing.ts'):require(id), console, Promise, AbortController, DOMException, setTimeout, clearTimeout, ...extras };
   vm.createContext(ctx);
   vm.runInContext(ts.transpile(fs.readFileSync(file, 'utf8'), { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }), ctx);
   return ctx.exports;
@@ -27,6 +27,18 @@ async function main() {
     }
   }
   const timing = load('frontend/src/lib/karaoke-timing.ts');
+  const sung={word:'KARA',start:1,end:4,timing_source:'ctc',syllables:[{text:'ka',start:1,end:1.2,score:.9},{text:'ra',start:2,end:4,score:.9}]};
+  assert.equal(timing.wordFill(sung,1.5),.5,'fill must pause in a measured syllable gap');
+  assert.equal(timing.wordFill(sung,1.9),.5);
+  const punctuationWord={word:'GEL,BANA',start:1,end:4,timing_source:'ctc',
+    timing_parts:[{text:'GEL,',start:1,end:1.5,score:.8},{text:'BANA',start:3,end:4,score:.8}],
+    timing_parts_reference:{word_text:'GEL,BANA',word_start:1,word_end:4}};
+  assert.equal(timing.wordFill(punctuationWord,2),timing.wordFill(punctuationWord,2.9),'missing space after a comma must not paint across the measured breath');
+  assert.equal(timing.syllablePieces({...punctuationWord,end:5}).length,0,'retiming invalidates punctuation part metadata');
+  assert.equal(timing.syllablePieces({...punctuationWord,timing_parts_reference:null}).length,0,'parts require their own parent snapshot');
+  assert.equal(timing.wordFill(sung,3),.75,'held final vowel follows its measured duration');
+  assert.equal(timing.wordFill({...sung,word:'BAŞKA'},2.5),.5,'stale syllables cannot colour changed lyrics');
+  assert.equal(timing.wordFill({...sung,end:5,syllable_reference:{word_start:1,word_end:4,word_text:'KARA'}},3),.5,'retiming a word invalidates its old internal syllable map');
   const inferred={word:'SON',start:3,end:4,timing_source:'repeat_inferred',probability:null,needs_review:false,timing_reference:{row_ids:['earlier'],anchor_words:3,method:'matching_verse_tempo'}};
   const inferredRow={text:'SON',start:3,end:4,words:[inferred]};
   assert.equal(timing.timingIssues([inferredRow]).length,0);
@@ -53,6 +65,8 @@ async function main() {
   assert.equal(timing.preferLyricDraft({segments:[{}]},{segments:[],updated_at:'2026-10-14T00:00:00Z'}),false);
   assert.equal(timing.preferLyricDraft({segments:[{}],modifiedAt:2000},{segments:[{}],updated_at:'1970-01-01T00:00:01Z'}),true);
   assert.equal(timing.preferLyricDraft({segments:[{}],modifiedAt:500},{segments:[{}],updated_at:'1970-01-01T00:00:01Z'}),false);
+  assert.equal(timing.preferLyricDraft({segments:[{}],modifiedAt:Date.now(),baseRevision:'4'},{segments:[{}],revision:'5'}),false,'newer local clock cannot override a different server revision');
+  assert.equal(timing.preferLyricDraft({segments:[],baseRevision:'5'},{segments:[{}],revision:'5'}),true,'intentional empty draft is recoverable');
   const partial={start:1,end:4,text:'HEY GÖNÜL GENE',words:[{word:'HEY',start:1,end:1,timing_source:'estimated',needs_review:true},{word:'GÖNÜL',start:2,end:3,timing_source:'ctc'},{word:'GENE',start:3.2,end:4,timing_source:'ctc'}]};
   const shown=timing.videoSegments([partial])[0];
   assert.equal(shown.words.length,3);

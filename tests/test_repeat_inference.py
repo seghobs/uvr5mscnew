@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from karaoke_repeat_inference import infer_repeated_words, infer_repeated_runs, recover_from_song_repeats, token_key
+from karaoke_repeat_inference import infer_repeated_words, infer_repeated_runs, recover_from_song_repeats, token_key, measured
 from karaoke_timing import timing_issues, render_timing_issues
 
 
@@ -19,6 +19,28 @@ def missing(word):
 
 
 class RepeatInferenceTests(unittest.TestCase):
+    def test_unbound_single_word_uses_agreeing_phrase_donors_and_ignores_outlier(self):
+        rows=[row('a',1,'AYRILIK KOLAY MI SENİN YANINDA'),row('b',10,'AYRILIK KOLAY MI SENİN YANINDA'),
+              row('outlier',20,'AYRILIK KOLAY MI SENİN YANINDA'),row('target',30,'AYRILIK KOLAY MI SENİN YANINDA')]
+        rows[2]['words'][2]['end']+=.3
+        missing(rows[-1]['words'][2])
+        self.assertEqual(infer_repeated_runs(rows,40,lambda a,b:.1),1)
+        result=rows[-1]['words'][2]
+        self.assertEqual(result['timing_source'],'repeat_inferred')
+        self.assertFalse(result['timing_reference']['acoustically_verified'])
+        self.assertEqual(set(result['timing_reference']['row_ids']),{'a','b'})
+        self.assertFalse(timing_issues(rows))
+
+    def test_independent_recognition_proof_remains_measured_after_endpoint_repair(self):
+        w=row('a',1)['words'][0];w['probability']=.35
+        self.assertFalse(measured(w))
+        proof={'method':'recognition_supported_ctc_consensus','acoustically_verified':True,
+               'phonetic_evidence':[{},{}],'lexical_evidence':[{}]}
+        w['timing_reference']={'method':'vocal_sustain_endpoint','previous_reference':proof}
+        self.assertTrue(measured(w))
+        w['timing_source']='repeat_inferred'
+        self.assertFalse(measured(w),'estimated timings cannot become measured donors')
+
     def test_adjacent_run_requires_two_measured_agreeing_donors(self):
         rows=[row('a',1,'BEN SENİ ÇOK AMA ÇOK SEVDİM'),row('b',10,'BEN SENİ ÇOK AMA ÇOK SEVDİM'),
               row('target',20,'BEN SENİ ÇOK AMA ÇOK SEVDİM')]

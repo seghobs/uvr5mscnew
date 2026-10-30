@@ -1,7 +1,7 @@
 
 import { projectStorage } from '@/lib/project-storage';
 import type { LyricSegment } from './types';
-import { reconcileWords, uppercaseLyric } from './karaoke-timing';
+import { reconcileWords, uppercaseLyric,syllablePieces } from './karaoke-timing';
 export type Passage = {id:string; start:number; end:number; label:string; needs_review?:boolean; score?:number; timing_source?:NonNullable<LyricSegment['words']>[number]['timing_source']};
 export type PassageDraft = {segment:LyricSegment; passages:Passage[]};
 export function uniquePassages(passages:Passage[]):Passage[] {
@@ -270,6 +270,13 @@ export function fitPassageRow(segments:LyricSegment[],index:number,updated:Lyric
 export function passagePool(segment:LyricSegment):Passage[] {
   return (segment.words || []).filter(w=>validRange(w.start,w.end)).map((w,i)=>({id:`${i}:${w.start}:${w.end}`,start:w.start,end:w.end,label:w.word,needs_review:w.needs_review,timing_source:w.timing_source}));
 }
+
+export function syllablePassages(segment:LyricSegment):Passage[] {
+  return (segment.words||[]).flatMap((word,wi)=>syllablePieces(word).map((part,si)=>({
+    id:`syllable:${wi}:${si}:${part.start}:${part.end}`,start:part.start,end:part.end,
+    label:uppercaseLyric(part.text),score:part.score,timing_source:'ctc' as const,needs_review:false})));
+}
+
 export function poolKey(file:string,row:number,start:number,rowId?:string) { return rowId?`uvr-passages-v3:${file}:${rowId}`:`uvr-passages-v2:${file}:${row}:${start}`; }
 
 export function clearRowPassages(file:string,row:number,segment:LyricSegment) {

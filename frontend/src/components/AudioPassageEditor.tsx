@@ -7,12 +7,13 @@ import {updateLyricInput} from '@/lib/lyric-input';
 import React,{useEffect,useRef,useState} from 'react';
 import type {LyricSegment} from '@/lib/types';
 import {WordPlayer} from '@/lib/word-player';
+import {syllablePassages} from '@/lib/audio-passages';
 type WordCandidate={label:string;text:string;words:NonNullable<LyricSegment['words']>;agreement:number};
 import {addApprovedPassage,revisePassage,bindAllPassages,bindDetectedWords,correctedCandidateWords,passagePool,poolKey,uniquePassages,validRange,editPassageText,bindPassage,splitPassage,splitAndBindPassage,mergePassages,type PassageDraft,type Passage} from '@/lib/audio-passages';
 
 export function AudioPassageEditor({file,row,segment,onClose,onApply,onFit}:{file:string;row:number;segment:LyricSegment;onClose:()=>void;onApply:(segment:LyricSegment)=>void;onFit?:(segment:LyricSegment)=>LyricSegment}) {
   const [draft,setDraft]=useState<PassageDraft>(()=>{
-    let passages=passagePool(segment);
+    let passages=[...passagePool(segment),...syllablePassages(segment)];
     try {const stored=JSON.parse(projectStorage.getItem(poolKey(file,row,segment.start,segment.id)) || projectStorage.getItem(poolKey(file,row,segment.start)) || 'null');
       if(Array.isArray(stored)) {
         const safe=stored.filter(p=>p&&typeof p.id==='string'&&typeof p.label==='string'&&validRange(p.start,p.end));

@@ -31,8 +31,8 @@ def protected(row):
             w['end']>w['start'] for w,t in zip(words,row['text'].split())))
 
 
-def prepare_supplied_rows(rows):
-    """Rebuild derived repeats and separate a repeated refrain from its suffix.
+def prepare_supplied_rows(rows,split_phrases=True):
+    """Preserve supplied repeats and separate a repeated refrain from its suffix.
 
     A pasted line such as "Dil disoje, diqîre heval" contains a refrain that
     also appears alone. Searching it as one uninterrupted acoustic phrase loses
@@ -40,20 +40,17 @@ def prepare_supplied_rows(rows):
     """
     from karaoke_interludes import generated
     key=lambda text:''.join(c for c in text.casefold() if c.isalnum())
-    by_id={r.get('id'):r for r in rows if r.get('id')}
     originals=[]
     for row in rows:
         if generated(row):continue
-        parent=by_id.get(row.get('repeat_source_id'))
-        manually_edited=any(w.get('timing_source')=='manual' for w in row.get('words') or [])
-        if (str(row.get('id','')).startswith('auto-repeat:') and parent and not protected(row)
-                and not manually_edited and key(row['text'])==key(parent['text'])):
-            continue
+        # Once a repeat is in the supplied editor snapshot it is an existing
+        # lyric row, including after the user clears its timing. Only the
+        # evidence-backed duplicate archive may remove it, with undo metadata.
         originals.append(copy.deepcopy(row))
     known={key(r['text']) for r in originals if not instrumental(r)}
     result=[]
     for row in originals:
-        match=None if protected(row) or any(w.get('timing_source')=='manual' for w in row.get('words') or []) else re.search(r'[,;،]\s*',row['text'])
+        match=None if not split_phrases or protected(row) or any(w.get('timing_source')=='manual' for w in row.get('words') or []) else re.search(r'[,;،]\s*',row['text'])
         prefix=row['text'][:match.start()].strip() if match else ''
         suffix=row['text'][match.end():].strip() if match else ''
         if match and key(prefix) in known and len(prefix.split())>=2 and len(suffix.split())>=2:
@@ -240,7 +237,7 @@ def apply_occurrence_windows(aligned,rows,vocab,start,end):
     return count
 
 
-def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=None,diagnostics=None,language='tr',repeat_estimation=True,original_path=None):
+def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=None,diagnostics=None,language='tr',repeat_estimation=True,original_path=None,recognizer_loader=None,automatic_recovery=True):
     import soundfile as sf
     import torch
     import torchaudio.functional as AF
@@ -249,19 +246,30 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
     from karaoke_alignment_models import resolve_language,ensure_model,model_spec,MMS_ADAPTERS
     from karaoke_interludes import generated,music_evidence,place_interludes,regions
     from karaoke_repeat_spotting import expand_supplied_rows,local_verifier
-    rows=prepare_supplied_rows(rows)
+    # The public editor contract preserves supplied text and row identities.
+    # Splitting a supplied refrain also creates repeat_source_id values that
+    # do not exist in the editor snapshot, causing the entire result to fail
+    # validation. Keep exploratory phrase splitting out of committed results.
+    rows=prepare_supplied_rows(rows,split_phrases=False)
     language=resolve_language(language,rows)
-    model_language='kmr_mms' if language=='kmr' else language
+    # English-specific LV60 uses less VRAM than MMS and is corroborated by MMS
+    # in the later audit. Other languages keep their own pinned primary model.
+    model_language={'kmr':'kmr_mms','en':'en_lv60'}.get(language,language)
     baseline=None
     if language=='kmr':
         baseline,baseline_report=align_supplied(audio_path,copy.deepcopy(rows),
-            lambda p,m:progress(p*.45,'Çapraz kontrol · '+m),instrumental_path=instrumental_path,language='tr',repeat_estimation=False)
+            lambda p,m:progress(p*.45,'Çapraz kontrol · '+m),instrumental_path=instrumental_path,language='tr',repeat_estimation=False,
+            automatic_recovery=False)
         original_progress=progress
         progress=lambda p,m:original_progress(.45+p*.55,'Kurmancî · '+m)
     original_rows=rows
     info=sf.info(str(audio_path));duration=info.frames/info.samplerate
     blocks=alignment_blocks(rows,duration)
-    music_regions,voice_regions,available=music_evidence(audio_path,instrumental_path)
+    evidence_error=None
+    try:music_regions,voice_regions,available=music_evidence(audio_path,instrumental_path)
+    except Exception as exc:
+        music_regions,voice_regions,available=[],[],False
+        evidence_error=str(exc)
     repeat_report={'repeated_rows_added':0,'repeat_candidates':0,
                    'repeat_method':'supplied_text_ctc_occurrence_graph','repeat_accuracy_guaranteed':False,'repeat_review_candidates':[],'repaired_word_spans':0,'terminal_repeats_added':0}
     last_progress=0.
@@ -270,32 +278,65 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         last_progress=max(last_progress,min(.99,value));progress(last_progress,message)
     def finish(completed):
         result,report=assemble(rows,completed,duration)
+        from karaoke_quality import checked_refinement,quality_report
+        def safe(name,operation):
+            return checked_refinement(result,duration,name,operation,report)
+        if evidence_error:report.setdefault('refinement_warnings',[]).append({'stage':'music_evidence','reason':evidence_error})
         from karaoke_review_recovery import recover_row_reviews
-        report['full_row_review_repairs']=recover_row_reviews(audio_path,result,emit,language=language)
+        report['full_row_review_repairs']=safe('row_reviews',lambda candidate:recover_row_reviews(audio_path,candidate,emit,language=language)) or 0
         if language=='kmr' and original_path is not None:
             from karaoke_generated_recovery import recover_music_repeat_prefixes
-            report['music_repeat_prefix_repairs']=recover_music_repeat_prefixes(
-                audio_path,original_path,result,voice_regions,music_regions,language)
+            report['music_repeat_prefix_repairs']=safe('music_repeat_prefix',lambda candidate:recover_music_repeat_prefixes(
+                audio_path,original_path,candidate,voice_regions,music_regions,language)) or 0
         from karaoke_tail_recovery import recover_fading_tail
-        report.update(recover_fading_tail(audio_path,result,emit,language=language))
+        report.update(safe('fading_tail',lambda candidate:recover_fading_tail(audio_path,candidate,emit,language=language)) or {})
         report.update(repeat_report)
-        result,solo_report=place_interludes(result,duration,voice_regions,music_regions,available)
         if baseline is not None:
             from karaoke_language_consensus import merge_language_alignment,corroborate_recovered_repeats
             # The requested language owns the lyric order and repetitions.
             # A Turkish fallback must not replace Kurmanji phrase occurrences.
             result,report['language_repaired_words']=merge_language_alignment(result,baseline,model_spec('tr')[1])
-            report['multilingual_review_repairs']=recover_row_reviews(audio_path,result,emit,language='kmr_mms')
-            report['repeat_corroborated_words']=corroborate_recovered_repeats(audio_path,result)
+            report['multilingual_review_repairs']=safe('multilingual_reviews',lambda candidate:recover_row_reviews(audio_path,candidate,emit,language='kmr_mms')) or 0
+            report['repeat_corroborated_words']=safe('repeat_corroboration',lambda candidate:corroborate_recovered_repeats(audio_path,candidate)) or 0
         # Check the final multilingual result so language merging cannot
         # overwrite corroborated repairs or introduce unchecked placeholders.
+        from karaoke_phrase_audit import collect_phrase_evidence,apply_phrase_audit,attach_consensus_syllables
+        phrase_evidence={}
+        def audit_phrases(candidate):
+            nonlocal phrase_evidence
+            phrase_evidence,details=collect_phrase_evidence(audio_path,original_path,candidate,emit,language)
+            details.update(apply_phrase_audit(candidate,phrase_evidence,duration))
+            return details
+        report.update(safe('full_phrase_audit',audit_phrases) or {})
         if original_path is not None:
             from karaoke_model_crosscheck import recover_model_reviews
-            report.update(recover_model_reviews(audio_path,original_path,result,emit,diagnostics=diagnostics,language=language))
+            crosscheck_diagnostics=diagnostics if diagnostics is not None else {}
+            report.update(safe('model_crosscheck',lambda candidate:recover_model_reviews(audio_path,original_path,candidate,emit,diagnostics=crosscheck_diagnostics,language=language)) or {})
+        else:crosscheck_diagnostics={}
+        entries=crosscheck_diagnostics.setdefault('model_crosscheck_candidates',[])
+        for (row_id,wi),proposals in phrase_evidence.items():
+            entries.append({'row_id':row_id,'word_index':wi,'candidates':[
+                {**p,'audio_source':p['source'],'channel':'mix'} for p in proposals]})
+        if recognizer_loader is not None:
+            from karaoke_recognition_support import recover_recognition_reviews
+            report.update(safe('recognition_crosscheck',lambda candidate:recover_recognition_reviews(
+                audio_path,original_path,candidate,recognizer_loader,crosscheck_diagnostics,emit,language)) or {})
+        from karaoke_row_boundaries import recover_row_boundaries
+        report.update(safe('row_boundaries',lambda candidate:recover_row_boundaries(audio_path,candidate,emit,language=language)) or {})
         if repeat_estimation:
             from karaoke_repeat_inference import recover_from_song_repeats
             emit(.995,'Eksik kelimeler, şarkının güvenilir tekrarlarından tahmini sürelerle tamamlanıyor…')
-            report['song_repeat_inferred_words']=recover_from_song_repeats(audio_path,result)
+            report['song_repeat_inferred_words']=safe('repeat_estimation',lambda candidate:recover_from_song_repeats(audio_path,candidate)) or 0
+        from karaoke_vocal_tails import recover_sustained_endings
+        report.update(safe('vocal_endings',lambda candidate:recover_sustained_endings(audio_path,candidate,endpoint_evidence=phrase_evidence)) or {})
+        from karaoke_automatic_recovery import recover_automatic_alignment
+        if automatic_recovery:
+            report.update(safe('automatic_recovery',lambda candidate:recover_automatic_alignment(
+                audio_path,original_path,candidate,emit,language=language,evidence=phrase_evidence)) or {})
+        report.update(safe('automatic_syllables',lambda candidate:attach_consensus_syllables(candidate,phrase_evidence,language)) or {})
+        # Automatic music labels are placed after the final word repairs. An
+        # earlier caption must not block a measured sustained word endpoint.
+        result,solo_report=place_interludes(result,duration,voice_regions,music_regions,available)
         for row in result:row['alignment_mode']='supplied_ctc'
         report.update(solo_report)
         report.update(alignment_language=language,alignment_model=model_spec(model_language)[1])
@@ -304,6 +345,14 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
         report['linked_words']=sum(w['end']>w['start'] for w in words)
         report['target_words']=len(words)
         report['estimated_words']=sum(w.get('timing_source')=='repeat_inferred' for w in words)
+        report['quality']=quality_report(result,duration)
+        eligible=sum(w.get('timing_source')!='manual' for r in result if not instrumental(r) and not r.get('locked') for w in r.get('words') or [])
+        audited_keys={tuple(k) for k in report.get('phrase_audited_keys',[])}
+        audited_keys.update(tuple(k) for k in report.get('automatic_recovery_verified_keys',[]))
+        audited=len(audited_keys) if audited_keys else report.get('phrase_audited_words',0)
+        report['quality']['audit_coverage']={'eligible_words':eligible,'audited_words':audited,
+            'complete':audited>=eligible and not report.get('phrase_skipped_rows') and not report.get('phrase_audit_errors'),
+            'human_accuracy_measured':False}
         if language!='tr':
             report['method']='supplied_multilingual_ctc'
             report['solo_count']=sum(instrumental(r) for r in result)
@@ -392,7 +441,9 @@ def align_supplied(audio_path,rows,progress=lambda *args:None,instrumental_path=
                 if targets:
                     path,scores=AF.forced_align(emission,torch.tensor([targets],dtype=torch.int32),blank=vocab.get('[PAD]',0))
                     spans=AF.merge_tokens(path[0],scores[0].exp(),blank=vocab.get('[PAD]',0))
-                    aligned=words_from_spans([words[i] for i in supported],normalized,spans,targets,hop/16000,start)
+                    has_manual=any(w.get('timing_source')=='manual' for r in expanded for w in r.get('words') or [])
+                    policy='balanced' if language=='en' and not has_manual else 'characters'
+                    aligned=words_from_spans([words[i] for i in supported],normalized,spans,targets,hop/16000,start,boundary_policy=policy)
                 aligned=restore_unsupported_words(words,supported,aligned,start)
                 for word in aligned:word['end']=min(end,word['end'])
                 repeat_report['occurrence_aligned_words']=repeat_report.get('occurrence_aligned_words',0)+apply_occurrence_windows(aligned,expanded,vocab,start,end)

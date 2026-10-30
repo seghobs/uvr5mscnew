@@ -11,13 +11,14 @@ function client(){
  const context={console,structuredClone,Date,JSON,Promise,
   vocalStem:'song.wav',instStem:'instrumental.wav',selectedLyricsLang:'kmr',
   activeSourceRef:{current:'song.wav'},loadedSourceRef:{current:'song.wav'},activeSavesRef:{current:0},
+  lyricRevisionsRef:{current:{'song.wav':'7'}},setSaveConflict:value=>state.conflict=value,
   committedSegments:{current:[]},pendingSaveRef:{current:null},saveTimeoutRef:{current:null},
   repairTiming:structuredClone,protectLockedRows:(_before,next)=>next,
   setIsSavingDb:value=>state.saving=value,setLastSavedTime:value=>state.saved=value,setSaveError:value=>state.error=value,
   onNotify:()=>{},setTimeout:()=>1,clearTimeout:()=>{},
   projectStorage:{getItem:key=>disk.get(key)??null,setItem:(key,value)=>disk.set(key,value),removeItem:key=>disk.delete(key)},
   enqueueLyricsSave:save=>{const next=queue.catch(()=>{}).then(save);queue=next;return next;},
-  api:{saveLyrics:async(file,rows,language)=>{writes.push({file,rows,language});}},flushProjects:async()=>{},
+  api:{saveLyrics:async(file,rows,language,revision)=>{writes.push({file,rows,language,revision});return {revision:'8'};}},flushProjects:async()=>{},
  };
  vm.createContext(context);
  vm.runInContext(ts.transpile(declarations.join('\n')+'\nObject.assign(globalThis,{'+names.join(',')+'});',{target:ts.ScriptTarget.ES2020}),context);
@@ -48,7 +49,7 @@ async function main(){
  await c.saveCurrentProject();assert.ok(state.saved);assert.equal(state.error,'');assert.equal(state.saving,false);
  assert.equal(writes.at(-1).language,'kmr');
 
- let release; c.api.saveLyrics=()=>new Promise(resolve=>release=resolve);
+ let release; c.api.saveLyrics=()=>new Promise(resolve=>release=()=>resolve({revision:'8'}));
  edit(c,'first');const first=c.saveCurrentProject();await tick();
  edit(c,'latest');release();await first;
  assert.equal(state.saved,null,'old response cannot certify newer edits');
@@ -56,7 +57,7 @@ async function main(){
  c.api.saveLyrics=async(file,rows)=>writes.push({file,rows});
  await c.saveCurrentProject();assert.equal(writes.at(-1).rows[0].text,'latest');assert.ok(state.saved);
 
- edit(c,'one');c.api.saveLyrics=()=>new Promise(resolve=>release=resolve);
+ edit(c,'one');c.api.saveLyrics=()=>new Promise(resolve=>release=()=>resolve({revision:'9'}));
  const one=c.saveCurrentProject();await tick();
  edit(c,'two');const two=c.saveCurrentProject();release();await one;await tick();
  assert.equal(state.saving,true,'one completed request cannot hide a second pending request');
@@ -66,6 +67,16 @@ async function main(){
  c.loadedSourceRef.current='';const before=writes.length;await c.saveCurrentProject();assert.equal(writes.length,before);
  c.loadedSourceRef.current='song.wav';c.committedSegments.current=[];await c.saveCurrentProject();
  assert.equal(writes.at(-1).rows.length,0,'intentional deletion must also be saved');
+ const versioned=client();edit(versioned.context,'first versioned');
+ await versioned.context.saveCurrentProject();
+ assert.equal(versioned.writes[0].revision,'7');
+ assert.equal(versioned.context.lyricRevisionsRef.current['song.wav'],'8');
+ edit(versioned.context,'stale conflicting edit');
+ versioned.context.api.saveLyrics=async()=>{throw Object.assign(Error('newer record'),{status:409});};
+ await assert.rejects(versioned.context.saveCurrentProject(),/newer record/);
+ assert.equal(versioned.state.conflict,true);assert.equal(versioned.state.saved,null);
+ assert.ok(versioned.disk.has('uvr-lyrics-draft:song.wav'));
+ assert.equal(versioned.context.lyricRevisionsRef.current['song.wav'],'8','conflict cannot advance the editor revision');
  console.log('PASS actual studio save handlers: dirty state, failure, full project receipt, newer edits, overlapping saves, loading guard, empty project');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

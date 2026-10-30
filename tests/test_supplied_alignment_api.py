@@ -10,6 +10,21 @@ from pydantic import BaseModel,Field
 
 
 class SuppliedApiTests(unittest.TestCase):
+    def test_measured_punctuation_parts_survive_typed_save_model(self):
+        word=self.ns['WordModel'](word='GEL,BANA',start=1,end=4,timing_parts=[
+            {'text':'GEL,','start':1,'end':1.5,'score':.8},{'text':'BANA','start':3,'end':4,'score':.8}],
+            timing_parts_reference={'word_text':'GEL,BANA','word_start':1,'word_end':4})
+        saved=word.model_dump()
+        self.assertEqual(saved['timing_parts'][1]['start'],3)
+        self.assertEqual(saved['timing_parts_reference']['word_text'],'GEL,BANA')
+
+    def test_syllables_and_audit_survive_save_model_without_invented_durations(self):
+        from pydantic import ValidationError
+        word=self.ns['WordModel'](word='KARA',start=1,end=4,syllables=[{'text':'ka','start':1,'end':1.2,'score':.8},{'text':'ra','start':2,'end':4,'score':.9}],alignment_audit={'status':'agrees'})
+        saved=word.model_dump()
+        self.assertEqual(saved['syllables'][1]['start'],2)
+        self.assertEqual(saved['alignment_audit']['status'],'agrees')
+        with self.assertRaises(ValidationError):self.ns['SyllableModel'](text='ka',start=float('nan'),end=2,score=.8)
     def test_repeat_archive_survives_save_and_reload(self):
         archive=[{'row':{'id':'duplicate','text':'AYNI','start':0,'end':1,'words':[]},
                   'matched_row_id':'kept','bounds':[2,2.1],'reason':'duplicate_block_without_audio_gap'}]
@@ -26,7 +41,7 @@ class SuppliedApiTests(unittest.TestCase):
         self.assertIsNone(word.probability)
 
     def setUp(self):
-        names={'WordModel','LyricSegmentModel','SaveLyricsRequest','SuppliedAlignmentRequest',
+        names={'SyllableModel','WordModel','LyricSegmentModel','SaveLyricsRequest','SuppliedAlignmentRequest',
                'supplied_alignment_endpoint','run_supplied_alignment'}
         nodes=[n for n in ast.parse(Path('api_modern.py').read_text(encoding='utf8')).body if getattr(n,'name',None) in names]
         for node in nodes:node.decorator_list=[]
@@ -36,7 +51,8 @@ class SuppliedApiTests(unittest.TestCase):
             'separation_tasks':SimpleNamespace(lock=threading.RLock(),records={}),
             '_find_audio_file':lambda _:Path('audio.wav'),'_lyrics_revision':lambda _: 'original',
             '_create_task':create,'_update_task':lambda task,**data:self.tasks[task].update(data),
-            'tasks':self.tasks,'tasks_lock':threading.Lock(),'audio_jobs':SimpleNamespace(list=lambda:[])}
+            'tasks':self.tasks,'tasks_lock':threading.Lock(),'audio_jobs':SimpleNamespace(list=lambda:[]),
+            'get_precision_whisper_model':lambda _:None}
         exec(compile(ast.Module(nodes,type_ignores=[]),'api_modern.py','exec'),self.ns)
 
     def request(self,segments=None):
@@ -71,6 +87,17 @@ class SuppliedApiTests(unittest.TestCase):
         self.assertEqual(self.tasks['test']['result']['segments'],rows)
         self.assertEqual(align.call_args.args[1][0]['text'],'VERDİĞİM SÖZ')
         self.assertEqual(align.call_args.kwargs['language'],'tr')
+
+    def test_missing_provenance_uses_verified_stem_sum_before_alignment(self):
+        self.tasks['test']={}
+        req=self.request();req.instrumental_file_name='instrumental.wav'
+        self.ns.update(UPLOAD_DIR=Path('uploads'),YTL_DIR=Path('ytdl'))
+        with patch('karaoke_source_recovery.verified_original',return_value=Path('verified.wav')) as find,patch(
+                'karaoke_supplied_alignment.align_supplied',return_value=([],{})) as align:
+            self.ns['run_supplied_alignment']('test',req,'original')
+        find.assert_called_once()
+        self.assertEqual(align.call_args.kwargs['original_path'],Path('verified.wav'))
+        self.assertEqual(self.tasks['test']['status'],'completed')
 
     def test_kurmanji_is_accepted_and_forwarded_without_forcing_turkish(self):
         req=self.request();req.language='kmr'

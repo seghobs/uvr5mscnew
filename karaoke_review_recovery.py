@@ -80,10 +80,15 @@ def repeat_features(clip,rate):
         if run>=12:return None  # 120 ms of near-silence; do not splice it out.
     mfcc=librosa.feature.mfcc(y=wave,sr=16000,n_mfcc=16,n_fft=400,hop_length=160)[2:]
     norm=np.linalg.norm(mfcc,axis=0,keepdims=True)
-    # Adding epsilon to a zero vector still leaves it zero. Cosine distance
-    # would divide by zero again inside DTW, so such evidence must be rejected.
-    if not np.isfinite(mfcc).all() or not np.isfinite(norm).all() or np.any(norm<=1e-8):return None
-    return mfcc/norm
+    if not np.isfinite(mfcc).all() or not np.isfinite(norm).all():return None
+    active=norm>1e-8
+    if not np.any(active):return None
+    # A brief consonant/padding silence must not invalidate an otherwise sung
+    # word. Keep those frames on the clock with a dedicated silence coordinate;
+    # dropping them would compress real pauses, epsilon alone leaves NaNs in
+    # cosine DTW. The long-gap and silent-audio vetoes above still apply.
+    normalized=np.divide(mfcc,norm,out=np.zeros_like(mfcc),where=active)
+    return np.vstack((normalized,(~active).astype(normalized.dtype)))
 
 
 def repeated_audio_support(audio,rate,offset,words,index,cache):

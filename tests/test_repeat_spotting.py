@@ -23,6 +23,97 @@ def hit(text,start,end,quality=.9,path=-.2,similarity=.95):
         'confidence':quality,'words':[{'word':t,'start':start+i*step,'end':start+(i+1)*step,'probability':quality} for i,t in enumerate(tokens)]}
 
 class RepeatSpottingTests(unittest.TestCase):
+    def test_waveform_search_uses_verified_prefix_inside_longer_refrain(self):
+        from unittest.mock import patch
+        from karaoke_repeat_spotting import waveform_repeat_hits
+        rows=[{'id':'short','text':'GEL BANA'},{'id':'full','text':'GEL BANA DON BURAYA'}]
+        selected=[hit('GEL BANA',1,3),hit('GEL BANA DON BURAYA',10,15)]
+        def recover(references,_path,**_kwargs):
+            prefix=next(r for r in references if r['text']=='GEL BANA' and r['start']==10)
+            self.assertEqual(prefix['end'],12.5)
+            copy_row=copy.deepcopy(prefix);copy_row['repeat_source_id']=prefix['id']
+            for w in copy_row['words']:w['start']+=20;w['end']+=20
+            copy_row.update(start=30,end=32.5)
+            return [copy_row],{}
+        with patch('karaoke_repeats.expand_repeats',side_effect=recover):
+            recovered=waveform_repeat_hits(rows,selected,VOCAB,np.zeros(1),1)
+        self.assertEqual(len(recovered),1)
+        self.assertEqual(recovered[0]['text'],'GEL BANA')
+        self.assertEqual(recovered[0]['start'],30)
+
+    def test_waveform_only_prefix_is_rejoined_before_selecting_whole_refrain(self):
+        from unittest.mock import patch
+        rows=[{'id':'short','text':'GEL BANA','start':0,'end':0,'words':[]},
+              {'id':'full','text':'GEL BANA,DON BURAYA','start':0,'end':0,'words':[]}]
+        def find(_audio,row,_vocab,**_kwargs):
+            if row['text']=='GEL BANA':return [hit(row['text'],1,3),hit(row['text'],10,12)]
+            if row['text']=='DON BURAYA':return [hit(row['text'],15,17),hit(row['text'],35,37)]
+            return []
+        recovered={**hit('GEL BANA',30,32),'acoustic_repeat':True}
+        audio=np.zeros((3000,len(VOCAB)),dtype='float32')
+        with patch('karaoke_repeat_spotting.find_occurrences',side_effect=find),patch(
+                'karaoke_repeat_spotting.waveform_repeat_hits',return_value=[recovered]):
+            expanded,report,_=expand_supplied_rows(rows,audio,VOCAB,repeat_audio=(np.zeros(1),1))
+        repeated=[r for r in expanded if r.get('repeat_source_id')=='full']
+        self.assertEqual(len(repeated),1)
+        self.assertEqual(repeated[0]['text'],rows[1]['text'])
+        self.assertEqual((repeated[0]['start'],repeated[0]['end']),(30,37))
+        self.assertEqual([w['word'] for w in repeated[0]['_occurrence_words']],rows[1]['text'].split())
+
+    def test_shared_phrase_hit_is_repacked_for_each_supplied_comma_spacing(self):
+        from unittest.mock import patch
+        rows=[{'id':'short','text':'GEL BANA','start':0,'end':0,'words':[]},
+              {'id':'spaced','text':'GEL BANA, CANIM BENIM','start':0,'end':0,'words':[]},
+              {'id':'joined','text':'GEL BANA,CANIM BENIM','start':0,'end':0,'words':[]}]
+        before=copy.deepcopy(rows)
+        def find(_audio,row,_vocab,**_kwargs):
+            if row['text']=='GEL BANA':return [hit('GEL BANA',1,3)]
+            if row['text']=='GEL BANA, CANIM BENIM':return [hit(row['text'],10,15),hit(row['text'],20,25)]
+            return []
+        audio=np.zeros((3000,len(VOCAB)),dtype='float32')
+        with patch('karaoke_repeat_spotting.find_occurrences',side_effect=find):
+            expanded,_,_=expand_supplied_rows(rows,audio,VOCAB)
+        self.assertEqual(rows,before)
+        for row in expanded:
+            if row['id'] in ('spaced','joined'):
+                self.assertEqual([w['word'] for w in row['_occurrence_words']],row['text'].split())
+        self.assertEqual(next(r for r in expanded if r['id']=='joined')['text'],rows[-1]['text'])
+
+    def test_punctuation_parts_use_nearest_refrain_without_splitting_source(self):
+        from karaoke_repeat_spotting import join_phrase_parts
+        row={'id':'source','text':'GEL BANA, CANIM BENİM'}
+        before=copy.deepcopy(row)
+        left=[hit('GEL BANA',10,12),hit('GEL BANA',15,17)]
+        right=[hit('CANIM BENİM',20,23)]
+        joined=join_phrase_parts(row,left,right,VOCAB)
+        self.assertEqual(row,before)
+        self.assertEqual(len(joined),1)
+        self.assertEqual((joined[0]['row_id'],joined[0]['text']),('source',row['text']))
+        self.assertEqual(joined[0]['start'],15)
+        self.assertEqual([w['word'] for w in joined[0]['words']],row['text'].split())
+        self.assertEqual(joined[0]['words'][1]['end'],17)
+        self.assertEqual(joined[0]['words'][2]['start'],20)
+
+    def test_punctuation_parts_preserve_joined_user_token_and_real_pause(self):
+        from karaoke_repeat_spotting import join_phrase_parts
+        row={'id':'source','text':'GEL BANA,CANIM BENİM'}
+        joined=join_phrase_parts(row,[hit('GEL BANA',10,12)],[hit('CANIM BENİM',15,18)],VOCAB)
+        self.assertEqual([w['word'] for w in joined[0]['words']],row['text'].split())
+        parts=joined[0]['words'][1]['timing_reference']['parts']
+        self.assertEqual([w['word'] for w in parts],['BANA','CANIM'])
+        self.assertEqual((parts[0]['end'],parts[1]['start']),(12,15))
+        self.assertFalse(joined[0]['words'][1]['timing_reference']['acoustically_verified'])
+        from karaoke_repeat_spotting import pack_occurrence_words
+        restored=pack_occurrence_words({'text':'GEL BANA, CANIM BENİM'},joined[0]['words'],VOCAB)
+        self.assertEqual([w['word'] for w in restored],['GEL','BANA,','CANIM','BENİM'])
+        self.assertEqual((restored[1]['end'],restored[2]['start']),(12,15))
+
+    def test_punctuation_parts_reject_music_gap_overlap_and_wrong_suffix(self):
+        from karaoke_repeat_spotting import join_phrase_parts
+        row={'id':'source','text':'GEL BANA, CANIM BENİM'}
+        for suffix in [hit('CANIM BENİM',18,20),hit('CANIM BENİM',11,14),hit('BAŞKA SÖZ',14,16)]:
+            self.assertEqual(join_phrase_parts(row,[hit('GEL BANA',10,12)],[suffix],VOCAB),[])
+
     def test_terminal_context_bounds_prefix_without_copying_unheard_suffix(self):
         audio=evidence(['gel bana don'])
         rows=[{'id':'a','text':'GEL BANA'},{'id':'b','text':'GEL BANA DON ARTIK'}]
@@ -88,14 +179,15 @@ class RepeatSpottingTests(unittest.TestCase):
             hit(rows[0]['text'],69.96,73.84),hit(rows[1]['text'],75.08,79.82)],VOCAB)
         self.assertEqual([round(h['start'],2) for h in chosen],[54.52,59.6,69.96,75.08])
         self.assertEqual([h['kind'] for h in chosen],['original','original','repeat','repeat'])
-    def test_compound_refrain_is_split_and_old_automatic_copies_are_rebuilt(self):
+    def test_compound_refrain_is_split_and_existing_repeat_identity_is_preserved(self):
         from karaoke_supplied_alignment import prepare_supplied_rows
         rows=[{'id':'a','text':'Dil disoje','start':111.,'end':113.7,'words':[]},
               {'id':'auto-repeat:bad','repeat_source_id':'a','text':'Dil disoje','start':195.,'end':197.,'words':[]},
               {'id':'b','text':'Dil disoje,diqîre heval.','start':118.,'end':142.,'words':[]}]
         original=copy.deepcopy(rows);prepared=prepare_supplied_rows(rows)
-        self.assertEqual([r['text'] for r in prepared],['Dil disoje','Dil disoje','diqîre heval.'])
-        self.assertEqual(len({r['id'] for r in prepared}),3)
+        self.assertEqual([r['text'] for r in prepared],['Dil disoje','Dil disoje','Dil disoje','diqîre heval.'])
+        self.assertEqual(len({r['id'] for r in prepared}),4)
+        self.assertEqual(prepared[1],rows[1])
         self.assertEqual(prepare_supplied_rows(prepared),prepared)
         self.assertEqual(rows,original)
         rows[1]['locked']=True

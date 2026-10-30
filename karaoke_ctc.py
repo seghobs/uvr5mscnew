@@ -116,17 +116,40 @@ def restore_unsupported_words(words, indices, aligned, start):
     return result
 
 
-def words_from_spans(words, normalized, spans, targets, scale, offset, include_syllables=False):
+def words_from_spans(words, normalized, spans, targets, scale, offset, include_syllables=False, boundary_policy='characters'):
+    if boundary_policy not in ('characters','balanced'):
+        raise ValueError('Geçersiz kelime sınırı politikası')
     if [s.token for s in spans] != targets:
         raise ValueError('Harf hizalaması tüm tekrarları koruyamadı.')
     result, cursor = [], 0
     for original, text in zip(words, normalized):
+        first=cursor
         chars = spans[cursor:cursor + len(text)]
         cursor += len(text) + 1  # each occurrence consumes its OWN character spans
         score = sum(float(c.score) for c in chars) / len(chars)
         start, end = offset + chars[0].start * scale, offset + chars[-1].end * scale
-        result.append({**original, 'start': start, 'end': end, 'probability': score,
+        raw_start,raw_end=start,end
+        if boundary_policy=='balanced':
+            # CTC blanks inside the word/space transition are not labelled
+            # silence. Use only a short, supported transition; do not stretch
+            # across a breath or an instrumental gap. These are model times,
+            # not a claim of human verification. Raw confidence is unchanged.
+            previous=spans[first-1] if first else None
+            following=spans[first+len(text)] if first+len(text)<len(spans) else None
+            if previous is not None and float(previous.score)>=.15:
+                gap=(chars[0].start-previous.end)*scale
+                if 0<gap<=.16:start-=gap/2
+            if following is not None and float(following.score)>=.15:
+                gap=(following.start-chars[-1].end)*scale
+                if 0<gap<=.32:end+=gap/2
+        # These measurements belong to THIS inference. Old syllables and old
+        # model evidence cannot certify newly computed, different boundaries.
+        base={k:v for k,v in original.items() if k not in ('syllables','syllable_reference','timing_parts','timing_parts_reference','alignment_audit','timing_reference')}
+        result.append({**base, 'start': start, 'end': end, 'probability': score,
                        'timing_source': 'ctc', 'needs_review': score < .5 or end <= start})
+        if (start,end)!=(raw_start,raw_end):
+            result[-1]['timing_reference']={'method':'ctc_blank_transition','previous_start':raw_start,
+                'previous_end':raw_end,'acoustically_verified':False,'max_start_expansion':.08,'max_end_expansion':.16}
         if include_syllables:
             from karaoke_syllables import syllable_ranges
             result[-1]['syllables'] = [
@@ -152,9 +175,11 @@ def refine_turkish(audio_path, segments, language, progress=None, include_syllab
     return refine_ctc(audio_path,segments,language,progress,include_syllables,context_padding,channel,normalize_fade,session=session)
 
 
-def refine_ctc(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix', normalize_fade=False,independent_rows=False,session=None):
+def refine_ctc(audio_path, segments, language, progress=None, include_syllables=False, context_padding=.8, channel='mix', normalize_fade=False,independent_rows=False,session=None,boundary_policy='auto'):
     if channel not in ('mix', 'left', 'right'):
         raise ValueError('Geçersiz ses kanalı')
+    if boundary_policy=='auto':boundary_policy='balanced' if language in ('en','en_lv60') else 'characters'
+    if boundary_policy not in ('characters','balanced'):raise ValueError('Geçersiz kelime sınırı politikası')
     import soundfile as sf
     import torch
     import torchaudio.functional as AF
@@ -213,7 +238,7 @@ def refine_ctc(audio_path, segments, language, progress=None, include_syllables=
                 path, scores = AF.forced_align(emissions, targets, blank=vocab['[PAD]'])
                 spans = AF.merge_tokens(path[0], scores[0].exp(), blank=vocab['[PAD]'])
                 aligned = words_from_spans([words[i] for i in indices], normalized, spans, target_ids,
-                                           len(audio) / rate / emissions.shape[1], offset, include_syllables)
+                                           len(audio) / rate / emissions.shape[1], offset, include_syllables,boundary_policy=boundary_policy)
                 aligned = restore_unsupported_words(words, indices, aligned, start)
                 # Reading starts at floor(start * rate). Clamp only the sub-sample
                 # rounding residue, never a genuinely out-of-range occurrence.

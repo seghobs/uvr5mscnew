@@ -2,7 +2,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 const ts=require('../frontend/node_modules/typescript');
 const source=fs.readFileSync('frontend/src/components/KaraokeStudioModal.tsx','utf8');
 const handler=source.slice(source.indexOf('  const clearSongLyrics=async()=>{'),source.indexOf('  const cancelAllTasks=async()=>{'));
-assert(handler.includes('api.saveLyrics(file,[],selectedLyricsLang)'));
+assert(handler.includes("api.saveLyrics(file,[],selectedLyricsLang,lyricRevisionsRef.current[file]||'0')"));
 assert(!handler.includes('cancelAllTasks')&&!handler.includes('clearKaraokeData'));
 assert(source.includes('aria-labelledby="clear-lyrics-title"'));
 const tools=source.slice(source.indexOf("{activeTab !== 'video' && showAdvancedTools"),source.indexOf('Smule Canlı Space Senkronizasyonu'));
@@ -16,12 +16,13 @@ async function check(fail=false,switchSong=false){
   ]);
   const context={clearingLyrics:false,loadingLyrics:false,bulkBindingStatus:null,
     vocalStem:'current.wav',instStem:'instrumental.wav',selectedLyricsLang:'tr',lyricsRequestRef:{current:0},
+    lyricRevisionsRef:{current:{'current.wav':'4'}},
     wordRequestRef:{current:0},liveCaptureRef:{current:{}},audioRef:{current:{pause(){}}},
     stopWordPreview(){},setClearingLyrics(){},setIsLiveSyncMode(){},setIsSpacePressed(){},
     flushPendingSave(){events.push('flush');},
     async enqueueLyricsSave(fn){events.push('queue');return fn();},
     async flushProjects(){events.push('disk');assert(!storage.has('uvr-lyrics-draft:current.wav'));},
-    api:{async saveLyrics(file,rows){saved.push({file,rows});if(fail)throw Error('save failed');if(switchSong)context.lyricsRequestRef.current++;}},
+    api:{async saveLyrics(file,rows,language,revision){assert.equal(revision,'4');saved.push({file,rows});if(fail)throw Error('save failed');if(switchSong)context.lyricsRequestRef.current++;return {revision:'5'};}},
     projectStorage:{removeItem:k=>storage.delete(k),keys:()=>[...storage.keys()]},
     loadSegments:rows=>loaded.push(rows),setLiveLyricsSegments(){},setBulkBindingProblems(){},
     setPassageRow(){},setLastSavedTime(){},setShowClearLyrics(){},onNotify(){},Date,

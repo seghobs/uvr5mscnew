@@ -1,0 +1,16 @@
+{
+  "file": "AtlasStudio_Vocals_0e450a0a9820.wav",
+  "original_rows": 16,
+  "saved_rows": 46,
+  "linked_words": 97,
+  "target_words": 98,
+  "review_words": 33,
+  "missing_words": 1,
+  "render_errors": [],
+  "editor_review_and_missing_warnings": 33,
+  "revision_before": "3",
+  "revision_after": "4",
+  "frontend_guard_passed": true,
+  "original_text_and_ids_preserved": true,
+  "accuracy_guaranteed": false
+}

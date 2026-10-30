@@ -1,0 +1,2702 @@
+{
+  "mode": "read_only_structural_audit",
+  "acoustic_accuracy_measured": false,
+  "songs": [
+    {
+      "file_name": "AtlasStudio_Vocals_f8b6bb73c94d.wav",
+      "rows": 52,
+      "duration": 212.4625850340136,
+      "status": "estimated",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [
+        {
+          "row": 48,
+          "word": 2
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_35c859ddc0d7.wav",
+      "rows": 22,
+      "duration": 242.76462585034014,
+      "status": "estimated",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [
+        {
+          "row": 2,
+          "word": 6
+        },
+        {
+          "row": 7,
+          "word": 2
+        },
+        {
+          "row": 17,
+          "word": 3
+        },
+        {
+          "row": 20,
+          "word": 6
+        },
+        {
+          "row": 21,
+          "word": 3
+        },
+        {
+          "row": 22,
+          "word": 3
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_7178c083e08e.wav",
+      "rows": 66,
+      "duration": 396.3414058956916,
+      "status": "estimated",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [
+        {
+          "row": 3,
+          "word": 4
+        },
+        {
+          "row": 16,
+          "word": 6
+        },
+        {
+          "row": 20,
+          "word": 4
+        },
+        {
+          "row": 26,
+          "word": 8
+        },
+        {
+          "row": 27,
+          "word": 6
+        },
+        {
+          "row": 29,
+          "word": 5
+        },
+        {
+          "row": 30,
+          "word": 3
+        },
+        {
+          "row": 30,
+          "word": 4
+        },
+        {
+          "row": 31,
+          "word": 2
+        },
+        {
+          "row": 32,
+          "word": 4
+        },
+        {
+          "row": 33,
+          "word": 5
+        },
+        {
+          "row": 34,
+          "word": 3
+        },
+        {
+          "row": 34,
+          "word": 4
+        },
+        {
+          "row": 42,
+          "word": 4
+        },
+        {
+          "row": 49,
+          "word": 8
+        },
+        {
+          "row": 53,
+          "word": 1
+        },
+        {
+          "row": 53,
+          "word": 6
+        },
+        {
+          "row": 54,
+          "word": 5
+        },
+        {
+          "row": 54,
+          "word": 9
+        },
+        {
+          "row": 55,
+          "word": 1
+        },
+        {
+          "row": 55,
+          "word": 2
+        },
+        {
+          "row": 61,
+          "word": 5
+        },
+        {
+          "row": 62,
+          "word": 8
+        },
+        {
+          "row": 63,
+          "word": 4
+        },
+        {
+          "row": 64,
+          "word": 7
+        },
+        {
+          "row": 65,
+          "word": 1
+        },
+        {
+          "row": 65,
+          "word": 2
+        },
+        {
+          "row": 65,
+          "word": 6
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "Transfer_Vocals_1e9613df6d82.wav",
+      "rows": 14,
+      "duration": 234.5447619047619,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 3,
+          "word": 4
+        }
+      ],
+      "estimated_words": [
+        {
+          "row": 12,
+          "word": 7
+        },
+        {
+          "row": 14,
+          "word": 7
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "Transfer_Vocals_069e1161ba27.wav",
+      "rows": 34,
+      "duration": 193.95628117913833,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 33,
+          "word": 1
+        }
+      ],
+      "estimated_words": [
+        {
+          "row": 10,
+          "word": 2
+        },
+        {
+          "row": 23,
+          "word": 2
+        },
+        {
+          "row": 31,
+          "word": 2
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_0e450a0a9820.wav",
+      "rows": 42,
+      "duration": 345.0020861678004,
+      "status": "needs_review",
+      "missing_words": [
+        {
+          "row": 17,
+          "word": 1
+        }
+      ],
+      "review_words": [
+        {
+          "row": 9,
+          "word": 3
+        },
+        {
+          "row": 10,
+          "word": 1
+        },
+        {
+          "row": 13,
+          "word": 1
+        },
+        {
+          "row": 14,
+          "word": 1
+        },
+        {
+          "row": 15,
+          "word": 2
+        },
+        {
+          "row": 17,
+          "word": 1
+        },
+        {
+          "row": 17,
+          "word": 2
+        },
+        {
+          "row": 18,
+          "word": 1
+        },
+        {
+          "row": 18,
+          "word": 2
+        },
+        {
+          "row": 19,
+          "word": 1
+        },
+        {
+          "row": 19,
+          "word": 2
+        },
+        {
+          "row": 19,
+          "word": 3
+        },
+        {
+          "row": 19,
+          "word": 4
+        },
+        {
+          "row": 31,
+          "word": 1
+        },
+        {
+          "row": 38,
+          "word": 2
+        },
+        {
+          "row": 42,
+          "word": 2
+        }
+      ],
+      "estimated_words": [
+        {
+          "row": 2,
+          "word": 1
+        },
+        {
+          "row": 17,
+          "word": 1
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_6d0a6ef5a4d1.wav",
+      "rows": 77,
+      "duration": 173.42984126984126,
+      "status": "needs_review",
+      "missing_words": [
+        {
+          "row": 24,
+          "word": 1
+        },
+        {
+          "row": 24,
+          "word": 2
+        },
+        {
+          "row": 24,
+          "word": 3
+        },
+        {
+          "row": 28,
+          "word": 1
+        },
+        {
+          "row": 28,
+          "word": 2
+        },
+        {
+          "row": 28,
+          "word": 3
+        },
+        {
+          "row": 29,
+          "word": 1
+        },
+        {
+          "row": 29,
+          "word": 2
+        },
+        {
+          "row": 29,
+          "word": 6
+        },
+        {
+          "row": 30,
+          "word": 3
+        },
+        {
+          "row": 30,
+          "word": 4
+        },
+        {
+          "row": 30,
+          "word": 6
+        },
+        {
+          "row": 31,
+          "word": 7
+        },
+        {
+          "row": 31,
+          "word": 8
+        },
+        {
+          "row": 35,
+          "word": 6
+        },
+        {
+          "row": 41,
+          "word": 1
+        },
+        {
+          "row": 41,
+          "word": 2
+        },
+        {
+          "row": 41,
+          "word": 3
+        },
+        {
+          "row": 45,
+          "word": 1
+        },
+        {
+          "row": 45,
+          "word": 2
+        },
+        {
+          "row": 45,
+          "word": 3
+        },
+        {
+          "row": 50,
+          "word": 1
+        },
+        {
+          "row": 50,
+          "word": 3
+        },
+        {
+          "row": 50,
+          "word": 4
+        },
+        {
+          "row": 51,
+          "word": 2
+        },
+        {
+          "row": 52,
+          "word": 2
+        },
+        {
+          "row": 52,
+          "word": 3
+        },
+        {
+          "row": 53,
+          "word": 3
+        },
+        {
+          "row": 53,
+          "word": 4
+        },
+        {
+          "row": 56,
+          "word": 2
+        },
+        {
+          "row": 57,
+          "word": 6
+        },
+        {
+          "row": 58,
+          "word": 6
+        },
+        {
+          "row": 58,
+          "word": 9
+        },
+        {
+          "row": 59,
+          "word": 1
+        },
+        {
+          "row": 59,
+          "word": 3
+        },
+        {
+          "row": 62,
+          "word": 1
+        },
+        {
+          "row": 63,
+          "word": 1
+        },
+        {
+          "row": 63,
+          "word": 2
+        },
+        {
+          "row": 64,
+          "word": 1
+        },
+        {
+          "row": 64,
+          "word": 2
+        },
+        {
+          "row": 65,
+          "word": 1
+        },
+        {
+          "row": 65,
+          "word": 2
+        },
+        {
+          "row": 65,
+          "word": 6
+        },
+        {
+          "row": 65,
+          "word": 7
+        },
+        {
+          "row": 66,
+          "word": 1
+        },
+        {
+          "row": 68,
+          "word": 2
+        },
+        {
+          "row": 69,
+          "word": 1
+        },
+        {
+          "row": 69,
+          "word": 5
+        },
+        {
+          "row": 69,
+          "word": 6
+        },
+        {
+          "row": 69,
+          "word": 7
+        },
+        {
+          "row": 72,
+          "word": 1
+        },
+        {
+          "row": 72,
+          "word": 2
+        },
+        {
+          "row": 73,
+          "word": 1
+        },
+        {
+          "row": 73,
+          "word": 2
+        },
+        {
+          "row": 73,
+          "word": 3
+        },
+        {
+          "row": 73,
+          "word": 4
+        },
+        {
+          "row": 73,
+          "word": 6
+        },
+        {
+          "row": 73,
+          "word": 7
+        },
+        {
+          "row": 77,
+          "word": 1
+        },
+        {
+          "row": 77,
+          "word": 3
+        }
+      ],
+      "review_words": [
+        {
+          "row": 1,
+          "word": 1
+        },
+        {
+          "row": 1,
+          "word": 2
+        },
+        {
+          "row": 1,
+          "word": 3
+        },
+        {
+          "row": 2,
+          "word": 1
+        },
+        {
+          "row": 4,
+          "word": 1
+        },
+        {
+          "row": 4,
+          "word": 2
+        },
+        {
+          "row": 5,
+          "word": 1
+        },
+        {
+          "row": 5,
+          "word": 2
+        },
+        {
+          "row": 6,
+          "word": 1
+        },
+        {
+          "row": 6,
+          "word": 2
+        },
+        {
+          "row": 7,
+          "word": 1
+        },
+        {
+          "row": 7,
+          "word": 2
+        },
+        {
+          "row": 7,
+          "word": 3
+        },
+        {
+          "row": 8,
+          "word": 1
+        },
+        {
+          "row": 8,
+          "word": 2
+        },
+        {
+          "row": 9,
+          "word": 1
+        },
+        {
+          "row": 9,
+          "word": 2
+        },
+        {
+          "row": 10,
+          "word": 1
+        },
+        {
+          "row": 10,
+          "word": 2
+        },
+        {
+          "row": 12,
+          "word": 4
+        },
+        {
+          "row": 12,
+          "word": 5
+        },
+        {
+          "row": 13,
+          "word": 1
+        },
+        {
+          "row": 15,
+          "word": 2
+        },
+        {
+          "row": 15,
+          "word": 3
+        },
+        {
+          "row": 15,
+          "word": 5
+        },
+        {
+          "row": 16,
+          "word": 8
+        },
+        {
+          "row": 16,
+          "word": 9
+        },
+        {
+          "row": 17,
+          "word": 5
+        },
+        {
+          "row": 17,
+          "word": 6
+        },
+        {
+          "row": 17,
+          "word": 7
+        },
+        {
+          "row": 18,
+          "word": 3
+        },
+        {
+          "row": 18,
+          "word": 5
+        },
+        {
+          "row": 18,
+          "word": 6
+        },
+        {
+          "row": 18,
+          "word": 7
+        },
+        {
+          "row": 18,
+          "word": 8
+        },
+        {
+          "row": 19,
+          "word": 1
+        },
+        {
+          "row": 20,
+          "word": 1
+        },
+        {
+          "row": 20,
+          "word": 6
+        },
+        {
+          "row": 20,
+          "word": 7
+        },
+        {
+          "row": 21,
+          "word": 1
+        },
+        {
+          "row": 21,
+          "word": 2
+        },
+        {
+          "row": 22,
+          "word": 1
+        },
+        {
+          "row": 22,
+          "word": 2
+        },
+        {
+          "row": 23,
+          "word": 1
+        },
+        {
+          "row": 23,
+          "word": 2
+        },
+        {
+          "row": 24,
+          "word": 1
+        },
+        {
+          "row": 24,
+          "word": 2
+        },
+        {
+          "row": 24,
+          "word": 3
+        },
+        {
+          "row": 25,
+          "word": 1
+        },
+        {
+          "row": 25,
+          "word": 2
+        },
+        {
+          "row": 26,
+          "word": 1
+        },
+        {
+          "row": 26,
+          "word": 2
+        },
+        {
+          "row": 27,
+          "word": 1
+        },
+        {
+          "row": 27,
+          "word": 2
+        },
+        {
+          "row": 28,
+          "word": 1
+        },
+        {
+          "row": 28,
+          "word": 2
+        },
+        {
+          "row": 28,
+          "word": 3
+        },
+        {
+          "row": 29,
+          "word": 1
+        },
+        {
+          "row": 29,
+          "word": 2
+        },
+        {
+          "row": 29,
+          "word": 3
+        },
+        {
+          "row": 29,
+          "word": 4
+        },
+        {
+          "row": 29,
+          "word": 5
+        },
+        {
+          "row": 29,
+          "word": 6
+        },
+        {
+          "row": 30,
+          "word": 1
+        },
+        {
+          "row": 30,
+          "word": 2
+        },
+        {
+          "row": 30,
+          "word": 3
+        },
+        {
+          "row": 30,
+          "word": 4
+        },
+        {
+          "row": 30,
+          "word": 5
+        },
+        {
+          "row": 30,
+          "word": 6
+        },
+        {
+          "row": 31,
+          "word": 3
+        },
+        {
+          "row": 31,
+          "word": 7
+        },
+        {
+          "row": 31,
+          "word": 8
+        },
+        {
+          "row": 32,
+          "word": 1
+        },
+        {
+          "row": 32,
+          "word": 2
+        },
+        {
+          "row": 32,
+          "word": 8
+        },
+        {
+          "row": 32,
+          "word": 9
+        },
+        {
+          "row": 32,
+          "word": 10
+        },
+        {
+          "row": 32,
+          "word": 11
+        },
+        {
+          "row": 33,
+          "word": 1
+        },
+        {
+          "row": 33,
+          "word": 2
+        },
+        {
+          "row": 33,
+          "word": 3
+        },
+        {
+          "row": 33,
+          "word": 4
+        },
+        {
+          "row": 33,
+          "word": 5
+        },
+        {
+          "row": 33,
+          "word": 6
+        },
+        {
+          "row": 33,
+          "word": 7
+        },
+        {
+          "row": 34,
+          "word": 6
+        },
+        {
+          "row": 35,
+          "word": 6
+        },
+        {
+          "row": 35,
+          "word": 7
+        },
+        {
+          "row": 35,
+          "word": 8
+        },
+        {
+          "row": 36,
+          "word": 5
+        },
+        {
+          "row": 37,
+          "word": 1
+        },
+        {
+          "row": 37,
+          "word": 10
+        },
+        {
+          "row": 38,
+          "word": 1
+        },
+        {
+          "row": 38,
+          "word": 2
+        },
+        {
+          "row": 39,
+          "word": 1
+        },
+        {
+          "row": 39,
+          "word": 2
+        },
+        {
+          "row": 40,
+          "word": 1
+        },
+        {
+          "row": 40,
+          "word": 2
+        },
+        {
+          "row": 41,
+          "word": 1
+        },
+        {
+          "row": 41,
+          "word": 2
+        },
+        {
+          "row": 41,
+          "word": 3
+        },
+        {
+          "row": 42,
+          "word": 1
+        },
+        {
+          "row": 42,
+          "word": 2
+        },
+        {
+          "row": 43,
+          "word": 1
+        },
+        {
+          "row": 43,
+          "word": 2
+        },
+        {
+          "row": 44,
+          "word": 1
+        },
+        {
+          "row": 44,
+          "word": 2
+        },
+        {
+          "row": 45,
+          "word": 1
+        },
+        {
+          "row": 45,
+          "word": 2
+        },
+        {
+          "row": 45,
+          "word": 3
+        },
+        {
+          "row": 46,
+          "word": 1
+        },
+        {
+          "row": 48,
+          "word": 4
+        },
+        {
+          "row": 48,
+          "word": 6
+        },
+        {
+          "row": 48,
+          "word": 7
+        },
+        {
+          "row": 48,
+          "word": 8
+        },
+        {
+          "row": 48,
+          "word": 9
+        },
+        {
+          "row": 48,
+          "word": 10
+        },
+        {
+          "row": 49,
+          "word": 1
+        },
+        {
+          "row": 49,
+          "word": 2
+        },
+        {
+          "row": 49,
+          "word": 3
+        },
+        {
+          "row": 49,
+          "word": 4
+        },
+        {
+          "row": 50,
+          "word": 1
+        },
+        {
+          "row": 50,
+          "word": 2
+        },
+        {
+          "row": 50,
+          "word": 3
+        },
+        {
+          "row": 50,
+          "word": 4
+        },
+        {
+          "row": 51,
+          "word": 1
+        },
+        {
+          "row": 51,
+          "word": 2
+        },
+        {
+          "row": 51,
+          "word": 3
+        },
+        {
+          "row": 51,
+          "word": 4
+        },
+        {
+          "row": 52,
+          "word": 1
+        },
+        {
+          "row": 52,
+          "word": 2
+        },
+        {
+          "row": 52,
+          "word": 3
+        },
+        {
+          "row": 52,
+          "word": 4
+        },
+        {
+          "row": 53,
+          "word": 1
+        },
+        {
+          "row": 53,
+          "word": 2
+        },
+        {
+          "row": 53,
+          "word": 3
+        },
+        {
+          "row": 53,
+          "word": 4
+        },
+        {
+          "row": 54,
+          "word": 1
+        },
+        {
+          "row": 54,
+          "word": 2
+        },
+        {
+          "row": 54,
+          "word": 3
+        },
+        {
+          "row": 54,
+          "word": 4
+        },
+        {
+          "row": 55,
+          "word": 1
+        },
+        {
+          "row": 55,
+          "word": 2
+        },
+        {
+          "row": 55,
+          "word": 3
+        },
+        {
+          "row": 55,
+          "word": 4
+        },
+        {
+          "row": 56,
+          "word": 1
+        },
+        {
+          "row": 56,
+          "word": 2
+        },
+        {
+          "row": 56,
+          "word": 3
+        },
+        {
+          "row": 56,
+          "word": 4
+        },
+        {
+          "row": 57,
+          "word": 3
+        },
+        {
+          "row": 57,
+          "word": 6
+        },
+        {
+          "row": 58,
+          "word": 3
+        },
+        {
+          "row": 58,
+          "word": 6
+        },
+        {
+          "row": 58,
+          "word": 9
+        },
+        {
+          "row": 59,
+          "word": 1
+        },
+        {
+          "row": 59,
+          "word": 2
+        },
+        {
+          "row": 59,
+          "word": 3
+        },
+        {
+          "row": 60,
+          "word": 5
+        },
+        {
+          "row": 61,
+          "word": 7
+        },
+        {
+          "row": 61,
+          "word": 8
+        },
+        {
+          "row": 61,
+          "word": 9
+        },
+        {
+          "row": 61,
+          "word": 10
+        },
+        {
+          "row": 62,
+          "word": 1
+        },
+        {
+          "row": 62,
+          "word": 2
+        },
+        {
+          "row": 63,
+          "word": 1
+        },
+        {
+          "row": 63,
+          "word": 2
+        },
+        {
+          "row": 64,
+          "word": 1
+        },
+        {
+          "row": 64,
+          "word": 2
+        },
+        {
+          "row": 65,
+          "word": 1
+        },
+        {
+          "row": 65,
+          "word": 2
+        },
+        {
+          "row": 65,
+          "word": 3
+        },
+        {
+          "row": 65,
+          "word": 4
+        },
+        {
+          "row": 65,
+          "word": 5
+        },
+        {
+          "row": 65,
+          "word": 6
+        },
+        {
+          "row": 65,
+          "word": 7
+        },
+        {
+          "row": 66,
+          "word": 1
+        },
+        {
+          "row": 66,
+          "word": 2
+        },
+        {
+          "row": 67,
+          "word": 1
+        },
+        {
+          "row": 67,
+          "word": 2
+        },
+        {
+          "row": 68,
+          "word": 1
+        },
+        {
+          "row": 68,
+          "word": 2
+        },
+        {
+          "row": 69,
+          "word": 1
+        },
+        {
+          "row": 69,
+          "word": 2
+        },
+        {
+          "row": 69,
+          "word": 3
+        },
+        {
+          "row": 69,
+          "word": 4
+        },
+        {
+          "row": 69,
+          "word": 5
+        },
+        {
+          "row": 69,
+          "word": 6
+        },
+        {
+          "row": 69,
+          "word": 7
+        },
+        {
+          "row": 70,
+          "word": 1
+        },
+        {
+          "row": 70,
+          "word": 2
+        },
+        {
+          "row": 71,
+          "word": 1
+        },
+        {
+          "row": 71,
+          "word": 2
+        },
+        {
+          "row": 72,
+          "word": 1
+        },
+        {
+          "row": 72,
+          "word": 2
+        },
+        {
+          "row": 73,
+          "word": 1
+        },
+        {
+          "row": 73,
+          "word": 2
+        },
+        {
+          "row": 73,
+          "word": 3
+        },
+        {
+          "row": 73,
+          "word": 4
+        },
+        {
+          "row": 73,
+          "word": 5
+        },
+        {
+          "row": 73,
+          "word": 6
+        },
+        {
+          "row": 73,
+          "word": 7
+        },
+        {
+          "row": 74,
+          "word": 1
+        },
+        {
+          "row": 74,
+          "word": 2
+        },
+        {
+          "row": 75,
+          "word": 1
+        },
+        {
+          "row": 75,
+          "word": 2
+        },
+        {
+          "row": 76,
+          "word": 1
+        },
+        {
+          "row": 76,
+          "word": 2
+        },
+        {
+          "row": 77,
+          "word": 1
+        },
+        {
+          "row": 77,
+          "word": 2
+        },
+        {
+          "row": 77,
+          "word": 3
+        }
+      ],
+      "estimated_words": [
+        {
+          "row": 24,
+          "word": 1
+        },
+        {
+          "row": 24,
+          "word": 2
+        },
+        {
+          "row": 24,
+          "word": 3
+        },
+        {
+          "row": 28,
+          "word": 1
+        },
+        {
+          "row": 28,
+          "word": 2
+        },
+        {
+          "row": 28,
+          "word": 3
+        },
+        {
+          "row": 29,
+          "word": 1
+        },
+        {
+          "row": 29,
+          "word": 2
+        },
+        {
+          "row": 29,
+          "word": 6
+        },
+        {
+          "row": 30,
+          "word": 3
+        },
+        {
+          "row": 30,
+          "word": 4
+        },
+        {
+          "row": 30,
+          "word": 6
+        },
+        {
+          "row": 31,
+          "word": 7
+        },
+        {
+          "row": 31,
+          "word": 8
+        },
+        {
+          "row": 35,
+          "word": 6
+        },
+        {
+          "row": 41,
+          "word": 1
+        },
+        {
+          "row": 41,
+          "word": 2
+        },
+        {
+          "row": 41,
+          "word": 3
+        },
+        {
+          "row": 45,
+          "word": 1
+        },
+        {
+          "row": 45,
+          "word": 2
+        },
+        {
+          "row": 45,
+          "word": 3
+        },
+        {
+          "row": 50,
+          "word": 1
+        },
+        {
+          "row": 50,
+          "word": 3
+        },
+        {
+          "row": 50,
+          "word": 4
+        },
+        {
+          "row": 51,
+          "word": 2
+        },
+        {
+          "row": 52,
+          "word": 2
+        },
+        {
+          "row": 52,
+          "word": 3
+        },
+        {
+          "row": 53,
+          "word": 3
+        },
+        {
+          "row": 53,
+          "word": 4
+        },
+        {
+          "row": 56,
+          "word": 2
+        },
+        {
+          "row": 57,
+          "word": 6
+        },
+        {
+          "row": 58,
+          "word": 6
+        },
+        {
+          "row": 58,
+          "word": 9
+        },
+        {
+          "row": 59,
+          "word": 1
+        },
+        {
+          "row": 59,
+          "word": 3
+        },
+        {
+          "row": 62,
+          "word": 1
+        },
+        {
+          "row": 63,
+          "word": 1
+        },
+        {
+          "row": 63,
+          "word": 2
+        },
+        {
+          "row": 64,
+          "word": 1
+        },
+        {
+          "row": 64,
+          "word": 2
+        },
+        {
+          "row": 65,
+          "word": 1
+        },
+        {
+          "row": 65,
+          "word": 2
+        },
+        {
+          "row": 65,
+          "word": 6
+        },
+        {
+          "row": 65,
+          "word": 7
+        },
+        {
+          "row": 66,
+          "word": 1
+        },
+        {
+          "row": 68,
+          "word": 2
+        },
+        {
+          "row": 69,
+          "word": 1
+        },
+        {
+          "row": 69,
+          "word": 5
+        },
+        {
+          "row": 69,
+          "word": 6
+        },
+        {
+          "row": 69,
+          "word": 7
+        },
+        {
+          "row": 72,
+          "word": 1
+        },
+        {
+          "row": 72,
+          "word": 2
+        },
+        {
+          "row": 73,
+          "word": 1
+        },
+        {
+          "row": 73,
+          "word": 2
+        },
+        {
+          "row": 73,
+          "word": 3
+        },
+        {
+          "row": 73,
+          "word": 4
+        },
+        {
+          "row": 73,
+          "word": 6
+        },
+        {
+          "row": 73,
+          "word": 7
+        },
+        {
+          "row": 77,
+          "word": 1
+        },
+        {
+          "row": 77,
+          "word": 3
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [
+        "Satır 28: geçersiz satır süresi",
+        "Satır 41: geçersiz satır süresi",
+        "Satır 45: geçersiz satır süresi",
+        "Satır 64: geçersiz satır süresi",
+        "Satır 72: geçersiz satır süresi"
+      ],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "Transfer_Vocals_beafcc217f1f.wav",
+      "rows": 31,
+      "duration": 245.04018140589568,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 9,
+          "word": 4
+        },
+        {
+          "row": 12,
+          "word": 3
+        }
+      ],
+      "estimated_words": [
+        {
+          "row": 24,
+          "word": 1
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_172a0f816219.wav",
+      "rows": 25,
+      "duration": 173.7084807256236,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 9,
+          "word": 1
+        },
+        {
+          "row": 9,
+          "word": 2
+        }
+      ],
+      "estimated_words": [
+        {
+          "row": 13,
+          "word": 3
+        },
+        {
+          "row": 22,
+          "word": 3
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "Transfer_Vocals_3e039a45cc5e.wav",
+      "rows": 17,
+      "duration": 184.80761904761906,
+      "status": "ready",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_771ad07a4a3d.wav",
+      "rows": 36,
+      "duration": 285.53578231292516,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 8,
+          "word": 1
+        },
+        {
+          "row": 8,
+          "word": 2
+        },
+        {
+          "row": 8,
+          "word": 3
+        },
+        {
+          "row": 8,
+          "word": 4
+        },
+        {
+          "row": 8,
+          "word": 5
+        },
+        {
+          "row": 8,
+          "word": 6
+        },
+        {
+          "row": 9,
+          "word": 1
+        },
+        {
+          "row": 9,
+          "word": 2
+        },
+        {
+          "row": 9,
+          "word": 3
+        },
+        {
+          "row": 9,
+          "word": 4
+        },
+        {
+          "row": 9,
+          "word": 5
+        },
+        {
+          "row": 9,
+          "word": 6
+        },
+        {
+          "row": 18,
+          "word": 4
+        },
+        {
+          "row": 18,
+          "word": 6
+        },
+        {
+          "row": 19,
+          "word": 4
+        },
+        {
+          "row": 19,
+          "word": 6
+        },
+        {
+          "row": 33,
+          "word": 4
+        },
+        {
+          "row": 34,
+          "word": 4
+        },
+        {
+          "row": 35,
+          "word": 1
+        },
+        {
+          "row": 35,
+          "word": 2
+        },
+        {
+          "row": 35,
+          "word": 3
+        },
+        {
+          "row": 35,
+          "word": 4
+        },
+        {
+          "row": 35,
+          "word": 5
+        },
+        {
+          "row": 35,
+          "word": 6
+        },
+        {
+          "row": 36,
+          "word": 1
+        },
+        {
+          "row": 36,
+          "word": 2
+        },
+        {
+          "row": 36,
+          "word": 3
+        },
+        {
+          "row": 36,
+          "word": 4
+        },
+        {
+          "row": 36,
+          "word": 5
+        },
+        {
+          "row": 36,
+          "word": 6
+        },
+        {
+          "row": 36,
+          "word": 7
+        },
+        {
+          "row": 36,
+          "word": 8
+        }
+      ],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_7710dc33f922.wav",
+      "rows": 43,
+      "duration": 336.80544217687077,
+      "status": "ready",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_e5b1f7265608.wav",
+      "rows": 46,
+      "duration": 287.0682993197279,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 9,
+          "word": 3
+        },
+        {
+          "row": 9,
+          "word": 4
+        },
+        {
+          "row": 26,
+          "word": 3
+        },
+        {
+          "row": 26,
+          "word": 4
+        },
+        {
+          "row": 38,
+          "word": 1
+        },
+        {
+          "row": 38,
+          "word": 2
+        },
+        {
+          "row": 38,
+          "word": 4
+        },
+        {
+          "row": 40,
+          "word": 1
+        },
+        {
+          "row": 40,
+          "word": 2
+        },
+        {
+          "row": 40,
+          "word": 3
+        },
+        {
+          "row": 41,
+          "word": 3
+        },
+        {
+          "row": 41,
+          "word": 4
+        },
+        {
+          "row": 45,
+          "word": 3
+        },
+        {
+          "row": 45,
+          "word": 4
+        }
+      ],
+      "estimated_words": [
+        {
+          "row": 13,
+          "word": 3
+        },
+        {
+          "row": 13,
+          "word": 5
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_75e59cf56ace.wav",
+      "rows": 19,
+      "duration": 218.2443537414966,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 4,
+          "word": 1
+        },
+        {
+          "row": 4,
+          "word": 2
+        },
+        {
+          "row": 4,
+          "word": 3
+        },
+        {
+          "row": 9,
+          "word": 1
+        },
+        {
+          "row": 9,
+          "word": 6
+        },
+        {
+          "row": 9,
+          "word": 7
+        },
+        {
+          "row": 9,
+          "word": 8
+        },
+        {
+          "row": 10,
+          "word": 1
+        },
+        {
+          "row": 11,
+          "word": 1
+        },
+        {
+          "row": 11,
+          "word": 2
+        },
+        {
+          "row": 11,
+          "word": 3
+        },
+        {
+          "row": 13,
+          "word": 2
+        },
+        {
+          "row": 13,
+          "word": 3
+        },
+        {
+          "row": 19,
+          "word": 1
+        },
+        {
+          "row": 19,
+          "word": 2
+        },
+        {
+          "row": 19,
+          "word": 3
+        }
+      ],
+      "estimated_words": [
+        {
+          "row": 7,
+          "word": 2
+        },
+        {
+          "row": 14,
+          "word": 4
+        },
+        {
+          "row": 18,
+          "word": 6
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_88508386c47f.wav",
+      "rows": 35,
+      "duration": 343.0980498866213,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 7,
+          "word": 3
+        },
+        {
+          "row": 9,
+          "word": 3
+        },
+        {
+          "row": 9,
+          "word": 4
+        },
+        {
+          "row": 13,
+          "word": 3
+        },
+        {
+          "row": 20,
+          "word": 1
+        },
+        {
+          "row": 22,
+          "word": 1
+        },
+        {
+          "row": 24,
+          "word": 4
+        },
+        {
+          "row": 26,
+          "word": 4
+        }
+      ],
+      "estimated_words": [
+        {
+          "row": 17,
+          "word": 4
+        },
+        {
+          "row": 32,
+          "word": 4
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_0d2ac258cc0b.wav",
+      "rows": 34,
+      "duration": 196.13895691609977,
+      "status": "estimated",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [
+        {
+          "row": 20,
+          "word": 3
+        },
+        {
+          "row": 22,
+          "word": 3
+        },
+        {
+          "row": 24,
+          "word": 2
+        },
+        {
+          "row": 26,
+          "word": 2
+        },
+        {
+          "row": 27,
+          "word": 4
+        },
+        {
+          "row": 29,
+          "word": 6
+        },
+        {
+          "row": 34,
+          "word": 4
+        },
+        {
+          "row": 34,
+          "word": 5
+        },
+        {
+          "row": 34,
+          "word": 6
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_31bfd6c09257.wav",
+      "rows": 30,
+      "duration": 219.6607709750567,
+      "status": "estimated",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [
+        {
+          "row": 5,
+          "word": 5
+        },
+        {
+          "row": 7,
+          "word": 2
+        },
+        {
+          "row": 8,
+          "word": 2
+        },
+        {
+          "row": 9,
+          "word": 3
+        },
+        {
+          "row": 15,
+          "word": 5
+        },
+        {
+          "row": 20,
+          "word": 5
+        },
+        {
+          "row": 22,
+          "word": 5
+        },
+        {
+          "row": 23,
+          "word": 2
+        },
+        {
+          "row": 26,
+          "word": 5
+        },
+        {
+          "row": 27,
+          "word": 2
+        },
+        {
+          "row": 29,
+          "word": 3
+        },
+        {
+          "row": 30,
+          "word": 5
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_b38831527cf8.wav",
+      "rows": 27,
+      "duration": 320.2031746031746,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 5,
+          "word": 3
+        },
+        {
+          "row": 8,
+          "word": 3
+        },
+        {
+          "row": 8,
+          "word": 4
+        },
+        {
+          "row": 9,
+          "word": 4
+        },
+        {
+          "row": 10,
+          "word": 3
+        },
+        {
+          "row": 10,
+          "word": 4
+        },
+        {
+          "row": 11,
+          "word": 1
+        },
+        {
+          "row": 11,
+          "word": 3
+        },
+        {
+          "row": 11,
+          "word": 5
+        },
+        {
+          "row": 12,
+          "word": 3
+        },
+        {
+          "row": 21,
+          "word": 1
+        },
+        {
+          "row": 21,
+          "word": 3
+        },
+        {
+          "row": 21,
+          "word": 4
+        },
+        {
+          "row": 23,
+          "word": 3
+        },
+        {
+          "row": 24,
+          "word": 1
+        },
+        {
+          "row": 24,
+          "word": 2
+        },
+        {
+          "row": 24,
+          "word": 3
+        },
+        {
+          "row": 24,
+          "word": 4
+        },
+        {
+          "row": 24,
+          "word": 5
+        },
+        {
+          "row": 26,
+          "word": 3
+        }
+      ],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_ed231fd3c96a.wav",
+      "rows": 35,
+      "duration": 138.69278911564626,
+      "status": "estimated",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [
+        {
+          "row": 8,
+          "word": 4
+        },
+        {
+          "row": 12,
+          "word": 4
+        },
+        {
+          "row": 23,
+          "word": 4
+        },
+        {
+          "row": 27,
+          "word": 4
+        },
+        {
+          "row": 31,
+          "word": 4
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_296713fabde8.wav",
+      "rows": 36,
+      "duration": 293.05904761904765,
+      "status": "estimated",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [
+        {
+          "row": 2,
+          "word": 8
+        },
+        {
+          "row": 4,
+          "word": 8
+        },
+        {
+          "row": 6,
+          "word": 5
+        },
+        {
+          "row": 19,
+          "word": 5
+        },
+        {
+          "row": 21,
+          "word": 5
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_4f5069edad66.wav",
+      "rows": 37,
+      "duration": 187.54757369614512,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 25,
+          "word": 2
+        },
+        {
+          "row": 28,
+          "word": 7
+        },
+        {
+          "row": 32,
+          "word": 1
+        }
+      ],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_50750552e791.wav",
+      "rows": 42,
+      "duration": 135.48843537414967,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 3,
+          "word": 1
+        },
+        {
+          "row": 3,
+          "word": 2
+        },
+        {
+          "row": 3,
+          "word": 3
+        },
+        {
+          "row": 3,
+          "word": 4
+        },
+        {
+          "row": 3,
+          "word": 5
+        },
+        {
+          "row": 9,
+          "word": 6
+        },
+        {
+          "row": 17,
+          "word": 3
+        },
+        {
+          "row": 17,
+          "word": 7
+        },
+        {
+          "row": 20,
+          "word": 3
+        },
+        {
+          "row": 23,
+          "word": 1
+        },
+        {
+          "row": 24,
+          "word": 1
+        },
+        {
+          "row": 24,
+          "word": 2
+        },
+        {
+          "row": 24,
+          "word": 3
+        },
+        {
+          "row": 24,
+          "word": 4
+        },
+        {
+          "row": 24,
+          "word": 5
+        },
+        {
+          "row": 30,
+          "word": 6
+        },
+        {
+          "row": 38,
+          "word": 3
+        },
+        {
+          "row": 38,
+          "word": 7
+        },
+        {
+          "row": 39,
+          "word": 3
+        },
+        {
+          "row": 39,
+          "word": 4
+        },
+        {
+          "row": 39,
+          "word": 5
+        },
+        {
+          "row": 40,
+          "word": 1
+        },
+        {
+          "row": 40,
+          "word": 2
+        },
+        {
+          "row": 40,
+          "word": 3
+        },
+        {
+          "row": 40,
+          "word": 4
+        },
+        {
+          "row": 41,
+          "word": 1
+        },
+        {
+          "row": 41,
+          "word": 2
+        },
+        {
+          "row": 41,
+          "word": 3
+        },
+        {
+          "row": 41,
+          "word": 4
+        },
+        {
+          "row": 42,
+          "word": 1
+        },
+        {
+          "row": 42,
+          "word": 2
+        },
+        {
+          "row": 42,
+          "word": 3
+        }
+      ],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_f448c11fadab.wav",
+      "rows": 29,
+      "duration": 150.53496598639455,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 3,
+          "word": 2
+        },
+        {
+          "row": 7,
+          "word": 1
+        },
+        {
+          "row": 11,
+          "word": 1
+        },
+        {
+          "row": 16,
+          "word": 2
+        },
+        {
+          "row": 25,
+          "word": 2
+        }
+      ],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_0ab38a51d437.wav",
+      "rows": 30,
+      "duration": 323.0592290249433,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 11,
+          "word": 3
+        },
+        {
+          "row": 12,
+          "word": 3
+        },
+        {
+          "row": 12,
+          "word": 7
+        }
+      ],
+      "estimated_words": [
+        {
+          "row": 30,
+          "word": 6
+        },
+        {
+          "row": 30,
+          "word": 7
+        }
+      ],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Vocals_67a5c65d3ee3.wav",
+      "rows": 29,
+      "duration": 183.0661224489796,
+      "status": "ready",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "AtlasStudio_Instrumental_67a5c65d3ee3.wav",
+      "rows": 29,
+      "duration": 183.0661224489796,
+      "status": "needs_review",
+      "missing_words": [],
+      "review_words": [
+        {
+          "row": 6,
+          "word": 3
+        },
+        {
+          "row": 7,
+          "word": 3
+        },
+        {
+          "row": 13,
+          "word": 4
+        },
+        {
+          "row": 21,
+          "word": 4
+        },
+        {
+          "row": 25,
+          "word": 4
+        },
+        {
+          "row": 27,
+          "word": 3
+        },
+        {
+          "row": 29,
+          "word": 3
+        }
+      ],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "ClearLive_20261014_SILME_TESTI_Vocals.wav",
+      "rows": 0,
+      "duration": 8.0,
+      "status": "ready",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    },
+    {
+      "file_name": "ClearLive_20261014_KORUNAN_TEST_Vocals.wav",
+      "rows": 2,
+      "duration": 8.0,
+      "status": "ready",
+      "missing_words": [],
+      "review_words": [],
+      "estimated_words": [],
+      "structural_errors": [],
+      "render_errors": [],
+      "accuracy_guaranteed": false
+    }
+  ],
+  "summary": {
+    "ready": 5,
+    "estimated": 7,
+    "needs_review": 16,
+    "audio_unavailable": 0,
+    "audit_error": 0
+  }
+}

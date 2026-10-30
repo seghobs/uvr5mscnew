@@ -197,6 +197,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
   const [saveError, setSaveError] = useState('');
   const activeSavesRef = useRef(0);
+  const lyricRevisionsRef = useRef<Record<string,string>>({});
+  const [saveConflict,setSaveConflict] = useState(false);
+  const [hasProtectedDraft,setHasProtectedDraft] = useState(false);
   const activeSourceRef = useRef(vocalStem || instStem);
   activeSourceRef.current = vocalStem || instStem;
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -553,14 +556,23 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     setLyricsProgress('Kayıtlı sözler kontrol ediliyor...');
     void (async()=>{
       try{
-        let draft:{segments:LyricSegment[];modifiedAt?:number}|null=null;
+        let draft:{segments:LyricSegment[];modifiedAt?:number;baseRevision?:string}|null=null;
         try{draft=JSON.parse(projectStorage.getItem('uvr-lyrics-draft:'+sourceFile)||'null');}catch{}
+        await enqueueLyricsSave(()=>Promise.resolve());
         const saved=await api.getSavedLyrics(sourceFile).catch(error=>{if(error.status===404)return null;throw error;});
         const useDraft=preferLyricDraft(draft,saved);
         const res=useDraft&&draft
           ? {status:'success',cached:true,segments:draft.segments} as Awaited<ReturnType<typeof api.getSavedLyrics>>
           : saved??{status:'success',segments:[],updated_at:undefined};
         if(requestId!==lyricsRequestRef.current)return;
+        lyricRevisionsRef.current[sourceFile]=saved?.revision||'0';
+        setSaveConflict(false);
+        if(draft&&!useDraft){
+          projectStorage.setItem('uvr-lyrics-conflict:'+sourceFile+':'+Date.now(),JSON.stringify(draft));
+          projectStorage.removeItem('uvr-lyrics-draft:'+sourceFile);
+          onNotify('warning','Eski taslak ayrı korundu','Güncel kayıt yüklendi. Farklı sürüme ait taslak kaydın üzerine uygulanmadı.');
+        }
+        setHasProtectedDraft(projectStorage.keys().some(key=>key.startsWith('uvr-lyrics-conflict:'+sourceFile+':')&&projectStorage.getItem(key)!==null));
         const syncedSegments=uppercaseLyrics(res.segments||[]).map(seg=>({...seg,words:reconcileWords(seg.words||[],seg.text,seg.start)}));
         loadSegments(syncedSegments);
         if(useDraft)onNotify('info','Bekleyen düzenlemeler geri yüklendi');
@@ -841,7 +853,12 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     activeSavesRef.current++;
     setIsSavingDb(true);setLastSavedTime(null);setSaveError('');
     try {
-      await enqueueLyricsSave(() => api.saveLyrics(sourceFile, snapshot, language));
+      await enqueueLyricsSave(async () => {
+        const receipt=await api.saveLyrics(sourceFile,snapshot,language,lyricRevisionsRef.current[sourceFile]||'0');
+        lyricRevisionsRef.current[sourceFile]=receipt.revision||lyricRevisionsRef.current[sourceFile]||'0';
+        const key='uvr-lyrics-draft:'+sourceFile;
+        try{const draft=JSON.parse(projectStorage.getItem(key)||'null');if(draft){draft.baseRevision=lyricRevisionsRef.current[sourceFile];projectStorage.setItem(key,JSON.stringify(draft));}}catch{}
+      });
       const draftKey='uvr-lyrics-draft:'+sourceFile;
       try{const draft=JSON.parse(projectStorage.getItem(draftKey)||'null');if(draft&&JSON.stringify(draft.segments)===JSON.stringify(snapshot))projectStorage.removeItem(draftKey);}catch{}
       await flushProjects();
@@ -850,8 +867,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
         if (notifyUser) onNotify('success', 'Proje kaydedildi', 'Sözler, kelime zamanları ve proje ayarları diske kaydedildi.');
       }
     } catch (err) {
-      if(activeSourceRef.current === sourceFile){setLastSavedTime(null);setSaveError('Kaydedilemedi · Tekrar dene');}
-      onNotify('warning', 'Kaydedilemedi', 'Son düzenleme kaydedilemedi. Yeniden kaydetmeyi deneyin.');
+      const conflict=[409,428].includes((err as {status?:number}).status||0);
+      if(activeSourceRef.current === sourceFile){setLastSavedTime(null);setSaveConflict(conflict);setSaveError(conflict?'Yeni kayıt korundu · Sürüm çakışması':'Kaydedilemedi · Tekrar dene');}
+      onNotify('warning',conflict?'Yeni kaydın üzerine yazılmadı':'Kaydedilemedi',conflict?'Düzenlemeleriniz taslakta duruyor. Güncel kaydı yükleyebilirsiniz.':'Son düzenleme kaydedilemedi. Yeniden kaydetmeyi deneyin.');
       throw err;
     } finally { activeSavesRef.current--;setIsSavingDb(activeSavesRef.current > 0); }
   };
@@ -867,7 +885,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
   const triggerAutoSave = (newSegments: LyricSegment[], immediate = false) => {
     newSegments=protectLockedRows(committedSegments.current,newSegments);
     setLastSavedTime(null);setSaveError('');
-    projectStorage.setItem('uvr-lyrics-draft:'+(vocalStem||instStem),JSON.stringify({segments:newSegments,language:selectedLyricsLang,modifiedAt:Date.now()}));
+    projectStorage.setItem('uvr-lyrics-draft:'+(vocalStem||instStem),JSON.stringify({segments:newSegments,language:selectedLyricsLang,modifiedAt:Date.now(),baseRevision:lyricRevisionsRef.current[vocalStem||instStem]||'0'}));
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     pendingSaveRef.current = { file: vocalStem || instStem, segments: structuredClone(newSegments), language: selectedLyricsLang };
     // Keep side effects outside React's state updater; the snapshot is the NEW value.
@@ -894,6 +912,39 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     else await enqueueLyricsSave(()=>Promise.resolve());
     await flushProjects();
   };
+  const reloadCurrentLyrics = async () => {
+    const file=vocalStem||instStem;
+    const requestId=++lyricsRequestRef.current;
+    if(saveTimeoutRef.current)clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current=null;pendingSaveRef.current=null;
+    try{
+      await enqueueLyricsSave(()=>Promise.resolve());
+      const latest=await api.getSavedLyrics(file);
+      if(requestId!==lyricsRequestRef.current||activeSourceRef.current!==file)return;
+      const key='uvr-lyrics-draft:'+file;
+      const draft=projectStorage.getItem(key);
+      if(draft)projectStorage.setItem('uvr-lyrics-conflict:'+file+':'+Date.now(),draft);
+      if(draft)setHasProtectedDraft(true);
+      projectStorage.removeItem(key);
+      await flushProjects();
+      if(requestId!==lyricsRequestRef.current||activeSourceRef.current!==file)return;
+      lyricRevisionsRef.current[file]=latest.revision||'0';
+      loadSegments(latest.segments);setSaveConflict(false);setSaveError('');setLastSavedTime('Kayıtlı');
+      onNotify('success','Güncel kayıt yüklendi','Önceki düzenleme ayrı taslak olarak korundu.');
+    }catch(error){onNotify('warning','Güncel kayıt yüklenemedi',(error as Error).message);}
+  };
+  const downloadProtectedDraft = () => {
+    const file=vocalStem||instStem;
+    const keys=projectStorage.keys().filter(key=>key.startsWith('uvr-lyrics-conflict:'+file+':')&&projectStorage.getItem(key)!==null).sort();
+    const raw=(saveConflict?projectStorage.getItem('uvr-lyrics-draft:'+file):null)||projectStorage.getItem(keys.at(-1)||'');
+    try{
+      const draft=JSON.parse(raw||'null');
+      if(!draft||!Array.isArray(draft.segments))throw Error('Korunan taslak bulunamadı.');
+      const url=URL.createObjectURL(new Blob([serializeProject(draft.segments,{source_file:file})],{type:'application/json'}));
+      const link=document.createElement('a');link.href=url;link.download=file.replace(/\.[^.]+$/,'')+'_korunan_taslak.json';
+      document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+    }catch(error){onNotify('warning','Taslak indirilemedi',(error as Error).message);}
+  };
   useEffect(()=>{if(!isOpen)return;return registerProjectFlusher(()=>flushCurrentProject());},[vocalStem,instStem,isOpen,selectedLyricsLang]);
   useEffect(()=>{
     if(!isOpen)return;
@@ -916,6 +967,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     targetLang = selectedLyricsLang
   ) => {
     const requestId = ++lyricsRequestRef.current;
+    const editorSnapshot=JSON.stringify(segmentsRef.current);
     setLoadingLyrics(true);
     setLyricsProgress('Vokal ve sözler kontrol ediliyor...');
     setLyricsProgressPercent(0);
@@ -926,18 +978,15 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     flushPendingSave();
     await enqueueLyricsSave(() => Promise.resolve());
     try {
-      let pending:{segments:LyricSegment[]}|null=null;
-      if(!force){try{pending=JSON.parse(projectStorage.getItem('uvr-lyrics-draft:'+sourceFile)||'null');}catch{}}
-      const res = pending?.segments?.length
-        ? {status:'success',cached:true,segments:pending.segments} as Awaited<ReturnType<typeof api.transcribeLyrics>>
-        : await api.transcribeLyrics(sourceFile,targetLang,force,targetModel,rawLyrics,status=>{
+      const res = await api.transcribeLyrics(sourceFile,targetLang,force,targetModel,rawLyrics,status=>{
             setLyricsProgress(status.message);
             setLyricsProgressPercent(status.progress);
             setLyricsQueue({position:status.queuePosition,total:status.queueTotal,ahead:status.queueAhead,remaining:status.queueRemaining});
             if(status.segments?.length)setLiveLyricsSegments(uppercaseLyrics(status.segments));
           });
-      if(pending?.segments?.length)onNotify('info','Bekleyen düzenlemeler geri yüklendi');
       if (requestId !== lyricsRequestRef.current) return;
+      if(JSON.stringify(segmentsRef.current)!==editorSnapshot)throw Error('Analiz sırasında düzenlemeler değişti. Yeni düzenlemeniz korundu; sonucu uygulamak için güncel kaydı yükleyin.');
+      if(res.revision!==undefined)lyricRevisionsRef.current[sourceFile]=res.revision;
       if (res.segments && res.segments.length > 0) {
         const syncedSegments = uppercaseLyrics(res.segments).map(seg => ({...seg, words:reconcileWords(seg.words || [],seg.text,seg.start)}));
         loadSegments(syncedSegments);
@@ -993,8 +1042,11 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       validateSuppliedResult(snapshot,result.segments);
       loadSegments(result.segments);triggerAutoSave(result.segments);setBulkBindingProblems([]);setActiveTab('lyrics');
       const report=result.alignment_report;
-      onNotify(report.review_rows.length||report.repeat_review_candidates?.length?'warning':'success','Otomatik senkron ve bağlama',
-        `${report.target_words?`${report.linked_words}/${report.target_words} kelime bağlı.`:'Mevcut doğrulanmış kelime bağlantıları korundu.'} ${report.repeated_rows_added||0} sesle doğrulanmış tekrar satırı eklendi. ${report.terminal_repeats_added?`${report.terminal_repeats_added} kesilmiş dönüşün tamamlanan ifadesi eklendi; duyulmayan devamı eklenmedi. `:''}${report.solo_count||0} müzik aralığına SOLO etiketi yerleştirildi. ${report.review_rows.length} satır dinleme kontrolü bekliyor. ${report.repeat_review_candidates?.length?`${report.repeat_review_candidates.length} kesilmiş dönüş otomatik eklenmedi; dinleyerek kontrol edin. `:''}Tekrar taraması tüm dönüşleri bulmayı garanti etmez.`);
+      const coverage=report.quality?.audit_coverage;
+      onNotify(coverage?.complete===false?'warning':'info','Kelime ve hece denetimi',
+        `${report.phrase_audited_words||0} kelimede model uzlaşması, ${report.automatic_syllables||0} ölçülmüş hece aralığı. ${coverage?.complete===false?'Bütün kelimeler çapraz doğrulanamadı; tamamlandı bilgisi yüzde 100 doğruluk anlamına gelmez.':'Model uzlaşması insan doğrulaması değildir.'}`);
+      onNotify(report.review_rows.length||report.repeat_review_candidates?.length||report.refinement_warnings?.length||report.quality?.audit_coverage?.complete===false?'warning':'success','Otomatik senkron ve bağlama',
+        `${report.target_words?`${report.linked_words}/${report.target_words} kelime bağlı.`:'Mevcut doğrulanmış kelime bağlantıları korundu.'} ${report.repeated_rows_added||0} sesle doğrulanmış tekrar satırı eklendi. ${report.terminal_repeats_added?`${report.terminal_repeats_added} kesilmiş dönüşün tamamlanan ifadesi eklendi; duyulmayan devamı eklenmedi. `:''}${report.solo_count||0} müzik aralığına SOLO etiketi yerleştirildi. ${report.review_rows.length} satır dinleme kontrolü bekliyor. ${report.refinement_warnings?.length?`${report.refinement_warnings.length} ek kontrol tamamlanamadı; önceki güvenli sonuç korundu. `:''}${report.quality?.estimated_words.length?`${report.quality.estimated_words.length} kelimenin süresi tahmini. `:''}${report.repeat_review_candidates?.length?`${report.repeat_review_candidates.length} kesilmiş dönüş otomatik eklenmedi; dinleyerek kontrol edin. `:''}Tekrar taraması tüm dönüşleri bulmayı garanti etmez.`);
     }catch(error){if(requestId===lyricsRequestRef.current){setAlignmentError((error as Error).message);onNotify('warning','Senkron tamamlanamadı',(error as Error).message);}}
     finally{if(requestId===lyricsRequestRef.current)setLoadingLyrics(false);}
   };
@@ -1009,7 +1061,10 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
     setIsLiveSyncMode(false);setIsSpacePressed(false);wordRequestRef.current++;
     try{
       flushPendingSave();await enqueueLyricsSave(()=>Promise.resolve());
-      await enqueueLyricsSave(()=>api.saveLyrics(file,[],selectedLyricsLang));
+      await enqueueLyricsSave(async()=>{
+        const receipt=await api.saveLyrics(file,[],selectedLyricsLang,lyricRevisionsRef.current[file]||'0');
+        lyricRevisionsRef.current[file]=receipt.revision||'0';
+      });
       projectStorage.removeItem('uvr-lyrics-draft:'+file);
       projectStorage.removeItem('uvr-history:'+file);
       const prefixes=['uvr-passages-v2:','uvr-passages-v3:'].map(prefix=>prefix+file+':');
@@ -1658,6 +1713,8 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
       flushPendingSave();await saveToDatabase(snapshot,false);
       const result=await api.reviewLyricsAI(vocalStem||instStem,snapshot,setLyricsProgress);
       if(requestId!==lyricsRequestRef.current)return;
+      if(JSON.stringify(segmentsRef.current)!==JSON.stringify(snapshot))throw Error('İnceleme sırasında düzenlemeler değişti; yeni düzenlemeniz taslakta korundu.');
+      if(result.revision!==undefined)lyricRevisionsRef.current[vocalStem||instStem]=result.revision;
       loadSegments(result.segments);
       onNotify('success','AI incelemesi tamamlandı',`${result.ai_report.checked} satır incelendi, ${result.ai_report.changed} satır düzeltildi. Sesle doğrulanamayan ${result.ai_report.rejected} öneri uygulanmadı.`);
     }catch(error){onNotify('error','AI düzeltmesi uygulanamadı',error instanceof Error?error.message:'Mevcut sözler korundu.');}
@@ -3067,7 +3124,9 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
             <span className="font-semibold text-slate-200">{segments.length} satır</span>
             <button disabled={!history.current.past.length||isLiveSyncMode} onClick={()=>restoreEdit('undo')} className="ml-3 disabled:opacity-30">Geri al</button>
             <button disabled={!history.current.future.length||isLiveSyncMode} onClick={()=>restoreEdit('redo')} className="ml-3 disabled:opacity-30">İleri al</button>
-            <button disabled={isSavingDb || loadingLyrics} onClick={() => {void saveCurrentProject(true).catch(() => {});}} className={cn('ml-3 hover:text-slate-200 disabled:opacity-60',saveError?'text-amber-200':'text-zinc-400')} title={lastSavedTime ? `Son kayıt: ${lastSavedTime}` : 'Sözleri ve proje ayarlarını diske kaydet'}>{isSavingDb ? 'Kaydediliyor…' : saveError || (lastSavedTime ? '✓ Kaydedildi' : 'Projeyi kaydet')}</button>
+            <button disabled={isSavingDb || loadingLyrics || saveConflict} onClick={() => {void saveCurrentProject(true).catch(() => {});}} className={cn('ml-3 hover:text-slate-200 disabled:opacity-60',saveError?'text-amber-200':'text-zinc-400')} title={lastSavedTime ? `Son kayıt: ${lastSavedTime}` : 'Sözleri ve proje ayarlarını diske kaydet'}>{isSavingDb ? 'Kaydediliyor…' : saveError || (lastSavedTime ? '✓ Kaydedildi' : 'Projeyi kaydet')}</button>
+            {saveConflict&&<button disabled={isSavingDb||loadingLyrics} className="ml-3 text-amber-200 underline" onClick={()=>void reloadCurrentLyrics()}>Güncel kaydı yükle</button>}
+            {(saveConflict||hasProtectedDraft)&&<button className="ml-3 text-amber-200 underline" onClick={downloadProtectedDraft}>Korunan taslağı indir</button>}
           </div>
 
           <div className="flex items-center gap-3">
@@ -3123,6 +3182,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           // snapshot can be byte-wise stale by the time Apply is clicked. Start the
           // protected alignment from the authoritative just-saved DB snapshot.
           const latest=await api.getSavedLyrics(vocalStem || instStem);
+          if(latest.revision!==lyricRevisionsRef.current[vocalStem||instStem])throw Error('Daha yeni bir kayıt var; güncel kaydı yükleyip yeniden karşılaştırın.');
           const latestSegments=latest.segments||[];
           if(latestSegments.length!==snapshot.length)throw new Error('Satır sayısı değişti; sözleri yeniden karşılaştırın.');
           const remappedEdits:Record<number,string>={};
@@ -3135,6 +3195,7 @@ export const KaraokeStudioModal: React.FC<KaraokeStudioModalProps> = ({
           }
           const result = await api.referenceRequest('apply', {file_name: vocalStem || instStem, segments: latestSegments, edits: remappedEdits, language: selectedLyricsLang, model_name: whisperModel});
           if (requestId !== lyricsRequestRef.current) return;
+          if(result.revision!==undefined)lyricRevisionsRef.current[vocalStem||instStem]=result.revision;
           setSegments(result.segments);
           setLastSavedTime(new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
           onNotify('success', 'Sözler düzeltildi', 'Seçilen satırlar sesle hizalandı. Diğer satırların zamanları korundu.');

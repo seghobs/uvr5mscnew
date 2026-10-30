@@ -158,7 +158,17 @@ def ass_word_tags(segment):
         # Explicit empty karaoke syllables preserve initial and inter-word silence.
         if start > cursor:
             tags.append(f"{{\\k{start - cursor}}}\\h")
-        tags.append(f"{{\\kf{end - start}}}{escape_ass(word['word'].strip())}")
+        from karaoke_syllable_timing import syllable_pieces
+        parts=syllable_pieces(word)
+        if parts:
+            position=start
+            for part in parts:
+                a,b=centiseconds(part['start']),centiseconds(part['end'])
+                if a>position:tags.append(f"{{\\k{a-position}}}\\h")
+                tags.append(f"{{\\kf{b-a}}}{escape_ass(part['text'])}")
+                position=b
+            if end>position:tags.append(f"{{\\k{end-position}}}\\h")
+        else:tags.append(f"{{\\kf{end - start}}}{escape_ass(word['word'].strip())}")
         if i < len(segment["words"]) - 1:
             tags.append(" ")
         cursor = end

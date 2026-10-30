@@ -15,6 +15,8 @@ class ProjectStore:
 
     @staticmethod
     def identity(key):
+        if key.startswith('uvr-lyrics-conflict:'):
+            return key[len('uvr-lyrics-conflict:'):].rsplit(':',1)[0]
         if key.startswith('uvr-passages-v3:'):
             return key[len('uvr-passages-v3:'):].rsplit(':',1)[0]
         if key.startswith('uvr-passages-v2:'):

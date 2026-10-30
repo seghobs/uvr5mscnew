@@ -19,9 +19,14 @@ def token_key(text):
 
 def measured(word):
     probability = word.get('probability')
+    proof=word.get('timing_reference') or {}
+    if proof.get('method')=='vocal_sustain_endpoint':proof=proof.get('previous_reference') or {}
+    corroborated=(proof.get('acoustically_verified') is True and (
+        proof.get('method')=='recognition_supported_ctc_consensus'
+        and len(proof.get('phonetic_evidence') or [])>=2 and len(proof.get('lexical_evidence') or [])>=1))
     return (confirmed(word) and word['end'] - word['start'] <= 3 and
             (word.get('timing_source') == 'manual' or
-             isinstance(probability, (int, float)) and math.isfinite(probability) and probability >= .5))
+             corroborated or isinstance(probability, (int, float)) and math.isfinite(probability) and probability >= .5))
 
 
 def pace(words):
@@ -210,7 +215,10 @@ def infer_repeated_runs(rows, duration, energy):
             if not runs or wi!=runs[-1][-1]+1:runs.append([])
             runs[-1].append(wi)
         for run in runs:
-            if len(run)==1 and not words[run[0]]['end']>words[run[0]]['start']:continue
+            if len(run)==1 and not words[run[0]]['end']>words[run[0]]['start']:
+                # A genuinely missing single word needs a fully timed phrase;
+                # another placeholder (especially a manual edit) is no anchor.
+                if any(w['end']<=w['start'] for j,w in enumerate(words) if j not in run):continue
             anchors=[i for i,w in enumerate(words) if measured(w)]
             if len(anchors)<3:continue
             lower=max([0.]+[r['end'] for r in snapshot[:ri]]+
@@ -231,9 +239,40 @@ def infer_repeated_runs(rows, duration, energy):
                 offset=statistics.median(b-scale*a for a,b in pairs)
                 if not .85<=scale<=1.15 or max(abs(b-(scale*a+offset)) for a,b in pairs)>.18:continue
                 spans=[(scale*rw[i]['start']+offset,scale*rw[i]['end']+offset) for i in run]
+                # These are estimates from 20 ms acoustic frames. A small
+                # anchor residue may translate the whole run inside its gap;
+                # preserve donor durations, never squeeze or split the words.
+                shift=max(0.,lower-spans[0][0])
+                if shift>.06:continue
+                if shift:spans=[(a+shift,b+shift) for a,b in spans]
+                shift=max(0.,spans[-1][1]-upper)
+                if shift>.06:continue
+                if shift:spans=[(a-shift,b-shift) for a,b in spans]
                 if not all(lower<=a<b<=upper and .04<=b-a<=3 for a,b in spans):continue
                 proposals.append(spans);donors.append(reference.get('id') or f'row:{di+1}')
             if len(proposals)<2:continue
+            # Different performances may stretch a question vowel differently.
+            # Require two agreeing measured donors, rather than averaging an
+            # unrelated outlier into an otherwise consistent phrase placement.
+            groups=[]
+            for seed in range(len(proposals)):
+                group=[seed]
+                for other in range(len(proposals)):
+                    if other==seed:continue
+                    trial=group+[other]
+                    if all(max(proposals[k][j][0] for k in trial)-min(proposals[k][j][0] for k in trial)<=.20
+                           and max(proposals[k][j][1] for k in trial)-min(proposals[k][j][1] for k in trial)<=.25
+                           for j in range(len(run))):group.append(other)
+                if len(group)>=2:groups.append(group)
+            if not groups:continue
+            original=words[run[0]];reference=original.get('timing_reference') or {}
+            a,b=reference.get('previous_start',original['start']),reference.get('previous_end',original['end'])
+            centre=(a+b)/2 if all(isinstance(x,(int,float)) and math.isfinite(x) for x in (a,b)) and b>a else None
+            def rank(group):
+                position=statistics.median((proposals[k][0][0]+proposals[k][0][1])/2 for k in group)
+                return len(group),-abs(position-centre) if centre is not None else 0
+            chosen=max(groups,key=rank)
+            proposals=[proposals[k] for k in chosen];donors=[donors[k] for k in chosen]
             planned=[]
             for j,wi in enumerate(run):
                 starts=[p[j][0] for p in proposals];ends=[p[j][1] for p in proposals]

@@ -1,0 +1,50 @@
+{
+  "test_kind": "general_recovery_from_raw_occurrences_no_curated_song_timings",
+  "reference_kind": "acoustic_consensus",
+  "human_accuracy_measured": false,
+  "accuracy_guaranteed": false,
+  "recording": "AtlasStudio_Vocals_0e450a0a9820.wav",
+  "initial_editor_warnings": 36,
+  "initial_targets": 39,
+  "strict_model_repairs": 28,
+  "acoustic_word_repeat_repairs": 9,
+  "phrase_contrast_dtw_repairs": 2,
+  "remaining_reviews": 0,
+  "remaining_missing_words": 0,
+  "word_tokens": 99,
+  "measured_punctuation_tokens": 3,
+  "render_errors": [],
+  "structural_errors": [],
+  "saved_record_unchanged": true,
+  "additional_recordings": [
+    {
+      "recording": "AtlasStudio_Vocals_f8b6bb73c94d.wav",
+      "test_kind": "controlled_40ms_perturbation_of_three_existing_machine_words",
+      "selected_words": 3,
+      "remaining_selected_reviews": 0,
+      "rollback": {},
+      "render_errors": [],
+      "seconds": 24.97,
+      "saved_record_unchanged": true,
+      "human_accuracy_measured": false
+    },
+    {
+      "recording": "AtlasStudio_Vocals_35c859ddc0d7.wav",
+      "test_kind": "controlled_40ms_perturbation_of_three_existing_machine_words",
+      "selected_words": 3,
+      "remaining_selected_reviews": 0,
+      "rollback": {},
+      "render_errors": [],
+      "seconds": 38.5,
+      "saved_record_unchanged": true,
+      "human_accuracy_measured": false
+    },
+    {
+      "test_kind": "known_instrumental_negative_control",
+      "words": 4,
+      "remaining_reviews": 4,
+      "rollback": {},
+      "human_accuracy_measured": false
+    }
+  ]
+}

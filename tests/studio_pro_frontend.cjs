@@ -11,7 +11,7 @@ const context={studioPro,atlasStudio,ensembleMode:true,params:{ensemble_profile:
  onToggleEnsembleMode:()=>{},onChangeEnsembleSlots:s=>slots=s,onChangeParams:p=>params=p,onChangeOutputFormat:f=>format=f,onNotify:(...n)=>notification=n};
 vm.createContext(context);vm.runInContext(ts.transpile('globalThis.applyPreset='+handler,{target:ts.ScriptTarget.ES2020}),context);
 context.applyPreset('studio_pro');
-assert.equal(slots.length,4);assert.equal(params.ensemble_profile,'studio_pro');assert.equal(format,'flac');
+assert.equal(slots.length,4);assert.equal(params.ensemble_profile,'studio_pro');assert.equal(format,'wav');
 context.applyPreset('atlas_studio');
 assert.equal(slots.length,3);assert.equal(params.ensemble_profile,'atlas_studio');assert.equal(format,'wav');
 assert.equal(params.overlap,8);assert.equal(params.amplification_threshold,0);

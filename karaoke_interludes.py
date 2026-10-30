@@ -62,6 +62,7 @@ def music_evidence(vocal_path,instrumental_path=None):
 
 def place_interludes(rows,duration,voice_regions,music_regions,evidence_available=True):
     from karaoke_supplied_alignment import instrumental
+    from karaoke_ctc import has_timed_row
     rows=[r for r in rows if not generated(r)]
     if not evidence_available:
         return rows,{'solo_intervals':[],'solo_count':0,'unplaced_solo_ids':[],
@@ -79,6 +80,10 @@ def place_interludes(rows,duration,voice_regions,music_regions,evidence_availabl
         originals=labels.pop(slot,[])
         # A locked interlude already owns its interval; no second label beside it.
         eligible=not ((left and instrumental(left)) or (right and instrumental(right)))
+        # A rejected lyric placeholder has 0/0 times. It cannot turn this local
+        # gap into an interval starting at the beginning of the whole song.
+        # Keep ambiguous gaps uncaptained until their sung rows are located.
+        eligible=eligible and (left is None or has_timed_row(left)) and (right is None or has_timed_row(right))
         windows=[]
         if evidence_available and eligible and end>start:
             for ma,mb in music_regions:

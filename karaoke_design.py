@@ -185,10 +185,23 @@ def soft_word_events(segment, display_end, width, height, baseline, font_size, t
     # All layers draw ONE centered line. Glyph spacing is owned by libass,
     # never by a separately positioned dialogue for each individual word.
     events.append(f'Dialogue: 1,{row_start},{row_end},Active,,0,0,0,,{{{pos}\\1c&HC6B9B4&}}{label}')
+    from karaoke_syllable_timing import syllable_pieces
+    units=[]
     for index,(word,piece,length) in enumerate(zip(words,pieces,lengths)):
         if geometry:x=geometry['boxes'][index][0]
         right=x+font.getlength(word['word'])*metric_scale*scale
         if geometry:right=geometry['boxes'][index][1]
+        parts=syllable_pieces(word)
+        if parts:
+            prefix='';text_width=max(font.getlength(word['word']),1e-9)
+            for part in parts:
+                left=x+(right-x)*font.getlength(prefix)/text_width
+                prefix+=part['text']
+                edge=x+(right-x)*font.getlength(prefix)/text_width
+                units.append(({**word,'word':part['text'],'start':part['start'],'end':part['end']},left,edge))
+        else:units.append((word,x,right))
+        x+=length*scale
+    for word,x,right in units:
         start,end=word['start'],word['end']
         if end>start and word.get('timing_source')!='estimated':
             duration=max(1,round((end-start)*1000));half=max(1,round(duration/2))
@@ -208,7 +221,6 @@ def soft_word_events(segment, display_end, width, height, baseline, font_size, t
                 events.append(f'Dialogue: 2,{ass_time(start)},{ass_time(min(end,display_end))},Active,,0,0,0,,{{{pos}\\1c&H{color}&\\t(0,{duration},\\1c&H{settled}&)\\alpha&H{alpha:02X}&{initial}\\t(0,{half},{midway})\\t({half},{duration},{final})}}{label}')
             if display_end>end:
                 events.append(f'Dialogue: 2,{ass_time(end)},{row_end},Active,,0,0,0,,{{{pos}\\1c&H{settled}&\\clip({round(x)},0,{round(right)},{height})}}{label}')
-        x+=length*scale
     events=row_gradient_layers(events,baseline,font_size,width,height,motion,theme,geometry)
     if motion:
         # Every overlay uses offsets from its own event start to the SAME

@@ -1,0 +1,49 @@
+{
+  "test_kind": "fixed_13_word_human_boundary_reference_same_oracle_sentence_windows_same_80ms_tolerance",
+  "recording": "HILA_-_Give_Me_the_Same",
+  "before": {
+    "reference_kind": "human_verified",
+    "human_accuracy_measured": true,
+    "accuracy_guaranteed": false,
+    "reference_words": 13,
+    "matched_words": 13,
+    "missing_words": [],
+    "wrong_words": [],
+    "extra_words": [],
+    "onset_mae_seconds": 0.03544669772428331,
+    "offset_mae_seconds": 0.060410268164376044,
+    "boundary_p95_seconds": 0.13960519113168957,
+    "tolerance_seconds": 0.08,
+    "words_within_tolerance": 10,
+    "within_tolerance_fraction": 0.7692307692307693
+  },
+  "after": {
+    "reference_kind": "human_verified",
+    "human_accuracy_measured": true,
+    "accuracy_guaranteed": false,
+    "reference_words": 13,
+    "matched_words": 13,
+    "missing_words": [],
+    "wrong_words": [],
+    "extra_words": [],
+    "onset_mae_seconds": 0.03335877432184676,
+    "offset_mae_seconds": 0.061466669834448866,
+    "boundary_p95_seconds": 0.13960519113168957,
+    "tolerance_seconds": 0.08,
+    "words_within_tolerance": 10,
+    "within_tolerance_fraction": 0.7692307692307693
+  },
+  "rollback": {},
+  "automatic": {
+    "automatic_recovery_enabled": true,
+    "automatic_recovery_strict_words": 2,
+    "automatic_recovery_repeat_words": 0,
+    "automatic_recovery_phrase_words": 0,
+    "automatic_recovery_errors": [],
+    "automatic_recovery_skipped_models": [],
+    "automatic_recovery_initial_words": 11,
+    "automatic_recovery_remaining_words": 9,
+    "automatic_recovery_acoustic_comparisons": 25,
+    "automatic_recovery_comparison_budget_exhausted": false
+  }
+}

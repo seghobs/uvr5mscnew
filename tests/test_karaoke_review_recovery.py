@@ -89,6 +89,15 @@ class RepeatEvidenceTests(unittest.TestCase):
         with patch('librosa.feature.mfcc',return_value=np.zeros((16,10))):
             self.assertIsNone(repeat_features(self.wave(),16000))
 
+    def test_short_silent_frames_keep_their_duration_without_nan(self):
+        features=np.ones((16,10));features[:,2:4]=0
+        with patch('librosa.feature.mfcc',return_value=features):
+            actual=repeat_features(self.wave(),16000)
+        self.assertEqual(actual.shape,(15,10))
+        self.assertTrue(np.isfinite(actual).all())
+        np.testing.assert_allclose(np.linalg.norm(actual,axis=0),1)
+        np.testing.assert_array_equal(actual[-1],[0,0,1,1,0,0,0,0,0,0])
+
     def test_parameter_error_is_isolated_and_later_references_are_used(self):
         from librosa.util.exceptions import ParameterError
         audio=np.tile(self.wave(),4);cache={}

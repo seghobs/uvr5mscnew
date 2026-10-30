@@ -7,6 +7,16 @@ from karaoke_timing import render_windows,solo_windows
 
 
 class InterludeTests(unittest.TestCase):
+    def test_unbound_lyric_cannot_duplicate_an_earlier_interlude(self):
+        rows=[{'id':'verse','text':'SÖZLER','start':70.,'end':82.},
+              {'id':'spoken','text':'ÇOCUĞUM','start':162.,'end':163.79},
+              {'id':'unbound','text':'HA','start':0.,'end':0.,'words':[]},
+              {'id':'next','text':'DEVAM','start':164.94,'end':169.}]
+        result,_=place_interludes(rows,175.,[],[(82.488,109.304)])
+        captions=[r for r in result if generated(r)]
+        self.assertEqual([(r['start'],r['end']) for r in captions],[(82.488,109.304)])
+        self.assertEqual([r for r in result if not generated(r)],rows)
+
     def setUp(self):
         self.rows=[{'id':'one','text':'İLK KITA','start':10,'end':20},
                    {'id':'two','text':'İKİNCİ KITA','start':40,'end':50}]

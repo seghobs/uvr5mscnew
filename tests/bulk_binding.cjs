@@ -11,7 +11,7 @@ async function check(abortSecond){
   setBulkBindingStatus(){},setBulkBindingProblems(){},setSegments(){},onNotify(){},
   triggerAutoSave(rows){saved.push(rows)},projectStorage:{getItem(){return null}},poolKey(){return ''},passagePool(){return []},
   validRange:(a,b)=>b>a,bindAllRows:()=>({segments:[...rows],count:0,problems:[]}),
-  fullyBound:()=>false,
+  fullyBound:()=>false,prepareBindingRows:rows=>rows,isInstrumentalRow:row=>/^SOLO/i.test(row.text),
   smartBindRow:async(rows,index,duration,analyze)=>{await analyze(rows[index]);return {segment:{...rows[index],words:[{word:rows[index].text,start:rows[index].start,end:rows[index].end}]},complete:true,attempts:1};},
   bindDetectedWords:(row)=>({...row,words:[{word:row.text,start:row.start,end:row.end}]}),
   fetch:async()=>{calls++;if(calls===2){assert.equal(saved.length,1,'first row must be saved before second request');if(abortSecond)return {status:409,ok:false,json:async()=>({detail:'busy'})};}return {status:200,ok:true,json:async()=>({word_times:[]})};}

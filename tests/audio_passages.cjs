@@ -1,8 +1,10 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const ts=require('../frontend/node_modules/typescript');
-function load(path,customRequire=require){const context={exports:{},require:customRequire};vm.createContext(context);vm.runInContext(ts.transpile(fs.readFileSync(path,'utf8'),{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}),context);return context.exports;}
+function load(path,customRequire=require){const context={exports:{},require:id=>id==='./syllable-timing'?load('frontend/src/lib/syllable-timing.ts'):customRequire(id)};vm.createContext(context);vm.runInContext(ts.transpile(fs.readFileSync(path,'utf8'),{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}),context);return context.exports;}
 const timing=load('frontend/src/lib/karaoke-timing.ts');
 const lib=load('frontend/src/lib/audio-passages.ts',()=>timing);
+const syllableClips=lib.syllablePassages({start:1,end:4,text:'KARA',words:[{word:'KARA',start:1,end:4,timing_source:'ctc',syllables:[{text:'ka',start:1,end:1.2,score:.9},{text:'ra',start:2,end:4,score:.9}]}]});
+assert.equal(syllableClips.length,2);assert.equal(syllableClips[1].label,'RA');assert.equal(syllableClips[1].start,2);
 const lockedRow={locked:true,start:1,end:3,text:'KORU',words:[{word:'KORU',start:1,end:3,timing_source:'manual'}]};
 const lockedBulk=lib.bindAllRows([lockedRow],[[{id:'other',label:'YANLIŞ',start:5,end:8}]]);
 assert.equal(lockedBulk.count,0);assert.equal(lockedBulk.segments[0],lockedRow);

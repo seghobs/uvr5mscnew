@@ -1,0 +1,11 @@
+{
+  "checks": {
+    "stale_revision": 409,
+    "invalid_timing_part_nan": 422
+  },
+  "revision": "6",
+  "song_unchanged": true,
+  "exports_unchanged": true,
+  "existing_completed_song_warnings": 0,
+  "parts_schema_active": true
+}

@@ -1,0 +1,11 @@
+{
+  "python_tests_passed": 481,
+  "frontend_test_files_passed": 20,
+  "typecheck_passed": true,
+  "production_build_current": true,
+  "real_song_count": 3,
+  "audited_words": 29,
+  "flagged_disagreements": 4,
+  "automatic_syllables": 15,
+  "universal_accuracy_guaranteed": false
+}

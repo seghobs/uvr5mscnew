@@ -57,5 +57,8 @@ class SyllableTests(unittest.TestCase):
         self.assertAlmostEqual(word['syllables'][0]['end'],12.12)
         self.assertAlmostEqual(word['syllables'][1]['start'],12.16)
         self.assertNotIn('syllables',words_from_spans([{'word':text}],[text],spans,targets,.02,12)[0])
+        stale={'word':text,'syllables':[{'text':'OLD'}],'alignment_audit':{'status':'agrees'},'timing_reference':{'method':'old_model'}}
+        fresh=words_from_spans([stale],[text],spans,targets,.02,12)[0]
+        for field in ('syllables','alignment_audit','timing_reference'):self.assertNotIn(field,fresh)
 
 if __name__=='__main__': unittest.main()

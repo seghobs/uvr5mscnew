@@ -15,7 +15,7 @@ function simulate(statuses) {
   return { calls, process };
 }
 test('backend failure prevents production and browser startup', () => {
-  const result = simulate([0, 1]);
+  const result = simulate([0, 0, 0, 1]);
   assert.equal(result.process.exitCode, 1);
   assert.equal(result.calls.filter(c => c[0] === 'spawn').length, 0);
 });
@@ -30,13 +30,15 @@ test('owned server reused without another Next process', () => {
   assert.match(result.calls.at(-1)[2][0], /open-browser/);
 });
 test('backend ready before production and browser starts', () => {
-  const result = simulate([0, 0]);
+  const result = simulate([0, 0, 0, 0]);
   assert.equal(result.calls[0][3].windowsHide, false);
   assert.equal(result.calls[1][3].windowsHide, false);
-  assert.ok(result.calls[1][2].includes('--no-browser'));
-  assert.equal(result.calls[2][2][1], 'start');
-  assert.match(result.calls[3][2][0], /open-browser/);
-  assert.notEqual(result.calls[3][3].detached, true);
+  const backend=result.calls.findIndex(call=>call[2][0].includes('ensure-backend'));
+  const frontend=result.calls.findIndex(call=>call[2][1]==='start');
+  assert.ok(result.calls[backend][2].includes('--no-browser'));
+  assert.ok(backend<frontend);
+  assert.match(result.calls.at(-1)[2][0], /open-browser/);
+  assert.notEqual(result.calls.at(-1)[3].detached, true);
 });
 
 test('launcher uses one console and closes it after shutdown or reuse',()=>{

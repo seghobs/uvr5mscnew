@@ -12,7 +12,7 @@ export type ProjectArchive = LibraryItem & {
 function belongsToProject(key:string, stems:string[]):boolean {
   return stems.some(stem =>
     ['uvr-stem-settings:','uvr-history:','uvr-lyrics-draft:','uvr-video-heading:','uvr-video-cover:','uvr-alignment-language:'].some(prefix=>key===prefix+stem) ||
-    ['uvr-passages-v2:','uvr-passages-v3:'].some(prefix=>key.startsWith(prefix+stem+':')));
+    ['uvr-passages-v2:','uvr-passages-v3:','uvr-lyrics-conflict:'].some(prefix=>key.startsWith(prefix+stem+':')));
 }
 
 export async function exportProjectArchive(item:LibraryItem):Promise<ProjectArchive> {
@@ -45,7 +45,10 @@ export async function importProjectArchive(value:unknown):Promise<LibraryItem> {
   }
   for(const [key,entry] of Object.entries(values))if(!belongsToProject(key,archive.stems)||(entry!==null&&typeof entry!=='string'))throw Error('Proje dosyası başka bir projeye ait ayar içeriyor');
   await flushAllProjects();
-  for(const [file,saved] of Object.entries(lyrics))await api.saveLyrics(file,saved.segments,saved.language);
+  for(const [file,saved] of Object.entries(lyrics)){
+    const current=await api.getSavedLyrics(file).catch(error=>{if(error.status===404)return null;throw error;});
+    await api.saveLyrics(file,saved.segments,saved.language,current?.revision||'0');
+  }
   for(const [key,entry] of Object.entries(values)){
     if(entry===null)projectStorage.removeItem(key);else projectStorage.setItem(key,entry);
   }

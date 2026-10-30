@@ -36,5 +36,10 @@ function client(){
  assert.ok(!storage.has('uvr-history:large-song'));
  recovered.projectStorage.removeItem('uvr-history:song');await recovered.flushProjects();
  const reopened=client();await reopened.initializeProjects();assert.equal(reopened.projectStorage.getItem('uvr-history:song'),null);
+ reopened.projectStorage.setItem('uvr-lyrics-conflict:song:1234','{"segments":[],"baseRevision":"4"}');
+ await reopened.flushProjects();
+ const conflictReload=client();await conflictReload.initializeProjects();
+ assert.equal(JSON.parse(conflictReload.projectStorage.getItem('uvr-lyrics-conflict:song:1234')).baseRevision,'4');
+ assert.ok(!storage.has('uvr-lyrics-conflict:song:1234'),'conflict copy must live on disk, not only in browser storage');
  console.log('PASS newer in-flight edit, offline recovery, 6 MB project, deletion survives reload');
 })().catch(e=>{console.error(e);process.exitCode=1;});

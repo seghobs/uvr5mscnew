@@ -1,0 +1,33 @@
+{
+  "file": "AtlasStudio_Vocals_0e450a0a9820.wav",
+  "original_audio": "Dil Disoje.wav",
+  "original_sum_correlation": 0.9999999999999976,
+  "reference_kind": "acoustic_consensus",
+  "human_accuracy_measured": false,
+  "accuracy_guaranteed": false,
+  "revision_before": "4",
+  "revision_after": "5",
+  "original_supplied_rows_preserved": 16,
+  "saved_rows": 45,
+  "sung_rows": 34,
+  "sung_words": 102,
+  "linked_words": 102,
+  "missing_words": 0,
+  "before_editor_warnings": 33,
+  "after_editor_warnings": 0,
+  "estimated_words": 0,
+  "timing_sources": [
+    "ctc"
+  ],
+  "structural_errors": [],
+  "render_errors": [],
+  "punctuation_spacing_normalized": true,
+  "primary_multimodel_words": 90,
+  "acoustic_repeat_ctc_words": 10,
+  "phrase_contrast_dtw_words": 2,
+  "original_supplied_snapshot_retained": true,
+  "subtitle_exports": {
+    ".lrc": "fd2100e6747ee134e2c21a237983760c736a2ebd709ff3e4e4a4b1bd09906efc",
+    ".srt": "2a2d0750accf9f828803e814bad0e4511d8a161632ff94b896b24decf472a520"
+  }
+}

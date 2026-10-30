@@ -326,22 +326,23 @@ export const api = {
       body:JSON.stringify({file_name:fileName,segments,language,instrumental_file_name:instrumentalFileName})});
     if(!res.ok){const error=await res.json().catch(()=>({}));throw Error(error.detail||'Senkron başlatılamadı.');}
     const {task_id}=await res.json();
-    return pollBackendTask<{segments:LyricSegment[];alignment_report:{linked_words:number;target_words:number;review_rows:number[];preserved_rows:number;solo_count?:number;repeated_rows_added?:number;terminal_repeats_added?:number;repeat_review_candidates?:{text:string;start:number;end:number;reason:string}[]}}>(task_id,onProgress);
+    return pollBackendTask<{segments:LyricSegment[];alignment_report:{linked_words:number;target_words:number;review_rows:number[];preserved_rows:number;solo_count?:number;repeated_rows_added?:number;terminal_repeats_added?:number;automatic_syllables?:number;phrase_audited_words?:number;refinement_warnings?:{stage:string;reason:string}[];quality?:{status:string;estimated_words:{row:number;word:number}[];audit_coverage?:{eligible_words:number;audited_words:number;complete:boolean}};repeat_review_candidates?:{text:string;start:number;end:number;reason:string}[]}}>(task_id,onProgress);
   },
 
   async saveLyrics(
     fileName: string,
     segments: LyricSegment[],
-    language: string = 'tr'
+    language: string = 'tr',
+    expectedRevision: string = '0'
   ): Promise<LyricsResponse> {
     const res = await safeFetch('/save_lyrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ file_name: fileName, language, segments }),
+      body: JSON.stringify({ file_name: fileName, language, segments, expected_revision: expectedRevision }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || err.message || 'Failed to save lyrics to database');
+      throw Object.assign(new Error(err.detail || err.message || 'Failed to save lyrics to database'),{status:res.status});
     }
     return res.json();
   },

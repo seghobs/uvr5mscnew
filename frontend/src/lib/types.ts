@@ -112,10 +112,14 @@ export interface LyricSegment {
   start: number;
   end: number;
   text: string;
-  words?: Array<{ word: string; start: number; end: number; probability?: number | null; timing_source?: 'aligned' | 'ctc' | 'manual' | 'estimated' | 'repeat_inferred'; needs_review?: boolean; timing_reference?: {row_ids:string[];anchor_words:number;method:string}|null }>;
+  words?: Array<{ word: string; start: number; end: number; probability?: number | null; timing_source?: 'aligned' | 'ctc' | 'manual' | 'estimated' | 'repeat_inferred'; needs_review?: boolean; timing_reference?: {row_ids:string[];anchor_words:number;method:string}|null; syllables?: Array<{text:string;start:number;end:number;score:number;needs_review?:boolean;timing_source?:string}>|null;syllable_reference?:{word_start:number;word_end:number;word_text:string}|null;alignment_audit?:Record<string,unknown>|null;
+    timing_parts?:Array<{text:string;start:number;end:number;score:number;needs_review?:boolean}>|null;
+    timing_parts_reference?:{word_start:number;word_end:number;word_text:string}|null;
+  }>;
 }
 
 export interface LyricsResponse {
+  revision?: string;
   file_name?: string;
   language?: string;
   paste_report?: {mode:'line_by_line';total:number;aligned:number;pending:number[]} | null;

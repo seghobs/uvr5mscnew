@@ -2,9 +2,41 @@ import type { LyricSegment } from './types';
 
 export type TimedWord = NonNullable<LyricSegment['words']>[number];
 
-export function preferLyricDraft(draft:{segments:LyricSegment[];modifiedAt?:number}|null,saved:{segments:LyricSegment[];updated_at?:string}|null):boolean {
-  if(!draft?.segments.length)return false;
+const syllableTextKey=(text:string)=>text.normalize('NFC').replaceAll('İ','i').replaceAll('I','ı').toLowerCase().replace(/[^\p{L}\p{M}\p{N}]/gu,'');
+export function syllablePieces(word:TimedWord):Array<{text:string;start:number;end:number;score:number}> {
+  const punctuationParts=Boolean(word.timing_parts?.length);
+  const parts=punctuationParts?word.timing_parts:word.syllables;
+  if(!Array.isArray(parts)||!parts.length||word.needs_review||['estimated','repeat_inferred'].includes(word.timing_source||''))return [];
+  if(parts.some(p=>!p||typeof p.text!=='string')||syllableTextKey(parts.map(p=>p.text).join(''))!==syllableTextKey(word.word))return [];
+  const ref=punctuationParts?word.timing_parts_reference:word.syllable_reference;
+  if(punctuationParts&&!ref)return [];
+  if(ref){if(typeof ref.word_text!=='string'||ref.word_start!==word.start||ref.word_end!==word.end||syllableTextKey(ref.word_text)!==syllableTextKey(word.word))return [];}
+  else if(Math.abs(parts[0].start-word.start)>.02||Math.abs(parts.at(-1)!.end-word.end)>.02)return [];
+  const raw=Array.from(word.word.normalize('NFC'));let cursor=0,previous=word.start;
+  const result=[];
+  for(let i=0;i<parts.length;i++){
+    const p=parts[i];
+    if(![p.start,p.end,p.score].every(Number.isFinite)||p.score<(punctuationParts ? .5 : .55)||p.needs_review||p.start<previous||p.end<=p.start||p.start<word.start||p.end>word.end)return [];
+    let count=Array.from(syllableTextKey(p.text)).length;const first=cursor;
+    while(cursor<raw.length&&count){if(/[\p{L}\p{M}\p{N}]/u.test(raw[cursor]))count--;cursor++;}
+    if(count)return [];
+    if(i===parts.length-1)cursor=raw.length;
+    result.push({text:raw.slice(first,cursor).join(''),start:p.start,end:p.end,score:p.score});previous=p.end;
+  }
+  return result;
+}
+
+export function syllableFill(word:TimedWord,time:number):number|null {
+  const parts=syllablePieces(word);
+  if(!parts.length)return null;
+  const total=parts.reduce((sum,p)=>sum+Array.from(p.text).length,0);
+  return parts.reduce((sum,p)=>sum+Array.from(p.text).length*Math.max(0,Math.min(1,(time-p.start)/(p.end-p.start))),0)/total;
+}
+
+export function preferLyricDraft(draft:{segments:LyricSegment[];modifiedAt?:number;baseRevision?:string}|null,saved:{segments:LyricSegment[];updated_at?:string;revision?:string}|null):boolean {
+  if(!draft||!Array.isArray(draft.segments))return false;
   if(!saved)return true;
+  if(saved.revision!==undefined)return draft.baseRevision===saved.revision;
   if(!draft.modifiedAt)return false; // Legacy drafts cannot supersede a persisted project.
   const value=saved.updated_at;
   const savedAt=value?Date.parse(/[zZ]|[+-]\d\d:\d\d$/.test(value)?value:value+'Z'):0;
@@ -135,7 +167,7 @@ export function wordFill(word: TimedWord, time: number, previousEnd = 0, nextSta
   // Confidence remains visible via the ? badge and is checked for export.
   if (![word.start, word.end, time].every(Number.isFinite) || word.start < 0 || word.end <= word.start
     || word.start < previousEnd - 1e-7 || word.end > nextStart + 1e-7 || time < word.start) return 0;
-  return Math.min(1, (time - word.start) / (word.end - word.start));
+  return syllableFill(word,time)??Math.min(1, (time - word.start) / (word.end - word.start));
 }
 
 export function wordFillWithNeighbors(word: TimedWord, time: number, previous?: TimedWord, next?: TimedWord): number {
